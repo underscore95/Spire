@@ -1,12 +1,22 @@
 #include "Engine.h"
 
+#include <memory>
+
 #include "Application.h"
+#include "Engine/Rendering/RenderingManager.h"
 #include "Engine/Window/Window.h"
 
 Engine::Engine(std::unique_ptr<Application> app)
     : m_application(std::move(app)),
       m_initialized(false) {
+    // Window
     if (!Window::Init()) return;
+
+    // RenderingManager
+    m_renderingManager = std::make_unique<RenderingManager>(
+        m_application->GetApplicationName()
+    );
+    if (!m_renderingManager->IsValid()) return;
 
     m_initialized = true;
     Start();

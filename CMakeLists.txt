@@ -14,14 +14,15 @@ add_executable(VulkanTutorial
         Source/Game/GameApplication.cpp
         Source/Game/GameApplication.h
         Source/Engine/EngineIncludes.h
+        Source/Engine/Rendering/RenderingManager.cpp
+        Source/Engine/Rendering/RenderingManager.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source/")
 
 # Vulkan
 find_package(Vulkan REQUIRED)
-target_link_libraries(VulkanTutorial PRIVATE ${VULKAN_LIB_LIST})
-target_include_directories(VulkanTutorial PUBLIC ${VULKAN_INCLUDE_DIRS})
+target_link_libraries(VulkanTutorial PRIVATE Vulkan::Vulkan)
 
 # glfw3
 find_package(glfw3 REQUIRED)

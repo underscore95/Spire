@@ -11,6 +11,10 @@ void GameApplication::Update() {
 void GameApplication::Render() {
 }
 
-bool GameApplication::ShouldClose() {
+bool GameApplication::ShouldClose() const {
     return m_window->ShouldClose();
+}
+
+std::string GameApplication::GetApplicationName() const {
+    return "MyApp";
 }

@@ -10,7 +10,9 @@ public:
 
     void Render() override;
 
-    bool ShouldClose() override;
+    bool ShouldClose() const override;
+
+    std::string GetApplicationName() const override;
 
 private:
     std::unique_ptr<Window> m_window;

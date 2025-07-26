@@ -11,5 +11,7 @@ public:
 
     virtual void Render() = 0;
 
-    virtual bool ShouldClose() = 0;
+    virtual bool ShouldClose() const = 0;
+
+    virtual std::string GetApplicationName() const = 0;
 };
