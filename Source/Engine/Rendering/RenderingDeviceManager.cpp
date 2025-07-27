@@ -193,6 +193,8 @@ RenderingDeviceManager::RenderingDeviceManager(
         logMessage += std::format("\n    Num heap types {}\n", m_devices[i].MemoryProperties.memoryHeapCount);
         if (i + 1 < numDevices) logMessage += "\n";
         if (logDeviceInfo) spdlog::info(logMessage);
+
+        vkGetPhysicalDeviceFeatures(m_devices[i].PhysicalDeviceHandle, &m_devices[i].Features);
     }
 
     m_initialized = true;

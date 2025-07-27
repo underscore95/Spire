@@ -15,6 +15,7 @@ public:
         VkSurfaceCapabilitiesKHR SurfaceCapabilities;
         VkPhysicalDeviceMemoryProperties MemoryProperties;
         std::vector<VkPresentModeKHR> PresentModes;
+        VkPhysicalDeviceFeatures Features;
     };
 
 public:
@@ -26,13 +27,13 @@ public:
     [[nodiscard]] bool IsValid() const;
 
     // Select a device and return the queue family index
-    glm::u32 SelectDevice(VkQueueFlags requiredQueueType, bool supportsPresent);
+    [[nodiscard]] glm::u32 SelectDevice(VkQueueFlags requiredQueueType, bool supportsPresent);
 
     // Get the selected device
     [[nodiscard]] const PhysicalDevice &Selected() const;
 
 private:
-    std::vector<PhysicalDevice> m_devices;
     int m_deviceIndex = -1;
     bool m_initialized = false;
+    std::vector<PhysicalDevice> m_devices;
 };

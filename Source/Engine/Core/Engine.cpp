@@ -1,6 +1,7 @@
 #include "Engine.h"
 
 #include <memory>
+#include <spdlog/spdlog.h>
 
 #include "Application.h"
 #include "Engine/Rendering/RenderingManager.h"
@@ -9,6 +10,8 @@
 Engine::Engine(std::unique_ptr<Application> app)
     : m_application(std::move(app)),
       m_initialized(false) {
+    spdlog::info("Initializing engine...");
+
     // Window
     if (!Window::Init()) return;
     m_window = Window::Create();
@@ -22,14 +25,20 @@ Engine::Engine(std::unique_ptr<Application> app)
 
     m_initialized = true;
     Start();
+
+    spdlog::info("Initialized engine!\n");
 }
 
 Engine::~Engine() {
+    spdlog::info("Shutting down engine...");
+
     m_application.reset();
 
     Window::Shutdown();
 
     m_renderingManager.reset();
+
+    spdlog::info("Shut down engine!");
 }
 
 const Window &Engine::GetWindow() const {

@@ -15,8 +15,10 @@ RenderingManager::RenderingManager(const std::string &applicationName, const Win
     CreateInstance(applicationName);
     CreateDebugCallback();
     CreateSurface(window);
+
     m_deviceManager = std::make_unique<RenderingDeviceManager>(m_instance, m_surface, false);
-    m_deviceManager->SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
+    m_deviceQueueFamily = m_deviceManager->SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
+    CreateLogicalDevice();
 
     spdlog::info("Initialized RenderingManager!");
 }
@@ -24,6 +26,10 @@ RenderingManager::RenderingManager(const std::string &applicationName, const Win
 RenderingManager::~RenderingManager() {
     spdlog::info("Destroying RenderingManager...");
 
+    if (m_device) {
+        vkDestroyDevice(m_device, nullptr);
+        spdlog::info("Destroyed logical device");
+    }
     m_deviceManager.reset();
 
     if (m_surface) {
@@ -42,7 +48,12 @@ RenderingManager::~RenderingManager() {
 }
 
 bool RenderingManager::IsValid() const {
-    return m_instance && m_debugMessenger && m_surface;
+    return m_instance &&
+           m_debugMessenger &&
+           m_surface &&
+           m_deviceManager &&
+           m_deviceQueueFamily != INVALID_DEVICE_QUEUE_FAMILY &&
+           m_device;
 }
 
 // https://github.com/emeiri/ogldev/blob/VULKAN_02/Vulkan/VulkanCore/Source/core.cpp
@@ -116,6 +127,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL RenderingManager::DebugCallback(
             break;
     }
 
+    if (logLevel == spdlog::level::info) return VK_FALSE;
+
     // Build string
     std::string objectStr;
     for (glm::u32 i = 0; i < pCallbackData->objectCount; i++) {
@@ -123,14 +136,14 @@ VKAPI_ATTR VkBool32 VKAPI_CALL RenderingManager::DebugCallback(
     }
 
     std::string message = fmt::format(
-        "Debug callback: {}\n Type: {}\n Objects: {}",
+        "Debug callback: '{}'\n Type: {}\n Objects: {}",
         pCallbackData->pMessage,
         VulkanUtils::GetDebugType(Type),
         objectStr
     );
 
     // Log
-    spdlog::log(logLevel, "{}", message);
+    spdlog::log(logLevel,  message);
 
     return VK_FALSE; // The function that caused error should not be aborted
 }
@@ -158,6 +171,61 @@ void RenderingManager::CreateSurface(const Window &window) {
     }
 }
 
+void RenderingManager::CreateLogicalDevice() {
+    float queuePriorities[] = {1.0f};
+
+    VkDeviceQueueCreateInfo queueInfo = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0, // must be zero
+        .queueFamilyIndex = m_deviceQueueFamily,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriorities[0]
+    };
+
+    std::vector deviceExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
+    };
+
+    if (m_deviceManager->Selected().Features.geometryShader == VK_FALSE) {
+        spdlog::error("The Geometry Shader is not supported!");
+        return;
+    }
+
+    if (m_deviceManager->Selected().Features.tessellationShader == VK_FALSE) {
+        spdlog::error("The Tessellation Shader is not supported!");
+        return;
+    }
+
+    VkPhysicalDeviceFeatures deviceFeatures = {};
+    deviceFeatures.geometryShader = VK_TRUE;
+    deviceFeatures.tessellationShader = VK_TRUE;
+
+    VkDeviceCreateInfo deviceCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &queueInfo,
+        .enabledLayerCount = 0, // DEPRECATED
+        .ppEnabledLayerNames = nullptr, // DEPRECATED
+        .enabledExtensionCount = static_cast<glm::u32>(deviceExtensions.size()),
+        .ppEnabledExtensionNames = deviceExtensions.data(),
+        .pEnabledFeatures = &deviceFeatures
+    };
+
+    VkResult result = vkCreateDevice(
+        m_deviceManager->Selected().PhysicalDeviceHandle,
+        &deviceCreateInfo, nullptr,
+        &m_device
+    );
+    if (result != VK_SUCCESS) {
+        spdlog::error("Failed to create logical device");
+    } else {
+        spdlog::info("Created logical device");
+    }
+}
 
 void RenderingManager::CreateDebugCallback() {
     // Debug message create info
@@ -197,5 +265,5 @@ void RenderingManager::CreateDebugCallback() {
         return;
     }
 
-    spdlog::info("Debug utils messenger created");
+    spdlog::info("Debug callback created");
 }

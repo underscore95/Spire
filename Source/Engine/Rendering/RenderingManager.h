@@ -3,6 +3,7 @@
 #include <string>
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <glm/fwd.hpp>
 
 class Window;
 class RenderingDeviceManager;
@@ -31,9 +32,14 @@ private:
 
     void CreateSurface(const Window &window);
 
+    void CreateLogicalDevice();
+
 private:
     VkInstance m_instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
     std::unique_ptr<RenderingDeviceManager> m_deviceManager = nullptr;
+    const glm::u32 INVALID_DEVICE_QUEUE_FAMILY = -1; // underflow
+    glm::u32 m_deviceQueueFamily = INVALID_DEVICE_QUEUE_FAMILY;
+    VkDevice m_device = VK_NULL_HANDLE;
 };
