@@ -20,6 +20,9 @@ public:
     [[nodiscard]] std::string GetApplicationName() const override;
 
 private:
+    void RecordCommandBuffers() const;
+
+private:
     Engine *m_engine = nullptr;
     std::vector<VkCommandBuffer> m_commandBuffers;
 };

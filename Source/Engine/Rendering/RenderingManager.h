@@ -21,6 +21,8 @@ public:
 
     [[nodiscard]] glm::u32 GetNumImages() const;
 
+    const VkImage &GetImage(glm::u32 Index) const;
+
     [[nodiscard]] RenderingCommandManager &GetCommandManager() const;
 
 private:

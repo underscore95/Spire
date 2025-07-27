@@ -53,3 +53,17 @@ void RenderingCommandManager::FreeCommandBuffers(glm::u32 count, const VkCommand
     DEBUG_ASSERT(m_allocatedCommandBuffers>=count); // Freed too many times (or a create call failed)
     m_allocatedCommandBuffers -= count;
 }
+
+void RenderingCommandManager::BeginCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags usageFlags) const {
+    VkCommandBufferBeginInfo BeginInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .pNext = nullptr,
+        .flags = usageFlags,
+        .pInheritanceInfo = nullptr
+    };
+
+    VkResult res = vkBeginCommandBuffer(commandBuffer, &BeginInfo);
+    if (res != VK_SUCCESS) {
+        spdlog::error("Failed to begin command buffer");
+    }
+}

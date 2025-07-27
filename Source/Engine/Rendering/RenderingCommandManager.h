@@ -14,6 +14,8 @@ public:
 
     void FreeCommandBuffers(glm::u32 count, const VkCommandBuffer *commandBuffers);
 
+    void BeginCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags usageFlags) const;
+
 private:
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
     VkDevice m_device = VK_NULL_HANDLE;

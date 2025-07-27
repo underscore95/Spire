@@ -27,9 +27,8 @@ Engine::Engine(std::unique_ptr<Application> app)
     }
 
     m_initialized = true;
-    Start();
-
     spdlog::info("Initialized engine!\n");
+    Start();
 }
 
 Engine::~Engine() {

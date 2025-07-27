@@ -82,6 +82,11 @@ glm::u32 RenderingManager::GetNumImages() const {
     return m_images.size();
 }
 
+const VkImage &RenderingManager::GetImage(glm::u32 index) const {
+    ASSERT(index<m_images.size());
+    return m_images[index];
+}
+
 RenderingCommandManager &RenderingManager::GetCommandManager() const {
     return *m_commandManager;
 }
