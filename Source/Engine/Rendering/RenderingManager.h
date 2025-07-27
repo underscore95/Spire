@@ -18,6 +18,12 @@ public:
 public:
     [[nodiscard]] bool IsValid() const;
 
+    [[nodiscard]] glm::u32 GetNumImages() const;
+
+    void CreateCommandBuffers(glm::u32 count, VkCommandBuffer *commandBuffers) const;
+
+    void FreeCommandBuffers(glm::u32 count, const VkCommandBuffer *commandBuffers) const;
+
 private:
     void CreateInstance(const std::string &applicationName);
 
@@ -37,6 +43,8 @@ private:
 
     void CreateSwapChain();
 
+    void CreateCommandPool();
+
 private:
     VkInstance m_instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
@@ -48,4 +56,5 @@ private:
     VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
     std::vector<VkImage> m_images;
     std::vector<VkImageView> m_imageViews;
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
 };

@@ -48,6 +48,10 @@ const Window &Engine::GetWindow() const {
     return *m_window;
 }
 
+const RenderingManager &Engine::GetRenderingManager() const {
+    return *m_renderingManager;
+}
+
 void Engine::Start() {
     m_application->Start(*this);
 

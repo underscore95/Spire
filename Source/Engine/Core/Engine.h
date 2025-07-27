@@ -14,7 +14,9 @@ public:
     ~Engine();
 
 public:
-    const Window& GetWindow() const;
+    [[nodiscard]] const Window &GetWindow() const;
+
+    [[nodiscard]] const RenderingManager& GetRenderingManager() const;
 
 private:
     void Start();
