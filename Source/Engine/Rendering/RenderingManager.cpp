@@ -3,19 +3,33 @@
 #include <vector>
 #include <spdlog/spdlog.h>
 #include "Engine/Core/Engine.h"
+#include "VulkanUtils.h"
 
 RenderingManager::RenderingManager(const std::string &applicationName) {
     CreateInstance(applicationName);
+    CreateDebugCallback();
 }
 
 RenderingManager::~RenderingManager() {
+    if (m_debugMessenger) {
+        PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = VK_NULL_HANDLE;
+        vkDestroyDebugUtilsMessenger = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT");
+        if (!vkDestroyDebugUtilsMessenger) {
+            spdlog::error("Cannot find address of vkDestroyDebugUtilsMessenger\n");
+        } else {
+            vkDestroyDebugUtilsMessenger(m_instance, m_debugMessenger, NULL);
+            spdlog::info("Destroyed debug utils messenger");
+        }
+    }
+
     if (m_instance) {
         vkDestroyInstance(m_instance, nullptr);
+        spdlog::info("Destroyed Vulkan instance");
     }
 }
 
 bool RenderingManager::IsValid() const {
-    return m_instance;
+    return m_instance && m_debugMessenger;
 }
 
 // https://github.com/emeiri/ogldev/blob/VULKAN_02/Vulkan/VulkanCore/Source/core.cpp
@@ -36,7 +50,6 @@ void RenderingManager::CreateInstance(const std::string &applicationName) {
         "VK_KHR_xcb_surface",
 #endif
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-        VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
     };
 
     VkApplicationInfo AppInfo = {
@@ -52,7 +65,7 @@ void RenderingManager::CreateInstance(const std::string &applicationName) {
     VkInstanceCreateInfo CreateInfo = {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pNext = nullptr,
-        .flags = 0,				// reserved for future use. Must be zero
+        .flags = 0, // reserved for future use. Must be zero
         .pApplicationInfo = &AppInfo,
         .enabledLayerCount = static_cast<glm::u32>(Layers.size()),
         .ppEnabledLayerNames = Layers.data(),
@@ -61,10 +74,92 @@ void RenderingManager::CreateInstance(const std::string &applicationName) {
     };
 
     VkResult res = vkCreateInstance(&CreateInfo, nullptr, &m_instance);
-    if (res!=VK_SUCCESS) {
+    if (res != VK_SUCCESS) {
         spdlog::error("Failed to create Vulkan instance");
         return;
     }
 
     spdlog::info("Created Vulkan instance");
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL RenderingManager::DebugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT Severity,
+    VkDebugUtilsMessageTypeFlagsEXT Type,
+    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+    void *pUserData
+) {
+    // Get log level
+    spdlog::level::level_enum logLevel;
+    switch (Severity) {
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: logLevel = spdlog::level::debug;
+            break;
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: logLevel = spdlog::level::info;
+            break;
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: logLevel = spdlog::level::warn;
+            break;
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: logLevel = spdlog::level::err;
+            break;
+        default: logLevel = spdlog::level::info;
+            break;
+    }
+
+    // Build string
+    std::string objectStr;
+    for (glm::u32 i = 0; i < pCallbackData->objectCount; i++) {
+        objectStr += fmt::format("{:016x} ", pCallbackData->pObjects[i].objectHandle);
+    }
+
+    std::string message = fmt::format(
+        "Debug callback: {}\n Type: {}\n Objects: {}",
+        pCallbackData->pMessage,
+        VulkanUtils::GetDebugType(Type),
+        objectStr
+    );
+
+    // Log
+    spdlog::log(logLevel, "{}", message);
+
+    return VK_FALSE; // The function that caused error should not be aborted
+}
+
+
+void RenderingManager::CreateDebugCallback() {
+    // Debug message create info
+    VkDebugUtilsMessengerCreateInfoEXT MessengerCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+        .pfnUserCallback = &DebugCallback,
+        .pUserData = nullptr
+    };
+
+    // Get address of create debug utils messenger
+    PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger = VK_NULL_HANDLE;
+
+    vkCreateDebugUtilsMessenger = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
+        vkGetInstanceProcAddr(
+            m_instance,
+            "vkCreateDebugUtilsMessengerEXT"
+        )
+    );
+
+    if (!vkCreateDebugUtilsMessenger) {
+        spdlog::error("Cannot find address of vkCreateDebugUtilsMessenger");
+        return;
+    }
+
+    // Create it
+    VkResult res = vkCreateDebugUtilsMessenger(m_instance, &MessengerCreateInfo, nullptr, &m_debugMessenger);
+    if (res != VK_SUCCESS) {
+        spdlog::error("Failed to create vulkan DebugUtilsMessenger");
+        return;
+    }
+
+    spdlog::info("Debug utils messenger created");
 }

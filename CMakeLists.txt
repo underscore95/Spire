@@ -16,6 +16,7 @@ add_executable(VulkanTutorial
         Source/Engine/EngineIncludes.h
         Source/Engine/Rendering/RenderingManager.cpp
         Source/Engine/Rendering/RenderingManager.h
+        Source/Engine/Rendering/VulkanUtils.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source/")

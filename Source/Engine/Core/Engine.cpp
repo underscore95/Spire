@@ -26,6 +26,8 @@ Engine::~Engine() {
     m_application.reset();
 
     Window::Shutdown();
+
+    m_renderingManager.reset();
 }
 
 void Engine::Start() const {
