@@ -3,6 +3,8 @@
 #include <vector>
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
+
+#include "RenderingDeviceManager.h"
 #include "Engine/Core/Engine.h"
 #include "VulkanUtils.h"
 #include "Engine/Window/Window.h"
@@ -13,12 +15,16 @@ RenderingManager::RenderingManager(const std::string &applicationName, const Win
     CreateInstance(applicationName);
     CreateDebugCallback();
     CreateSurface(window);
+    m_deviceManager = std::make_unique<RenderingDeviceManager>(m_instance, m_surface, false);
+    m_deviceManager->SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
 
     spdlog::info("Initialized RenderingManager!");
 }
 
 RenderingManager::~RenderingManager() {
     spdlog::info("Destroying RenderingManager...");
+
+    m_deviceManager.reset();
 
     if (m_surface) {
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
@@ -138,7 +144,7 @@ void RenderingManager::DestroyDebugCallback() const {
             spdlog::error("Cannot find address of vkDestroyDebugUtilsMessenger");
         } else {
             vkDestroyDebugUtilsMessenger(m_instance, m_debugMessenger, nullptr);
-            spdlog::info("Destroyed debug utils messenger");
+            spdlog::info("Destroyed Debug Callback");
         }
     }
 }
