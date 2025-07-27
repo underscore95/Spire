@@ -20,11 +20,21 @@ RenderingManager::RenderingManager(const std::string &applicationName, const Win
     m_deviceQueueFamily = m_deviceManager->SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
     CreateLogicalDevice();
 
+    CreateSwapChain();
+
     spdlog::info("Initialized RenderingManager!");
 }
 
 RenderingManager::~RenderingManager() {
     spdlog::info("Destroying RenderingManager...");
+
+    for (auto &m_imageView: m_imageViews) {
+        vkDestroyImageView(m_device, m_imageView, nullptr);
+    }
+    if (m_swapChain) {
+        vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
+        spdlog::info("Destroyed swapchain");
+    }
 
     if (m_device) {
         vkDestroyDevice(m_device, nullptr);
@@ -53,7 +63,10 @@ bool RenderingManager::IsValid() const {
            m_surface &&
            m_deviceManager &&
            m_deviceQueueFamily != INVALID_DEVICE_QUEUE_FAMILY &&
-           m_device;
+           m_device &&
+           m_swapChain &&
+           !m_images.empty() &&
+           !m_imageViews.empty();
 }
 
 // https://github.com/emeiri/ogldev/blob/VULKAN_02/Vulkan/VulkanCore/Source/core.cpp
@@ -143,7 +156,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL RenderingManager::DebugCallback(
     );
 
     // Log
-    spdlog::log(logLevel,  message);
+    spdlog::log(logLevel, message);
 
     return VK_FALSE; // The function that caused error should not be aborted
 }
@@ -224,6 +237,148 @@ void RenderingManager::CreateLogicalDevice() {
         spdlog::error("Failed to create logical device");
     } else {
         spdlog::info("Created logical device");
+    }
+}
+
+static VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR> &PresentModes) {
+    for (const auto &PresentMode: PresentModes) {
+        if (PresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+            return PresentMode;
+        }
+    }
+
+    // Fallback to FIFO which is always supported
+    return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+
+static glm::u32 ChooseNumImages(const VkSurfaceCapabilitiesKHR &Capabilities) {
+    glm::u32 requestedNumImages = Capabilities.minImageCount + 1;
+
+    glm::u32 finalNumImages = 0;
+
+    if ((Capabilities.maxImageCount > 0) && (requestedNumImages > Capabilities.maxImageCount)) {
+        finalNumImages = Capabilities.maxImageCount;
+    } else {
+        finalNumImages = requestedNumImages;
+    }
+
+    return finalNumImages;
+}
+
+
+static VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace(const std::vector<VkSurfaceFormatKHR> &SurfaceFormats) {
+    for (const auto &SurfaceFormat: SurfaceFormats) {
+        if ((SurfaceFormat.format == VK_FORMAT_B8G8R8A8_SRGB) &&
+            (SurfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)) {
+            return SurfaceFormat;
+        }
+    }
+
+    return SurfaceFormats[0];
+}
+
+VkImageView CreateImageView(VkDevice Device, VkImage Image, VkFormat Format, VkImageAspectFlags AspectFlags,
+                            VkImageViewType ViewType, glm::u32 LayerCount, glm::u32 mipLevels) {
+    VkImageViewCreateInfo ViewInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .image = Image,
+        .viewType = ViewType,
+        .format = Format,
+        .components = {
+            .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .a = VK_COMPONENT_SWIZZLE_IDENTITY
+        },
+        .subresourceRange = {
+            .aspectMask = AspectFlags,
+            .baseMipLevel = 0,
+            .levelCount = mipLevels,
+            .baseArrayLayer = 0,
+            .layerCount = LayerCount
+        }
+    };
+
+    VkImageView ImageView;
+    VkResult res = vkCreateImageView(Device, &ViewInfo, nullptr, &ImageView);
+    if (res != VK_SUCCESS) {
+        spdlog::error("Failed to create image view");
+    }
+    return ImageView;
+}
+
+void RenderingManager::CreateSwapChain() {
+    // Create swapchain
+    const VkSurfaceCapabilitiesKHR &surfaceCapabilities = m_deviceManager->Selected().SurfaceCapabilities;
+
+    glm::u32 numImages = ChooseNumImages(surfaceCapabilities);
+
+    const std::vector<VkPresentModeKHR> &PresentModes = m_deviceManager->Selected().PresentModes;
+    VkPresentModeKHR presentMode = ChoosePresentMode(PresentModes);
+
+    VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormatAndColorSpace(m_deviceManager->Selected().SurfaceFormats);
+
+    VkSwapchainCreateInfoKHR SwapChainCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .flags = 0,
+        .surface = m_surface,
+        .minImageCount = numImages,
+        .imageFormat = surfaceFormat.format,
+        .imageColorSpace = surfaceFormat.colorSpace,
+        .imageExtent = surfaceCapabilities.currentExtent,
+        .imageArrayLayers = 1,
+        .imageUsage = (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT),
+        .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 1,
+        .pQueueFamilyIndices = &m_deviceQueueFamily,
+        .preTransform = surfaceCapabilities.currentTransform,
+        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .presentMode = presentMode,
+        .clipped = VK_TRUE
+    };
+
+    VkResult res = vkCreateSwapchainKHR(m_device, &SwapChainCreateInfo, nullptr, &m_swapChain);
+    if (res != VK_SUCCESS) {
+        spdlog::error("Failed to create Vulkan swapchain");
+    } else {
+        spdlog::info("Created Vulkan swapchain");
+    }
+
+    // Create swapchain images
+    glm::u32 numSwapChainImages = 0;
+    res = vkGetSwapchainImagesKHR(m_device, m_swapChain, &numSwapChainImages, nullptr);
+    if (res != VK_SUCCESS) {
+        spdlog::error("Failed to get number of swapchain images");
+    }
+    ASSERT(numImages == numSwapChainImages);
+
+    spdlog::info("Number of swapchain images {}", numSwapChainImages);
+
+    m_images.resize(numSwapChainImages);
+    m_imageViews.resize(numSwapChainImages);
+
+    res = vkGetSwapchainImagesKHR(m_device, m_swapChain, &numSwapChainImages, m_images.data());
+    if (res != VK_SUCCESS) {
+        spdlog::error("Failed to get swapchain images ({} known)", numSwapChainImages);
+    }
+
+    for (glm::u32 i = 0; i < numSwapChainImages; i++) {
+        int mipLevels = 1;
+        int layerCount = 1;
+        m_imageViews[i] = CreateImageView(
+            m_device,
+            m_images[i],
+            surfaceFormat.format,
+            VK_IMAGE_ASPECT_COLOR_BIT,
+            VK_IMAGE_VIEW_TYPE_2D,
+            layerCount,
+            mipLevels
+        );
     }
 }
 

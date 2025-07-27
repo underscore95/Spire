@@ -3,6 +3,7 @@
 #include <string>
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <vector>
 #include <glm/fwd.hpp>
 
 class Window;
@@ -15,7 +16,7 @@ public:
     ~RenderingManager();
 
 public:
-    bool IsValid() const;
+    [[nodiscard]] bool IsValid() const;
 
 private:
     void CreateInstance(const std::string &applicationName);
@@ -34,6 +35,8 @@ private:
 
     void CreateLogicalDevice();
 
+    void CreateSwapChain();
+
 private:
     VkInstance m_instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
@@ -42,4 +45,7 @@ private:
     const glm::u32 INVALID_DEVICE_QUEUE_FAMILY = -1; // underflow
     glm::u32 m_deviceQueueFamily = INVALID_DEVICE_QUEUE_FAMILY;
     VkDevice m_device = VK_NULL_HANDLE;
+    VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
+    std::vector<VkImage> m_images;
+    std::vector<VkImageView> m_imageViews;
 };

@@ -21,7 +21,10 @@ Engine::Engine(std::unique_ptr<Application> app)
         m_application->GetApplicationName(),
         GetWindow()
     );
-    if (!m_renderingManager->IsValid()) return;
+    if (!m_renderingManager->IsValid()) {
+        spdlog::error("Failed to initialize rendering manager");
+        return;
+    }
 
     m_initialized = true;
     Start();
