@@ -9,6 +9,7 @@
 class RenderingCommandManager;
 class Window;
 class RenderingDeviceManager;
+class VulkanQueue;
 
 class RenderingManager {
 public:
@@ -21,9 +22,17 @@ public:
 
     [[nodiscard]] glm::u32 GetNumImages() const;
 
-    const VkImage &GetImage(glm::u32 Index) const;
+    [[nodiscard]] const VkImage &GetImage(glm::u32 Index) const;
 
     [[nodiscard]] RenderingCommandManager &GetCommandManager() const;
+
+    [[nodiscard]] VkSemaphore CreateSemaphore() const;
+
+    void DestroySemaphore(VkSemaphore semaphore) const;
+
+    [[nodiscard]] VulkanQueue &GetQueue() const;
+
+    [[nodiscard]] glm::u32 GetQueueFamily() const;
 
 private:
     void CreateInstance(const std::string &applicationName);
@@ -56,4 +65,5 @@ private:
     std::vector<VkImage> m_images;
     std::vector<VkImageView> m_imageViews;
     std::unique_ptr<RenderingCommandManager> m_commandManager = nullptr;
+    std::unique_ptr<VulkanQueue> m_queue;
 };

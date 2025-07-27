@@ -32,9 +32,11 @@ Engine::Engine(std::unique_ptr<Application> app)
 }
 
 Engine::~Engine() {
-    spdlog::info("Shutting down engine...");
+    spdlog::info("\nShutting down application...");
 
     m_application.reset();
+
+    spdlog::info("\nShutting down engine...");
 
     Window::Shutdown();
 

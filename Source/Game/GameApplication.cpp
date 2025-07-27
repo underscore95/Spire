@@ -23,6 +23,13 @@ void GameApplication::Update() {
 }
 
 void GameApplication::Render() {
+    auto &rm = m_engine->GetRenderingManager();
+
+    glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
+
+    rm.GetQueue().SubmitAsync(m_commandBuffers[imageIndex]);
+
+    rm.GetQueue().Present(imageIndex);
 }
 
 bool GameApplication::ShouldClose() const {
@@ -35,9 +42,9 @@ std::string GameApplication::GetApplicationName() const {
 
 void GameApplication::RecordCommandBuffers() const {
     auto &rm = m_engine->GetRenderingManager();
-    VkClearColorValue ClearColor = {1.0f, 0.0f, 0.0f, 0.0f};
+    VkClearColorValue clearColor = {1.0f, 0.0f, 0.0f, 1.0f};
 
-    VkImageSubresourceRange ImageRange = {
+    VkImageSubresourceRange imageRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,
         .levelCount = 1,
@@ -46,15 +53,12 @@ void GameApplication::RecordCommandBuffers() const {
     };
 
     for (glm::u32 i = 0; i < m_commandBuffers.size(); i++) {
-        VkCommandBufferUsageFlags flags = 0;
+        VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
         rm.GetCommandManager().BeginCommandBuffer(m_commandBuffers[i], flags);
 
-        vkCmdClearColorImage(m_commandBuffers[i], rm.GetImage(i), VK_IMAGE_LAYOUT_GENERAL, &ClearColor, 1, &ImageRange);
+        vkCmdClearColorImage(m_commandBuffers[i], rm.GetImage(i), VK_IMAGE_LAYOUT_GENERAL, &clearColor, 1, &imageRange);
 
-        VkResult res = vkEndCommandBuffer(m_commandBuffers[i]);
-        if (res != VK_SUCCESS) {
-            spdlog::error("Failed to end command buffer");
-        }
+        rm.GetCommandManager().EndCommandBuffer(m_commandBuffers[i]);
 
         spdlog::info("Command buffers recorded");
     }

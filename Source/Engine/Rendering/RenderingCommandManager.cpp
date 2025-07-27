@@ -67,3 +67,10 @@ void RenderingCommandManager::BeginCommandBuffer(VkCommandBuffer commandBuffer, 
         spdlog::error("Failed to begin command buffer");
     }
 }
+
+void RenderingCommandManager::EndCommandBuffer(VkCommandBuffer commandBuffer) const {
+    VkResult res = vkEndCommandBuffer(commandBuffer);
+    if (res != VK_SUCCESS) {
+        spdlog::error("Failed to end command buffer");
+    }
+}

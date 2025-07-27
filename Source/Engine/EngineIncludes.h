@@ -6,3 +6,4 @@
 
 #include "Engine/Rendering/RenderingManager.h"
 #include "Engine/Rendering/RenderingCommandManager.h"
+#include "Engine/Rendering/VulkanQueue.h"

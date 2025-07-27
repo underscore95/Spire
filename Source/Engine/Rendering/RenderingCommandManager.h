@@ -15,6 +15,7 @@ public:
     void FreeCommandBuffers(glm::u32 count, const VkCommandBuffer *commandBuffers);
 
     void BeginCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags usageFlags) const;
+    void EndCommandBuffer(VkCommandBuffer commandBuffer) const;
 
 private:
     VkCommandPool m_commandPool = VK_NULL_HANDLE;

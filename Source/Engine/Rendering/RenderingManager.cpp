@@ -5,6 +5,7 @@
 #include <spdlog/spdlog.h>
 #include "RenderingCommandManager.h"
 #include "RenderingDeviceManager.h"
+#include "VulkanQueue.h"
 #include "Engine/Core/Engine.h"
 #include "VulkanUtils.h"
 #include "Engine/Window/Window.h"
@@ -24,11 +25,15 @@ RenderingManager::RenderingManager(const std::string &applicationName, const Win
 
     m_commandManager = std::make_unique<RenderingCommandManager>(m_deviceQueueFamily, m_device);
 
+    m_queue = std::make_unique<VulkanQueue>(*this, m_device, m_swapChain, m_deviceQueueFamily, 0);
+
     spdlog::info("Initialized RenderingManager!");
 }
 
 RenderingManager::~RenderingManager() {
     spdlog::info("Destroying RenderingManager...");
+
+    m_queue.reset();
 
     m_commandManager.reset();
 
@@ -89,6 +94,33 @@ const VkImage &RenderingManager::GetImage(glm::u32 index) const {
 
 RenderingCommandManager &RenderingManager::GetCommandManager() const {
     return *m_commandManager;
+}
+
+VkSemaphore RenderingManager::CreateSemaphore() const {
+    VkSemaphoreCreateInfo createInfo = {
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0
+    };
+
+    VkSemaphore semaphore;
+    VkResult res = vkCreateSemaphore(m_device, &createInfo, nullptr, &semaphore);
+    if (res != VK_SUCCESS) {
+        spdlog::error("Failed to create semaphore");
+    }
+    return semaphore;
+}
+
+void RenderingManager::DestroySemaphore(VkSemaphore semaphore) const {
+    vkDestroySemaphore(m_device, semaphore, nullptr);
+}
+
+VulkanQueue &RenderingManager::GetQueue() const {
+    return *m_queue;
+}
+
+glm::u32 RenderingManager::GetQueueFamily() const {
+    return m_deviceQueueFamily;
 }
 
 
