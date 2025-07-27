@@ -3,7 +3,7 @@
 #include <vector>
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
-
+#include "RenderingCommandManager.h"
 #include "RenderingDeviceManager.h"
 #include "Engine/Core/Engine.h"
 #include "VulkanUtils.h"
@@ -22,7 +22,7 @@ RenderingManager::RenderingManager(const std::string &applicationName, const Win
 
     CreateSwapChain();
 
-    CreateCommandPool();
+    m_commandManager = std::make_unique<RenderingCommandManager>(m_deviceQueueFamily, m_device);
 
     spdlog::info("Initialized RenderingManager!");
 }
@@ -30,10 +30,7 @@ RenderingManager::RenderingManager(const std::string &applicationName, const Win
 RenderingManager::~RenderingManager() {
     spdlog::info("Destroying RenderingManager...");
 
-    if (m_commandPool) {
-        vkDestroyCommandPool(m_device, m_commandPool, nullptr);
-        spdlog::info("Destroyed command pool");
-    }
+    m_commandManager.reset();
 
     for (auto &m_imageView: m_imageViews) {
         vkDestroyImageView(m_device, m_imageView, nullptr);
@@ -85,26 +82,10 @@ glm::u32 RenderingManager::GetNumImages() const {
     return m_images.size();
 }
 
-void RenderingManager::CreateCommandBuffers(glm::u32 count, VkCommandBuffer *commandBuffers) const {
-    VkCommandBufferAllocateInfo cmdBufAllocInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .commandPool = m_commandPool,
-        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = count
-    };
-
-    VkResult res = vkAllocateCommandBuffers(m_device, &cmdBufAllocInfo, commandBuffers);
-    if (res != VK_SUCCESS) {
-        spdlog::error("Failed to create {} command buffers", count);
-    } else {
-        spdlog::info("Created {} command buffers", count);
-    }
+RenderingCommandManager &RenderingManager::GetCommandManager() const {
+    return *m_commandManager;
 }
 
-void RenderingManager::FreeCommandBuffers(glm::u32 count, const VkCommandBuffer *commandBuffers) const {
-    vkFreeCommandBuffers(m_device, m_commandPool, count, commandBuffers);
-}
 
 // https://github.com/emeiri/ogldev/blob/VULKAN_02/Vulkan/VulkanCore/Source/core.cpp
 void RenderingManager::CreateInstance(const std::string &applicationName) {
@@ -418,22 +399,6 @@ void RenderingManager::CreateSwapChain() {
             layerCount,
             mipLevels
         );
-    }
-}
-
-void RenderingManager::CreateCommandPool() {
-    VkCommandPoolCreateInfo cmdPoolCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .queueFamilyIndex = m_deviceQueueFamily
-    };
-
-    VkResult res = vkCreateCommandPool(m_device, &cmdPoolCreateInfo, nullptr, &m_commandPool);
-    if (res != VK_SUCCESS) {
-        spdlog::error("Failed to create command pool");
-    } else {
-        spdlog::info("Command buffer pool created");
     }
 }
 
