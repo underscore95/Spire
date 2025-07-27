@@ -11,10 +11,12 @@ Engine::Engine(std::unique_ptr<Application> app)
       m_initialized(false) {
     // Window
     if (!Window::Init()) return;
+    m_window = Window::Create();
 
     // RenderingManager
     m_renderingManager = std::make_unique<RenderingManager>(
-        m_application->GetApplicationName()
+        m_application->GetApplicationName(),
+        GetWindow()
     );
     if (!m_renderingManager->IsValid()) return;
 
@@ -30,8 +32,12 @@ Engine::~Engine() {
     m_renderingManager.reset();
 }
 
-void Engine::Start() const {
-    m_application->Start();
+const Window &Engine::GetWindow() const {
+    return *m_window;
+}
+
+void Engine::Start() {
+    m_application->Start(*this);
 
     while (!m_application->ShouldClose()) {
         Update();

@@ -1,11 +1,13 @@
 #pragma once
 
+class Engine;
+
 class Application {
 public:
     virtual ~Application() = default;
 
 public:
-    virtual void Start() = 0;
+    virtual void Start(Engine& engine) = 0;
 
     virtual void Update() = 0;
 

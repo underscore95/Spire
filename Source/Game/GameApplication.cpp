@@ -1,18 +1,17 @@
 #include "GameApplication.h"
 
-void GameApplication::Start() {
-    m_window = Window::Create();
+void GameApplication::Start(Engine &engine) {
+    m_engine = &engine;
 }
 
 void GameApplication::Update() {
-
 }
 
 void GameApplication::Render() {
 }
 
 bool GameApplication::ShouldClose() const {
-    return m_window->ShouldClose();
+    return m_engine->GetWindow().ShouldClose();
 }
 
 std::string GameApplication::GetApplicationName() const {

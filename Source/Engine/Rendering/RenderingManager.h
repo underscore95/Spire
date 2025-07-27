@@ -3,9 +3,11 @@
 #include <string>
 #include <vulkan/vulkan.h>
 
+class Window;
+
 class RenderingManager {
 public:
-    explicit RenderingManager(const std::string &applicationName);
+    explicit RenderingManager(const std::string &applicationName, const Window& window);
 
     ~RenderingManager();
 
@@ -23,7 +25,12 @@ private:
         const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
         void *pUserData);
 
+    void DestroyDebugCallback() const;
+
+    void CreateSurface(const Window& window);
+
 private:
     VkInstance m_instance = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
+    VkSurfaceKHR m_surface=VK_NULL_HANDLE;
 };

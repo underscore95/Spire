@@ -4,7 +4,7 @@
 
 class GameApplication : public Application {
 public:
-    void Start() override;
+    void Start(Engine &engine) override;
 
     void Update() override;
 
@@ -15,5 +15,5 @@ public:
     std::string GetApplicationName() const override;
 
 private:
-    std::unique_ptr<Window> m_window;
+    Engine* m_engine;
 };

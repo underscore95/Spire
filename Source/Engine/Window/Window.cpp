@@ -45,6 +45,7 @@ bool Window::Init() {
         return false;
     }
 
+    spdlog::info("Initialized window!");
     s_initialized = true;
     return true;
 }
@@ -57,6 +58,7 @@ void Window::Shutdown() {
 
     glfwTerminate();
     s_initialized = false;
+    spdlog::info("Shut down window");
 }
 
 bool Window::IsValid() const {
@@ -65,6 +67,10 @@ bool Window::IsValid() const {
 
 bool Window::ShouldClose() const {
     return glfwWindowShouldClose(m_windowHandle);
+}
+
+GLFWwindow * Window::GLFWWindow() const {
+    return m_windowHandle;
 }
 
 void Window::Update() {

@@ -1,35 +1,42 @@
 #include "RenderingManager.h"
 #include <glm/glm.hpp>
 #include <vector>
+#include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 #include "Engine/Core/Engine.h"
 #include "VulkanUtils.h"
+#include "Engine/Window/Window.h"
 
-RenderingManager::RenderingManager(const std::string &applicationName) {
+RenderingManager::RenderingManager(const std::string &applicationName, const Window &window) {
+    spdlog::info("Initializing RenderingManager...");
+
     CreateInstance(applicationName);
     CreateDebugCallback();
+    CreateSurface(window);
+
+    spdlog::info("Initialized RenderingManager!");
 }
 
 RenderingManager::~RenderingManager() {
-    if (m_debugMessenger) {
-        PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = VK_NULL_HANDLE;
-        vkDestroyDebugUtilsMessenger = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT");
-        if (!vkDestroyDebugUtilsMessenger) {
-            spdlog::error("Cannot find address of vkDestroyDebugUtilsMessenger\n");
-        } else {
-            vkDestroyDebugUtilsMessenger(m_instance, m_debugMessenger, NULL);
-            spdlog::info("Destroyed debug utils messenger");
-        }
+    spdlog::info("Destroying RenderingManager...");
+
+    if (m_surface) {
+        vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+        spdlog::info("Destroyed Vulkan surface instance");
     }
+
+    DestroyDebugCallback();
 
     if (m_instance) {
         vkDestroyInstance(m_instance, nullptr);
         spdlog::info("Destroyed Vulkan instance");
     }
+
+    spdlog::info("Destroyed RenderingManager!");
 }
 
 bool RenderingManager::IsValid() const {
-    return m_instance && m_debugMessenger;
+    return m_instance && m_debugMessenger && m_surface;
 }
 
 // https://github.com/emeiri/ogldev/blob/VULKAN_02/Vulkan/VulkanCore/Source/core.cpp
@@ -120,6 +127,29 @@ VKAPI_ATTR VkBool32 VKAPI_CALL RenderingManager::DebugCallback(
     spdlog::log(logLevel, "{}", message);
 
     return VK_FALSE; // The function that caused error should not be aborted
+}
+
+void RenderingManager::DestroyDebugCallback() const {
+    if (m_debugMessenger) {
+        PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = VK_NULL_HANDLE;
+        vkDestroyDebugUtilsMessenger = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(
+            m_instance, "vkDestroyDebugUtilsMessengerEXT"));
+        if (!vkDestroyDebugUtilsMessenger) {
+            spdlog::error("Cannot find address of vkDestroyDebugUtilsMessenger");
+        } else {
+            vkDestroyDebugUtilsMessenger(m_instance, m_debugMessenger, nullptr);
+            spdlog::info("Destroyed debug utils messenger");
+        }
+    }
+}
+
+void RenderingManager::CreateSurface(const Window &window) {
+    VkResult result = glfwCreateWindowSurface(m_instance, window.GLFWWindow(), nullptr, &m_surface);
+    if (result != VK_SUCCESS) {
+        spdlog::error("Failed to create Vulkan window surface");
+    } else {
+        spdlog::info("Created Vulkan window surface");
+    }
 }
 
 

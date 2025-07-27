@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
 struct GLFWwindow;
@@ -9,6 +10,7 @@ class Engine;
 
 class Window {
     friend class Engine;
+
 private:
     Window(const std::string &title, glm::ivec2 size);
 
@@ -29,6 +31,8 @@ public:
     [[nodiscard]] bool IsValid() const;
 
     [[nodiscard]] bool ShouldClose() const;
+
+    [[nodiscard]] GLFWwindow *GLFWWindow() const;
 
 private:
     static bool s_initialized;

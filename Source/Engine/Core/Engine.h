@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 class RenderingManager;
+class Window;
 
 class Application;
 
@@ -12,8 +13,11 @@ public:
 
     ~Engine();
 
+public:
+    const Window& GetWindow() const;
+
 private:
-    void Start() const;
+    void Start();
 
     void Update() const;
 
@@ -27,4 +31,6 @@ private:
     bool m_initialized;
 
     std::unique_ptr<RenderingManager> m_renderingManager;
+
+    std::unique_ptr<Window> m_window;
 };
