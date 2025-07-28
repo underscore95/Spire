@@ -34,6 +34,8 @@ public:
 
     [[nodiscard]] GLFWwindow *GLFWWindow() const;
 
+    [[nodiscard]] glm::uvec2 GetSize() const;
+
 private:
     static bool s_initialized;
 

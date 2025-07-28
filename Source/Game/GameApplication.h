@@ -25,4 +25,6 @@ private:
 private:
     Engine *m_engine = nullptr;
     std::vector<VkCommandBuffer> m_commandBuffers;
+    VkRenderPass m_renderPass = VK_NULL_HANDLE;
+    std::vector<VkFramebuffer> m_frameBuffers;
 };

@@ -16,7 +16,7 @@ public:
 public:
     [[nodiscard]] const Window &GetWindow() const;
 
-    [[nodiscard]] const RenderingManager& GetRenderingManager() const;
+    [[nodiscard]] RenderingManager& GetRenderingManager() const;
 
 private:
     void Start();

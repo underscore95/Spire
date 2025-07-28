@@ -69,8 +69,14 @@ bool Window::ShouldClose() const {
     return glfwWindowShouldClose(m_windowHandle);
 }
 
-GLFWwindow * Window::GLFWWindow() const {
+GLFWwindow *Window::GLFWWindow() const {
     return m_windowHandle;
+}
+
+glm::uvec2 Window::GetSize() const {
+    glm::ivec2 size;
+    glfwGetWindowSize(m_windowHandle, &size.x, &size.y);
+    return size;
 }
 
 void Window::Update() {

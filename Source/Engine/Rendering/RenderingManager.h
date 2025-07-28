@@ -34,6 +34,13 @@ public:
 
     [[nodiscard]] glm::u32 GetQueueFamily() const;
 
+    [[nodiscard]] VkRenderPass CreateSimpleRenderPass() const;
+
+    [[nodiscard]] void CreateFramebuffers(std::vector<VkFramebuffer> &framebuffersOutput, VkRenderPass renderPass,
+                                          glm::ivec2 windowSize) const;
+
+    [[nodiscard]] VkDevice GetDevice() const;
+
 private:
     void CreateInstance(const std::string &applicationName);
 
@@ -61,6 +68,7 @@ private:
     const glm::u32 INVALID_DEVICE_QUEUE_FAMILY = -1; // underflow
     glm::u32 m_deviceQueueFamily = INVALID_DEVICE_QUEUE_FAMILY;
     VkDevice m_device = VK_NULL_HANDLE;
+    VkSurfaceFormatKHR m_swapChainSurfaceFormat = {};
     VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
     std::vector<VkImage> m_images;
     std::vector<VkImageView> m_imageViews;

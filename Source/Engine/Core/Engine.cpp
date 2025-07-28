@@ -51,12 +51,14 @@ const Window &Engine::GetWindow() const {
     return *m_window;
 }
 
-const RenderingManager &Engine::GetRenderingManager() const {
+RenderingManager &Engine::GetRenderingManager() const {
     return *m_renderingManager;
 }
 
 void Engine::Start() {
+    spdlog::info("Initializing application...");
     m_application->Start(*this);
+    spdlog::info("Initialized application!\n");
 
     while (!m_application->ShouldClose()) {
         Update();
