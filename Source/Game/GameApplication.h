@@ -27,4 +27,6 @@ private:
     std::vector<VkCommandBuffer> m_commandBuffers;
     VkRenderPass m_renderPass = VK_NULL_HANDLE;
     std::vector<VkFramebuffer> m_frameBuffers;
+    VkShaderModule m_vertexShader = VK_NULL_HANDLE;
+    VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
 };

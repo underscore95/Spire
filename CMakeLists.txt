@@ -23,6 +23,8 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/RenderingCommandManager.h
         Source/Engine/Rendering/VulkanQueue.cpp
         Source/Engine/Rendering/VulkanQueue.h
+        Source/Engine/Rendering/ShaderCompiler.cpp
+        Source/Engine/Rendering/ShaderCompiler.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source/")
@@ -30,6 +32,10 @@ target_include_directories(VulkanTutorial PUBLIC "Source/")
 # Vulkan
 find_package(Vulkan REQUIRED)
 target_link_libraries(VulkanTutorial PRIVATE Vulkan::Vulkan)
+
+# glslang
+find_package(glslang REQUIRED)
+target_link_libraries(VulkanTutorial PRIVATE glslang::glslang)
 
 # glfw3
 find_package(glfw3 REQUIRED)

@@ -1,5 +1,6 @@
 #include "GameApplication.h"
 
+#include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 
 void GameApplication::Start(Engine &engine) {
@@ -15,6 +16,15 @@ void GameApplication::Start(Engine &engine) {
     m_commandBuffers.resize(rm.GetNumImages());
     rm.GetCommandManager().CreateCommandBuffers(rm.GetNumImages(), m_commandBuffers.data());
     RecordCommandBuffers();
+
+    // Shaders
+    ShaderCompiler compiler(rm.GetDevice());
+    spdlog::info("Created shader compiler");
+    m_vertexShader = compiler.CreateShaderModuleFromText("test.vert");
+    m_fragmentShader = compiler.CreateShaderModuleFromText("test.frag");
+    DEBUG_ASSERT(m_vertexShader != VK_NULL_HANDLE);
+    DEBUG_ASSERT(m_fragmentShader != VK_NULL_HANDLE);
+    spdlog::info("Created shaders");
 }
 
 GameApplication::~GameApplication() {
@@ -22,11 +32,17 @@ GameApplication::~GameApplication() {
 
     rm.GetQueue().WaitIdle();
     rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
+    spdlog::info("Freed command buffers");
 
     for (int i = 0; i < m_frameBuffers.size(); i++) {
         vkDestroyFramebuffer(rm.GetDevice(), m_frameBuffers[i], nullptr);
     }
+    spdlog::info("Destroyed framebuffers");
+    vkDestroyShaderModule(rm.GetDevice(), m_vertexShader, nullptr);
+    vkDestroyShaderModule(rm.GetDevice(), m_fragmentShader, nullptr);
+    spdlog::info("Destroyed shaders");
     vkDestroyRenderPass(rm.GetDevice(), m_renderPass, nullptr);
+    spdlog::info("Destroyed render pass");
 }
 
 void GameApplication::Update() {
