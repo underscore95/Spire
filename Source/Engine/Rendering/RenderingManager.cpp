@@ -108,6 +108,7 @@ VkSemaphore RenderingManager::CreateSemaphore() const {
     if (res != VK_SUCCESS) {
         spdlog::error("Failed to create semaphore");
     }
+    DEBUG_ASSERT(semaphore != VK_NULL_HANDLE);
     return semaphore;
 }
 
