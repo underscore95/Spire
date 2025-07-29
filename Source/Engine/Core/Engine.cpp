@@ -9,7 +9,8 @@
 
 Engine::Engine(std::unique_ptr<Application> app)
     : m_application(std::move(app)),
-      m_initialized(false) {
+      m_initialized(false),
+      m_beginInitializationTimePoint(std::chrono::high_resolution_clock::now()) {
     spdlog::info("Initializing engine...");
 
     // Window
@@ -27,7 +28,9 @@ Engine::Engine(std::unique_ptr<Application> app)
     }
 
     m_initialized = true;
-    spdlog::info("Initialized engine!\n");
+    const auto now = std::chrono::high_resolution_clock::now();
+    spdlog::info("Initialized engine in {} ms!\n",
+                 std::chrono::duration_cast<std::chrono::milliseconds>(now - m_beginInitializationTimePoint).count());
     Start();
 }
 
@@ -57,8 +60,12 @@ RenderingManager &Engine::GetRenderingManager() const {
 
 void Engine::Start() {
     spdlog::info("Initializing application...");
+    const auto beginApplicationInit = std::chrono::high_resolution_clock::now();
     m_application->Start(*this);
-    spdlog::info("Initialized application!\n");
+    const auto now = std::chrono::high_resolution_clock::now();
+    spdlog::info("Initialized application in {} ms! (engine+app initialized in: {} ms)\n",
+                 std::chrono::duration_cast<std::chrono::milliseconds>(now - beginApplicationInit).count(),
+                 std::chrono::duration_cast<std::chrono::milliseconds>(now - m_beginInitializationTimePoint).count());
 
     while (!m_application->ShouldClose()) {
         Update();

@@ -39,7 +39,8 @@ static void PrintShaderSource(const char *text) {
 }
 
 
-static bool CompileShader(const VkDevice &device, glslang_stage_t stage, const char *pShaderCode,
+static bool CompileShader(const char *shaderName, const VkDevice &device, glslang_stage_t stage,
+                          const char *pShaderCode,
                           CompiledShader &ShaderModule) {
 #pragma region defaultResource
     // https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/%2B/HEAD/glslang/ResourceLimits/ResourceLimits.cpp
@@ -140,6 +141,8 @@ static bool CompileShader(const VkDevice &device, glslang_stage_t stage, const c
     };
 #pragma endregion
 
+    auto begin = std::chrono::high_resolution_clock::now();
+
     glslang_input_t input = {
         .language = GLSLANG_SOURCE_GLSL,
         .stage = stage,
@@ -195,6 +198,11 @@ static bool CompileShader(const VkDevice &device, glslang_stage_t stage, const c
         fprintf(stderr, "SPIR-V message: '%s'", messagesSPIRV);
     }
 
+    auto end = std::chrono::high_resolution_clock::now();
+    spdlog::info("Compilation time for shader '{}' to SPIRV: {} ms", shaderName,
+                 std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
+
+    begin = std::chrono::high_resolution_clock::now();
     VkShaderModuleCreateInfo shaderCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .codeSize = ShaderModule.SPIRV.size() * sizeof(uint32_t),
@@ -205,6 +213,10 @@ static bool CompileShader(const VkDevice &device, glslang_stage_t stage, const c
     if (res != VK_SUCCESS) {
         spdlog::error("Failed to create shader module");
     }
+    end = std::chrono::high_resolution_clock::now();
+
+    spdlog::info("Compilation time for shader '{}' from SPIRV: {} ms", shaderName,
+                 std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
 
     glslang_program_delete(program);
     glslang_shader_delete(shader);
@@ -376,7 +388,7 @@ VkShaderModule ShaderCompiler::CreateShaderModuleFromText(const char *pFilename)
 
     glslang_initialize_process();
 
-    bool success = CompileShader(m_device, shaderStage, source.c_str(), shaderModule);
+    bool success = CompileShader(pFilename, m_device, shaderStage, source.c_str(), shaderModule);
 
     if (success) {
         printf("Created shader from text file '%s'\n", pFilename);

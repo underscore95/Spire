@@ -25,6 +25,8 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/VulkanQueue.h
         Source/Engine/Rendering/ShaderCompiler.cpp
         Source/Engine/Rendering/ShaderCompiler.h
+        Source/Engine/Rendering/GraphicsPipeline.cpp
+        Source/Engine/Rendering/GraphicsPipeline.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source/")

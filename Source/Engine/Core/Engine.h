@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <string>
 class RenderingManager;
@@ -16,7 +17,7 @@ public:
 public:
     [[nodiscard]] const Window &GetWindow() const;
 
-    [[nodiscard]] RenderingManager& GetRenderingManager() const;
+    [[nodiscard]] RenderingManager &GetRenderingManager() const;
 
 private:
     void Start();
@@ -31,6 +32,7 @@ public:
 private:
     std::unique_ptr<Application> m_application;
     bool m_initialized;
+    const std::chrono::time_point<std::chrono::high_resolution_clock> m_beginInitializationTimePoint;
 
     std::unique_ptr<RenderingManager> m_renderingManager;
 

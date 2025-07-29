@@ -5,7 +5,7 @@
 
 #include "Engine/EngineIncludes.h"
 
-class GameApplication : public Application {
+class GameApplication final : public Application {
 public:
     void Start(Engine &engine) override;
 
@@ -29,4 +29,5 @@ private:
     std::vector<VkFramebuffer> m_frameBuffers;
     VkShaderModule m_vertexShader = VK_NULL_HANDLE;
     VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
+    std::unique_ptr<GraphicsPipeline> m_graphicsPipeline = nullptr;
 };

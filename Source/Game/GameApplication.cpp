@@ -12,11 +12,6 @@ void GameApplication::Start(Engine &engine) {
     m_renderPass = rm.CreateSimpleRenderPass();
     rm.CreateFramebuffers(m_frameBuffers, m_renderPass, m_engine->GetWindow().GetSize());
 
-    // Command buffers
-    m_commandBuffers.resize(rm.GetNumImages());
-    rm.GetCommandManager().CreateCommandBuffers(rm.GetNumImages(), m_commandBuffers.data());
-    RecordCommandBuffers();
-
     // Shaders
     ShaderCompiler compiler(rm.GetDevice());
     spdlog::info("Created shader compiler");
@@ -25,6 +20,15 @@ void GameApplication::Start(Engine &engine) {
     DEBUG_ASSERT(m_vertexShader != VK_NULL_HANDLE);
     DEBUG_ASSERT(m_fragmentShader != VK_NULL_HANDLE);
     spdlog::info("Created shaders");
+
+    // Pipeline
+    m_graphicsPipeline = std::make_unique<GraphicsPipeline>(rm.GetDevice(), m_engine->GetWindow().GetSize(),
+                                                            m_renderPass, m_vertexShader, m_fragmentShader);
+
+    // Command buffers
+    m_commandBuffers.resize(rm.GetNumImages());
+    rm.GetCommandManager().CreateCommandBuffers(rm.GetNumImages(), m_commandBuffers.data());
+    RecordCommandBuffers();
 }
 
 GameApplication::~GameApplication() {
@@ -33,6 +37,8 @@ GameApplication::~GameApplication() {
     rm.GetQueue().WaitIdle();
     rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
     spdlog::info("Freed command buffers");
+
+m_graphicsPipeline.release();
 
     for (int i = 0; i < m_frameBuffers.size(); i++) {
         vkDestroyFramebuffer(rm.GetDevice(), m_frameBuffers[i], nullptr);
@@ -97,6 +103,9 @@ void GameApplication::RecordCommandBuffers() const {
         rm.GetCommandManager().BeginCommandBuffer(m_commandBuffers[i], flags);
 
         vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        m_graphicsPipeline->BindTo(m_commandBuffers[i]);
+        vkCmdDraw(m_commandBuffers[i], 3,1,0,0);
 
         vkCmdEndRenderPass(m_commandBuffers[i]);
 

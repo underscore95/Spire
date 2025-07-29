@@ -8,3 +8,4 @@
 #include "Engine/Rendering/RenderingCommandManager.h"
 #include "Engine/Rendering/VulkanQueue.h"
 #include "Engine/Rendering/ShaderCompiler.h"
+#include "Engine/Rendering/GraphicsPipeline.h"
