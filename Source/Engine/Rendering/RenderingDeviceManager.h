@@ -4,20 +4,19 @@
 #include <vulkan/vulkan_core.h>
 #include <glm/fwd.hpp>
 
-class RenderingDeviceManager {
-public:
-    struct PhysicalDevice {
-        VkPhysicalDevice PhysicalDeviceHandle;
-        VkPhysicalDeviceProperties DeviceProperties;
-        std::vector<VkQueueFamilyProperties> QueueFamilyProperties; // Similar to command lists
-        std::vector<VkBool32> QueueSupportsPresent;
-        std::vector<VkSurfaceFormatKHR> SurfaceFormats; // Texture formats & color spaces
-        VkSurfaceCapabilitiesKHR SurfaceCapabilities;
-        VkPhysicalDeviceMemoryProperties MemoryProperties;
-        std::vector<VkPresentModeKHR> PresentModes;
-        VkPhysicalDeviceFeatures Features;
-    };
+struct PhysicalDevice {
+    VkPhysicalDevice PhysicalDeviceHandle;
+    VkPhysicalDeviceProperties DeviceProperties;
+    std::vector<VkQueueFamilyProperties> QueueFamilyProperties; // Similar to command lists
+    std::vector<VkBool32> QueueSupportsPresent;
+    std::vector<VkSurfaceFormatKHR> SurfaceFormats; // Texture formats & color spaces
+    VkSurfaceCapabilitiesKHR SurfaceCapabilities;
+    VkPhysicalDeviceMemoryProperties MemoryProperties;
+    std::vector<VkPresentModeKHR> PresentModes;
+    VkPhysicalDeviceFeatures Features;
+};
 
+class RenderingDeviceManager {
 public:
     RenderingDeviceManager(const VkInstance &instance, const VkSurfaceKHR &surface, bool logDeviceInfo);
 

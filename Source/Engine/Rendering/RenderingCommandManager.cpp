@@ -23,7 +23,7 @@ RenderingCommandManager::RenderingCommandManager(
 }
 
 RenderingCommandManager::~RenderingCommandManager() {
-    DEBUG_ASSERT(m_allocatedCommandBuffers==0) ; // Didn't free all command buffers
+    DEBUG_ASSERT(m_allocatedCommandBuffers == 0) ; // Didn't free all command buffers
     if (m_commandPool) {
         vkDestroyCommandPool(m_device, m_commandPool, nullptr);
         spdlog::info("Destroyed command pool");
@@ -50,11 +50,12 @@ void RenderingCommandManager::CreateCommandBuffers(glm::u32 count, VkCommandBuff
 
 void RenderingCommandManager::FreeCommandBuffers(glm::u32 count, const VkCommandBuffer *commandBuffers) {
     vkFreeCommandBuffers(m_device, m_commandPool, count, commandBuffers);
-    DEBUG_ASSERT(m_allocatedCommandBuffers>=count); // Freed too many times (or a create call failed)
+    DEBUG_ASSERT(m_allocatedCommandBuffers >= count); // Freed too many times (or a create call failed)
     m_allocatedCommandBuffers -= count;
 }
 
-void RenderingCommandManager::BeginCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags usageFlags) const {
+void RenderingCommandManager::BeginCommandBuffer(VkCommandBuffer commandBuffer,
+                                                 VkCommandBufferUsageFlags usageFlags) const {
     VkCommandBufferBeginInfo BeginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .pNext = nullptr,

@@ -98,7 +98,7 @@ void VulkanQueue::Present(glm::u32 imageIndex) {
     }
 }
 
-void VulkanQueue::WaitIdle() const {
+void VulkanQueue::WaitUntilExecutedAll() const {
     vkQueueWaitIdle(m_queue);
 }
 

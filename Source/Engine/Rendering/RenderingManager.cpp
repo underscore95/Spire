@@ -9,6 +9,7 @@
 #include "Engine/Core/Engine.h"
 #include "VulkanUtils.h"
 #include "Engine/Window/Window.h"
+#include "BufferManager.h"
 
 RenderingManager::RenderingManager(const std::string &applicationName, const Window &window) {
     spdlog::info("Initializing RenderingManager...");
@@ -27,11 +28,15 @@ RenderingManager::RenderingManager(const std::string &applicationName, const Win
 
     m_queue = std::make_unique<VulkanQueue>(*this, m_device, m_swapChain, m_deviceQueueFamily, 0);
 
+    m_bufferManager = std::make_unique<BufferManager>(*this);
+
     spdlog::info("Initialized RenderingManager!");
 }
 
 RenderingManager::~RenderingManager() {
     spdlog::info("Destroying RenderingManager...");
+
+    m_bufferManager.reset();
 
     m_queue.reset();
 
@@ -179,7 +184,8 @@ VkRenderPass RenderingManager::CreateSimpleRenderPass() const {
     return RenderPass;
 }
 
-void RenderingManager::CreateFramebuffers(std::vector<VkFramebuffer>& framebuffersOutput, VkRenderPass renderPass, glm::ivec2 windowSize) const {
+void RenderingManager::CreateFramebuffers(std::vector<VkFramebuffer> &framebuffersOutput, VkRenderPass renderPass,
+                                          glm::ivec2 windowSize) const {
     ASSERT(framebuffersOutput.empty());
     framebuffersOutput.resize(m_images.size());
 
@@ -199,7 +205,7 @@ void RenderingManager::CreateFramebuffers(std::vector<VkFramebuffer>& framebuffe
         }
     }
 
-    for (auto& fb : framebuffersOutput) {
+    for (auto &fb: framebuffersOutput) {
         DEBUG_ASSERT(fb != VK_NULL_HANDLE);
     }
 
@@ -208,6 +214,14 @@ void RenderingManager::CreateFramebuffers(std::vector<VkFramebuffer>& framebuffe
 
 VkDevice RenderingManager::GetDevice() const {
     return m_device;
+}
+
+const PhysicalDevice &RenderingManager::GetPhysicalDevice() const {
+    return m_deviceManager->Selected();
+}
+
+const BufferManager &RenderingManager::GetBufferManager() const {
+    return *m_bufferManager;
 }
 
 // https://github.com/emeiri/ogldev/blob/VULKAN_02/Vulkan/VulkanCore/Source/core.cpp
@@ -462,7 +476,7 @@ void RenderingManager::CreateSwapChain() {
     const std::vector<VkPresentModeKHR> &PresentModes = m_deviceManager->Selected().PresentModes;
     VkPresentModeKHR presentMode = ChoosePresentMode(PresentModes);
 
-  m_swapChainSurfaceFormat= ChooseSurfaceFormatAndColorSpace(m_deviceManager->Selected().SurfaceFormats);
+    m_swapChainSurfaceFormat = ChooseSurfaceFormatAndColorSpace(m_deviceManager->Selected().SurfaceFormats);
 
     VkSwapchainCreateInfoKHR SwapChainCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,

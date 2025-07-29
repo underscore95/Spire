@@ -21,9 +21,13 @@ void GameApplication::Start(Engine &engine) {
     DEBUG_ASSERT(m_fragmentShader != VK_NULL_HANDLE);
     spdlog::info("Created shaders");
 
+    // Vertex buffer
+    CreateStorageBufferForVertices();
+
     // Pipeline
     m_graphicsPipeline = std::make_unique<GraphicsPipeline>(rm.GetDevice(), m_engine->GetWindow().GetSize(),
-                                                            m_renderPass, m_vertexShader, m_fragmentShader);
+                                                            m_renderPass, m_vertexShader, m_fragmentShader,
+                                                            m_vertexStorageBuffer, m_vertexBufferSize, rm.GetNumImages());
 
     // Command buffers
     m_commandBuffers.resize(rm.GetNumImages());
@@ -34,11 +38,13 @@ void GameApplication::Start(Engine &engine) {
 GameApplication::~GameApplication() {
     auto &rm = m_engine->GetRenderingManager();
 
-    rm.GetQueue().WaitIdle();
+    rm.GetQueue().WaitUntilExecutedAll();
     rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
     spdlog::info("Freed command buffers");
 
-m_graphicsPipeline.release();
+    rm.GetBufferManager().DestroyBuffer(m_vertexStorageBuffer);
+
+    m_graphicsPipeline.reset();
 
     for (int i = 0; i < m_frameBuffers.size(); i++) {
         vkDestroyFramebuffer(rm.GetDevice(), m_frameBuffers[i], nullptr);
@@ -57,7 +63,7 @@ void GameApplication::Update() {
 void GameApplication::Render() {
     auto &rm = m_engine->GetRenderingManager();
 
-    rm.GetQueue().WaitIdle();
+    rm.GetQueue().WaitUntilExecutedAll();
     glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
 
     rm.GetQueue().SubmitAsync(m_commandBuffers[imageIndex]);
@@ -104,8 +110,8 @@ void GameApplication::RecordCommandBuffers() const {
 
         vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        m_graphicsPipeline->BindTo(m_commandBuffers[i]);
-        vkCmdDraw(m_commandBuffers[i], 3,1,0,0);
+        m_graphicsPipeline->BindTo(m_commandBuffers[i], i);
+        vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
 
         vkCmdEndRenderPass(m_commandBuffers[i]);
 
@@ -113,4 +119,26 @@ void GameApplication::RecordCommandBuffers() const {
     }
 
     spdlog::info("Command buffers recorded");
+}
+
+void GameApplication::CreateStorageBufferForVertices() {
+    struct Vertex {
+        Vertex(const glm::vec3 &p, const glm::vec2 &t) {
+            Pos = p;
+            Tex = t;
+        }
+
+        glm::vec3 Pos;
+        glm::vec2 Tex;
+    };
+
+    std::vector Vertices = {
+        Vertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // top left
+        Vertex({1.0f, -1.0f, 0.0f}, {0.0f, 1.0f}), // top right
+        Vertex({0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}) // bottom middle
+    };
+
+    m_vertexBufferSize = sizeof(Vertices[0]) * Vertices.size();
+    m_vertexStorageBuffer = m_engine->GetRenderingManager().GetBufferManager().CreateStorageBufferForVertices(
+        Vertices.data(), m_vertexBufferSize);
 }

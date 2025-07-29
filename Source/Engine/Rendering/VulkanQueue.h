@@ -24,7 +24,7 @@ public:
 
     void Present(glm::u32 imageIndex);
 
-    void WaitIdle() const;
+    void WaitUntilExecutedAll() const;
 
 public:
     const glm::u32 INVALID_IMAGE_INDEX = -1; // underflow

@@ -9,7 +9,9 @@
 class RenderingCommandManager;
 class Window;
 class RenderingDeviceManager;
+struct PhysicalDevice;
 class VulkanQueue;
+class BufferManager;
 
 class RenderingManager {
 public:
@@ -36,10 +38,14 @@ public:
 
     [[nodiscard]] VkRenderPass CreateSimpleRenderPass() const;
 
-    [[nodiscard]] void CreateFramebuffers(std::vector<VkFramebuffer> &framebuffersOutput, VkRenderPass renderPass,
-                                          glm::ivec2 windowSize) const;
+    void CreateFramebuffers(std::vector<VkFramebuffer> &framebuffersOutput, VkRenderPass renderPass,
+                            glm::ivec2 windowSize) const;
 
     [[nodiscard]] VkDevice GetDevice() const;
+
+    [[nodiscard]] const PhysicalDevice &GetPhysicalDevice() const;
+
+    [[nodiscard]] const BufferManager &GetBufferManager() const;
 
 private:
     void CreateInstance(const std::string &applicationName);
@@ -73,5 +79,6 @@ private:
     std::vector<VkImage> m_images;
     std::vector<VkImageView> m_imageViews;
     std::unique_ptr<RenderingCommandManager> m_commandManager = nullptr;
-    std::unique_ptr<VulkanQueue> m_queue;
+    std::unique_ptr<VulkanQueue> m_queue = nullptr;
+    std::unique_ptr<BufferManager> m_bufferManager = nullptr;
 };

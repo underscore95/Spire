@@ -363,7 +363,7 @@ VkShaderModule ShaderCompiler::CreateShaderModuleFromBinary(const char *pFilenam
     if (res != VK_SUCCESS) {
         spdlog::error("Failed to create shader module (from binary)");
     } else {
-        printf("Created shader from binary %s\n", pFilename);
+        spdlog::info("Created shader from binary {}", pFilename);
     }
 
     free(pShaderCode);
@@ -391,7 +391,7 @@ VkShaderModule ShaderCompiler::CreateShaderModuleFromText(const char *pFilename)
     bool success = CompileShader(pFilename, m_device, shaderStage, source.c_str(), shaderModule);
 
     if (success) {
-        printf("Created shader from text file '%s'\n", pFilename);
+        spdlog::info("Created shader from text file '{}'", pFilename);
         ret = shaderModule.ShaderModule;
         std::string BinaryFilename = std::string(pFilename) + ".spv";
         WriteBinaryFile(BinaryFilename.c_str(), shaderModule.SPIRV.data(),

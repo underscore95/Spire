@@ -236,7 +236,7 @@ glm::u32 RenderingDeviceManager::SelectDevice(VkQueueFlags requiredQueueType, bo
     return 0;
 }
 
-const RenderingDeviceManager::PhysicalDevice &RenderingDeviceManager::Selected() const {
+const PhysicalDevice &RenderingDeviceManager::Selected() const {
     DEBUG_ASSERT(m_initialized);
     DEBUG_ASSERT(m_deviceIndex>=0 && "No device selected!");
     DEBUG_ASSERT(m_deviceIndex<m_devices.size() && "Device index out of bounds!");

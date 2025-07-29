@@ -35,10 +35,14 @@ Engine::Engine(std::unique_ptr<Application> app)
 }
 
 Engine::~Engine() {
+    const auto beginShutdown = std::chrono::high_resolution_clock::now();
+
     spdlog::info("");
     spdlog::info("Shutting down application...");
 
     m_application.reset();
+
+    const auto afterAppShutdown = std::chrono::high_resolution_clock::now();
 
     spdlog::info("");
     spdlog::info("Shutting down engine...");
@@ -47,7 +51,20 @@ Engine::~Engine() {
 
     m_renderingManager.reset();
 
+    const auto afterEngineShutdown = std::chrono::high_resolution_clock::now();
+
     spdlog::info("Shut down engine!");
+
+    const auto appShutdownTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        afterAppShutdown - beginShutdown).count();
+    const auto engineShutdownTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        afterEngineShutdown - afterAppShutdown).count();
+    const auto totalShutdownTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        afterEngineShutdown - beginShutdown).count();
+
+    spdlog::info("Application shutdown took {} ms", appShutdownTime);
+    spdlog::info("Engine shutdown took {} ms", engineShutdownTime);
+    spdlog::info("Total shutdown time: {} ms\n", totalShutdownTime);
 }
 
 const Window &Engine::GetWindow() const {
