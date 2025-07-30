@@ -29,6 +29,8 @@ private:
 
     void UpdateUniformBuffers(glm::u32 imageIndex) const;
 
+    void SetupGraphicsPipeline();
+
 private:
     Engine *m_engine = nullptr;
     std::vector<VkCommandBuffer> m_commandBuffers;

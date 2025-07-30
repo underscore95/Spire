@@ -4,17 +4,17 @@
 #include <spdlog/spdlog.h>
 
 #include "BufferManager.h"
+#include "PipelineDescriptorSetsManager.h"
 
-GraphicsPipeline::GraphicsPipeline(VkDevice device, glm::uvec2 windowSize, VkRenderPass renderPass,
-                                   VkShaderModule vertexShader, VkShaderModule fragmentShader,
-                                   const VulkanBuffer &storageBufferForVertices, glm::u32 vertexBufferSize,
-                                   glm::u32 numSwapchainImages, const std::vector<VulkanBuffer> &uniformBuffers,
-                                   glm::u32 uniformBufferSize) {
-    m_device = device;
-
-    CreateDescriptorSets(numSwapchainImages, storageBufferForVertices, vertexBufferSize, uniformBuffers,
-                         uniformBufferSize);
-
+GraphicsPipeline::GraphicsPipeline(VkDevice device,
+                                   glm::uvec2 windowSize,
+                                   VkRenderPass renderPass,
+                                   VkShaderModule vertexShader,
+                                   VkShaderModule fragmentShader,
+                                   std::unique_ptr<PipelineDescriptorSetsManager>
+                                   descriptorSetsManager)
+    : m_device(device),
+      m_descriptorSetsManager(std::move(descriptorSetsManager)) {
     constexpr glm::u32 NUM_SHADER_STAGES = 2;
     VkPipelineShaderStageCreateInfo shaderStageCreateInfo[NUM_SHADER_STAGES] = {
         {
@@ -98,11 +98,10 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device, glm::uvec2 windowSize, VkRen
         .pAttachments = &blendAttachState
     };
 
-    DEBUG_ASSERT(storageBufferForVertices.Buffer != nullptr);
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 1, // the vertex buffer
-        .pSetLayouts = &m_descriptorSetLayout
+        .setLayoutCount = 1,
+        .pSetLayouts = m_descriptorSetsManager->GetPointerToFirstDescriptorSetLayout()
     };
 
     VkResult res = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
@@ -136,168 +135,21 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device, glm::uvec2 windowSize, VkRen
 }
 
 GraphicsPipeline::~GraphicsPipeline() {
-    vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
     vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
-    vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
+    m_descriptorSetsManager.reset();
     vkDestroyPipeline(m_device, m_pipeline, nullptr);
 }
 
 void GraphicsPipeline::BindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainImageIndex) const {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
-    if (m_descriptorSets.size() > 0) {
+    const auto &descriptorSets = m_descriptorSetsManager->GetDescriptorSets();
+    if (descriptorSets.size() > 0) {
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout,
                                 0, // firstSet
                                 1, // descriptorSetCount
-                                &m_descriptorSets[swapchainImageIndex],
+                                &descriptorSets[swapchainImageIndex],
                                 0, // dynamicOffsetCount
                                 nullptr); // pDynamicOffsets
     }
-}
-
-void GraphicsPipeline::CreateDescriptorPool(glm::u32 numImages, const std::vector<VulkanBuffer> &uniformBuffers) {
-    std::vector<VkDescriptorPoolSize> sizes;
-    sizes.push_back({
-        .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .descriptorCount = numImages
-    });
-    sizes.push_back({
-        .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = static_cast<glm::u32>(uniformBuffers.size())
-    });
-
-    VkDescriptorPoolCreateInfo poolInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .flags = 0,
-        .maxSets = numImages,
-        .poolSizeCount = static_cast<glm::u32>(sizes.size()),
-        .pPoolSizes = sizes.data()
-    };
-
-    VkResult res = vkCreateDescriptorPool(m_device, &poolInfo, nullptr, &m_descriptorPool);
-    if (res != VK_SUCCESS) {
-        spdlog::error("Failed to create descriptor pool");
-    } else {
-        spdlog::info("Created descriptor pool");
-    }
-}
-
-void GraphicsPipeline::CreateDescriptorSets(glm::u32 numImages, const VulkanBuffer &storageBufferForVertices,
-                                            glm::u32 vertexBufferSize, const std::vector<VulkanBuffer> &uniformBuffers,
-                                            glm::u32 uniformBufferSize) {
-    CreateDescriptorPool(numImages, uniformBuffers);
-    DEBUG_ASSERT(m_descriptorPool != VK_NULL_HANDLE);
-
-    CreateDescriptorSetLayout(uniformBuffers);
-
-    AllocateDescriptorSets(numImages);
-
-    UpdateDescriptorSets(numImages, storageBufferForVertices, vertexBufferSize, uniformBuffers, uniformBufferSize);
-}
-
-void GraphicsPipeline::CreateDescriptorSetLayout(const std::vector<VulkanBuffer> &uniformBuffers) {
-    std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-
-    VkDescriptorSetLayoutBinding vertexShaderLayoutBinding_VertBuf = {
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-    };
-
-    layoutBindings.push_back(vertexShaderLayoutBinding_VertBuf);
-
-    VkDescriptorSetLayoutBinding vertexShaderLayoutBinding_Uniform = {
-        .binding = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-    };
-
-    if (!uniformBuffers.empty()) {
-        layoutBindings.push_back(vertexShaderLayoutBinding_Uniform);
-    }
-
-    VkDescriptorSetLayoutCreateInfo layoutInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0, // reserved - must be zero
-        .bindingCount = static_cast<glm::u32>(layoutBindings.size()),
-        .pBindings = layoutBindings.data()
-    };
-
-    VkResult res = vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout);
-    if (res != VK_SUCCESS) {
-        spdlog::error("Failed to create descriptor set layout");
-    }
-}
-
-void GraphicsPipeline::AllocateDescriptorSets(glm::u32 numImages) {
-    std::vector layouts(numImages, m_descriptorSetLayout);
-
-    VkDescriptorSetAllocateInfo allocInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .descriptorPool = m_descriptorPool,
-        .descriptorSetCount = numImages,
-        .pSetLayouts = layouts.data()
-    };
-
-    m_descriptorSets.resize(numImages);
-
-    VkResult res = vkAllocateDescriptorSets(m_device, &allocInfo, m_descriptorSets.data());
-    if (res != VK_SUCCESS) {
-        spdlog::error("Failed to allocate descriptor sets");
-    }
-}
-
-void GraphicsPipeline::UpdateDescriptorSets(glm::u32 numImages, const VulkanBuffer &storageBufferForVertices,
-                                            glm::u32 vertexBufferSize, const std::vector<VulkanBuffer> &uniformBuffers,
-                                            glm::u32 uniformBufferSize) const {
-    DEBUG_ASSERT(storageBufferForVertices.Buffer != VK_NULL_HANDLE);
-
-    VkDescriptorBufferInfo bufferInfo_VB = {
-        .buffer = storageBufferForVertices.Buffer,
-        .offset = 0,
-        .range = vertexBufferSize, // can also be VK_WHOLE_SIZE
-    };
-
-    std::vector<VkWriteDescriptorSet> writeDescriptorSet;
-
-    for (glm::u32 i = 0; i < numImages; i++) {
-        writeDescriptorSet.push_back(
-            VkWriteDescriptorSet{
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = m_descriptorSets[i],
-                .dstBinding = 0,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                .pBufferInfo = &bufferInfo_VB
-            }
-        );
-
-        if (!uniformBuffers.empty()) {
-            DEBUG_ASSERT(uniformBuffers.size() == numImages);
-            VkDescriptorBufferInfo bufferInfo_Uniform = {
-                .buffer = uniformBuffers[i].Buffer,
-                .offset = 0,
-                .range = static_cast<VkDeviceSize>(uniformBufferSize),
-            };
-
-            writeDescriptorSet.push_back(
-                VkWriteDescriptorSet{
-                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                    .dstSet = m_descriptorSets[i],
-                    .dstBinding = 1,
-                    .dstArrayElement = 0,
-                    .descriptorCount = 1,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                    .pBufferInfo = &bufferInfo_Uniform
-                }
-            );
-        }
-    }
-
-    vkUpdateDescriptorSets(m_device, writeDescriptorSet.size(), writeDescriptorSet.data(), 0, nullptr);
 }

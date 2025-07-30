@@ -10,3 +10,4 @@
 #include "Engine/Rendering/ShaderCompiler.h"
 #include "Engine/Rendering/GraphicsPipeline.h"
 #include "Engine/Rendering/BufferManager.h"
+#include "Engine/Rendering/PipelineDescriptorSetsManager.h"

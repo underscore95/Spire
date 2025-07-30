@@ -31,6 +31,8 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/BufferManager.h
         Source/Engine/Utils/Timer.cpp
         Source/Engine/Utils/Timer.h
+        Source/Engine/Rendering/PipelineDescriptorSetsManager.cpp
+        Source/Engine/Rendering/PipelineDescriptorSetsManager.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source/")

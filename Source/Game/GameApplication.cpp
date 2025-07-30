@@ -27,10 +27,7 @@ void GameApplication::Start(Engine &engine) {
     CreateUniformBuffers();
 
     // Pipeline
-    m_graphicsPipeline = std::make_unique<GraphicsPipeline>(rm.GetDevice(), m_engine->GetWindow().GetSize(),
-                                                            m_renderPass, m_vertexShader, m_fragmentShader,
-                                                            m_vertexStorageBuffer, m_vertexBufferSize,
-                                                            rm.GetNumImages(), m_uniformBuffers, sizeof(UniformData));
+    SetupGraphicsPipeline();
 
     // Command buffers
     m_commandBuffers.resize(rm.GetNumImages());
@@ -168,4 +165,34 @@ void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const {
 
     glm::mat4 WVP = rotationMatrix;
     m_engine->GetRenderingManager().GetBufferManager().UpdateBuffer(m_uniformBuffers[imageIndex], &WVP, sizeof(WVP));
+}
+
+void GameApplication::SetupGraphicsPipeline() {
+    auto &rm = m_engine->GetRenderingManager();
+
+    std::vector<PipelineResourceInfo> pipelineResources;
+
+    // Vertex buffer
+    pipelineResources.push_back({
+        .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .Binding = 0,
+        .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+        .SameResourceForAllImages = true,
+        .ResourcePtrs = &m_vertexStorageBuffer
+    });
+
+    // Uniform buffers
+    pipelineResources.push_back({
+        .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .Binding = 1,
+        .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+        .SameResourceForAllImages = false,
+        .ResourcePtrs = m_uniformBuffers.data()
+    });
+
+    m_graphicsPipeline = std::make_unique<GraphicsPipeline>(
+        rm.GetDevice(), m_engine->GetWindow().GetSize(),
+        m_renderPass, m_vertexShader, m_fragmentShader,
+        std::make_unique<PipelineDescriptorSetsManager>(
+            rm, pipelineResources));
 }
