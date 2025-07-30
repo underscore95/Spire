@@ -29,6 +29,8 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/GraphicsPipeline.h
         Source/Engine/Rendering/BufferManager.cpp
         Source/Engine/Rendering/BufferManager.h
+        Source/Engine/Utils/Timer.cpp
+        Source/Engine/Utils/Timer.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source/")

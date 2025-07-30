@@ -3,9 +3,10 @@
 #include <chrono>
 #include <memory>
 #include <string>
+
+#include "Engine/Utils/Timer.h"
 class RenderingManager;
 class Window;
-
 class Application;
 
 class Engine {
@@ -18,6 +19,8 @@ public:
     [[nodiscard]] const Window &GetWindow() const;
 
     [[nodiscard]] RenderingManager &GetRenderingManager() const;
+
+    [[nodiscard]] float GetDeltaTime() const;
 
 private:
     void Start();
@@ -37,4 +40,7 @@ private:
     std::unique_ptr<RenderingManager> m_renderingManager;
 
     std::unique_ptr<Window> m_window;
+
+    Timer m_deltaTimeTimer;
+    float m_deltaTime = 1.0f / 1000.0f;
 };

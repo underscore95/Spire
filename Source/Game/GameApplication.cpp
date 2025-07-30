@@ -160,11 +160,12 @@ void GameApplication::CreateUniformBuffers() {
 }
 
 void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const {
-    static float foo = 0.0f;
-    auto Rotate = glm::mat4(1.0);
-    Rotate = glm::rotate(Rotate, glm::radians(foo), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
-    foo += 0.001f;
+    static float totalRotation = 0.0f;
+    auto rotationMatrix = glm::mat4(1.0);
+    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(totalRotation),
+                                 glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
+    totalRotation += m_engine->GetDeltaTime() * 5;
 
-    glm::mat4 WVP = Rotate;
+    glm::mat4 WVP = rotationMatrix;
     m_engine->GetRenderingManager().GetBufferManager().UpdateBuffer(m_uniformBuffers[imageIndex], &WVP, sizeof(WVP));
 }

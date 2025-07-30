@@ -75,6 +75,11 @@ RenderingManager &Engine::GetRenderingManager() const {
     return *m_renderingManager;
 }
 
+// ReSharper disable once CppDFAConstantFunctionResult
+float Engine::GetDeltaTime() const {
+    return m_deltaTime;
+}
+
 void Engine::Start() {
     spdlog::info("Initializing application...");
     const auto beginApplicationInit = std::chrono::high_resolution_clock::now();
@@ -85,8 +90,10 @@ void Engine::Start() {
                  std::chrono::duration_cast<std::chrono::milliseconds>(now - m_beginInitializationTimePoint).count());
 
     while (!m_application->ShouldClose()) {
+        m_deltaTimeTimer.Start();
         Update();
         Render();
+        m_deltaTime = m_deltaTimeTimer.SecondsSinceStart();
     }
 }
 
