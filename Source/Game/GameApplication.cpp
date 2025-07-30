@@ -2,6 +2,7 @@
 
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
@@ -21,13 +22,15 @@ void GameApplication::Start(Engine &engine) {
     DEBUG_ASSERT(m_fragmentShader != VK_NULL_HANDLE);
     spdlog::info("Created shaders");
 
-    // Vertex buffer
+    // Buffers
     CreateStorageBufferForVertices();
+    CreateUniformBuffers();
 
     // Pipeline
     m_graphicsPipeline = std::make_unique<GraphicsPipeline>(rm.GetDevice(), m_engine->GetWindow().GetSize(),
                                                             m_renderPass, m_vertexShader, m_fragmentShader,
-                                                            m_vertexStorageBuffer, m_vertexBufferSize, rm.GetNumImages());
+                                                            m_vertexStorageBuffer, m_vertexBufferSize,
+                                                            rm.GetNumImages(), m_uniformBuffers, sizeof(UniformData));
 
     // Command buffers
     m_commandBuffers.resize(rm.GetNumImages());
@@ -55,6 +58,10 @@ GameApplication::~GameApplication() {
     spdlog::info("Destroyed shaders");
     vkDestroyRenderPass(rm.GetDevice(), m_renderPass, nullptr);
     spdlog::info("Destroyed render pass");
+
+    for (int i = 0; i < m_uniformBuffers.size(); i++) {
+        rm.GetBufferManager().DestroyBuffer(m_uniformBuffers[i]);
+    }
 }
 
 void GameApplication::Update() {
@@ -65,6 +72,9 @@ void GameApplication::Render() {
 
     rm.GetQueue().WaitUntilExecutedAll();
     glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
+
+    UpdateUniformBuffers(imageIndex);
+    rm.GetQueue().WaitUntilExecutedAll();
 
     rm.GetQueue().SubmitAsync(m_commandBuffers[imageIndex]);
 
@@ -141,4 +151,20 @@ void GameApplication::CreateStorageBufferForVertices() {
     m_vertexBufferSize = sizeof(Vertices[0]) * Vertices.size();
     m_vertexStorageBuffer = m_engine->GetRenderingManager().GetBufferManager().CreateStorageBufferForVertices(
         Vertices.data(), m_vertexBufferSize);
+}
+
+void GameApplication::CreateUniformBuffers() {
+    auto &rm = m_engine->GetRenderingManager();
+    m_uniformBuffers = rm.GetBufferManager().CreateUniformBuffers(sizeof(UniformData));
+    spdlog::info("Created uniform buffers");
+}
+
+void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const {
+    static float foo = 0.0f;
+    auto Rotate = glm::mat4(1.0);
+    Rotate = glm::rotate(Rotate, glm::radians(foo), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
+    foo += 0.001f;
+
+    glm::mat4 WVP = Rotate;
+    m_engine->GetRenderingManager().GetBufferManager().UpdateBuffer(m_uniformBuffers[imageIndex], &WVP, sizeof(WVP));
 }

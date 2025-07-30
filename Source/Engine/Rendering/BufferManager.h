@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan_core.h>
 
@@ -17,9 +18,13 @@ public:
 
     ~BufferManager();
 
-    VulkanBuffer CreateStorageBufferForVertices(const void *pVertices, size_t size) const;
+    VulkanBuffer CreateStorageBufferForVertices(const void *pVertices, glm::u32 size) const;
 
     void DestroyBuffer(const VulkanBuffer &buffer) const;
+
+    std::vector<VulkanBuffer> CreateUniformBuffers(size_t bufferSize) const;
+
+    void UpdateBuffer(const VulkanBuffer &buffer, const void *data, glm::u32 size, glm::u32 offset = 0) const;
 
 private:
     glm::u32 GetMemoryTypeIndex(glm::u32 memTypeBitsMask, VkMemoryPropertyFlags reqMemPropFlags) const;

@@ -8,10 +8,12 @@
 GraphicsPipeline::GraphicsPipeline(VkDevice device, glm::uvec2 windowSize, VkRenderPass renderPass,
                                    VkShaderModule vertexShader, VkShaderModule fragmentShader,
                                    const VulkanBuffer &storageBufferForVertices, glm::u32 vertexBufferSize,
-                                   glm::u32 numSwapchainImages) {
+                                   glm::u32 numSwapchainImages, const std::vector<VulkanBuffer> &uniformBuffers,
+                                   glm::u32 uniformBufferSize) {
     m_device = device;
 
-    CreateDescriptorSets(numSwapchainImages, storageBufferForVertices, vertexBufferSize);
+    CreateDescriptorSets(numSwapchainImages, storageBufferForVertices, vertexBufferSize, uniformBuffers,
+                         uniformBufferSize);
 
     constexpr glm::u32 NUM_SHADER_STAGES = 2;
     VkPipelineShaderStageCreateInfo shaderStageCreateInfo[NUM_SHADER_STAGES] = {
@@ -134,9 +136,9 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device, glm::uvec2 windowSize, VkRen
 }
 
 GraphicsPipeline::~GraphicsPipeline() {
-	vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
+    vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
     vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
-	vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
+    vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
     vkDestroyPipeline(m_device, m_pipeline, nullptr);
 }
 
@@ -145,19 +147,23 @@ void GraphicsPipeline::BindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainI
 
     if (m_descriptorSets.size() > 0) {
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout,
-                                0,  // firstSet
-                                1,  // descriptorSetCount
+                                0, // firstSet
+                                1, // descriptorSetCount
                                 &m_descriptorSets[swapchainImageIndex],
-                                0,	// dynamicOffsetCount
-                                nullptr);	// pDynamicOffsets
+                                0, // dynamicOffsetCount
+                                nullptr); // pDynamicOffsets
     }
 }
 
-void GraphicsPipeline::CreateDescriptorPool(glm::u32 numImages) {
+void GraphicsPipeline::CreateDescriptorPool(glm::u32 numImages, const std::vector<VulkanBuffer> &uniformBuffers) {
     std::vector<VkDescriptorPoolSize> sizes;
     sizes.push_back({
         .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
         .descriptorCount = numImages
+    });
+    sizes.push_back({
+        .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = static_cast<glm::u32>(uniformBuffers.size())
     });
 
     VkDescriptorPoolCreateInfo poolInfo = {
@@ -177,18 +183,19 @@ void GraphicsPipeline::CreateDescriptorPool(glm::u32 numImages) {
 }
 
 void GraphicsPipeline::CreateDescriptorSets(glm::u32 numImages, const VulkanBuffer &storageBufferForVertices,
-                                            glm::u32 vertexBufferSize) {
-    CreateDescriptorPool(numImages);
+                                            glm::u32 vertexBufferSize, const std::vector<VulkanBuffer> &uniformBuffers,
+                                            glm::u32 uniformBufferSize) {
+    CreateDescriptorPool(numImages, uniformBuffers);
     DEBUG_ASSERT(m_descriptorPool != VK_NULL_HANDLE);
 
-    CreateDescriptorSetLayout();
+    CreateDescriptorSetLayout(uniformBuffers);
 
     AllocateDescriptorSets(numImages);
 
-    UpdateDescriptorSets(numImages, storageBufferForVertices, vertexBufferSize);
+    UpdateDescriptorSets(numImages, storageBufferForVertices, vertexBufferSize, uniformBuffers, uniformBufferSize);
 }
 
-void GraphicsPipeline::CreateDescriptorSetLayout() {
+void GraphicsPipeline::CreateDescriptorSetLayout(const std::vector<VulkanBuffer> &uniformBuffers) {
     std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
 
     VkDescriptorSetLayoutBinding vertexShaderLayoutBinding_VertBuf = {
@@ -199,6 +206,17 @@ void GraphicsPipeline::CreateDescriptorSetLayout() {
     };
 
     layoutBindings.push_back(vertexShaderLayoutBinding_VertBuf);
+
+    VkDescriptorSetLayoutBinding vertexShaderLayoutBinding_Uniform = {
+        .binding = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+    };
+
+    if (!uniformBuffers.empty()) {
+        layoutBindings.push_back(vertexShaderLayoutBinding_Uniform);
+    }
 
     VkDescriptorSetLayoutCreateInfo layoutInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -234,7 +252,8 @@ void GraphicsPipeline::AllocateDescriptorSets(glm::u32 numImages) {
 }
 
 void GraphicsPipeline::UpdateDescriptorSets(glm::u32 numImages, const VulkanBuffer &storageBufferForVertices,
-                                            glm::u32 vertexBufferSize) const {
+                                            glm::u32 vertexBufferSize, const std::vector<VulkanBuffer> &uniformBuffers,
+                                            glm::u32 uniformBufferSize) const {
     DEBUG_ASSERT(storageBufferForVertices.Buffer != VK_NULL_HANDLE);
 
     VkDescriptorBufferInfo bufferInfo_VB = {
@@ -257,6 +276,27 @@ void GraphicsPipeline::UpdateDescriptorSets(glm::u32 numImages, const VulkanBuff
                 .pBufferInfo = &bufferInfo_VB
             }
         );
+
+        if (!uniformBuffers.empty()) {
+            DEBUG_ASSERT(uniformBuffers.size() == numImages);
+            VkDescriptorBufferInfo bufferInfo_Uniform = {
+                .buffer = uniformBuffers[i].Buffer,
+                .offset = 0,
+                .range = static_cast<VkDeviceSize>(uniformBufferSize),
+            };
+
+            writeDescriptorSet.push_back(
+                VkWriteDescriptorSet{
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .dstSet = m_descriptorSets[i],
+                    .dstBinding = 1,
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                    .pBufferInfo = &bufferInfo_Uniform
+                }
+            );
+        }
     }
 
     vkUpdateDescriptorSets(m_device, writeDescriptorSet.size(), writeDescriptorSet.data(), 0, nullptr);

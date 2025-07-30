@@ -16,7 +16,7 @@ BufferManager::~BufferManager() {
     m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_copyCommandBuffer);
 }
 
-VulkanBuffer BufferManager::CreateStorageBufferForVertices(const void *pVertices, size_t size) const {
+VulkanBuffer BufferManager::CreateStorageBufferForVertices(const void *pVertices, glm::u32 size) const {
     // Step 1: create the staging buffer
     VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -62,6 +62,32 @@ void BufferManager::DestroyBuffer(const VulkanBuffer &buffer) const {
     if (buffer.Buffer) {
         vkDestroyBuffer(m_renderingManager.GetDevice(), buffer.Buffer, nullptr);
     }
+}
+
+std::vector<VulkanBuffer> BufferManager::CreateUniformBuffers(size_t bufferSize) const {
+    std::vector<VulkanBuffer> buffers;
+    buffers.resize(m_renderingManager.GetNumImages());
+
+    VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    for (int i = 0; i < buffers.size(); ++i) {
+        buffers[i] = CreateBuffer(bufferSize, usage, memoryProperties);
+    }
+
+    return buffers;
+}
+
+void BufferManager::UpdateBuffer(const VulkanBuffer &buffer, const void *data, glm::u32 size, glm::u32 offset) const {
+    void *pMem = nullptr;
+    VkMemoryMapFlags flags = 0;
+    VkResult res = vkMapMemory(m_renderingManager.GetDevice(), buffer.DeviceMemory, offset, size, flags, &pMem);
+    if (res != VK_SUCCESS) {
+        spdlog::error("Failed to buffer memory with size {} bytes", size);
+    }
+    memcpy(pMem, data, size);
+    vkUnmapMemory(m_renderingManager.GetDevice(), buffer.DeviceMemory);
 }
 
 glm::u32 BufferManager::GetMemoryTypeIndex(glm::u32 memTypeBitsMask, VkMemoryPropertyFlags reqMemPropFlags) const {

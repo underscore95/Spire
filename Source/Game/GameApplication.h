@@ -2,6 +2,10 @@
 
 #include "Engine/EngineIncludes.h"
 
+struct UniformData {
+    glm::mat4 WVP;
+};
+
 class GameApplication final : public Application {
 public:
     void Start(Engine &engine) override;
@@ -21,6 +25,10 @@ private:
 
     void CreateStorageBufferForVertices();
 
+    void CreateUniformBuffers();
+
+    void UpdateUniformBuffers(glm::u32 imageIndex) const;
+
 private:
     Engine *m_engine = nullptr;
     std::vector<VkCommandBuffer> m_commandBuffers;
@@ -31,4 +39,5 @@ private:
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline = nullptr;
     VulkanBuffer m_vertexStorageBuffer = {};
     glm::u32 m_vertexBufferSize = 0;
+    std::vector<VulkanBuffer> m_uniformBuffers;
 };
