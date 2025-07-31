@@ -98,7 +98,7 @@ void Engine::Start() {
 }
 
 void Engine::Update() const {
-    Window::Update();
+    m_window->Update();
 
     m_application->Update();
 }

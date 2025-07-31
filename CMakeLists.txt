@@ -33,6 +33,8 @@ add_executable(VulkanTutorial
         Source/Engine/Utils/Timer.h
         Source/Engine/Rendering/PipelineDescriptorSetsManager.cpp
         Source/Engine/Rendering/PipelineDescriptorSetsManager.h
+        Source/Engine/Utils/Camera/Camera.cpp
+        Source/Engine/Utils/Camera/Camera.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source/")

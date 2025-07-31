@@ -9,6 +9,9 @@ void GameApplication::Start(Engine &engine) {
 
     auto &rm = m_engine->GetRenderingManager();
 
+    // Camera
+    m_camera = std::make_unique<Camera>(m_engine->GetWindow());
+
     // Render pass
     m_renderPass = rm.CreateSimpleRenderPass();
     rm.CreateFramebuffers(m_frameBuffers, m_renderPass, m_engine->GetWindow().GetSize());
@@ -62,6 +65,7 @@ GameApplication::~GameApplication() {
 }
 
 void GameApplication::Update() {
+    m_camera->Update(m_engine->GetDeltaTime());
 }
 
 void GameApplication::Render() {
@@ -157,13 +161,9 @@ void GameApplication::CreateUniformBuffers() {
 }
 
 void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const {
-    static float totalRotation = 0.0f;
-    auto rotationMatrix = glm::mat4(1.0);
-    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(totalRotation),
-                                 glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
-    totalRotation += m_engine->GetDeltaTime() * 5;
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -10.0f));
 
-    glm::mat4 WVP = rotationMatrix;
+    glm::mat4 WVP = m_camera->GetProjectionMatrix() * m_camera->GetViewMatrix() * model;
     m_engine->GetRenderingManager().GetBufferManager().UpdateBuffer(m_uniformBuffers[imageIndex], &WVP, sizeof(WVP));
 }
 
