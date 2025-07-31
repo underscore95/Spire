@@ -35,6 +35,10 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/PipelineDescriptorSetsManager.h
         Source/Engine/Utils/Camera/Camera.cpp
         Source/Engine/Utils/Camera/Camera.h
+        Source/Engine/Rendering/TextureManager.cpp
+        Source/Engine/Rendering/TextureManager.h
+        Source/Engine/Utils/ImageLoader.cpp
+        Source/Engine/Utils/ImageLoader.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source/")
@@ -62,3 +66,7 @@ target_link_libraries(VulkanTutorial PRIVATE spdlog::spdlog)
 # libassert
 find_package(libassert REQUIRED)
 target_link_libraries(VulkanTutorial PRIVATE libassert::assert)
+
+# stb
+#find_package(Stb REQUIRED)
+#target_link_libraries(VulkanTutorial PRIVATE Stb::stb)

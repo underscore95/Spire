@@ -6,6 +6,7 @@
 #include <vector>
 #include <glm/fwd.hpp>
 
+class TextureManager;
 class RenderingCommandManager;
 class Window;
 class RenderingDeviceManager;
@@ -47,6 +48,8 @@ public:
 
     [[nodiscard]] const BufferManager &GetBufferManager() const;
 
+    [[nodiscard]] const TextureManager &GetTextureManager() const;
+
 private:
     void CreateInstance(const std::string &applicationName);
 
@@ -81,4 +84,5 @@ private:
     std::unique_ptr<RenderingCommandManager> m_commandManager = nullptr;
     std::unique_ptr<VulkanQueue> m_queue = nullptr;
     std::unique_ptr<BufferManager> m_bufferManager = nullptr;
+    std::unique_ptr<TextureManager> m_textureManager = nullptr;
 };

@@ -11,8 +11,10 @@ public:
 };
 
 class RenderingManager;
+class TextureManager;
 
 class BufferManager {
+    friend class TextureManager;
 public:
     explicit BufferManager(RenderingManager &renderingManager);
 

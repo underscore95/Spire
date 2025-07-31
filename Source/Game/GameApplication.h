@@ -43,4 +43,5 @@ private:
     glm::u32 m_vertexBufferSize = 0;
     std::vector<VulkanBuffer> m_uniformBuffers;
     std::unique_ptr<Camera> m_camera;
+    VulkanTexture m_texture;
 };

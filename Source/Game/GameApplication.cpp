@@ -4,10 +4,11 @@
 #include <spdlog/spdlog.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-void GameApplication::Start(Engine &engine) {
+void GameApplication::Start(Engine& engine)
+{
     m_engine = &engine;
 
-    auto &rm = m_engine->GetRenderingManager();
+    auto& rm = m_engine->GetRenderingManager();
 
     // Camera
     m_camera = std::make_unique<Camera>(m_engine->GetWindow());
@@ -29,6 +30,9 @@ void GameApplication::Start(Engine &engine) {
     CreateStorageBufferForVertices();
     CreateUniformBuffers();
 
+    // Textures
+    m_texture = rm.GetTextureManager().CreateTexture("test.png");
+
     // Pipeline
     SetupGraphicsPipeline();
 
@@ -38,18 +42,26 @@ void GameApplication::Start(Engine &engine) {
     RecordCommandBuffers();
 }
 
-GameApplication::~GameApplication() {
-    auto &rm = m_engine->GetRenderingManager();
+GameApplication::~GameApplication()
+{
+    auto& rm = m_engine->GetRenderingManager();
 
     rm.GetQueue().WaitUntilExecutedAll();
     rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
     spdlog::info("Freed command buffers");
 
     rm.GetBufferManager().DestroyBuffer(m_vertexStorageBuffer);
+    for (int i = 0; i < m_uniformBuffers.size(); i++)
+    {
+        rm.GetBufferManager().DestroyBuffer(m_uniformBuffers[i]);
+    }
+
+    rm.GetTextureManager().DestroyTexture(m_texture);
 
     m_graphicsPipeline.reset();
 
-    for (int i = 0; i < m_frameBuffers.size(); i++) {
+    for (int i = 0; i < m_frameBuffers.size(); i++)
+    {
         vkDestroyFramebuffer(rm.GetDevice(), m_frameBuffers[i], nullptr);
     }
     spdlog::info("Destroyed framebuffers");
@@ -58,18 +70,16 @@ GameApplication::~GameApplication() {
     spdlog::info("Destroyed shaders");
     vkDestroyRenderPass(rm.GetDevice(), m_renderPass, nullptr);
     spdlog::info("Destroyed render pass");
-
-    for (int i = 0; i < m_uniformBuffers.size(); i++) {
-        rm.GetBufferManager().DestroyBuffer(m_uniformBuffers[i]);
-    }
 }
 
-void GameApplication::Update() {
+void GameApplication::Update()
+{
     m_camera->Update(m_engine->GetDeltaTime());
 }
 
-void GameApplication::Render() {
-    auto &rm = m_engine->GetRenderingManager();
+void GameApplication::Render()
+{
+    auto& rm = m_engine->GetRenderingManager();
 
     rm.GetQueue().WaitUntilExecutedAll();
     glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
@@ -82,21 +92,25 @@ void GameApplication::Render() {
     rm.GetQueue().Present(imageIndex);
 }
 
-bool GameApplication::ShouldClose() const {
+bool GameApplication::ShouldClose() const
+{
     return m_engine->GetWindow().ShouldClose();
 }
 
-std::string GameApplication::GetApplicationName() const {
+std::string GameApplication::GetApplicationName() const
+{
     return "MyApp";
 }
 
-void GameApplication::RecordCommandBuffers() const {
-    auto &rm = m_engine->GetRenderingManager();
+void GameApplication::RecordCommandBuffers() const
+{
+    auto& rm = m_engine->GetRenderingManager();
     VkClearColorValue clearColor = {1.0f, 0.0f, 0.0f, 0.0f};
     VkClearValue clearValue;
     clearValue.color = clearColor;
 
-    for (int i = 0; i < m_commandBuffers.size(); ++i) {
+    for (int i = 0; i < m_commandBuffers.size(); ++i)
+    {
         VkRenderPassBeginInfo renderPassBeginInfo = {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
             .pNext = nullptr,
@@ -122,7 +136,7 @@ void GameApplication::RecordCommandBuffers() const {
         vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         m_graphicsPipeline->BindTo(m_commandBuffers[i], i);
-        vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
+        vkCmdDraw(m_commandBuffers[i], 6, 1, 0, 0);
 
         vkCmdEndRenderPass(m_commandBuffers[i]);
 
@@ -132,9 +146,12 @@ void GameApplication::RecordCommandBuffers() const {
     spdlog::info("Command buffers recorded");
 }
 
-void GameApplication::CreateStorageBufferForVertices() {
-    struct Vertex {
-        Vertex(const glm::vec3 &p, const glm::vec2 &t) {
+void GameApplication::CreateStorageBufferForVertices()
+{
+    struct Vertex
+    {
+        Vertex(const glm::vec3& p, const glm::vec2& t)
+        {
             Pos = p;
             Tex = t;
         }
@@ -143,32 +160,38 @@ void GameApplication::CreateStorageBufferForVertices() {
         glm::vec2 Tex;
     };
 
-    std::vector Vertices = {
-        Vertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // top left
-        Vertex({1.0f, -1.0f, 0.0f}, {0.0f, 1.0f}), // top right
-        Vertex({0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}) // bottom middle
+    std::vector vertices = {
+        Vertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
+        Vertex({-1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}), // Top left
+        Vertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
+        Vertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
+        Vertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
+        Vertex({1.0f, -1.0f, 0.0f}, {1.0f, 0.0f}) // Bottom right
     };
 
-    m_vertexBufferSize = sizeof(Vertices[0]) * Vertices.size();
+    m_vertexBufferSize = sizeof(vertices[0]) * vertices.size();
     m_vertexStorageBuffer = m_engine->GetRenderingManager().GetBufferManager().CreateStorageBufferForVertices(
-        Vertices.data(), m_vertexBufferSize);
+        vertices.data(), m_vertexBufferSize);
 }
 
-void GameApplication::CreateUniformBuffers() {
-    auto &rm = m_engine->GetRenderingManager();
+void GameApplication::CreateUniformBuffers()
+{
+    auto& rm = m_engine->GetRenderingManager();
     m_uniformBuffers = rm.GetBufferManager().CreateUniformBuffers(sizeof(UniformData));
     spdlog::info("Created uniform buffers");
 }
 
-void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const {
+void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const
+{
     glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -10.0f));
 
     glm::mat4 WVP = m_camera->GetProjectionMatrix() * m_camera->GetViewMatrix() * model;
     m_engine->GetRenderingManager().GetBufferManager().UpdateBuffer(m_uniformBuffers[imageIndex], &WVP, sizeof(WVP));
 }
 
-void GameApplication::SetupGraphicsPipeline() {
-    auto &rm = m_engine->GetRenderingManager();
+void GameApplication::SetupGraphicsPipeline()
+{
+    auto& rm = m_engine->GetRenderingManager();
 
     std::vector<PipelineResourceInfo> pipelineResources;
 
@@ -189,6 +212,15 @@ void GameApplication::SetupGraphicsPipeline() {
         .SameResourceForAllImages = false,
         .ResourcePtrs = m_uniformBuffers.data()
     });
+
+    // Texture
+    pipelineResources.push_back({
+       .ResourceType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+       .Binding = 2,
+       .Stages = VK_SHADER_STAGE_FRAGMENT_BIT,
+       .SameResourceForAllImages = true,
+       .ResourcePtrs =  &m_texture
+   });
 
     m_graphicsPipeline = std::make_unique<GraphicsPipeline>(
         rm.GetDevice(), m_engine->GetWindow().GetSize(),

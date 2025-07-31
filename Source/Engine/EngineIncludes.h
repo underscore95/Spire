@@ -11,6 +11,7 @@
 #include "Engine/Rendering/GraphicsPipeline.h"
 #include "Engine/Rendering/BufferManager.h"
 #include "Engine/Rendering/PipelineDescriptorSetsManager.h"
+#include "Engine/Rendering/TextureManager.h"
 
 #include "Engine/Utils/Camera/Camera.h"
 #include "Engine/Utils/Timer.h"

@@ -5,6 +5,7 @@
 
 #include "Application.h"
 #include "Engine/Rendering/RenderingManager.h"
+#include "Engine/Utils/ImageLoader.h"
 #include "Engine/Window/Window.h"
 
 Engine::Engine(std::unique_ptr<Application> app)
@@ -50,6 +51,10 @@ Engine::~Engine() {
     Window::Shutdown();
 
     m_renderingManager.reset();
+
+    if (ImageLoader::GetNumLoadedImages() != 0) {
+        spdlog::error("There was {} images still loaded when the engine shut down!", ImageLoader::GetNumLoadedImages());
+    }
 
     const auto afterEngineShutdown = std::chrono::high_resolution_clock::now();
 

@@ -3,6 +3,7 @@
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan_core.h>
 
+struct VulkanTexture;
 class VulkanBuffer;
 class RenderingManager;
 
@@ -13,7 +14,9 @@ struct PipelineResourceInfo {
 
     bool SameResourceForAllImages;
     union ResourcePtr {
+        void* Raw;
         VulkanBuffer *Buffers;
+        VulkanTexture *Textures;
     } ResourcePtrs;
 };
 
@@ -38,6 +41,8 @@ private:
     void UpdateDescriptorSets() const;
 
     bool IsBuffer(VkDescriptorType resourceType) const;
+
+    bool IsTextureSampler(VkDescriptorType resourceType) const;
 
     bool IsSupportedResourceType(VkDescriptorType resourceType) const;
 
