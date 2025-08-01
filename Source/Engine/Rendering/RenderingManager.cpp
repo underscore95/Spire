@@ -33,12 +33,19 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
     m_bufferManager = std::make_unique<BufferManager>(*this);
     m_textureManager = std::make_unique<TextureManager>(*this);
 
+    CreateDepthResources(window.GetDimensions());
+
     spdlog::info("Initialized RenderingManager!");
 }
 
 RenderingManager::~RenderingManager()
 {
     spdlog::info("Destroying RenderingManager...");
+
+    for (const auto& depthTexture : m_depthImages)
+    {
+        m_textureManager->DestroyTexture(depthTexture);
+    }
 
     m_textureManager.reset();
     m_bufferManager.reset();
@@ -150,7 +157,9 @@ glm::u32 RenderingManager::GetQueueFamily() const
 
 VkRenderPass RenderingManager::CreateSimpleRenderPass() const
 {
-    VkAttachmentDescription attachDesc = {
+#pragma region Attachments
+    // Color
+    VkAttachmentDescription colorAttachment = {
         .flags = 0,
         .format = m_swapChainSurfaceFormat.format,
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -162,10 +171,31 @@ VkRenderPass RenderingManager::CreateSimpleRenderPass() const
         .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
     };
 
-    VkAttachmentReference attachRef = {
+    VkAttachmentReference colorAttachmentRef = {
         .attachment = 0,
         .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
     };
+
+    // Depth
+    VkFormat depthFormat = m_deviceManager->Selected().DepthFormat;
+
+    VkAttachmentDescription depthAttachment = {
+        .flags = 0,
+        .format = depthFormat,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    };
+
+    VkAttachmentReference depthAttachmentRef = {
+        .attachment = 1,
+        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    };
+#pragma endregion
 
     VkSubpassDescription subpassDesc = {
         .flags = 0,
@@ -173,19 +203,21 @@ VkRenderPass RenderingManager::CreateSimpleRenderPass() const
         .inputAttachmentCount = 0,
         .pInputAttachments = nullptr,
         .colorAttachmentCount = 1,
-        .pColorAttachments = &attachRef,
+        .pColorAttachments = &colorAttachmentRef,
         .pResolveAttachments = nullptr,
-        .pDepthStencilAttachment = nullptr,
+        .pDepthStencilAttachment = &depthAttachmentRef,
         .preserveAttachmentCount = 0,
         .pPreserveAttachments = nullptr
     };
+
+    const std::array attachments{colorAttachment, depthAttachment};
 
     VkRenderPassCreateInfo RenderPassCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .attachmentCount = 1,
-        .pAttachments = &attachDesc,
+        .attachmentCount = attachments.size(),
+        .pAttachments = attachments.data(),
         .subpassCount = 1,
         .pSubpasses = &subpassDesc,
         .dependencyCount = 0,
@@ -215,11 +247,13 @@ void RenderingManager::CreateFramebuffers(std::vector<VkFramebuffer>& framebuffe
 
     for (glm::u32 i = 0; i < m_images.size(); i++)
     {
+        const std::array attachments{m_imageViews[i], m_depthImages[i].ImageView};
+
         VkFramebufferCreateInfo fbCreateInfo = {};
         fbCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         fbCreateInfo.renderPass = renderPass;
-        fbCreateInfo.attachmentCount = 1;
-        fbCreateInfo.pAttachments = &m_imageViews[i];
+        fbCreateInfo.attachmentCount = attachments.size();
+        fbCreateInfo.pAttachments = attachments.data();
         fbCreateInfo.width = windowSize.x;
         fbCreateInfo.height = windowSize.y;
         fbCreateInfo.layers = 1;
@@ -257,6 +291,28 @@ const BufferManager& RenderingManager::GetBufferManager() const
 const TextureManager& RenderingManager::GetTextureManager() const
 {
     return *m_textureManager;
+}
+
+void RenderingManager::CreateDepthResources(glm::uvec2 windowDimensions)
+{
+    m_depthImages.resize(m_images.size());
+
+    VkFormat depthFormat = m_deviceManager->Selected().DepthFormat;
+
+    for (int i = 0; i < m_depthImages.size(); i++)
+    {
+        VkImageUsageFlagBits usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        VkMemoryPropertyFlagBits propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        m_textureManager->CreateImage(m_depthImages[i], windowDimensions, usage, propertyFlags, depthFormat);
+
+        m_textureManager->TransitionImageLayout(m_depthImages[i].Image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+                                                VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+        m_depthImages[i].ImageView = m_textureManager->CreateImageView(m_depthImages[i].Image, depthFormat,
+                                                                       VK_IMAGE_ASPECT_DEPTH_BIT);
+    }
+
+    spdlog::info("Created {} depth images", m_depthImages.size());
 }
 
 // https://github.com/emeiri/ogldev/blob/VULKAN_02/Vulkan/VulkanCore/Source/core.cpp

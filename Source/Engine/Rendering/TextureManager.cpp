@@ -10,14 +10,14 @@
 TextureManager::TextureManager(RenderingManager& renderingManager)
     : m_renderingManager(renderingManager)
 {
-    m_renderingManager.GetCommandManager().CreateCommandBuffers(1, &m_copyCommandBuffer);
+    m_renderingManager.GetCommandManager().CreateCommandBuffers(1, &m_commandBuffer);
 }
 
 TextureManager::~TextureManager()
 {
     ASSERT(&m_renderingManager.GetCommandManager() != nullptr);
     ASSERT(&m_renderingManager.GetBufferManager() != nullptr);
-    m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_copyCommandBuffer);
+    m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_commandBuffer);
 }
 
 VulkanTexture TextureManager::CreateTexture(const char* filename) const
@@ -61,7 +61,7 @@ void TextureManager::DestroyTexture(const VulkanTexture& vulkanTexture) const
     vkFreeMemory(device, vulkanTexture.DeviceMemory, nullptr);
 }
 
-void TextureManager::CreateImage(VulkanTexture& texture, const LoadedImage& loadedImage,
+void TextureManager::CreateImage(VulkanTexture& texture, glm::uvec2 dimensions,
                                  VkImageUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkFormat format) const
 {
     VkImageCreateInfo imageInfo = {
@@ -71,8 +71,9 @@ void TextureManager::CreateImage(VulkanTexture& texture, const LoadedImage& load
         .imageType = VK_IMAGE_TYPE_2D,
         .format = format,
         .extent = VkExtent3D{
-            .width = static_cast<glm::u32>(loadedImage.Dimensions.x),
-            .height = static_cast<glm::u32>(loadedImage.Dimensions.y), .depth = 1
+            .width = dimensions.x,
+            .height = dimensions.y,
+            .depth = 1
         },
         .mipLevels = 1,
         .arrayLayers = 1,
@@ -154,7 +155,7 @@ glm::u32 TextureManager::GetBytesPerTexFormat(VkFormat format) const
 void TextureManager::CopyBufferToImage(VkImage dest, VkBuffer source, const glm::uvec2& imageDimensions) const
 {
     auto& commandManager = m_renderingManager.GetCommandManager();
-    commandManager.BeginCommandBuffer(m_copyCommandBuffer, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    commandManager.BeginCommandBuffer(m_commandBuffer, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
     VkBufferImageCopy bufferImageCopy = {
         .bufferOffset = 0,
@@ -170,12 +171,12 @@ void TextureManager::CopyBufferToImage(VkImage dest, VkBuffer source, const glm:
         .imageExtent = VkExtent3D{.width = imageDimensions.x, .height = imageDimensions.y, .depth = 1}
     };
 
-    vkCmdCopyBufferToImage(m_copyCommandBuffer, source, dest, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+    vkCmdCopyBufferToImage(m_commandBuffer, source, dest, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                            1, &bufferImageCopy);
 
-    vkEndCommandBuffer(m_copyCommandBuffer);
+    vkEndCommandBuffer(m_commandBuffer);
 
-    m_renderingManager.GetQueue().SubmitSync(m_copyCommandBuffer);
+    m_renderingManager.GetQueue().SubmitSync(m_commandBuffer);
 
     m_renderingManager.GetQueue().WaitUntilExecutedAll();
 }
@@ -211,7 +212,7 @@ void TextureManager::CreateTextureImageFromData(VulkanTexture& texture, const Lo
 {
     constexpr VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
     constexpr VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    CreateImage(texture, loadedImage, usage, propertyFlags, format);
+    CreateImage(texture, loadedImage.Dimensions, usage, propertyFlags, format);
 
     UpdateTextureImage(texture, loadedImage, format);
 }
@@ -219,14 +220,14 @@ void TextureManager::CreateTextureImageFromData(VulkanTexture& texture, const Lo
 void TextureManager::TransitionImageLayout(const VkImage& image, VkFormat format, VkImageLayout oldLayout,
                                            VkImageLayout newLayout) const
 {
-    m_renderingManager.GetCommandManager().BeginCommandBuffer(m_copyCommandBuffer,
+    m_renderingManager.GetCommandManager().BeginCommandBuffer(m_commandBuffer,
                                                               VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
-    ImageMemBarrier(m_copyCommandBuffer, image, format, oldLayout, newLayout);
+    ImageMemBarrier(m_commandBuffer, image, format, oldLayout, newLayout);
 
-    vkEndCommandBuffer(m_copyCommandBuffer);
+    vkEndCommandBuffer(m_commandBuffer);
 
-    m_renderingManager.GetQueue().SubmitSync(m_copyCommandBuffer);
+    m_renderingManager.GetQueue().SubmitSync(m_commandBuffer);
 
     m_renderingManager.GetQueue().WaitUntilExecutedAll();
 }

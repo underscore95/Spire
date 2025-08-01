@@ -4,7 +4,8 @@
 #include <vulkan/vulkan_core.h>
 #include <glm/fwd.hpp>
 
-struct PhysicalDevice {
+struct PhysicalDevice
+{
     VkPhysicalDevice PhysicalDeviceHandle;
     VkPhysicalDeviceProperties DeviceProperties;
     std::vector<VkQueueFamilyProperties> QueueFamilyProperties; // Similar to command lists
@@ -14,11 +15,13 @@ struct PhysicalDevice {
     VkPhysicalDeviceMemoryProperties MemoryProperties;
     std::vector<VkPresentModeKHR> PresentModes;
     VkPhysicalDeviceFeatures Features;
+    VkFormat DepthFormat;
 };
 
-class RenderingDeviceManager {
+class RenderingDeviceManager
+{
 public:
-    RenderingDeviceManager(const VkInstance &instance, const VkSurfaceKHR &surface, bool logDeviceInfo);
+    RenderingDeviceManager(const VkInstance& instance, const VkSurfaceKHR& surface, bool logDeviceInfo);
 
     ~RenderingDeviceManager();
 
@@ -29,7 +32,12 @@ public:
     [[nodiscard]] glm::u32 SelectDevice(VkQueueFlags requiredQueueType, bool supportsPresent);
 
     // Get the selected device
-    [[nodiscard]] const PhysicalDevice &Selected() const;
+    [[nodiscard]] const PhysicalDevice& Selected() const;
+
+private:
+  [[nodiscard]]  VkFormat FindDepthFormat(VkPhysicalDevice device) const;
+  [[nodiscard]]  VkFormat FindSupportedFormat(VkPhysicalDevice device, const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+                                 VkFormatFeatureFlags requestedFeatures) const;
 
 private:
     int m_deviceIndex = -1;

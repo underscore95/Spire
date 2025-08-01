@@ -6,6 +6,7 @@
 #include <vector>
 #include <glm/fwd.hpp>
 
+struct VulkanTexture;
 class TextureManager;
 class RenderingCommandManager;
 class Window;
@@ -51,6 +52,8 @@ public:
     [[nodiscard]] const TextureManager &GetTextureManager() const;
 
 private:
+    void CreateDepthResources(glm::uvec2 windowDimensions);
+
     void CreateInstance(const std::string &applicationName);
 
     void CreateDebugCallback();
@@ -85,4 +88,5 @@ private:
     std::unique_ptr<VulkanQueue> m_queue = nullptr;
     std::unique_ptr<BufferManager> m_bufferManager = nullptr;
     std::unique_ptr<TextureManager> m_textureManager = nullptr;
+    std::vector<VulkanTexture> m_depthImages;
 };

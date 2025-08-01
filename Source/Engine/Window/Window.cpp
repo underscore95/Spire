@@ -91,7 +91,7 @@ glm::vec2 Window::GetScrollDelta() const {
 }
 
 float Window::GetAspectRatio() const {
-    const glm::vec2 size = GetSize();
+    const glm::vec2 size = GetDimensions();
     ASSERT(size.y != 0.0f);
     return size.x / size.y;
 }
@@ -140,7 +140,7 @@ GLFWwindow *Window::GLFWWindow() const {
     return m_windowHandle;
 }
 
-glm::uvec2 Window::GetSize() const {
+glm::uvec2 Window::GetDimensions() const {
     glm::ivec2 size;
     glfwGetWindowSize(m_windowHandle, &size.x, &size.y);
     return size;

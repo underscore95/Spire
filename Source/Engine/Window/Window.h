@@ -60,7 +60,7 @@ public:
 
     [[nodiscard]] GLFWwindow *GLFWWindow() const;
 
-    [[nodiscard]] glm::uvec2 GetSize() const;
+    [[nodiscard]] glm::uvec2 GetDimensions() const;
 
 private:
     static bool s_initialized;

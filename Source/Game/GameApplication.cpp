@@ -15,7 +15,7 @@ void GameApplication::Start(Engine& engine)
 
     // Render pass
     m_renderPass = rm.CreateSimpleRenderPass();
-    rm.CreateFramebuffers(m_frameBuffers, m_renderPass, m_engine->GetWindow().GetSize());
+    rm.CreateFramebuffers(m_frameBuffers, m_renderPass, m_engine->GetWindow().GetDimensions());
 
     // Shaders
     ShaderCompiler compiler(rm.GetDevice());
@@ -106,8 +106,14 @@ void GameApplication::RecordCommandBuffers() const
 {
     auto& rm = m_engine->GetRenderingManager();
     VkClearColorValue clearColor = {1.0f, 0.0f, 0.0f, 0.0f};
-    VkClearValue clearValue;
-    clearValue.color = clearColor;
+    std::array clearValues = {
+        VkClearValue{
+            .color = clearColor
+        },
+        VkClearValue{
+            .depthStencil = {1.0f, 0}
+        }
+    };
 
     for (int i = 0; i < m_commandBuffers.size(); ++i)
     {
@@ -122,12 +128,12 @@ void GameApplication::RecordCommandBuffers() const
                     .y = 0
                 },
                 .extent = {
-                    .width = m_engine->GetWindow().GetSize().x,
-                    .height = m_engine->GetWindow().GetSize().y
+                    .width = m_engine->GetWindow().GetDimensions().x,
+                    .height = m_engine->GetWindow().GetDimensions().y
                 }
             },
-            .clearValueCount = 1,
-            .pClearValues = &clearValue,
+            .clearValueCount = clearValues.size(),
+            .pClearValues = clearValues.data(),
         };
 
         VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
@@ -136,7 +142,7 @@ void GameApplication::RecordCommandBuffers() const
         vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         m_graphicsPipeline->BindTo(m_commandBuffers[i], i);
-        vkCmdDraw(m_commandBuffers[i], 6, 1, 0, 0);
+        vkCmdDraw(m_commandBuffers[i], 9, 1, 0, 0);
 
         vkCmdEndRenderPass(m_commandBuffers[i]);
 
@@ -161,12 +167,18 @@ void GameApplication::CreateStorageBufferForVertices()
     };
 
     std::vector vertices = {
+        // Quad
         Vertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
         Vertex({-1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}), // Top left
         Vertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
         Vertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
         Vertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
-        Vertex({1.0f, -1.0f, 0.0f}, {1.0f, 0.0f}) // Bottom right
+        Vertex({1.0f, -1.0f, 0.0f}, {1.0f, 0.0f}), // Bottom right
+
+        // Triangle
+        Vertex({-1.0f, -1.0f, -5.0f}, {0.0f, 0.0f}), // Bottom left
+        Vertex({-1.0f, 1.0f, -5.0f}, {0.0f, 1.0f}), // Top left
+        Vertex({1.0f, 1.0f, -5.0f}, {1.0f, 1.0f}) // Top right
     };
 
     m_vertexBufferSize = sizeof(vertices[0]) * vertices.size();
@@ -215,15 +227,15 @@ void GameApplication::SetupGraphicsPipeline()
 
     // Texture
     pipelineResources.push_back({
-       .ResourceType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       .Binding = 2,
-       .Stages = VK_SHADER_STAGE_FRAGMENT_BIT,
-       .SameResourceForAllImages = true,
-       .ResourcePtrs =  &m_texture
-   });
+        .ResourceType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .Binding = 2,
+        .Stages = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .SameResourceForAllImages = true,
+        .ResourcePtrs = &m_texture
+    });
 
     m_graphicsPipeline = std::make_unique<GraphicsPipeline>(
-        rm.GetDevice(), m_engine->GetWindow().GetSize(),
+        rm.GetDevice(), m_engine->GetWindow().GetDimensions(),
         m_renderPass, m_vertexShader, m_fragmentShader,
         std::make_unique<PipelineDescriptorSetsManager>(
             rm, pipelineResources));
