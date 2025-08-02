@@ -1,28 +1,31 @@
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
 #include <vulkan/vulkan.h>
-
-#define SHADER_COMPILER_USING_STD 1
-#ifdef SHADER_COMPILER_USING_STD
 #include <string>
-#endif
 
-class ShaderCompiler {
+class ShaderCompiler
+{
 public:
-    explicit ShaderCompiler(VkDevice device);
+    explicit ShaderCompiler(VkDevice device, bool alwaysCompileFromSource = false);
+    ~ShaderCompiler();
 
-    VkShaderModule CreateShaderModuleFromBinary(const char *pFilename) const;
+public:
+    // Do not attempt to compile the same file twice async without awaiting between the calls
+    void CreateShaderModuleAsync(VkShaderModule* out, const std::string& fileName) ;
+    void Await();
 
-#ifdef SHADER_COMPILER_USING_STD
+    VkShaderModule CreateShaderModule(const std::string& fileName) const;
+
+private:
     VkShaderModule CreateShaderModuleFromBinary(const std::string& fileName) const;
-#endif
-
-  VkShaderModule CreateShaderModuleFromText(const char *pFilename) const;
-
-#ifdef SHADER_COMPILER_USING_STD
-  VkShaderModule CreateShaderModuleFromText(const std::string& fileName) const;
-#endif
+    VkShaderModule CreateShaderModuleFromText(const std::string& fileName) const;
 
 private:
     VkDevice m_device;
+    bool m_alwaysCompileFromSource;
+    std::atomic_int m_currentTasks = 0;
+    std::mutex m_waitForTasksMutex;
+    std::condition_variable m_waitForTasksCompleteCv;
 };

@@ -18,13 +18,16 @@ void GameApplication::Start(Engine& engine)
     rm.CreateFramebuffers(m_frameBuffers, m_renderPass, m_engine->GetWindow().GetDimensions());
 
     // Shaders
+    Timer shaderCompileTimer;
+    shaderCompileTimer.Start();
     ShaderCompiler compiler(rm.GetDevice());
     spdlog::info("Created shader compiler");
-    m_vertexShader = compiler.CreateShaderModuleFromText(std::format("{}/test.vert", ASSETS_DIRECTORY));
-    m_fragmentShader = compiler.CreateShaderModuleFromText(std::format("{}/test.frag", ASSETS_DIRECTORY));
+    compiler.CreateShaderModuleAsync(&m_vertexShader, std::format("{}/Shaders/test.vert", ASSETS_DIRECTORY));
+    compiler.CreateShaderModuleAsync(&m_fragmentShader, std::format("{}/Shaders/test.frag", ASSETS_DIRECTORY));
+    compiler.Await();
     DEBUG_ASSERT(m_vertexShader != VK_NULL_HANDLE);
     DEBUG_ASSERT(m_fragmentShader != VK_NULL_HANDLE);
-    spdlog::info("Created shaders");
+    spdlog::info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
     // Buffers
     CreateStorageBufferForVertices();

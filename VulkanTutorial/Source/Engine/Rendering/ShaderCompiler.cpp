@@ -9,28 +9,37 @@
 // https://github.com/KhronosGroup/glslang
 // https://github.com/emeiri/ogldev/blob/VULKAN_13/Vulkan/VulkanCore/Source/shader.cpp
 
-struct CompiledShader {
+struct CompiledShader
+{
     std::vector<glm::u32> SPIRV;
     VkShaderModule ShaderModule = nullptr;
 
-    void Initialize(glslang_program_t *program) {
+    void Initialize(glslang_program_t* program)
+    {
         size_t program_size = glslang_program_SPIRV_get_size(program);
         SPIRV.resize(program_size);
         glslang_program_SPIRV_get(program, SPIRV.data());
     }
 };
 
-static void PrintShaderSource(const char *text) {
+static void PrintShaderSource(const char* text)
+{
     int line = 1;
 
     printf("\n(%3i) ", line);
 
-    while (text && *text++) {
-        if (*text == '\n') {
+    while (text && *text++)
+    {
+        if (*text == '\n')
+        {
             printf("\n(%3i) ", ++line);
-        } else if (*text == '\r') {
+        }
+        else if (*text == '\r')
+        {
             // nothing to do
-        } else {
+        }
+        else
+        {
             printf("%c", *text);
         }
     }
@@ -39,12 +48,13 @@ static void PrintShaderSource(const char *text) {
 }
 
 
-static bool CompileShader(const char *shaderName, const VkDevice &device, glslang_stage_t stage,
-                          const char *pShaderCode,
-                          CompiledShader &ShaderModule) {
+static bool CompileShader(const char* shaderName, const VkDevice& device, glslang_stage_t stage,
+                          const char* pShaderCode,
+                          CompiledShader& ShaderModule)
+{
 #pragma region defaultResource
     // https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/%2B/HEAD/glslang/ResourceLimits/ResourceLimits.cpp
-    glslang_resource_t defaultResource = {
+    constexpr glslang_resource_t defaultResource = {
         32, // max_lights
         6, // max_clip_planes
         32, // max_texture_units
@@ -141,8 +151,6 @@ static bool CompileShader(const char *shaderName, const VkDevice &device, glslan
     };
 #pragma endregion
 
-    auto begin = std::chrono::high_resolution_clock::now();
-
     glslang_input_t input = {
         .language = GLSLANG_SOURCE_GLSL,
         .stage = stage,
@@ -159,10 +167,11 @@ static bool CompileShader(const char *shaderName, const VkDevice &device, glslan
         .resource = &defaultResource
     };
 
-    glslang_shader_t *shader = glslang_shader_create(&input);
+    glslang_shader_t* shader = glslang_shader_create(&input);
 
     ASSERT(shader);
-    if (!glslang_shader_preprocess(shader, &input)) {
+    if (!glslang_shader_preprocess(shader, &input))
+    {
         fprintf(stderr, "GLSL preprocessing failed\n");
         fprintf(stderr, "\n%s", glslang_shader_get_info_log(shader));
         fprintf(stderr, "\n%s", glslang_shader_get_info_debug_log(shader));
@@ -170,7 +179,8 @@ static bool CompileShader(const char *shaderName, const VkDevice &device, glslan
         return false;
     }
 
-    if (!glslang_shader_parse(shader, &input)) {
+    if (!glslang_shader_parse(shader, &input))
+    {
         fprintf(stderr, "GLSL parsing failed\n");
         fprintf(stderr, "\n%s", glslang_shader_get_info_log(shader));
         fprintf(stderr, "\n%s", glslang_shader_get_info_debug_log(shader));
@@ -178,10 +188,11 @@ static bool CompileShader(const char *shaderName, const VkDevice &device, glslan
         return false;
     }
 
-    glslang_program_t *program = glslang_program_create();
+    glslang_program_t* program = glslang_program_create();
     glslang_program_add_shader(program, shader);
 
-    if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT)) {
+    if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT))
+    {
         fprintf(stderr, "GLSL linking failed\n");
         fprintf(stderr, "\n%s", glslang_program_get_info_log(program));
         fprintf(stderr, "\n%s", glslang_program_get_info_debug_log(program));
@@ -192,31 +203,24 @@ static bool CompileShader(const char *shaderName, const VkDevice &device, glslan
 
     ShaderModule.Initialize(program);
 
-    const char *messagesSPIRV = glslang_program_SPIRV_get_messages(program);
+    const char* messagesSPIRV = glslang_program_SPIRV_get_messages(program);
 
-    if (messagesSPIRV) {
+    if (messagesSPIRV)
+    {
         fprintf(stderr, "SPIR-V message: '%s'", messagesSPIRV);
     }
 
-    auto end = std::chrono::high_resolution_clock::now();
-    spdlog::info("Compilation time for shader '{}' to SPIRV: {} ms", shaderName,
-                 std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-
-    begin = std::chrono::high_resolution_clock::now();
     VkShaderModuleCreateInfo shaderCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .codeSize = ShaderModule.SPIRV.size() * sizeof(uint32_t),
-        .pCode = static_cast<const uint32_t *>(ShaderModule.SPIRV.data())
+        .pCode = static_cast<const uint32_t*>(ShaderModule.SPIRV.data())
     };
 
     VkResult res = vkCreateShaderModule(device, &shaderCreateInfo, nullptr, &ShaderModule.ShaderModule);
-    if (res != VK_SUCCESS) {
+    if (res != VK_SUCCESS)
+    {
         spdlog::error("Failed to create shader module");
     }
-    end = std::chrono::high_resolution_clock::now();
-
-    spdlog::info("Compilation time for shader '{}' from SPIRV: {} ms", shaderName,
-                 std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
 
     glslang_program_delete(program);
     glslang_shader_delete(shader);
@@ -226,12 +230,14 @@ static bool CompileShader(const char *shaderName, const VkDevice &device, glslan
     return ret;
 }
 
-static char *ReadBinaryFile(const char *pFilename, int &size) {
-    FILE *f = nullptr;
+static char* ReadBinaryFile(const char* pFilename, int& size)
+{
+    FILE* f = nullptr;
 
     errno_t err = fopen_s(&f, pFilename, "rb");
 
-    if (!f) {
+    if (!f)
+    {
         char buf[256] = {0};
         strerror_s(buf, sizeof(buf), err);
         spdlog::error("Error opening '{}': {}", pFilename, buf);
@@ -241,7 +247,8 @@ static char *ReadBinaryFile(const char *pFilename, int &size) {
     struct stat stat_buf;
     int error = stat(pFilename, &stat_buf);
 
-    if (error) {
+    if (error)
+    {
         char buf[256] = {0};
         strerror_s(buf, sizeof(buf), err);
         spdlog::error("Error getting file stats: {}", buf);
@@ -250,12 +257,13 @@ static char *ReadBinaryFile(const char *pFilename, int &size) {
 
     size = stat_buf.st_size;
 
-    auto p = static_cast<char *>(malloc(size));
+    auto p = static_cast<char*>(malloc(size));
     assert(p);
 
     size_t bytes_read = fread(p, 1, size, f);
 
-    if (bytes_read != size) {
+    if (bytes_read != size)
+    {
         char buf[256] = {0};
         strerror_s(buf, sizeof(buf), err);
         spdlog::error("Read file error file: {}", buf);
@@ -267,19 +275,22 @@ static char *ReadBinaryFile(const char *pFilename, int &size) {
     return p;
 }
 
-static void WriteBinaryFile(const char *pFilename, const void *pData, int size) {
-    FILE *f = nullptr;
+static void WriteBinaryFile(const char* pFilename, const void* pData, int size)
+{
+    FILE* f = nullptr;
 
     errno_t err = fopen_s(&f, pFilename, "wb");
 
-    if (!f) {
+    if (!f)
+    {
         spdlog::error("Error opening '{}'", pFilename);
         return;
     }
 
     size_t bytes_written = fwrite(pData, 1, size, f);
 
-    if (bytes_written != size) {
+    if (bytes_written != size)
+    {
         spdlog::error("Error write file: {}", err);
         return;
     }
@@ -288,14 +299,17 @@ static void WriteBinaryFile(const char *pFilename, const void *pData, int size) 
 }
 
 
-bool ReadFile(const char *pFileName, std::string &outFile) {
+bool ReadFile(const char* pFileName, std::string& outFile)
+{
     std::ifstream f(pFileName);
 
     bool ret = false;
 
-    if (f.is_open()) {
+    if (f.is_open())
+    {
         std::string line;
-        while (getline(f, line)) {
+        while (getline(f, line))
+        {
             outFile.append(line);
             outFile.append("\n");
         }
@@ -303,37 +317,46 @@ bool ReadFile(const char *pFileName, std::string &outFile) {
         f.close();
 
         ret = true;
-    } else {
+    }
+    else
+    {
         spdlog::error("Failed to read text file {}", pFileName);
     }
 
     return ret;
 }
 
-static glslang_stage_t ShaderStageFromFilename(const char *pFilename) {
+static glslang_stage_t ShaderStageFromFilename(const char* pFilename)
+{
     std::string s(pFilename);
 
-    if (s.ends_with(".vert")) {
+    if (s.ends_with(".vert"))
+    {
         return GLSLANG_STAGE_VERTEX;
     }
 
-    if (s.ends_with(".frag")) {
+    if (s.ends_with(".frag"))
+    {
         return GLSLANG_STAGE_FRAGMENT;
     }
 
-    if (s.ends_with(".geom")) {
+    if (s.ends_with(".geom"))
+    {
         return GLSLANG_STAGE_GEOMETRY;
     }
 
-    if (s.ends_with(".comp")) {
+    if (s.ends_with(".comp"))
+    {
         return GLSLANG_STAGE_COMPUTE;
     }
 
-    if (s.ends_with(".tesc")) {
+    if (s.ends_with(".tesc"))
+    {
         return GLSLANG_STAGE_TESSCONTROL;
     }
 
-    if (s.ends_with(".tese")) {
+    if (s.ends_with(".tese"))
+    {
         return GLSLANG_STAGE_TESSEVALUATION;
     }
 
@@ -342,28 +365,82 @@ static glslang_stage_t ShaderStageFromFilename(const char *pFilename) {
     return GLSLANG_STAGE_VERTEX;
 }
 
-ShaderCompiler::ShaderCompiler(VkDevice device)
-    : m_device(device) {
+ShaderCompiler::ShaderCompiler(VkDevice device,
+                               bool alwaysCompileFromSource)
+    : m_device(device),
+      m_alwaysCompileFromSource(alwaysCompileFromSource)
+{
+    glslang_initialize_process();
 }
 
-VkShaderModule ShaderCompiler::CreateShaderModuleFromBinary(const char *pFilename) const {
+ShaderCompiler::~ShaderCompiler()
+{
+    Await();
+    glslang_finalize_process();
+}
+
+void ShaderCompiler::CreateShaderModuleAsync(VkShaderModule* out, const std::string& fileName)
+{
+    ++m_currentTasks;
+    std::thread([this, out, fileName]()
+    {
+        VkShaderModule result = CreateShaderModule(fileName);
+        if (out) *out = result;
+
+        --m_currentTasks;
+        m_waitForTasksCompleteCv.notify_all();
+    }).detach();
+}
+
+void ShaderCompiler::Await()
+{
+    std::unique_lock lock(m_waitForTasksMutex);
+    m_waitForTasksCompleteCv.wait(lock, [&] { return m_currentTasks == 0; });
+}
+
+VkShaderModule ShaderCompiler::CreateShaderModule(const std::string& fileName) const
+{
+    std::filesystem::path shaderSource = fileName;
+    std::filesystem::path compiledShader = shaderSource;
+    compiledShader += ".spv";
+
+    bool compileFromText = true;
+
+    if (std::filesystem::exists(compiledShader))
+    {
+        auto srcTime = std::filesystem::last_write_time(shaderSource);
+        auto binTime = std::filesystem::last_write_time(compiledShader);
+        compileFromText = srcTime >= binTime;
+    }
+
+    if (m_alwaysCompileFromSource || compileFromText)
+        return CreateShaderModuleFromText(shaderSource.string());
+    else
+        return CreateShaderModuleFromBinary(compiledShader.string());
+}
+
+VkShaderModule ShaderCompiler::CreateShaderModuleFromBinary(const std::string& fileName) const
+{
     int codeSize = 0;
-    char *pShaderCode = ReadBinaryFile(pFilename, codeSize);
+    char* pShaderCode = ReadBinaryFile(fileName.c_str(), codeSize);
     assert(pShaderCode);
 
     VkShaderModuleCreateInfo shaderCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .codeSize = static_cast<size_t>(codeSize),
-        .pCode = reinterpret_cast<const uint32_t *>(pShaderCode)
+        .pCode = reinterpret_cast<const uint32_t*>(pShaderCode)
     };
 
     VkShaderModule shaderModule;
     VkResult res = vkCreateShaderModule(m_device, &shaderCreateInfo, nullptr, &shaderModule);
 
-    if (res != VK_SUCCESS) {
+    if (res != VK_SUCCESS)
+    {
         spdlog::error("Failed to create shader module (from binary)");
-    } else {
-        spdlog::info("Created shader from binary {}", pFilename);
+    }
+    else
+    {
+        spdlog::info("Created shader from binary {}", fileName);
     }
 
     free(pShaderCode);
@@ -371,48 +448,33 @@ VkShaderModule ShaderCompiler::CreateShaderModuleFromBinary(const char *pFilenam
     return shaderModule;
 }
 
-#ifdef SHADER_COMPILER_USING_STD
-VkShaderModule ShaderCompiler::CreateShaderModuleFromBinary(const std::string& fileName) const
-{
-    return CreateShaderModuleFromBinary(fileName.c_str());
-}
-#endif
-
 // ReSharper disable once CppDFAConstantFunctionResult
-VkShaderModule ShaderCompiler::CreateShaderModuleFromText(const char *pFilename) const {
+VkShaderModule ShaderCompiler::CreateShaderModuleFromText(const std::string& fileName) const
+{
     std::string source;
 
-    if (!ReadFile(pFilename, source)) {
-        spdlog::error("Failed to read file {} when creating shader from text", pFilename);
+    if (!ReadFile(fileName.c_str(), source))
+    {
+        spdlog::error("Failed to read file {} when creating shader from text", fileName);
         return nullptr;
     }
 
     CompiledShader shaderModule;
 
-    glslang_stage_t shaderStage = ShaderStageFromFilename(pFilename);
+    glslang_stage_t shaderStage = ShaderStageFromFilename(fileName.c_str());
 
     VkShaderModule ret = nullptr;
 
-    glslang_initialize_process();
+    bool success = CompileShader(fileName.c_str(), m_device, shaderStage, source.c_str(), shaderModule);
 
-    bool success = CompileShader(pFilename, m_device, shaderStage, source.c_str(), shaderModule);
-
-    if (success) {
-        spdlog::info("Created shader from text file '{}'", pFilename);
+    if (success)
+    {
+        spdlog::info("Created shader from text file '{}'", fileName);
         ret = shaderModule.ShaderModule;
-        std::string BinaryFilename = std::string(pFilename) + ".spv";
+        std::string BinaryFilename = std::string(fileName.c_str()) + ".spv";
         WriteBinaryFile(BinaryFilename.c_str(), shaderModule.SPIRV.data(),
                         static_cast<int>(shaderModule.SPIRV.size()) * sizeof(uint32_t));
     }
 
-    glslang_finalize_process();
-
     return ret;
 }
-
-#ifdef SHADER_COMPILER_USING_STD
-VkShaderModule ShaderCompiler::CreateShaderModuleFromText(const std::string& fileName) const
-{
-    return CreateShaderModuleFromText(fileName.c_str());
-}
-#endif
