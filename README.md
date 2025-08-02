@@ -1,0 +1,11 @@
+https://www.youtube.com/watch?v=EsEP9iJKBhU
+
+https://github.com/PacktPublishing/3D-Graphics-Rendering-Cookbook
+
+https://github.com/KhronosGroup/glslang
+
+https://github.com/emeiri/ogldev/blob/VULKAN_13/Vulkan/VulkanCore/Source/shader.cpp
+
+https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/camera.h
+
+https://github.com/underscore95/Chimp/blob/main/Chimp/ChimpFramework/CMakeLists.txt (assets directory function)

@@ -371,6 +371,13 @@ VkShaderModule ShaderCompiler::CreateShaderModuleFromBinary(const char *pFilenam
     return shaderModule;
 }
 
+#ifdef SHADER_COMPILER_USING_STD
+VkShaderModule ShaderCompiler::CreateShaderModuleFromBinary(const std::string& fileName) const
+{
+    return CreateShaderModuleFromBinary(fileName.c_str());
+}
+#endif
+
 // ReSharper disable once CppDFAConstantFunctionResult
 VkShaderModule ShaderCompiler::CreateShaderModuleFromText(const char *pFilename) const {
     std::string source;
@@ -402,3 +409,10 @@ VkShaderModule ShaderCompiler::CreateShaderModuleFromText(const char *pFilename)
 
     return ret;
 }
+
+#ifdef SHADER_COMPILER_USING_STD
+VkShaderModule ShaderCompiler::CreateShaderModuleFromText(const std::string& fileName) const
+{
+    return CreateShaderModuleFromText(fileName.c_str());
+}
+#endif

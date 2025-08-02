@@ -20,8 +20,8 @@ void GameApplication::Start(Engine& engine)
     // Shaders
     ShaderCompiler compiler(rm.GetDevice());
     spdlog::info("Created shader compiler");
-    m_vertexShader = compiler.CreateShaderModuleFromText("test.vert");
-    m_fragmentShader = compiler.CreateShaderModuleFromText("test.frag");
+    m_vertexShader = compiler.CreateShaderModuleFromText(std::format("{}/test.vert", ASSETS_DIRECTORY));
+    m_fragmentShader = compiler.CreateShaderModuleFromText(std::format("{}/test.frag", ASSETS_DIRECTORY));
     DEBUG_ASSERT(m_vertexShader != VK_NULL_HANDLE);
     DEBUG_ASSERT(m_fragmentShader != VK_NULL_HANDLE);
     spdlog::info("Created shaders");
@@ -31,7 +31,8 @@ void GameApplication::Start(Engine& engine)
     CreateUniformBuffers();
 
     // Textures
-    m_texture = rm.GetTextureManager().CreateTexture("test.png");
+    std::string textureFile = std::format("{}/test.png", ASSETS_DIRECTORY);
+    m_texture = rm.GetTextureManager().CreateTexture(textureFile.c_str());
 
     // Pipeline
     SetupGraphicsPipeline();
