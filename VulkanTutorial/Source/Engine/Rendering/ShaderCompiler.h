@@ -19,8 +19,8 @@ public:
     VkShaderModule CreateShaderModule(const std::string& fileName) const;
 
 private:
-    VkShaderModule CreateShaderModuleFromBinary(const std::string& fileName) const;
-    VkShaderModule CreateShaderModuleFromText(const std::string& fileName) const;
+    VkShaderModule CreateShaderModuleFromBinaryFile(const std::string& fileName) const;
+    VkShaderModule CreateShaderModuleFromSource(const std::string& fileName, const std::string& shaderSource) const;
 
 private:
     VkDevice m_device;

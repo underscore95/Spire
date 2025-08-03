@@ -1,5 +1,6 @@
 #include "ShaderCompiler.h"
 #include <fstream>
+#include <unordered_set>
 #include <glm/glm.hpp>
 #include <vector>
 #include <spdlog/spdlog.h>
@@ -365,6 +366,84 @@ static glslang_stage_t ShaderStageFromFilename(const char* pFilename)
     return GLSLANG_STAGE_VERTEX;
 }
 
+struct ParsedShader
+{
+    std::string FullSource;
+    std::unordered_set<std::string> FilePaths; // includes root
+    bool Success = false;
+};
+
+static ParsedShader ParseShader(const std::string& filePath)
+{
+    ParsedShader parsed = {};
+    parsed.FilePaths.insert(filePath);
+
+    // Get shader source
+    if (!ReadFile(filePath.c_str(), parsed.FullSource))
+    {
+        spdlog::error("Failed to read file {} when creating shader from text", filePath);
+        return {};
+    }
+
+    // Find and replace #includes
+    size_t pos = 0;
+    while ((pos = parsed.FullSource.find("\n#include ", pos)) != std::string::npos)
+    {
+        // Get the path
+        size_t quoteStart = parsed.FullSource.find('"', pos);
+        if (quoteStart == std::string::npos)
+        {
+            spdlog::error("Invalid #include in shader (missing opening quote)");
+            return {};
+        }
+
+        size_t quoteEnd = parsed.FullSource.find('"', quoteStart + 1);
+        if (quoteEnd == std::string::npos)
+        {
+            spdlog::error("Invalid #include in shader (missing closing quote)");
+            return {};
+        }
+
+        std::string includedPath = parsed.FullSource.substr(quoteStart + 1, quoteEnd - quoteStart - 1);
+
+        // Get path relative to file
+        std::string actualPath = filePath;
+        size_t lastSlash = actualPath.find_last_of("/\\");
+        if (lastSlash != std::string::npos)
+            actualPath = actualPath.substr(0, lastSlash + 1);
+        else
+            actualPath.clear();
+        actualPath += includedPath;
+
+        // Check for recursive includes
+        if (!parsed.FilePaths.insert(actualPath).second)
+        {
+            spdlog::error("Recursively including {}", actualPath);
+            return {};
+        }
+
+        // Get the included source
+        std::string includedSource;
+        if (!ReadFile(actualPath.c_str(), includedSource))
+        {
+            spdlog::error("Failed to read file {} when creating shader from text", actualPath);
+            return {};
+        }
+
+        // Replace the #include line with the included source
+        size_t includeLineEnd = parsed.FullSource.find('\n', quoteEnd);
+        if (includeLineEnd == std::string::npos)
+            includeLineEnd = parsed.FullSource.size();
+        else
+            includeLineEnd += 1; // include the newline
+
+        parsed.FullSource.replace(pos, includeLineEnd - pos, includedSource);
+    }
+
+    parsed.Success = true;
+    return parsed;
+}
+
 ShaderCompiler::ShaderCompiler(VkDevice device,
                                bool alwaysCompileFromSource)
     : m_device(device),
@@ -400,26 +479,40 @@ void ShaderCompiler::Await()
 
 VkShaderModule ShaderCompiler::CreateShaderModule(const std::string& fileName) const
 {
-    std::filesystem::path shaderSource = fileName;
-    std::filesystem::path compiledShader = shaderSource;
+    std::filesystem::path compiledShader = fileName;
     compiledShader += ".spv";
 
-    bool compileFromText = true;
-
-    if (std::filesystem::exists(compiledShader))
+    // Parse
+    ParsedShader parsed = ParseShader(fileName);
+    if (!parsed.Success)
     {
-        auto srcTime = std::filesystem::last_write_time(shaderSource);
-        auto binTime = std::filesystem::last_write_time(compiledShader);
-        compileFromText = srcTime >= binTime;
+        spdlog::error("Error when parsing shader {}", fileName);
+        return VK_NULL_HANDLE;
     }
 
-    if (m_alwaysCompileFromSource || compileFromText)
-        return CreateShaderModuleFromText(shaderSource.string());
-    else
-        return CreateShaderModuleFromBinary(compiledShader.string());
+    // Compiling from binary or source?
+    bool compileFromText = true;
+    if (std::filesystem::exists(compiledShader))
+    {
+        compileFromText = false;
+
+        for (auto& includedFile : parsed.FilePaths)
+        {
+            auto srcTime = std::filesystem::last_write_time(includedFile);
+            auto binTime = std::filesystem::last_write_time(compiledShader);
+            compileFromText = srcTime >= binTime;
+            if (compileFromText)break;
+        }
+    }
+
+    VkShaderModule shader = (m_alwaysCompileFromSource || compileFromText)
+                                ? CreateShaderModuleFromSource(fileName, parsed.FullSource)
+                                : CreateShaderModuleFromBinaryFile(compiledShader.string());
+    spdlog::info("{} shader '{}'", shader == VK_NULL_HANDLE ? "Failed to compile" : "Successfully compiled", fileName);
+    return shader;
 }
 
-VkShaderModule ShaderCompiler::CreateShaderModuleFromBinary(const std::string& fileName) const
+VkShaderModule ShaderCompiler::CreateShaderModuleFromBinaryFile(const std::string& fileName) const
 {
     int codeSize = 0;
     char* pShaderCode = ReadBinaryFile(fileName.c_str(), codeSize);
@@ -436,11 +529,7 @@ VkShaderModule ShaderCompiler::CreateShaderModuleFromBinary(const std::string& f
 
     if (res != VK_SUCCESS)
     {
-        spdlog::error("Failed to create shader module (from binary)");
-    }
-    else
-    {
-        spdlog::info("Created shader from binary {}", fileName);
+        spdlog::error("Failed to create shader module (from binary) {}", fileName);
     }
 
     free(pShaderCode);
@@ -449,31 +538,28 @@ VkShaderModule ShaderCompiler::CreateShaderModuleFromBinary(const std::string& f
 }
 
 // ReSharper disable once CppDFAConstantFunctionResult
-VkShaderModule ShaderCompiler::CreateShaderModuleFromText(const std::string& fileName) const
+VkShaderModule ShaderCompiler::CreateShaderModuleFromSource(const std::string& fileName,
+                                                            const std::string& shaderSource) const
 {
-    std::string source;
-
-    if (!ReadFile(fileName.c_str(), source))
-    {
-        spdlog::error("Failed to read file {} when creating shader from text", fileName);
-        return nullptr;
-    }
-
     CompiledShader shaderModule;
 
     glslang_stage_t shaderStage = ShaderStageFromFilename(fileName.c_str());
 
     VkShaderModule ret = nullptr;
 
-    bool success = CompileShader(fileName.c_str(), m_device, shaderStage, source.c_str(), shaderModule);
+    bool success = CompileShader(shaderSource.c_str(), m_device, shaderStage, shaderSource.c_str(), shaderModule);
 
     if (success)
     {
-        spdlog::info("Created shader from text file '{}'", fileName);
         ret = shaderModule.ShaderModule;
-        std::string BinaryFilename = std::string(fileName.c_str()) + ".spv";
-        WriteBinaryFile(BinaryFilename.c_str(), shaderModule.SPIRV.data(),
+        std::string binaryFilename = std::string(fileName.c_str()) + ".spv";
+        WriteBinaryFile(binaryFilename.c_str(), shaderModule.SPIRV.data(),
                         static_cast<int>(shaderModule.SPIRV.size()) * sizeof(uint32_t));
+        //spdlog::info("Compiled shader from {}", shaderSource);
+    }
+    else
+    {
+        spdlog::error("Failed to compile {} into a shader", shaderSource);
     }
 
     return ret;
