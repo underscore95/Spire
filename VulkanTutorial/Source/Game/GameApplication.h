@@ -2,13 +2,15 @@
 
 #include "Engine/EngineIncludes.h"
 
-struct UniformData {
+struct UniformData
+{
     glm::mat4 WVP;
 };
 
-class GameApplication final : public Application {
+class GameApplication final : public Application
+{
 public:
-    void Start(Engine &engine) override;
+    void Start(Engine& engine) override;
 
     ~GameApplication() override;
 
@@ -21,6 +23,8 @@ public:
     [[nodiscard]] std::string GetApplicationName() const override;
 
 private:
+    void BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const;
+
     void RecordCommandBuffers() const;
 
     void CreateStorageBufferForVertices();
@@ -32,10 +36,8 @@ private:
     void SetupGraphicsPipeline();
 
 private:
-    Engine *m_engine = nullptr;
+    Engine* m_engine = nullptr;
     std::vector<VkCommandBuffer> m_commandBuffers;
-    VkRenderPass m_renderPass = VK_NULL_HANDLE;
-    std::vector<VkFramebuffer> m_frameBuffers;
     VkShaderModule m_vertexShader = VK_NULL_HANDLE;
     VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline = nullptr;
@@ -43,5 +45,5 @@ private:
     glm::u32 m_vertexBufferSize = 0;
     std::vector<VulkanBuffer> m_uniformBuffers;
     std::unique_ptr<Camera> m_camera;
-    VulkanTexture m_texture;
+    VulkanImage m_texture;
 };

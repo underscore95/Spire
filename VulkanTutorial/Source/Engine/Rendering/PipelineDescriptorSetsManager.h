@@ -3,7 +3,7 @@
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan_core.h>
 
-struct VulkanTexture;
+struct VulkanImage;
 class VulkanBuffer;
 class RenderingManager;
 
@@ -16,7 +16,7 @@ struct PipelineResourceInfo {
     union ResourcePtr {
         void* Raw;
         VulkanBuffer *Buffers;
-        VulkanTexture *Textures;
+        VulkanImage *Textures;
     } ResourcePtrs;
 };
 

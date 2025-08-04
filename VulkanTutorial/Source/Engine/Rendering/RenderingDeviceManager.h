@@ -16,6 +16,7 @@ struct PhysicalDevice
     std::vector<VkPresentModeKHR> PresentModes;
     VkPhysicalDeviceFeatures Features;
     VkFormat DepthFormat;
+    std::vector<VkExtensionProperties> Extensions;
 };
 
 class RenderingDeviceManager
@@ -34,10 +35,15 @@ public:
     // Get the selected device
     [[nodiscard]] const PhysicalDevice& Selected() const;
 
+    [[nodiscard]] bool IsExtensionSupported(const PhysicalDevice& device, const char* extensionName) const;
+
 private:
-  [[nodiscard]]  VkFormat FindDepthFormat(VkPhysicalDevice device) const;
-  [[nodiscard]]  VkFormat FindSupportedFormat(VkPhysicalDevice device, const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-                                 VkFormatFeatureFlags requestedFeatures) const;
+    [[nodiscard]] VkFormat FindDepthFormat(VkPhysicalDevice device) const;
+    [[nodiscard]] VkFormat FindSupportedFormat(VkPhysicalDevice device, const std::vector<VkFormat>& candidates,
+                                               VkImageTiling tiling,
+                                               VkFormatFeatureFlags requestedFeatures) const;
+
+    std::vector<VkExtensionProperties> GetExtensions(VkPhysicalDevice device) const;
 
 private:
     int m_deviceIndex = -1;

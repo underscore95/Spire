@@ -7,10 +7,12 @@ class PipelineDescriptorSetsManager;
 struct GLFWwindow;
 struct VulkanBuffer;
 
-class GraphicsPipeline {
+class GraphicsPipeline
+{
 public:
-    GraphicsPipeline(VkDevice device, glm::uvec2 windowSize, VkRenderPass renderPass,
-                     VkShaderModule vertexShader, VkShaderModule fragmentShader, std::unique_ptr<PipelineDescriptorSetsManager> descriptorSetsManager);
+    GraphicsPipeline(VkDevice device, glm::uvec2 windowSize, VkShaderModule vertexShader, VkShaderModule fragmentShader,
+                     std::unique_ptr<PipelineDescriptorSetsManager> descriptorSetsManager, VkFormat colorFormat,
+                     VkFormat depthFormat);
 
     ~GraphicsPipeline();
 

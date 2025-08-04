@@ -6,7 +6,7 @@
 #include <vector>
 #include <glm/fwd.hpp>
 
-struct VulkanTexture;
+struct VulkanImage;
 class TextureManager;
 class RenderingCommandManager;
 class Window;
@@ -15,9 +15,10 @@ struct PhysicalDevice;
 class VulkanQueue;
 class BufferManager;
 
-class RenderingManager {
+class RenderingManager
+{
 public:
-    explicit RenderingManager(const std::string &applicationName, const Window &window);
+    explicit RenderingManager(const std::string& applicationName, const Window& window);
 
     ~RenderingManager();
 
@@ -26,51 +27,64 @@ public:
 
     [[nodiscard]] glm::u32 GetNumImages() const;
 
-    [[nodiscard]] const VkImage &GetImage(glm::u32 Index) const;
+    [[nodiscard]] const VkImage& GetImage(glm::u32 index) const;
 
-    [[nodiscard]] RenderingCommandManager &GetCommandManager() const;
+    [[nodiscard]] VkImageView GetImageView(glm::u32 index) const;
+
+    [[nodiscard]] RenderingCommandManager& GetCommandManager() const;
 
     [[nodiscard]] VkSemaphore CreateSemaphore() const;
 
     void DestroySemaphore(VkSemaphore semaphore) const;
 
-    [[nodiscard]] VulkanQueue &GetQueue() const;
+    [[nodiscard]] VulkanQueue& GetQueue() const;
 
     [[nodiscard]] glm::u32 GetQueueFamily() const;
 
-    [[nodiscard]] VkRenderPass CreateSimpleRenderPass() const;
-
-    void CreateFramebuffers(std::vector<VkFramebuffer> &framebuffersOutput, VkRenderPass renderPass,
-                            glm::ivec2 windowSize) const;
-
     [[nodiscard]] VkDevice GetDevice() const;
 
-    [[nodiscard]] const PhysicalDevice &GetPhysicalDevice() const;
+    [[nodiscard]] const PhysicalDevice& GetPhysicalDevice() const;
 
-    [[nodiscard]] const BufferManager &GetBufferManager() const;
+    [[nodiscard]] const BufferManager& GetBufferManager() const;
 
-    [[nodiscard]] const TextureManager &GetTextureManager() const;
+    [[nodiscard]] const TextureManager& GetTextureManager() const;
+
+    [[nodiscard]] VkSurfaceFormatKHR GetSwapChainSurfaceFormat() const;
+
+    void ImageMemoryBarrier(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout,
+                            VkImageLayout newLayout) const;
+
+    [[nodiscard]] const VulkanImage& GetDepthImage(glm::u32 imageIndex) const;
 
 private:
+    void GetInstanceVersion();
+
     void CreateDepthResources(glm::uvec2 windowDimensions);
 
-    void CreateInstance(const std::string &applicationName);
+    void CreateInstance(const std::string& applicationName);
 
     void CreateDebugCallback();
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT Severity,
         VkDebugUtilsMessageTypeFlagsEXT Type,
-        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-        void *pUserData);
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData);
 
     void DestroyDebugCallback() const;
 
-    void CreateSurface(const Window &window);
+    void CreateSurface(const Window& window);
 
     void CreateLogicalDevice();
 
     void CreateSwapChain();
+
+    enum class DynamicRenderingSupport
+    {
+        NONE, EXTENSION_REQUIRED, SUPPORTED
+    };
+
+    [[nodiscard]] DynamicRenderingSupport GetDynamicRenderingSupport() const;
 
 private:
     VkInstance m_instance = VK_NULL_HANDLE;
@@ -88,5 +102,14 @@ private:
     std::unique_ptr<VulkanQueue> m_queue = nullptr;
     std::unique_ptr<BufferManager> m_bufferManager = nullptr;
     std::unique_ptr<TextureManager> m_textureManager = nullptr;
-    std::vector<VulkanTexture> m_depthImages;
+    std::vector<VulkanImage> m_depthImages;
+
+    struct
+    {
+        glm::u32 RawVersion = 0;
+        glm::u32 Variant = 0;
+        glm::u32 Major = 0;
+        glm::u32 Minor = 0;
+        glm::u32 Patch = 0;
+    } m_instanceVersion;
 };

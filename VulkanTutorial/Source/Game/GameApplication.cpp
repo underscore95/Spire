@@ -4,6 +4,8 @@
 #include <spdlog/spdlog.h>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Engine/Rendering/RenderingDeviceManager.h"
+
 void GameApplication::Start(Engine& engine)
 {
     m_engine = &engine;
@@ -12,10 +14,6 @@ void GameApplication::Start(Engine& engine)
 
     // Camera
     m_camera = std::make_unique<Camera>(m_engine->GetWindow());
-
-    // Render pass
-    m_renderPass = rm.CreateSimpleRenderPass();
-    rm.CreateFramebuffers(m_frameBuffers, m_renderPass, m_engine->GetWindow().GetDimensions());
 
     // Shaders
     Timer shaderCompileTimer;
@@ -64,16 +62,9 @@ GameApplication::~GameApplication()
 
     m_graphicsPipeline.reset();
 
-    for (int i = 0; i < m_frameBuffers.size(); i++)
-    {
-        vkDestroyFramebuffer(rm.GetDevice(), m_frameBuffers[i], nullptr);
-    }
-    spdlog::info("Destroyed framebuffers");
     vkDestroyShaderModule(rm.GetDevice(), m_vertexShader, nullptr);
     vkDestroyShaderModule(rm.GetDevice(), m_fragmentShader, nullptr);
     spdlog::info("Destroyed shaders");
-    vkDestroyRenderPass(rm.GetDevice(), m_renderPass, nullptr);
-    spdlog::info("Destroyed render pass");
 }
 
 void GameApplication::Update()
@@ -106,51 +97,83 @@ std::string GameApplication::GetApplicationName() const
     return "MyApp";
 }
 
+void GameApplication::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const
+{
+    auto& rm = m_engine->GetRenderingManager();
+
+    VkClearValue clearColor = {
+        .color = {0.0f, 0.0f, 0.0f, 1.0f},
+    };
+
+    VkClearValue clearDepthValue = {
+        .depthStencil = {.depth = 1.0f, .stencil = 0}
+    };
+
+    VkRenderingAttachmentInfoKHR colorAttachment = {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+        .pNext = nullptr,
+        .imageView = rm.GetImageView(imageIndex),
+        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .resolveMode = VK_RESOLVE_MODE_NONE,
+        .resolveImageView = VK_NULL_HANDLE,
+        .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .clearValue = clearColor
+    };
+
+    VkRenderingAttachmentInfo depthAttachment = {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+        .pNext = nullptr,
+        .imageView = rm.GetDepthImage(imageIndex).ImageView,
+        .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        .resolveMode = VK_RESOLVE_MODE_NONE,
+        .resolveImageView = VK_NULL_HANDLE,
+        .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .clearValue = clearDepthValue,
+    };
+
+    glm::uvec2 windowDimensions = m_engine->GetWindow().GetDimensions();
+    VkRenderingInfoKHR renderingInfo = {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
+        .renderArea = {{0, 0}, {windowDimensions.x, windowDimensions.y}},
+        .layerCount = 1,
+        .viewMask = 0,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &colorAttachment,
+        .pDepthAttachment = &depthAttachment
+    };
+
+    vkCmdBeginRendering(commandBuffer, &renderingInfo);
+}
+
 void GameApplication::RecordCommandBuffers() const
 {
     auto& rm = m_engine->GetRenderingManager();
-    VkClearColorValue clearColor = {1.0f, 0.0f, 0.0f, 0.0f};
-    std::array clearValues = {
-        VkClearValue{
-            .color = clearColor
-        },
-        VkClearValue{
-            .depthStencil = {1.0f, 0}
-        }
-    };
 
     for (int i = 0; i < m_commandBuffers.size(); ++i)
     {
-        VkRenderPassBeginInfo renderPassBeginInfo = {
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            .pNext = nullptr,
-            .renderPass = m_renderPass,
-            .framebuffer = m_frameBuffers[i],
-            .renderArea = {
-                .offset = {
-                    .x = 0,
-                    .y = 0
-                },
-                .extent = {
-                    .width = m_engine->GetWindow().GetDimensions().x,
-                    .height = m_engine->GetWindow().GetDimensions().y
-                }
-            },
-            .clearValueCount = clearValues.size(),
-            .pClearValues = clearValues.data(),
-        };
-
+        VkCommandBuffer commandBuffer = m_commandBuffers[i];
         VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        rm.GetCommandManager().BeginCommandBuffer(m_commandBuffers[i], flags);
+        rm.GetCommandManager().BeginCommandBuffer(commandBuffer, flags);
 
-        vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        rm.ImageMemoryBarrier(commandBuffer, rm.GetImage(i), rm.GetSwapChainSurfaceFormat().format,
+                              VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-        m_graphicsPipeline->BindTo(m_commandBuffers[i], i);
-        vkCmdDraw(m_commandBuffers[i], 9, 1, 0, 0);
+        BeginRendering(commandBuffer, i);
 
-        vkCmdEndRenderPass(m_commandBuffers[i]);
+        m_graphicsPipeline->BindTo(commandBuffer, i);
 
-        rm.GetCommandManager().EndCommandBuffer(m_commandBuffers[i]);
+        vkCmdDraw(commandBuffer, 9, 1, 0, 0);
+
+        vkCmdEndRendering(commandBuffer);
+
+        rm.ImageMemoryBarrier(commandBuffer, rm.GetImage(i), rm.GetSwapChainSurfaceFormat().format,
+                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+        rm.GetCommandManager().EndCommandBuffer(commandBuffer);
     }
 
     spdlog::info("Command buffers recorded");
@@ -239,8 +262,12 @@ void GameApplication::SetupGraphicsPipeline()
     });
 
     m_graphicsPipeline = std::make_unique<GraphicsPipeline>(
-        rm.GetDevice(), m_engine->GetWindow().GetDimensions(),
-        m_renderPass, m_vertexShader, m_fragmentShader,
-        std::make_unique<PipelineDescriptorSetsManager>(
-            rm, pipelineResources));
+        rm.GetDevice(),
+        m_engine->GetWindow().GetDimensions(),
+        m_vertexShader,
+        m_fragmentShader,
+        std::make_unique<PipelineDescriptorSetsManager>(rm, pipelineResources),
+        rm.GetSwapChainSurfaceFormat().format,
+        rm.GetPhysicalDevice().DepthFormat
+    );
 }

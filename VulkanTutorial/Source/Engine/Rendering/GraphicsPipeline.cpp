@@ -6,15 +6,17 @@
 #include "BufferManager.h"
 #include "PipelineDescriptorSetsManager.h"
 
-GraphicsPipeline::GraphicsPipeline(VkDevice device,
-                                   glm::uvec2 windowSize,
-                                   VkRenderPass renderPass,
-                                   VkShaderModule vertexShader,
-                                   VkShaderModule fragmentShader,
-                                   std::unique_ptr<PipelineDescriptorSetsManager>
-                                   descriptorSetsManager)
+GraphicsPipeline::GraphicsPipeline(
+    VkDevice device,
+    glm::uvec2 windowSize,
+    VkShaderModule vertexShader,
+    VkShaderModule fragmentShader,
+    std::unique_ptr<PipelineDescriptorSetsManager> descriptorSetsManager,
+    VkFormat colorFormat,
+    VkFormat depthFormat)
     : m_device(device),
-      m_descriptorSetsManager(std::move(descriptorSetsManager)) {
+      m_descriptorSetsManager(std::move(descriptorSetsManager))
+{
     constexpr glm::u32 NUM_SHADER_STAGES = 2;
     VkPipelineShaderStageCreateInfo shaderStageCreateInfo[NUM_SHADER_STAGES] = {
         {
@@ -100,7 +102,7 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device,
     VkPipelineColorBlendAttachmentState blendAttachState = {
         .blendEnable = VK_FALSE,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-                          VK_COLOR_COMPONENT_A_BIT
+        VK_COLOR_COMPONENT_A_BIT
     };
 
     VkPipelineColorBlendStateCreateInfo blendCreateInfo = {
@@ -118,12 +120,24 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device,
     };
 
     VkResult res = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
-    if (res != VK_SUCCESS) {
+    if (res != VK_SUCCESS)
+    {
         spdlog::error("Failed to create graphics pipeline layout");
     }
 
+    VkPipelineRenderingCreateInfo renderingInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .viewMask = 0,
+        .colorAttachmentCount = 1,
+        .pColorAttachmentFormats = &colorFormat,
+        .depthAttachmentFormat = depthFormat,
+        .stencilAttachmentFormat = VK_FORMAT_UNDEFINED
+    };
+
     VkGraphicsPipelineCreateInfo pipelineInfo = {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext = &renderingInfo,
         .stageCount = NUM_SHADER_STAGES,
         .pStages = &shaderStageCreateInfo[0],
         .pVertexInputState = &vertexInputInfo,
@@ -134,31 +148,37 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device,
         .pDepthStencilState = &depthStencilState,
         .pColorBlendState = &blendCreateInfo,
         .layout = m_pipelineLayout,
-        .renderPass = renderPass,
+        .renderPass = VK_NULL_HANDLE,
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE,
         .basePipelineIndex = -1
     };
 
     res = vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline);
-    if (res != VK_SUCCESS) {
+    if (res != VK_SUCCESS)
+    {
         spdlog::error("Failed to create graphics pipeline layout");
-    } else {
+    }
+    else
+    {
         spdlog::info("Graphics pipeline created");
     }
 }
 
-GraphicsPipeline::~GraphicsPipeline() {
+GraphicsPipeline::~GraphicsPipeline()
+{
     vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
     m_descriptorSetsManager.reset();
     vkDestroyPipeline(m_device, m_pipeline, nullptr);
 }
 
-void GraphicsPipeline::BindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainImageIndex) const {
+void GraphicsPipeline::BindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainImageIndex) const
+{
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
-    const auto &descriptorSets = m_descriptorSetsManager->GetDescriptorSets();
-    if (descriptorSets.size() > 0) {
+    const auto& descriptorSets = m_descriptorSetsManager->GetDescriptorSets();
+    if (descriptorSets.size() > 0)
+    {
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout,
                                 0, // firstSet
                                 1, // descriptorSetCount

@@ -16,6 +16,7 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
 {
     spdlog::info("Initializing RenderingManager...");
 
+    GetInstanceVersion();
     CreateInstance(applicationName);
     CreateDebugCallback();
     CreateSurface(window);
@@ -113,8 +114,14 @@ glm::u32 RenderingManager::GetNumImages() const
 
 const VkImage& RenderingManager::GetImage(glm::u32 index) const
 {
-    ASSERT(index<m_images.size());
+    ASSERT(index < m_images.size());
     return m_images[index];
+}
+
+VkImageView RenderingManager::GetImageView(glm::u32 index) const
+{
+    ASSERT(index < m_imageViews.size());
+    return m_imageViews[index];
 }
 
 RenderingCommandManager& RenderingManager::GetCommandManager() const
@@ -155,124 +162,6 @@ glm::u32 RenderingManager::GetQueueFamily() const
     return m_deviceQueueFamily;
 }
 
-VkRenderPass RenderingManager::CreateSimpleRenderPass() const
-{
-#pragma region Attachments
-    // Color
-    VkAttachmentDescription colorAttachment = {
-        .flags = 0,
-        .format = m_swapChainSurfaceFormat.format,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-    };
-
-    VkAttachmentReference colorAttachmentRef = {
-        .attachment = 0,
-        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-    };
-
-    // Depth
-    VkFormat depthFormat = m_deviceManager->Selected().DepthFormat;
-
-    VkAttachmentDescription depthAttachment = {
-        .flags = 0,
-        .format = depthFormat,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-    };
-
-    VkAttachmentReference depthAttachmentRef = {
-        .attachment = 1,
-        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-    };
-#pragma endregion
-
-    VkSubpassDescription subpassDesc = {
-        .flags = 0,
-        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .inputAttachmentCount = 0,
-        .pInputAttachments = nullptr,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAttachmentRef,
-        .pResolveAttachments = nullptr,
-        .pDepthStencilAttachment = &depthAttachmentRef,
-        .preserveAttachmentCount = 0,
-        .pPreserveAttachments = nullptr
-    };
-
-    const std::array attachments{colorAttachment, depthAttachment};
-
-    VkRenderPassCreateInfo RenderPassCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .attachmentCount = attachments.size(),
-        .pAttachments = attachments.data(),
-        .subpassCount = 1,
-        .pSubpasses = &subpassDesc,
-        .dependencyCount = 0,
-        .pDependencies = nullptr
-    };
-
-    VkRenderPass RenderPass;
-
-    VkResult res = vkCreateRenderPass(m_device, &RenderPassCreateInfo, nullptr, &RenderPass);
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to create simple render pass");
-    }
-    else
-    {
-        spdlog::info("Created a simple render pass");
-    }
-
-    return RenderPass;
-}
-
-void RenderingManager::CreateFramebuffers(std::vector<VkFramebuffer>& framebuffersOutput, VkRenderPass renderPass,
-                                          glm::ivec2 windowSize) const
-{
-    ASSERT(framebuffersOutput.empty());
-    framebuffersOutput.resize(m_images.size());
-
-    for (glm::u32 i = 0; i < m_images.size(); i++)
-    {
-        const std::array attachments{m_imageViews[i], m_depthImages[i].ImageView};
-
-        VkFramebufferCreateInfo fbCreateInfo = {};
-        fbCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        fbCreateInfo.renderPass = renderPass;
-        fbCreateInfo.attachmentCount = attachments.size();
-        fbCreateInfo.pAttachments = attachments.data();
-        fbCreateInfo.width = windowSize.x;
-        fbCreateInfo.height = windowSize.y;
-        fbCreateInfo.layers = 1;
-
-        VkResult res = vkCreateFramebuffer(m_device, &fbCreateInfo, nullptr, &(framebuffersOutput[i]));
-        if (res != VK_SUCCESS)
-        {
-            spdlog::error("Failed to create framebuffer");
-        }
-    }
-
-    for (auto& fb : framebuffersOutput)
-    {
-        DEBUG_ASSERT(fb != VK_NULL_HANDLE);
-    }
-
-    spdlog::info("Framebuffers created");
-}
-
 VkDevice RenderingManager::GetDevice() const
 {
     return m_device;
@@ -291,6 +180,211 @@ const BufferManager& RenderingManager::GetBufferManager() const
 const TextureManager& RenderingManager::GetTextureManager() const
 {
     return *m_textureManager;
+}
+
+VkSurfaceFormatKHR RenderingManager::GetSwapChainSurfaceFormat() const
+{
+    return m_swapChainSurfaceFormat;
+}
+
+void RenderingManager::ImageMemoryBarrier(VkCommandBuffer commandBuffer, VkImage image, VkFormat format,
+                                          VkImageLayout oldLayout, VkImageLayout newLayout) const
+{
+    // Copied from the "3D Graphics Rendering Cookbook"
+    const bool hasStencilComponent = ((format == VK_FORMAT_D32_SFLOAT_S8_UINT) || (format ==
+        VK_FORMAT_D24_UNORM_S8_UINT));
+
+
+    VkImageMemoryBarrier barrier = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = nullptr,
+        .srcAccessMask = 0,
+        .dstAccessMask = 0,
+        .oldLayout = oldLayout,
+        .newLayout = newLayout,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange = VkImageSubresourceRange{
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        }
+    };
+
+    VkPipelineStageFlags sourceStage = VK_PIPELINE_STAGE_NONE;
+    VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_NONE;
+
+    if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ||
+        (format == VK_FORMAT_D16_UNORM) ||
+        (format == VK_FORMAT_X8_D24_UNORM_PACK32) ||
+        (format == VK_FORMAT_D32_SFLOAT) ||
+        (format == VK_FORMAT_S8_UINT) ||
+        (format == VK_FORMAT_D16_UNORM_S8_UINT) ||
+        (format == VK_FORMAT_D24_UNORM_S8_UINT))
+    {
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+        if (hasStencilComponent)
+        {
+            barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+        }
+    }
+    else
+    {
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    }
+    else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_GENERAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    }
+
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+        newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    } /* Convert back from read-only to updateable */
+    else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    {
+        barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    } /* Convert from updateable texture to shader read-only */
+    else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+        newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    {
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    } /* Convert depth texture from undefined state to depth-stencil buffer */
+    else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    } /* Wait for render pass to complete */
+    else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout ==
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0; // VK_ACCESS_SHADER_READ_BIT;
+        barrier.dstAccessMask = 0;
+        /*
+                sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        ///		destinationStage = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+                destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        */
+        sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    } /* Convert back from read-only to color attachment */
+    else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout ==
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+    {
+        barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    } /* Convert from updateable texture to shader read-only */
+    else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout ==
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    {
+        barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    } /* Convert back from read-only to depth attachment */
+    else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout ==
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+    {
+        barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        destinationStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    } /* Convert from updateable depth texture to shader read-only */
+    else if (oldLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL && newLayout ==
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    {
+        barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    }
+    else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    }
+    else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+    {
+        barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        barrier.dstAccessMask = 0;
+
+        sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    }
+    else
+    {
+        spdlog::error("Unknown barrier case\n");
+        ASSERT(false);
+    }
+
+    vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage,
+                         0, 0, nullptr, 0, nullptr, 1, &barrier);
+}
+
+const VulkanImage& RenderingManager::GetDepthImage(glm::u32 imageIndex) const
+{
+    ASSERT(imageIndex < m_depthImages.size());
+    return m_depthImages[imageIndex];
+}
+
+void RenderingManager::GetInstanceVersion()
+{
+    VkResult res = vkEnumerateInstanceVersion(&m_instanceVersion.RawVersion);
+    if (res != VK_SUCCESS)
+    {
+        spdlog::error("Failed to get vulkan instance version");
+    }
+
+    m_instanceVersion.Variant = VK_API_VERSION_VARIANT(m_instanceVersion.RawVersion);
+    m_instanceVersion.Major = VK_API_VERSION_MAJOR(m_instanceVersion.RawVersion);
+    m_instanceVersion.Minor = VK_API_VERSION_MINOR(m_instanceVersion.RawVersion);
+    m_instanceVersion.Patch = VK_API_VERSION_PATCH(m_instanceVersion.RawVersion);
+
+    spdlog::info("Vulkan loader supports version {}.{}.{}.{}", m_instanceVersion.Variant, m_instanceVersion.Major,
+                 m_instanceVersion.Minor, m_instanceVersion.Patch);
 }
 
 void RenderingManager::CreateDepthResources(glm::uvec2 windowDimensions)
@@ -336,6 +430,10 @@ void RenderingManager::CreateInstance(const std::string& applicationName)
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
     };
 
+    ASSERT(
+        m_instanceVersion.RawVersion == VK_MAKE_API_VERSION(m_instanceVersion.Variant, m_instanceVersion.Major,
+            m_instanceVersion.Minor, m_instanceVersion.Patch));
+
     VkApplicationInfo AppInfo = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = nullptr,
@@ -343,7 +441,7 @@ void RenderingManager::CreateInstance(const std::string& applicationName)
         .applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0),
         .pEngineName = Engine::s_engineName.c_str(),
         .engineVersion = VK_MAKE_API_VERSION(0, 1, 0, 0),
-        .apiVersion = VK_API_VERSION_1_0
+        .apiVersion = m_instanceVersion.RawVersion
     };
 
     VkInstanceCreateInfo CreateInfo = {
@@ -463,6 +561,16 @@ void RenderingManager::CreateLogicalDevice()
         VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
     };
 
+    DynamicRenderingSupport dynamicRenderingSupport = GetDynamicRenderingSupport();
+    if (dynamicRenderingSupport == DynamicRenderingSupport::EXTENSION_REQUIRED)
+        deviceExtensions.push_back(
+            VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+    else if (dynamicRenderingSupport == DynamicRenderingSupport::NONE)
+    {
+        spdlog::error("Dynamic rendering is not supported.");
+        return;
+    }
+
     if (m_deviceManager->Selected().Features.geometryShader == VK_FALSE)
     {
         spdlog::error("The Geometry Shader is not supported!");
@@ -479,9 +587,15 @@ void RenderingManager::CreateLogicalDevice()
     deviceFeatures.geometryShader = VK_TRUE;
     deviceFeatures.tessellationShader = VK_TRUE;
 
+    VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
+        .pNext = nullptr,
+        .dynamicRendering = VK_TRUE
+    };
+
     VkDeviceCreateInfo deviceCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = nullptr,
+        .pNext = &dynamicRenderingFeature,
         .flags = 0,
         .queueCreateInfoCount = 1,
         .pQueueCreateInfos = &queueInfo,
@@ -667,6 +781,24 @@ void RenderingManager::CreateSwapChain()
             mipLevels
         );
     }
+}
+
+RenderingManager::DynamicRenderingSupport RenderingManager::GetDynamicRenderingSupport() const
+{
+    bool dynamicRenderingExtension = m_deviceManager->IsExtensionSupported(
+        m_deviceManager->Selected(), VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+    bool instanceVersionGreaterThanOrEqualTo_0_1_3_0 = (m_instanceVersion.Variant > 0) || (m_instanceVersion.Major > 1)
+        || (m_instanceVersion.Minor >= 3);
+
+    if (instanceVersionGreaterThanOrEqualTo_0_1_3_0)
+    {
+        if (!dynamicRenderingExtension)
+            spdlog::warn(
+                "Vulkan instance is >= 0.1.3.0 but didn't have the dynamic rendering extension, this probably isn't an issue unless your vulkan imploded and this warning popped up.");
+        return DynamicRenderingSupport::SUPPORTED;
+    }
+
+    return dynamicRenderingExtension ? DynamicRenderingSupport::EXTENSION_REQUIRED : DynamicRenderingSupport::NONE;
 }
 
 void RenderingManager::CreateDebugCallback()

@@ -50,6 +50,14 @@ RenderingDeviceManager::RenderingDeviceManager(
 
         logMessage += std::format("    Name: {}\n", m_devices[i].DeviceProperties.deviceName);
 
+        m_devices[i].Extensions = GetExtensions(physicalDevice);
+        logMessage += "    Extensions:\n";
+        for (glm::u32 j = 0; j < m_devices[i].Extensions.size(); j++)
+        {
+            VkExtensionProperties extension = m_devices[i].Extensions[j];
+            logMessage += std::format("     - {}\n", extension.extensionName);
+        }
+
         glm::u32 apiVer = m_devices[i].DeviceProperties.apiVersion;
         logMessage += std::format(
             "    API version: {}.{}.{}.{}\n",
@@ -271,6 +279,15 @@ const PhysicalDevice& RenderingDeviceManager::Selected() const
     return m_devices[m_deviceIndex];
 }
 
+bool RenderingDeviceManager::IsExtensionSupported(const PhysicalDevice& device, const char* extensionName) const
+{
+    for (VkExtensionProperties extensionProperties : device.Extensions)
+    {
+        if (std::string(extensionProperties.extensionName) == extensionName) return true;
+    }
+    return false;
+}
+
 VkFormat RenderingDeviceManager::FindDepthFormat(VkPhysicalDevice device) const
 {
     std::vector candidates = {
@@ -309,4 +326,25 @@ VkFormat RenderingDeviceManager::FindSupportedFormat(VkPhysicalDevice device, co
 
     spdlog::error("Failed to find supported format!");
     return candidateFormat;
+}
+
+std::vector<VkExtensionProperties> RenderingDeviceManager::GetExtensions(VkPhysicalDevice device) const
+{
+    std::vector<VkExtensionProperties> out;
+
+    glm::u32 numExtensions;
+    VkResult res = vkEnumerateDeviceExtensionProperties(device, nullptr, &numExtensions, nullptr);
+    if (res != VK_SUCCESS)
+    {
+        spdlog::error("Failed to get extension count for device");
+        return out;
+    }
+    out.resize(numExtensions);
+
+    res = vkEnumerateDeviceExtensionProperties(device, nullptr, &numExtensions, out.data());
+    if (res != VK_SUCCESS)
+    {
+        spdlog::error("Failed to get extensions (count: {}) for device", numExtensions);
+    }
+    return out;
 }
