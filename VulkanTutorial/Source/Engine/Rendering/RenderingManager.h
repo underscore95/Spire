@@ -6,6 +6,7 @@
 #include <vector>
 #include <glm/fwd.hpp>
 
+class VulkanDebugCallback;
 class Swapchain;
 struct VulkanImage;
 class TextureManager;
@@ -58,16 +59,6 @@ private:
 
     void CreateInstance(const std::string& applicationName);
 
-    void CreateDebugCallback();
-
-    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-        VkDebugUtilsMessageTypeFlagsEXT type,
-        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void* pUserData);
-
-    void DestroyDebugCallback() const;
-
     void CreateSurface(const Window& window);
 
     void CreateLogicalDevice();
@@ -81,7 +72,7 @@ private:
 
 private:
     VkInstance m_instance = VK_NULL_HANDLE;
-    VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
+    std::unique_ptr<VulkanDebugCallback> m_debugCallback = nullptr;
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
     std::unique_ptr<RenderingDeviceManager> m_deviceManager = nullptr;
     const glm::u32 INVALID_DEVICE_QUEUE_FAMILY = -1; // underflow
