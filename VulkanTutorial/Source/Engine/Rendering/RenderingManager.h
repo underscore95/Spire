@@ -6,6 +6,7 @@
 #include <vector>
 #include <glm/fwd.hpp>
 
+class Swapchain;
 struct VulkanImage;
 class TextureManager;
 class RenderingCommandManager;
@@ -25,12 +26,6 @@ public:
 public:
     [[nodiscard]] bool IsValid() const;
 
-    [[nodiscard]] glm::u32 GetNumImages() const;
-
-    [[nodiscard]] const VkImage& GetImage(glm::u32 index) const;
-
-    [[nodiscard]] VkImageView GetImageView(glm::u32 index) const;
-
     [[nodiscard]] RenderingCommandManager& GetCommandManager() const;
 
     [[nodiscard]] VkSemaphore CreateSemaphore() const;
@@ -49,12 +44,12 @@ public:
 
     [[nodiscard]] const TextureManager& GetTextureManager() const;
 
-    [[nodiscard]] VkSurfaceFormatKHR GetSwapChainSurfaceFormat() const;
-
     void ImageMemoryBarrier(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout,
                             VkImageLayout newLayout) const;
 
     [[nodiscard]] const VulkanImage& GetDepthImage(glm::u32 imageIndex) const;
+
+    [[nodiscard]] Swapchain& GetSwapchain() const;
 
 private:
     void GetInstanceVersion();
@@ -66,8 +61,8 @@ private:
     void CreateDebugCallback();
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT Severity,
-        VkDebugUtilsMessageTypeFlagsEXT Type,
+        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+        VkDebugUtilsMessageTypeFlagsEXT type,
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData);
 
@@ -76,8 +71,6 @@ private:
     void CreateSurface(const Window& window);
 
     void CreateLogicalDevice();
-
-    void CreateSwapChain();
 
     enum class DynamicRenderingSupport
     {
@@ -94,10 +87,7 @@ private:
     const glm::u32 INVALID_DEVICE_QUEUE_FAMILY = -1; // underflow
     glm::u32 m_deviceQueueFamily = INVALID_DEVICE_QUEUE_FAMILY;
     VkDevice m_device = VK_NULL_HANDLE;
-    VkSurfaceFormatKHR m_swapChainSurfaceFormat = {};
-    VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
-    std::vector<VkImage> m_images;
-    std::vector<VkImageView> m_imageViews;
+    std::unique_ptr<Swapchain> m_swapchain = nullptr;
     std::unique_ptr<RenderingCommandManager> m_commandManager = nullptr;
     std::unique_ptr<VulkanQueue> m_queue = nullptr;
     std::unique_ptr<BufferManager> m_bufferManager = nullptr;

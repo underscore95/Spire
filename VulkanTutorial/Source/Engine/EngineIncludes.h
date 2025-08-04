@@ -12,6 +12,7 @@
 #include "Engine/Rendering/BufferManager.h"
 #include "Engine/Rendering/PipelineDescriptorSetsManager.h"
 #include "Engine/Rendering/TextureManager.h"
+#include "Engine/Rendering/Swapchain.h"
 
 #include "Engine/Utils/Camera/Camera.h"
 #include "Engine/Utils/Timer.h"

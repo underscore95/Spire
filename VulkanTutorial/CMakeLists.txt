@@ -37,6 +37,8 @@ add_executable(VulkanTutorial
         Source/Engine/Utils/ImageLoader.h
         Source/Engine/Utils/FileIO.cpp
         Source/Engine/Utils/FileIO.h
+        Source/Engine/Rendering/Swapchain.cpp
+        Source/Engine/Rendering/Swapchain.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

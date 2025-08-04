@@ -7,12 +7,13 @@
 
 #include "BufferManager.h"
 #include "RenderingManager.h"
+#include "Swapchain.h"
 #include "TextureManager.h"
 
 PipelineDescriptorSetsManager::PipelineDescriptorSetsManager(RenderingManager& renderingManager,
                                                              const std::vector<PipelineResourceInfo>& resources)
     : m_renderingManager(renderingManager),
-      m_numSwapchainImages(renderingManager.GetNumImages()),
+      m_numSwapchainImages(renderingManager.GetSwapchain().GetNumImages()),
       m_resources(resources),
       m_device(m_renderingManager.GetDevice())
 {

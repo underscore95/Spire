@@ -1,3 +1,8 @@
+// ReSharper doesn't like parsing this file
+// ReSharper disable CppDFAUnreachableCode
+// ReSharper disable CppDFAConstantParameter
+// ReSharper disable CppDFAConstantConditions
+
 #include "RenderingDeviceManager.h"
 #include <glm/glm.hpp>
 #include <libassert/assert.hpp>

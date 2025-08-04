@@ -5,6 +5,7 @@
 #include "RenderingCommandManager.h"
 #include "RenderingDeviceManager.h"
 #include "RenderingManager.h"
+#include "Swapchain.h"
 #include "VulkanQueue.h"
 
 BufferManager::BufferManager(RenderingManager &renderingManager)
@@ -66,7 +67,7 @@ void BufferManager::DestroyBuffer(const VulkanBuffer &buffer) const {
 
 std::vector<VulkanBuffer> BufferManager::CreateUniformBuffers(size_t bufferSize) const {
     std::vector<VulkanBuffer> buffers;
-    buffers.resize(m_renderingManager.GetNumImages());
+    buffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
 
     VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |

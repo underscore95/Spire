@@ -39,8 +39,8 @@ void GameApplication::Start(Engine& engine)
     SetupGraphicsPipeline();
 
     // Command buffers
-    m_commandBuffers.resize(rm.GetNumImages());
-    rm.GetCommandManager().CreateCommandBuffers(rm.GetNumImages(), m_commandBuffers.data());
+    m_commandBuffers.resize(rm.GetSwapchain().GetNumImages());
+    rm.GetCommandManager().CreateCommandBuffers(rm.GetSwapchain().GetNumImages(), m_commandBuffers.data());
     RecordCommandBuffers();
 }
 
@@ -112,7 +112,7 @@ void GameApplication::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 ima
     VkRenderingAttachmentInfoKHR colorAttachment = {
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
         .pNext = nullptr,
-        .imageView = rm.GetImageView(imageIndex),
+        .imageView = rm.GetSwapchain().GetImageView(imageIndex),
         .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         .resolveMode = VK_RESOLVE_MODE_NONE,
         .resolveImageView = VK_NULL_HANDLE,
@@ -159,7 +159,8 @@ void GameApplication::RecordCommandBuffers() const
         VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
         rm.GetCommandManager().BeginCommandBuffer(commandBuffer, flags);
 
-        rm.ImageMemoryBarrier(commandBuffer, rm.GetImage(i), rm.GetSwapChainSurfaceFormat().format,
+        rm.ImageMemoryBarrier(commandBuffer, rm.GetSwapchain().GetImage(i),
+                              rm.GetSwapchain().GetSwapChainSurfaceFormat().format,
                               VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
         BeginRendering(commandBuffer, i);
@@ -170,7 +171,8 @@ void GameApplication::RecordCommandBuffers() const
 
         vkCmdEndRendering(commandBuffer);
 
-        rm.ImageMemoryBarrier(commandBuffer, rm.GetImage(i), rm.GetSwapChainSurfaceFormat().format,
+        rm.ImageMemoryBarrier(commandBuffer, rm.GetSwapchain().GetImage(i),
+                              rm.GetSwapchain().GetSwapChainSurfaceFormat().format,
                               VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
         rm.GetCommandManager().EndCommandBuffer(commandBuffer);
@@ -267,7 +269,7 @@ void GameApplication::SetupGraphicsPipeline()
         m_vertexShader,
         m_fragmentShader,
         std::make_unique<PipelineDescriptorSetsManager>(rm, pipelineResources),
-        rm.GetSwapChainSurfaceFormat().format,
+        rm.GetSwapchain().GetSwapChainSurfaceFormat().format,
         rm.GetPhysicalDevice().DepthFormat
     );
 }

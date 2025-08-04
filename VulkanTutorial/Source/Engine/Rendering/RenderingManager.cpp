@@ -10,6 +10,7 @@
 #include "VulkanUtils.h"
 #include "Engine/Window/Window.h"
 #include "BufferManager.h"
+#include "Swapchain.h"
 #include "TextureManager.h"
 
 RenderingManager::RenderingManager(const std::string& applicationName, const Window& window)
@@ -25,11 +26,11 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
     m_deviceQueueFamily = m_deviceManager->SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
     CreateLogicalDevice();
 
-    CreateSwapChain();
+    m_swapchain = std::make_unique<Swapchain>(m_device, m_deviceManager->Selected(), m_deviceQueueFamily, m_surface);
 
     m_commandManager = std::make_unique<RenderingCommandManager>(m_deviceQueueFamily, m_device);
 
-    m_queue = std::make_unique<VulkanQueue>(*this, m_device, m_swapChain, m_deviceQueueFamily, 0);
+    m_queue = std::make_unique<VulkanQueue>(*this, m_device, m_swapchain->GetSwapchain(), m_deviceQueueFamily, 0);
 
     m_bufferManager = std::make_unique<BufferManager>(*this);
     m_textureManager = std::make_unique<TextureManager>(*this);
@@ -55,17 +56,7 @@ RenderingManager::~RenderingManager()
 
     m_commandManager.reset();
 
-    for (auto& m_imageView : m_imageViews)
-    {
-        vkDestroyImageView(m_device, m_imageView, nullptr);
-    }
-    // ReSharper disable once CppDFAConstantConditions
-    if (m_swapChain)
-    {
-        // ReSharper disable once CppDFAUnreachableCode
-        vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
-        spdlog::info("Destroyed swapchain");
-    }
+    m_swapchain.reset();
 
     if (m_device)
     {
@@ -99,29 +90,7 @@ bool RenderingManager::IsValid() const
         m_deviceManager &&
         m_deviceQueueFamily != INVALID_DEVICE_QUEUE_FAMILY &&
         m_device &&
-        // ReSharper disable once CppDFAConstantConditions
-        m_swapChain &&
-        // ReSharper disable once CppDFAUnreachableCode
-        !m_images.empty() &&
-        // ReSharper disable once CppDFAUnreachableCode
-        !m_imageViews.empty();
-}
-
-glm::u32 RenderingManager::GetNumImages() const
-{
-    return m_images.size();
-}
-
-const VkImage& RenderingManager::GetImage(glm::u32 index) const
-{
-    ASSERT(index < m_images.size());
-    return m_images[index];
-}
-
-VkImageView RenderingManager::GetImageView(glm::u32 index) const
-{
-    ASSERT(index < m_imageViews.size());
-    return m_imageViews[index];
+        m_swapchain->IsValid();
 }
 
 RenderingCommandManager& RenderingManager::GetCommandManager() const
@@ -180,11 +149,6 @@ const BufferManager& RenderingManager::GetBufferManager() const
 const TextureManager& RenderingManager::GetTextureManager() const
 {
     return *m_textureManager;
-}
-
-VkSurfaceFormatKHR RenderingManager::GetSwapChainSurfaceFormat() const
-{
-    return m_swapChainSurfaceFormat;
 }
 
 void RenderingManager::ImageMemoryBarrier(VkCommandBuffer commandBuffer, VkImage image, VkFormat format,
@@ -389,7 +353,7 @@ void RenderingManager::GetInstanceVersion()
 
 void RenderingManager::CreateDepthResources(glm::uvec2 windowDimensions)
 {
-    m_depthImages.resize(m_images.size());
+    m_depthImages.resize(m_swapchain->GetNumImages());
 
     VkFormat depthFormat = m_deviceManager->Selected().DepthFormat;
 
@@ -467,15 +431,15 @@ void RenderingManager::CreateInstance(const std::string& applicationName)
 
 // ReSharper disable once CppDFAConstantFunctionResult
 VKAPI_ATTR VkBool32 VKAPI_CALL RenderingManager::DebugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT Severity,
-    VkDebugUtilsMessageTypeFlagsEXT Type,
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+    VkDebugUtilsMessageTypeFlagsEXT type,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData
+    [[maybe_unused]] void* pUserData
 )
 {
     // Get log level
     spdlog::level::level_enum logLevel;
-    switch (Severity)
+    switch (severity)
     {
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: logLevel = spdlog::level::debug;
         break;
@@ -501,7 +465,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL RenderingManager::DebugCallback(
     std::string message = fmt::format(
         "Debug callback: '{}'\n Type: {}\n Objects: {}",
         pCallbackData->pMessage,
-        VulkanUtils::GetDebugType(Type),
+        VulkanUtils::GetDebugType(type),
         objectStr
     );
 
@@ -621,168 +585,6 @@ void RenderingManager::CreateLogicalDevice()
     }
 }
 
-static VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& PresentModes)
-{
-    for (const auto& PresentMode : PresentModes)
-    {
-        if (PresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-        {
-            return PresentMode;
-        }
-    }
-
-    // Fallback to FIFO which is always supported
-    return VK_PRESENT_MODE_FIFO_KHR;
-}
-
-
-static glm::u32 ChooseNumImages(const VkSurfaceCapabilitiesKHR& Capabilities)
-{
-    glm::u32 requestedNumImages = Capabilities.minImageCount + 1;
-
-    glm::u32 finalNumImages = 0;
-
-    if ((Capabilities.maxImageCount > 0) && (requestedNumImages > Capabilities.maxImageCount))
-    {
-        finalNumImages = Capabilities.maxImageCount;
-    }
-    else
-    {
-        finalNumImages = requestedNumImages;
-    }
-
-    return finalNumImages;
-}
-
-
-static VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace(const std::vector<VkSurfaceFormatKHR>& SurfaceFormats)
-{
-    for (const auto& SurfaceFormat : SurfaceFormats)
-    {
-        if ((SurfaceFormat.format == VK_FORMAT_B8G8R8A8_SRGB) &&
-            (SurfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR))
-        {
-            return SurfaceFormat;
-        }
-    }
-
-    return SurfaceFormats[0];
-}
-
-VkImageView CreateImageView(VkDevice Device, VkImage Image, VkFormat Format, VkImageAspectFlags AspectFlags,
-                            VkImageViewType ViewType, glm::u32 LayerCount, glm::u32 mipLevels)
-{
-    VkImageViewCreateInfo ViewInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .image = Image,
-        .viewType = ViewType,
-        .format = Format,
-        .components = {
-            .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .a = VK_COMPONENT_SWIZZLE_IDENTITY
-        },
-        .subresourceRange = {
-            .aspectMask = AspectFlags,
-            .baseMipLevel = 0,
-            .levelCount = mipLevels,
-            .baseArrayLayer = 0,
-            .layerCount = LayerCount
-        }
-    };
-
-    VkImageView ImageView;
-    VkResult res = vkCreateImageView(Device, &ViewInfo, nullptr, &ImageView);
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to create image view");
-    }
-    return ImageView;
-}
-
-void RenderingManager::CreateSwapChain()
-{
-    // Create swapchain
-    const VkSurfaceCapabilitiesKHR& surfaceCapabilities = m_deviceManager->Selected().SurfaceCapabilities;
-
-    glm::u32 numImages = ChooseNumImages(surfaceCapabilities);
-
-    const std::vector<VkPresentModeKHR>& PresentModes = m_deviceManager->Selected().PresentModes;
-    VkPresentModeKHR presentMode = ChoosePresentMode(PresentModes);
-
-    m_swapChainSurfaceFormat = ChooseSurfaceFormatAndColorSpace(m_deviceManager->Selected().SurfaceFormats);
-
-    VkSwapchainCreateInfoKHR SwapChainCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .pNext = nullptr,
-        .flags = 0,
-        .surface = m_surface,
-        .minImageCount = numImages,
-        .imageFormat = m_swapChainSurfaceFormat.format,
-        .imageColorSpace = m_swapChainSurfaceFormat.colorSpace,
-        .imageExtent = surfaceCapabilities.currentExtent,
-        .imageArrayLayers = 1,
-        .imageUsage = (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT),
-        .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 1,
-        .pQueueFamilyIndices = &m_deviceQueueFamily,
-        .preTransform = surfaceCapabilities.currentTransform,
-        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-        .presentMode = presentMode,
-        .clipped = VK_TRUE
-    };
-
-    VkResult res = vkCreateSwapchainKHR(m_device, &SwapChainCreateInfo, nullptr, &m_swapChain);
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to create Vulkan swapchain");
-    }
-    else
-    {
-        spdlog::info("Created Vulkan swapchain");
-        ASSERT(m_swapChain);
-    }
-
-    // Create swapchain images
-    glm::u32 numSwapChainImages = 0;
-    res = vkGetSwapchainImagesKHR(m_device, m_swapChain, &numSwapChainImages, nullptr);
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to get number of swapchain images");
-    }
-    ASSERT(numImages == numSwapChainImages);
-
-    spdlog::info("Number of swapchain images {}", numSwapChainImages);
-
-    m_images.resize(numSwapChainImages);
-    m_imageViews.resize(numSwapChainImages);
-
-    res = vkGetSwapchainImagesKHR(m_device, m_swapChain, &numSwapChainImages, m_images.data());
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to get swapchain images ({} known)", numSwapChainImages);
-    }
-
-    for (glm::u32 i = 0; i < numSwapChainImages; i++)
-    {
-        int mipLevels = 1;
-        int layerCount = 1;
-        m_imageViews[i] = CreateImageView(
-            m_device,
-            m_images[i],
-            m_swapChainSurfaceFormat.format,
-            VK_IMAGE_ASPECT_COLOR_BIT,
-            VK_IMAGE_VIEW_TYPE_2D,
-            layerCount,
-            mipLevels
-        );
-    }
-}
-
 RenderingManager::DynamicRenderingSupport RenderingManager::GetDynamicRenderingSupport() const
 {
     bool dynamicRenderingExtension = m_deviceManager->IsExtensionSupported(
@@ -799,6 +601,11 @@ RenderingManager::DynamicRenderingSupport RenderingManager::GetDynamicRenderingS
     }
 
     return dynamicRenderingExtension ? DynamicRenderingSupport::EXTENSION_REQUIRED : DynamicRenderingSupport::NONE;
+}
+
+Swapchain& RenderingManager::GetSwapchain() const
+{
+    return *m_swapchain;
 }
 
 void RenderingManager::CreateDebugCallback()
