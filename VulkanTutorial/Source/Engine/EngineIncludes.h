@@ -13,6 +13,7 @@
 #include "Engine/Rendering/PipelineDescriptorSetsManager.h"
 #include "Engine/Rendering/TextureManager.h"
 #include "Engine/Rendering/Swapchain.h"
+#include "Engine/Rendering/LogicalDevice.h"
 
 #include "Engine/Utils/Camera/Camera.h"
 #include "Engine/Utils/Timer.h"

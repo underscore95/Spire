@@ -41,6 +41,9 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/Swapchain.h
         Source/Engine/Rendering/VulkanDebugCallback.cpp
         Source/Engine/Rendering/VulkanDebugCallback.h
+        Source/Engine/Rendering/LogicalDevice.cpp
+        Source/Engine/Rendering/LogicalDevice.h
+        Source/Engine/Rendering/VulkanVersion.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

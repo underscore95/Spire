@@ -6,6 +6,9 @@
 #include <vector>
 #include <glm/fwd.hpp>
 
+#include "VulkanVersion.h"
+
+class LogicalDevice;
 class VulkanDebugCallback;
 class Swapchain;
 struct VulkanImage;
@@ -61,36 +64,17 @@ private:
 
     void CreateSurface(const Window& window);
 
-    void CreateLogicalDevice();
-
-    enum class DynamicRenderingSupport
-    {
-        NONE, EXTENSION_REQUIRED, SUPPORTED
-    };
-
-    [[nodiscard]] DynamicRenderingSupport GetDynamicRenderingSupport() const;
-
 private:
     VkInstance m_instance = VK_NULL_HANDLE;
     std::unique_ptr<VulkanDebugCallback> m_debugCallback = nullptr;
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
     std::unique_ptr<RenderingDeviceManager> m_deviceManager = nullptr;
-    const glm::u32 INVALID_DEVICE_QUEUE_FAMILY = -1; // underflow
-    glm::u32 m_deviceQueueFamily = INVALID_DEVICE_QUEUE_FAMILY;
-    VkDevice m_device = VK_NULL_HANDLE;
+    std::unique_ptr<LogicalDevice> m_logicalDevice = nullptr;
     std::unique_ptr<Swapchain> m_swapchain = nullptr;
     std::unique_ptr<RenderingCommandManager> m_commandManager = nullptr;
     std::unique_ptr<VulkanQueue> m_queue = nullptr;
     std::unique_ptr<BufferManager> m_bufferManager = nullptr;
     std::unique_ptr<TextureManager> m_textureManager = nullptr;
     std::vector<VulkanImage> m_depthImages;
-
-    struct
-    {
-        glm::u32 RawVersion = 0;
-        glm::u32 Variant = 0;
-        glm::u32 Major = 0;
-        glm::u32 Minor = 0;
-        glm::u32 Patch = 0;
-    } m_instanceVersion;
+    VulkanVersion m_instanceVersion;
 };

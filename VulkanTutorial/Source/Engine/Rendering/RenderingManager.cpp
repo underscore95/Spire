@@ -10,6 +10,7 @@
 #include "VulkanUtils.h"
 #include "Engine/Window/Window.h"
 #include "BufferManager.h"
+#include "LogicalDevice.h"
 #include "Swapchain.h"
 #include "TextureManager.h"
 #include "VulkanDebugCallback.h"
@@ -26,14 +27,17 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
     CreateSurface(window);
 
     m_deviceManager = std::make_unique<RenderingDeviceManager>(m_instance, m_surface, false);
-    m_deviceQueueFamily = m_deviceManager->SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
-    CreateLogicalDevice();
 
-    m_swapchain = std::make_unique<Swapchain>(m_device, m_deviceManager->Selected(), m_deviceQueueFamily, m_surface);
+    m_logicalDevice = std::make_unique<LogicalDevice>(*m_deviceManager, m_instanceVersion);
 
-    m_commandManager = std::make_unique<RenderingCommandManager>(m_deviceQueueFamily, m_device);
+    m_swapchain = std::make_unique<Swapchain>(m_logicalDevice->GetDevice(), m_deviceManager->Selected(),
+                                              m_logicalDevice->GetDeviceQueueFamily(), m_surface);
 
-    m_queue = std::make_unique<VulkanQueue>(*this, m_device, m_swapchain->GetSwapchain(), m_deviceQueueFamily, 0);
+    m_commandManager = std::make_unique<RenderingCommandManager>(m_logicalDevice->GetDeviceQueueFamily(),
+                                                                 m_logicalDevice->GetDevice());
+
+    m_queue = std::make_unique<VulkanQueue>(*this, m_logicalDevice->GetDevice(), m_swapchain->GetSwapchain(),
+                                            m_logicalDevice->GetDeviceQueueFamily(), 0);
 
     m_bufferManager = std::make_unique<BufferManager>(*this);
     m_textureManager = std::make_unique<TextureManager>(*this);
@@ -61,11 +65,7 @@ RenderingManager::~RenderingManager()
 
     m_swapchain.reset();
 
-    if (m_device)
-    {
-        vkDestroyDevice(m_device, nullptr);
-        spdlog::info("Destroyed logical device");
-    }
+    m_logicalDevice.reset();
     m_deviceManager.reset();
 
     if (m_surface)
@@ -90,8 +90,7 @@ bool RenderingManager::IsValid() const
     return m_instance &&
         m_surface &&
         m_deviceManager &&
-        m_deviceQueueFamily != INVALID_DEVICE_QUEUE_FAMILY &&
-        m_device &&
+        m_logicalDevice->IsValid() &&
         m_swapchain->IsValid();
 }
 
@@ -109,7 +108,7 @@ VkSemaphore RenderingManager::CreateSemaphore() const
     };
 
     VkSemaphore semaphore;
-    VkResult res = vkCreateSemaphore(m_device, &createInfo, nullptr, &semaphore);
+    VkResult res = vkCreateSemaphore(m_logicalDevice->GetDevice(), &createInfo, nullptr, &semaphore);
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to create semaphore");
@@ -120,7 +119,7 @@ VkSemaphore RenderingManager::CreateSemaphore() const
 
 void RenderingManager::DestroySemaphore(VkSemaphore semaphore) const
 {
-    vkDestroySemaphore(m_device, semaphore, nullptr);
+    vkDestroySemaphore(m_logicalDevice->GetDevice(), semaphore, nullptr);
 }
 
 VulkanQueue& RenderingManager::GetQueue() const
@@ -130,12 +129,12 @@ VulkanQueue& RenderingManager::GetQueue() const
 
 glm::u32 RenderingManager::GetQueueFamily() const
 {
-    return m_deviceQueueFamily;
+    return m_logicalDevice->GetDeviceQueueFamily();
 }
 
 VkDevice RenderingManager::GetDevice() const
 {
-    return m_device;
+    return m_logicalDevice->GetDevice();
 }
 
 const PhysicalDevice& RenderingManager::GetPhysicalDevice() const
@@ -442,102 +441,6 @@ void RenderingManager::CreateSurface(const Window& window)
     {
         spdlog::info("Created Vulkan window surface");
     }
-}
-
-void RenderingManager::CreateLogicalDevice()
-{
-    float queuePriorities[] = {1.0f};
-
-    VkDeviceQueueCreateInfo queueInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0, // must be zero
-        .queueFamilyIndex = m_deviceQueueFamily,
-        .queueCount = 1,
-        .pQueuePriorities = &queuePriorities[0]
-    };
-
-    std::vector deviceExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
-    };
-
-    DynamicRenderingSupport dynamicRenderingSupport = GetDynamicRenderingSupport();
-    if (dynamicRenderingSupport == DynamicRenderingSupport::EXTENSION_REQUIRED)
-        deviceExtensions.push_back(
-            VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-    else if (dynamicRenderingSupport == DynamicRenderingSupport::NONE)
-    {
-        spdlog::error("Dynamic rendering is not supported.");
-        return;
-    }
-
-    if (m_deviceManager->Selected().Features.geometryShader == VK_FALSE)
-    {
-        spdlog::error("The Geometry Shader is not supported!");
-        return;
-    }
-
-    if (m_deviceManager->Selected().Features.tessellationShader == VK_FALSE)
-    {
-        spdlog::error("The Tessellation Shader is not supported!");
-        return;
-    }
-
-    VkPhysicalDeviceFeatures deviceFeatures = {};
-    deviceFeatures.geometryShader = VK_TRUE;
-    deviceFeatures.tessellationShader = VK_TRUE;
-
-    VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature = {
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-        .pNext = nullptr,
-        .dynamicRendering = VK_TRUE
-    };
-
-    VkDeviceCreateInfo deviceCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = &dynamicRenderingFeature,
-        .flags = 0,
-        .queueCreateInfoCount = 1,
-        .pQueueCreateInfos = &queueInfo,
-        .enabledLayerCount = 0, // DEPRECATED
-        .ppEnabledLayerNames = nullptr, // DEPRECATED
-        .enabledExtensionCount = static_cast<glm::u32>(deviceExtensions.size()),
-        .ppEnabledExtensionNames = deviceExtensions.data(),
-        .pEnabledFeatures = &deviceFeatures
-    };
-
-    VkResult result = vkCreateDevice(
-        m_deviceManager->Selected().PhysicalDeviceHandle,
-        &deviceCreateInfo, nullptr,
-        &m_device
-    );
-    if (result != VK_SUCCESS)
-    {
-        spdlog::error("Failed to create logical device");
-    }
-    else
-    {
-        spdlog::info("Created logical device");
-    }
-}
-
-RenderingManager::DynamicRenderingSupport RenderingManager::GetDynamicRenderingSupport() const
-{
-    bool dynamicRenderingExtension = m_deviceManager->IsExtensionSupported(
-        m_deviceManager->Selected(), VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-    bool instanceVersionGreaterThanOrEqualTo_0_1_3_0 = (m_instanceVersion.Variant > 0) || (m_instanceVersion.Major > 1)
-        || (m_instanceVersion.Minor >= 3);
-
-    if (instanceVersionGreaterThanOrEqualTo_0_1_3_0)
-    {
-        if (!dynamicRenderingExtension)
-            spdlog::warn(
-                "Vulkan instance is >= 0.1.3.0 but didn't have the dynamic rendering extension, this probably isn't an issue unless your vulkan imploded and this warning popped up.");
-        return DynamicRenderingSupport::SUPPORTED;
-    }
-
-    return dynamicRenderingExtension ? DynamicRenderingSupport::EXTENSION_REQUIRED : DynamicRenderingSupport::NONE;
 }
 
 Swapchain& RenderingManager::GetSwapchain() const
