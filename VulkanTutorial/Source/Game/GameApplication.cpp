@@ -87,8 +87,10 @@ void GameApplication::Render()
     rm.GetQueue().WaitUntilExecutedAll();
 
     std::array commandBuffersToSubmit = {
+        rm.GetRenderer().GetBeginRenderingCommandBuffer(imageIndex),
         m_commandBuffers[imageIndex],
-        rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex)
+        rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex),
+        rm.GetRenderer().GetEndRenderingCommandBuffer(imageIndex)
     };
     rm.GetQueue().SubmitAsync(commandBuffersToSubmit.size(), commandBuffersToSubmit.data());
 
@@ -135,7 +137,7 @@ void GameApplication::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 ima
         .depthStencil = {.depth = 1.0f, .stencil = 0}
     };
 
-    rm.GetRenderer().BeginRendering(commandBuffer, imageIndex, &clearColor, &clearDepthValue);
+    rm.GetRenderer().BeginDynamicRendering(commandBuffer, imageIndex, &clearColor, &clearDepthValue);
 }
 
 void GameApplication::RecordCommandBuffers() const
@@ -147,10 +149,6 @@ void GameApplication::RecordCommandBuffers() const
         VkCommandBuffer commandBuffer = m_commandBuffers[i];
         VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
         rm.GetCommandManager().BeginCommandBuffer(commandBuffer, flags);
-
-        rm.GetRenderingSync().ImageMemoryBarrier(commandBuffer, rm.GetSwapchain().GetImage(i),
-                                                 rm.GetSwapchain().GetSurfaceFormat().format,
-                                                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
         BeginRendering(commandBuffer, i);
 

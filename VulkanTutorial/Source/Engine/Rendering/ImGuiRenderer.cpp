@@ -42,19 +42,12 @@ VkCommandBuffer ImGuiRenderer::PrepareCommandBuffer(glm::u32 imageIndex) const
     m_renderingManager.GetCommandManager().BeginCommandBuffer(m_commandBuffers[imageIndex],
                                                               VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
-    m_renderingManager.GetRenderer().BeginRendering(m_commandBuffers[imageIndex], imageIndex, nullptr, nullptr);
+    m_renderingManager.GetRenderer().BeginDynamicRendering(m_commandBuffers[imageIndex], imageIndex, nullptr, nullptr);
 
     ImDrawData* pDrawData = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(pDrawData, m_commandBuffers[imageIndex]);
 
     vkCmdEndRendering(m_commandBuffers[imageIndex]);
-
-    m_renderingManager.GetRenderingSync().ImageMemoryBarrier(m_commandBuffers[imageIndex],
-                                                             m_renderingManager.GetSwapchain().GetImage(imageIndex),
-                                                             m_renderingManager.GetSwapchain().GetSurfaceFormat().
-                                                             format,
-                                                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                                             VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     vkEndCommandBuffer(m_commandBuffers[imageIndex]);
 

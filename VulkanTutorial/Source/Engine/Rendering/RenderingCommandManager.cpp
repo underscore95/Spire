@@ -56,14 +56,14 @@ void RenderingCommandManager::FreeCommandBuffers(glm::u32 count, const VkCommand
 
 void RenderingCommandManager::BeginCommandBuffer(VkCommandBuffer commandBuffer,
                                                  VkCommandBufferUsageFlags usageFlags) const {
-    VkCommandBufferBeginInfo BeginInfo = {
+    VkCommandBufferBeginInfo beginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .pNext = nullptr,
         .flags = usageFlags,
         .pInheritanceInfo = nullptr
     };
 
-    VkResult res = vkBeginCommandBuffer(commandBuffer, &BeginInfo);
+    VkResult res = vkBeginCommandBuffer(commandBuffer, &beginInfo);
     if (res != VK_SUCCESS) {
         spdlog::error("Failed to begin command buffer");
     }

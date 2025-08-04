@@ -26,8 +26,6 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
 
     m_renderingSync = std::make_unique<RenderingSync>(*this);
 
-    m_renderer = std::make_unique<Renderer>(*this, window);
-
     GetInstanceVersion();
     CreateInstance(applicationName);
 #ifndef NDEBUG
@@ -53,6 +51,7 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
 
     CreateDepthResources(window.GetDimensions());
 
+    m_renderer = std::make_unique<Renderer>(*this, window);
     m_imGuiRenderer = std::make_unique<ImGuiRenderer>(*this, window);
 
     spdlog::info("Initialized RenderingManager!");

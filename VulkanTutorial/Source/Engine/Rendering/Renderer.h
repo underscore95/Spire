@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <glm/glm.hpp>
 
 class Window;
 class RenderingManager;
@@ -9,12 +10,21 @@ class Renderer
 {
 public:
     explicit Renderer(RenderingManager& renderingManager, const Window& window);
+    ~Renderer();
 
 public:
-    void BeginRendering(VkCommandBuffer commandBuffer, int imageIndex, const VkClearValue* clearColor,
+    void BeginDynamicRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex, const VkClearValue* clearColor,
                         const VkClearValue* depthValue) const;
+
+    VkCommandBuffer GetBeginRenderingCommandBuffer(glm::u32 imageIndex) const;
+    VkCommandBuffer GetEndRenderingCommandBuffer(glm::u32 imageIndex) const;
+
+private:
+    void RecordCommandBuffers() const;
 
 private:
     RenderingManager& m_renderingManager;
     const Window& m_window;
+    std::vector<VkCommandBuffer> m_beginRenderingCommandBuffers;
+    std::vector<VkCommandBuffer> m_endRenderingCommandBuffers;
 };

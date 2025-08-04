@@ -1,6 +1,10 @@
 #include "Renderer.h"
 
+#include <libassert/assert.hpp>
+
+#include "RenderingCommandManager.h"
 #include "RenderingManager.h"
+#include "RenderingSync.h"
 #include "Swapchain.h"
 #include "TextureManager.h"
 #include "Engine/Window/Window.h"
@@ -10,10 +14,32 @@ Renderer::Renderer(RenderingManager& renderingManager,
     : m_renderingManager(renderingManager),
       m_window(window)
 {
+    m_beginRenderingCommandBuffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
+    m_renderingManager.GetCommandManager().CreateCommandBuffers(
+        m_beginRenderingCommandBuffers.size(),
+        m_beginRenderingCommandBuffers.data());
+
+    m_endRenderingCommandBuffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
+    m_renderingManager.GetCommandManager().CreateCommandBuffers(
+        m_endRenderingCommandBuffers.size(),
+        m_endRenderingCommandBuffers.data());
+
+    RecordCommandBuffers();
 }
 
-void Renderer::BeginRendering(VkCommandBuffer commandBuffer, int imageIndex, const VkClearValue* clearColor,
-                              const VkClearValue* depthValue) const
+Renderer::~Renderer()
+{
+    m_renderingManager.GetCommandManager().FreeCommandBuffers(
+        m_beginRenderingCommandBuffers.size(),
+        m_beginRenderingCommandBuffers.data());
+
+    m_renderingManager.GetCommandManager().FreeCommandBuffers(
+        m_endRenderingCommandBuffers.size(),
+        m_endRenderingCommandBuffers.data());
+}
+
+void Renderer::BeginDynamicRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex, const VkClearValue* clearColor,
+                                     const VkClearValue* depthValue) const
 {
     VkRenderingAttachmentInfoKHR colorAttachment = {
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
@@ -60,4 +86,48 @@ void Renderer::BeginRendering(VkCommandBuffer commandBuffer, int imageIndex, con
     };
 
     vkCmdBeginRendering(commandBuffer, &renderingInfo);
+}
+
+VkCommandBuffer Renderer::GetBeginRenderingCommandBuffer(glm::u32 imageIndex) const
+{
+    return m_beginRenderingCommandBuffers[imageIndex];
+}
+
+VkCommandBuffer Renderer::GetEndRenderingCommandBuffer(glm::u32 imageIndex) const
+{
+    return m_endRenderingCommandBuffers[imageIndex];
+}
+
+void Renderer::RecordCommandBuffers() const
+{
+    ASSERT(m_beginRenderingCommandBuffers.size() == m_endRenderingCommandBuffers.size());
+    for (glm::u32 imageIndex = 0; imageIndex < m_beginRenderingCommandBuffers.size(); ++imageIndex)
+    {
+        VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        // Begin rendering
+        m_renderingManager.GetCommandManager().BeginCommandBuffer(m_beginRenderingCommandBuffers[imageIndex], flags);
+
+        m_renderingManager.GetRenderingSync().ImageMemoryBarrier(
+            m_beginRenderingCommandBuffers[imageIndex],
+            m_renderingManager.GetSwapchain().GetImage(imageIndex),
+            m_renderingManager.GetSwapchain().GetSurfaceFormat().
+                               format,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+        m_renderingManager.GetCommandManager().EndCommandBuffer(m_beginRenderingCommandBuffers[imageIndex]);
+
+        // End rendering
+        m_renderingManager.GetCommandManager().BeginCommandBuffer(m_endRenderingCommandBuffers[imageIndex], flags);
+
+        m_renderingManager.GetRenderingSync().ImageMemoryBarrier(
+            m_endRenderingCommandBuffers[imageIndex],
+            m_renderingManager.GetSwapchain().GetImage(imageIndex),
+            m_renderingManager.GetSwapchain().GetSurfaceFormat().
+                               format,
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+        m_renderingManager.GetCommandManager().EndCommandBuffer(m_endRenderingCommandBuffers[imageIndex]);
+    }
 }
