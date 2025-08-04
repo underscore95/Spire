@@ -8,6 +8,7 @@
 
 #include "VulkanVersion.h"
 
+class RenderingSync;
 class LogicalDevice;
 class VulkanDebugCallback;
 class Swapchain;
@@ -32,10 +33,6 @@ public:
 
     [[nodiscard]] RenderingCommandManager& GetCommandManager() const;
 
-    [[nodiscard]] VkSemaphore CreateSemaphore() const;
-
-    void DestroySemaphore(VkSemaphore semaphore) const;
-
     [[nodiscard]] VulkanQueue& GetQueue() const;
 
     [[nodiscard]] glm::u32 GetQueueFamily() const;
@@ -48,12 +45,11 @@ public:
 
     [[nodiscard]] const TextureManager& GetTextureManager() const;
 
-    void ImageMemoryBarrier(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout,
-                            VkImageLayout newLayout) const;
-
     [[nodiscard]] const VulkanImage& GetDepthImage(glm::u32 imageIndex) const;
 
     [[nodiscard]] Swapchain& GetSwapchain() const;
+
+    [[nodiscard]] RenderingSync& GetRenderingSync() const;
 
 private:
     void GetInstanceVersion();
@@ -77,4 +73,5 @@ private:
     std::unique_ptr<TextureManager> m_textureManager = nullptr;
     std::vector<VulkanImage> m_depthImages;
     VulkanVersion m_instanceVersion;
+    std::unique_ptr<RenderingSync> m_renderingSync = nullptr;
 };

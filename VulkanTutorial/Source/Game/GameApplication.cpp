@@ -159,7 +159,7 @@ void GameApplication::RecordCommandBuffers() const
         VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
         rm.GetCommandManager().BeginCommandBuffer(commandBuffer, flags);
 
-        rm.ImageMemoryBarrier(commandBuffer, rm.GetSwapchain().GetImage(i),
+        rm.GetRenderingSync().ImageMemoryBarrier(commandBuffer, rm.GetSwapchain().GetImage(i),
                               rm.GetSwapchain().GetSwapChainSurfaceFormat().format,
                               VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
@@ -171,7 +171,7 @@ void GameApplication::RecordCommandBuffers() const
 
         vkCmdEndRendering(commandBuffer);
 
-        rm.ImageMemoryBarrier(commandBuffer, rm.GetSwapchain().GetImage(i),
+        rm.GetRenderingSync().ImageMemoryBarrier(commandBuffer, rm.GetSwapchain().GetImage(i),
                               rm.GetSwapchain().GetSwapChainSurfaceFormat().format,
                               VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 

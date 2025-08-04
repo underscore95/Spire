@@ -4,6 +4,7 @@
 #include "BufferManager.h"
 #include "RenderingCommandManager.h"
 #include "RenderingManager.h"
+#include "RenderingSync.h"
 #include "VulkanQueue.h"
 #include "Engine/Utils/ImageLoader.h"
 
@@ -223,7 +224,7 @@ void TextureManager::TransitionImageLayout(const VkImage& image, VkFormat format
     m_renderingManager.GetCommandManager().BeginCommandBuffer(m_commandBuffer,
                                                               VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
-    m_renderingManager.ImageMemoryBarrier(m_commandBuffer, image, format, oldLayout, newLayout);
+    m_renderingManager.GetRenderingSync().ImageMemoryBarrier(m_commandBuffer, image, format, oldLayout, newLayout);
 
     vkEndCommandBuffer(m_commandBuffer);
 

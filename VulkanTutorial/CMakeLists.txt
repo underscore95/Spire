@@ -44,6 +44,8 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/LogicalDevice.cpp
         Source/Engine/Rendering/LogicalDevice.h
         Source/Engine/Rendering/VulkanVersion.h
+        Source/Engine/Rendering/RenderingSync.cpp
+        Source/Engine/Rendering/RenderingSync.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

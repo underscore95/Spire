@@ -5,6 +5,7 @@
 #include <libassert/assert.hpp>
 
 #include "RenderingManager.h"
+#include "RenderingSync.h"
 
 VulkanQueue::VulkanQueue(
     RenderingManager &renderingManager,
@@ -23,8 +24,8 @@ VulkanQueue::VulkanQueue(
 }
 
 VulkanQueue::~VulkanQueue() {
-    vkDestroySemaphore(m_device, m_presentCompleteSemaphore, nullptr);
-    vkDestroySemaphore(m_device, m_renderCompleteSemaphore, nullptr);
+    m_renderingManager.GetRenderingSync().DestroySemaphore(m_presentCompleteSemaphore);
+    m_renderingManager.GetRenderingSync().DestroySemaphore(m_renderCompleteSemaphore);
 
     spdlog::info("VulkanQueue shutdown");
 }
@@ -103,6 +104,6 @@ void VulkanQueue::WaitUntilExecutedAll() const {
 }
 
 void VulkanQueue::CreateSemaphores() {
-    m_presentCompleteSemaphore = m_renderingManager.CreateSemaphore();
-    m_renderCompleteSemaphore = m_renderingManager.CreateSemaphore();
+    m_presentCompleteSemaphore = m_renderingManager.GetRenderingSync().CreateSemaphore();
+    m_renderCompleteSemaphore = m_renderingManager.GetRenderingSync().CreateSemaphore();
 }
