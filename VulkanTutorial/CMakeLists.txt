@@ -35,6 +35,8 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/TextureManager.h
         Source/Engine/Utils/ImageLoader.cpp
         Source/Engine/Utils/ImageLoader.h
+        Source/Engine/Utils/FileIO.cpp
+        Source/Engine/Utils/FileIO.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

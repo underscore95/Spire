@@ -6,6 +6,7 @@
 #include <spdlog/spdlog.h>
 #include <glslang/Include/glslang_c_interface.h>
 #include <libassert/assert.hpp>
+#include "Engine/Utils/FileIO.h"
 
 // https://github.com/KhronosGroup/glslang
 // https://github.com/emeiri/ogldev/blob/VULKAN_13/Vulkan/VulkanCore/Source/shader.cpp
@@ -231,102 +232,6 @@ static bool CompileShader(const char* shaderName, const VkDevice& device, glslan
     return ret;
 }
 
-static char* ReadBinaryFile(const char* pFilename, int& size)
-{
-    FILE* f = nullptr;
-
-    errno_t err = fopen_s(&f, pFilename, "rb");
-
-    if (!f)
-    {
-        char buf[256] = {0};
-        strerror_s(buf, sizeof(buf), err);
-        spdlog::error("Error opening '{}': {}", pFilename, buf);
-        return nullptr;
-    }
-
-    struct stat stat_buf;
-    int error = stat(pFilename, &stat_buf);
-
-    if (error)
-    {
-        char buf[256] = {0};
-        strerror_s(buf, sizeof(buf), err);
-        spdlog::error("Error getting file stats: {}", buf);
-        return nullptr;
-    }
-
-    size = stat_buf.st_size;
-
-    auto p = static_cast<char*>(malloc(size));
-    assert(p);
-
-    size_t bytes_read = fread(p, 1, size, f);
-
-    if (bytes_read != size)
-    {
-        char buf[256] = {0};
-        strerror_s(buf, sizeof(buf), err);
-        spdlog::error("Read file error file: {}", buf);
-        return nullptr;
-    }
-
-    fclose(f);
-
-    return p;
-}
-
-static void WriteBinaryFile(const char* pFilename, const void* pData, int size)
-{
-    FILE* f = nullptr;
-
-    errno_t err = fopen_s(&f, pFilename, "wb");
-
-    if (!f)
-    {
-        spdlog::error("Error opening '{}'", pFilename);
-        return;
-    }
-
-    size_t bytes_written = fwrite(pData, 1, size, f);
-
-    if (bytes_written != size)
-    {
-        spdlog::error("Error write file: {}", err);
-        return;
-    }
-
-    fclose(f);
-}
-
-
-bool ReadFile(const char* pFileName, std::string& outFile)
-{
-    std::ifstream f(pFileName);
-
-    bool ret = false;
-
-    if (f.is_open())
-    {
-        std::string line;
-        while (getline(f, line))
-        {
-            outFile.append(line);
-            outFile.append("\n");
-        }
-
-        f.close();
-
-        ret = true;
-    }
-    else
-    {
-        spdlog::error("Failed to read text file {}", pFileName);
-    }
-
-    return ret;
-}
-
 static glslang_stage_t ShaderStageFromFilename(const char* pFilename)
 {
     std::string s(pFilename);
@@ -379,7 +284,7 @@ static ParsedShader ParseShader(const std::string& filePath)
     parsed.FilePaths.insert(filePath);
 
     // Get shader source
-    if (!ReadFile(filePath.c_str(), parsed.FullSource))
+    if (!FileIO::ReadFile(filePath.c_str(), parsed.FullSource))
     {
         spdlog::error("Failed to read file {} when creating shader from text", filePath);
         return {};
@@ -424,7 +329,7 @@ static ParsedShader ParseShader(const std::string& filePath)
 
         // Get the included source
         std::string includedSource;
-        if (!ReadFile(actualPath.c_str(), includedSource))
+        if (!FileIO::ReadFile(actualPath.c_str(), includedSource))
         {
             spdlog::error("Failed to read file {} when creating shader from text", actualPath);
             return {};
@@ -515,7 +420,7 @@ VkShaderModule ShaderCompiler::CreateShaderModule(const std::string& fileName) c
 VkShaderModule ShaderCompiler::CreateShaderModuleFromBinaryFile(const std::string& fileName) const
 {
     int codeSize = 0;
-    char* pShaderCode = ReadBinaryFile(fileName.c_str(), codeSize);
+    char* pShaderCode = FileIO::ReadBinaryFile(fileName.c_str(), codeSize);
     assert(pShaderCode);
 
     VkShaderModuleCreateInfo shaderCreateInfo = {
@@ -553,8 +458,8 @@ VkShaderModule ShaderCompiler::CreateShaderModuleFromSource(const std::string& f
     {
         ret = shaderModule.ShaderModule;
         std::string binaryFilename = std::string(fileName.c_str()) + ".spv";
-        WriteBinaryFile(binaryFilename.c_str(), shaderModule.SPIRV.data(),
-                        static_cast<int>(shaderModule.SPIRV.size()) * sizeof(uint32_t));
+        FileIO::WriteBinaryFile(binaryFilename.c_str(), shaderModule.SPIRV.data(),
+                                static_cast<int>(shaderModule.SPIRV.size()) * sizeof(uint32_t));
         //spdlog::info("Compiled shader from {}", shaderSource);
     }
     else
