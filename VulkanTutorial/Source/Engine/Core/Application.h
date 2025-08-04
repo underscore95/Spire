@@ -15,5 +15,5 @@ public:
 
     virtual bool ShouldClose() const = 0;
 
-    virtual std::string GetApplicationName() const = 0;
+    virtual const char* GetApplicationName() const = 0;
 };

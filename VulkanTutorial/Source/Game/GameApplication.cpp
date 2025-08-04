@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Engine/Rendering/ImGuiRenderer.h"
 #include "Engine/Rendering/RenderingDeviceManager.h"
 
 void GameApplication::Start(Engine& engine)
@@ -80,11 +81,36 @@ void GameApplication::Render()
     glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
 
     UpdateUniformBuffers(imageIndex);
+
+    RenderUi();
+
     rm.GetQueue().WaitUntilExecutedAll();
 
-    rm.GetQueue().SubmitAsync(m_commandBuffers[imageIndex]);
+    std::array commandBuffersToSubmit = {
+        m_commandBuffers[imageIndex],
+        rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex)
+    };
+    rm.GetQueue().SubmitAsync(commandBuffersToSubmit.size(), commandBuffersToSubmit.data());
 
     rm.GetQueue().Present(imageIndex);
+}
+
+void GameApplication::RenderUi() const
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+
+    ImGui::NewFrame();
+
+    ImGui::Begin(GetApplicationName(), nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+
+    ImGui::End();
+
+    ImGui::Render();
 }
 
 bool GameApplication::ShouldClose() const
@@ -92,7 +118,7 @@ bool GameApplication::ShouldClose() const
     return m_engine->GetWindow().ShouldClose();
 }
 
-std::string GameApplication::GetApplicationName() const
+const char* GameApplication::GetApplicationName() const
 {
     return "MyApp";
 }
@@ -109,44 +135,7 @@ void GameApplication::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 ima
         .depthStencil = {.depth = 1.0f, .stencil = 0}
     };
 
-    VkRenderingAttachmentInfoKHR colorAttachment = {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-        .pNext = nullptr,
-        .imageView = rm.GetSwapchain().GetImageView(imageIndex),
-        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        .resolveMode = VK_RESOLVE_MODE_NONE,
-        .resolveImageView = VK_NULL_HANDLE,
-        .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .clearValue = clearColor
-    };
-
-    VkRenderingAttachmentInfo depthAttachment = {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-        .pNext = nullptr,
-        .imageView = rm.GetDepthImage(imageIndex).ImageView,
-        .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-        .resolveMode = VK_RESOLVE_MODE_NONE,
-        .resolveImageView = VK_NULL_HANDLE,
-        .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .clearValue = clearDepthValue,
-    };
-
-    glm::uvec2 windowDimensions = m_engine->GetWindow().GetDimensions();
-    VkRenderingInfoKHR renderingInfo = {
-        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
-        .renderArea = {{0, 0}, {windowDimensions.x, windowDimensions.y}},
-        .layerCount = 1,
-        .viewMask = 0,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAttachment,
-        .pDepthAttachment = &depthAttachment
-    };
-
-    vkCmdBeginRendering(commandBuffer, &renderingInfo);
+    rm.GetRenderer().BeginRendering(commandBuffer, imageIndex, &clearColor, &clearDepthValue);
 }
 
 void GameApplication::RecordCommandBuffers() const
@@ -160,8 +149,8 @@ void GameApplication::RecordCommandBuffers() const
         rm.GetCommandManager().BeginCommandBuffer(commandBuffer, flags);
 
         rm.GetRenderingSync().ImageMemoryBarrier(commandBuffer, rm.GetSwapchain().GetImage(i),
-                              rm.GetSwapchain().GetSwapChainSurfaceFormat().format,
-                              VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+                                                 rm.GetSwapchain().GetSurfaceFormat().format,
+                                                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
         BeginRendering(commandBuffer, i);
 
@@ -170,10 +159,6 @@ void GameApplication::RecordCommandBuffers() const
         vkCmdDraw(commandBuffer, 9, 1, 0, 0);
 
         vkCmdEndRendering(commandBuffer);
-
-        rm.GetRenderingSync().ImageMemoryBarrier(commandBuffer, rm.GetSwapchain().GetImage(i),
-                              rm.GetSwapchain().GetSwapChainSurfaceFormat().format,
-                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
         rm.GetCommandManager().EndCommandBuffer(commandBuffer);
     }
@@ -269,7 +254,7 @@ void GameApplication::SetupGraphicsPipeline()
         m_vertexShader,
         m_fragmentShader,
         std::make_unique<PipelineDescriptorSetsManager>(rm, pipelineResources),
-        rm.GetSwapchain().GetSwapChainSurfaceFormat().format,
+        rm.GetSwapchain().GetSurfaceFormat().format,
         rm.GetPhysicalDevice().DepthFormat
     );
 }

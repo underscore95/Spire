@@ -18,9 +18,11 @@ public:
 
     void Render() override;
 
+    void RenderUi() const;
+
     [[nodiscard]] bool ShouldClose() const override;
 
-    [[nodiscard]] std::string GetApplicationName() const override;
+    [[nodiscard]] const char* GetApplicationName() const override;
 
 private:
     void BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const;

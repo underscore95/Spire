@@ -123,7 +123,7 @@ VkImageView Swapchain::GetImageView(glm::u32 index) const
     return m_imageViews[index];
 }
 
-VkSurfaceFormatKHR Swapchain::GetSwapChainSurfaceFormat() const
+VkSurfaceFormatKHR Swapchain::GetSurfaceFormat() const
 {
     return m_swapChainSurfaceFormat;
 }

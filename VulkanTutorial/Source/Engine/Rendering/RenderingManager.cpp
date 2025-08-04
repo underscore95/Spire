@@ -1,3 +1,5 @@
+// ReSharper disable CppDFATimeOver
+
 #include "RenderingManager.h"
 #include <glm/glm.hpp>
 #include <vector>
@@ -10,7 +12,9 @@
 #include "VulkanUtils.h"
 #include "Engine/Window/Window.h"
 #include "BufferManager.h"
+#include "ImGuiRenderer.h"
 #include "LogicalDevice.h"
+#include "Renderer.h"
 #include "RenderingSync.h"
 #include "Swapchain.h"
 #include "TextureManager.h"
@@ -21,6 +25,8 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
     spdlog::info("Initializing RenderingManager...");
 
     m_renderingSync = std::make_unique<RenderingSync>(*this);
+
+    m_renderer = std::make_unique<Renderer>(*this, window);
 
     GetInstanceVersion();
     CreateInstance(applicationName);
@@ -47,12 +53,17 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
 
     CreateDepthResources(window.GetDimensions());
 
+    m_imGuiRenderer = std::make_unique<ImGuiRenderer>(*this, window);
+
     spdlog::info("Initialized RenderingManager!");
 }
 
 RenderingManager::~RenderingManager()
 {
     spdlog::info("Destroying RenderingManager...");
+
+    m_imGuiRenderer.reset();
+    m_renderer.reset();
 
     for (const auto& depthTexture : m_depthImages)
     {
@@ -254,4 +265,19 @@ Swapchain& RenderingManager::GetSwapchain() const
 RenderingSync& RenderingManager::GetRenderingSync() const
 {
     return *m_renderingSync;
+}
+
+VkInstance RenderingManager::GetInstance() const
+{
+    return m_instance;
+}
+
+Renderer& RenderingManager::GetRenderer() const
+{
+    return *m_renderer;
+}
+
+ImGuiRenderer& RenderingManager::GetImGuiRenderer() const
+{
+    return *m_imGuiRenderer;
 }

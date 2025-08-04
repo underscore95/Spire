@@ -46,6 +46,10 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/VulkanVersion.h
         Source/Engine/Rendering/RenderingSync.cpp
         Source/Engine/Rendering/RenderingSync.h
+        Source/Engine/Rendering/ImGuiRenderer.cpp
+        Source/Engine/Rendering/ImGuiRenderer.h
+        Source/Engine/Rendering/Renderer.cpp
+        Source/Engine/Rendering/Renderer.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")
@@ -73,6 +77,10 @@ target_link_libraries(VulkanTutorial PRIVATE spdlog::spdlog)
 # libassert
 find_package(libassert REQUIRED)
 target_link_libraries(VulkanTutorial PRIVATE libassert::assert)
+
+# imgui
+find_package(imgui CONFIG REQUIRED)
+target_link_libraries(VulkanTutorial PRIVATE imgui::imgui)
 
 # Assets directory
 setup_assets_directory(VulkanTutorial Assets)

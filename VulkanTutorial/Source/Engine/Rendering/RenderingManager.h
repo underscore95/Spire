@@ -8,6 +8,8 @@
 
 #include "VulkanVersion.h"
 
+class ImGuiRenderer;
+class Renderer;
 class RenderingSync;
 class LogicalDevice;
 class VulkanDebugCallback;
@@ -51,6 +53,12 @@ public:
 
     [[nodiscard]] RenderingSync& GetRenderingSync() const;
 
+    [[nodiscard]] VkInstance GetInstance() const;
+
+    [[nodiscard]] Renderer& GetRenderer() const;
+
+    [[nodiscard]] ImGuiRenderer& GetImGuiRenderer() const;
+
 private:
     void GetInstanceVersion();
 
@@ -74,4 +82,6 @@ private:
     std::vector<VulkanImage> m_depthImages;
     VulkanVersion m_instanceVersion;
     std::unique_ptr<RenderingSync> m_renderingSync = nullptr;
+    std::unique_ptr<Renderer> m_renderer = nullptr;
+    std::unique_ptr<ImGuiRenderer> m_imGuiRenderer = nullptr;
 };

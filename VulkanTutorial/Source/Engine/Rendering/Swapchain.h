@@ -22,7 +22,7 @@ public:
 
     [[nodiscard]] VkImageView GetImageView(glm::u32 index) const;
 
-    [[nodiscard]] VkSurfaceFormatKHR GetSwapChainSurfaceFormat() const;
+    [[nodiscard]] VkSurfaceFormatKHR GetSurfaceFormat() const;
 
     [[nodiscard]] VkSwapchainKHR GetSwapchain() const;
 
