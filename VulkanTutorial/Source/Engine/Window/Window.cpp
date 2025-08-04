@@ -1,36 +1,43 @@
 #pragma once
 
 #include "Window.h"
+
+#include <imgui.h>
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 #include <libassert/assert.hpp>
 
-static void GLFW_KeyCallback(GLFWwindow *pWindow, int key, int scanCode, int action, int mods) {
-    auto window = static_cast<Window *>(glfwGetWindowUserPointer(pWindow));
+static void GLFW_KeyCallback(GLFWwindow* pWindow, int key, int scanCode, int action, int mods)
+{
+    auto window = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
 
     window->KeyCallback(key, scanCode, action, mods);
 }
 
 
-static void GLFW_MouseCallback(GLFWwindow *pWindow, double xPos, double yPos) {
-    auto window = static_cast<Window *>(glfwGetWindowUserPointer(pWindow));
+static void GLFW_MouseCallback(GLFWwindow* pWindow, double xPos, double yPos)
+{
+    auto window = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
 
     window->MouseCallback(xPos, yPos);
 }
 
-static void GLFW_MouseButtonCallback(GLFWwindow *pWindow, int button, int action, int mods) {
-    auto window = static_cast<Window *>(glfwGetWindowUserPointer(pWindow));
+static void GLFW_MouseButtonCallback(GLFWwindow* pWindow, int button, int action, int mods)
+{
+    auto window = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
 
     window->MouseButtonCallback(button, action, mods);
 }
 
-static void GLFW_ScrollCallback(GLFWwindow *pWindow, double xOffset, double yOffset) {
-    auto window = static_cast<Window *>(glfwGetWindowUserPointer(pWindow));
+static void GLFW_ScrollCallback(GLFWwindow* pWindow, double xOffset, double yOffset)
+{
+    auto window = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
 
     window->ScrollCallback(xOffset, yOffset);
 }
 
-Window::Window(const std::string &title, glm::ivec2 size) {
+Window::Window(const std::string& title, glm::ivec2 size)
+{
     ASSERT(s_initialized);
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -46,15 +53,19 @@ Window::Window(const std::string &title, glm::ivec2 size) {
     glfwSetScrollCallback(m_windowHandle, GLFW_ScrollCallback);
 }
 
-Window::~Window() {
-    if (m_windowHandle) {
+Window::~Window()
+{
+    if (m_windowHandle)
+    {
         glfwSetWindowUserPointer(m_windowHandle, nullptr);
         glfwDestroyWindow(m_windowHandle);
     }
 }
 
-std::unique_ptr<Window> Window::Create(const std::string &title, glm::ivec2 size) {
-    if (!s_initialized) {
+std::unique_ptr<Window> Window::Create(const std::string& title, glm::ivec2 size)
+{
+    if (!s_initialized)
+    {
         spdlog::error("Failed to create window because Window::Init wasn't called.");
         return nullptr;
     }
@@ -62,52 +73,64 @@ std::unique_ptr<Window> Window::Create(const std::string &title, glm::ivec2 size
     return std::unique_ptr<Window>(new Window(title, size));
 }
 
-bool Window::IsKeyHeld(int key) const {
+bool Window::IsKeyHeld(int key) const
+{
     return IsKeyPressed(key) || m_heldKeys.contains(key);
 }
 
-bool Window::IsKeyPressed(int key) const {
+bool Window::IsKeyPressed(int key) const
+{
     return m_pressedKeys.contains(key);
 }
 
-bool Window::IsMouseButtonHeld(int button) const {
+bool Window::IsMouseButtonHeld(int button) const
+{
     return IsMouseButtonPressed(button) || m_heldMouseButtons.contains(button);
 }
 
-bool Window::IsMouseButtonPressed(int button) const {
+bool Window::IsMouseButtonPressed(int button) const
+{
     return m_pressedMouseButtons.contains(button);
 }
 
-glm::vec2 Window::GetMousePos() const {
+glm::vec2 Window::GetMousePos() const
+{
     return m_mousePos;
 }
 
-glm::vec2 Window::GetMouseDelta() const {
+glm::vec2 Window::GetMouseDelta() const
+{
     return m_mouseDelta;
 }
 
-glm::vec2 Window::GetScrollDelta() const {
+glm::vec2 Window::GetScrollDelta() const
+{
     return m_scrollDelta;
 }
 
-float Window::GetAspectRatio() const {
+float Window::GetAspectRatio() const
+{
     const glm::vec2 size = GetDimensions();
     ASSERT(size.y != 0.0f);
     return size.x / size.y;
 }
 
-bool Window::Init() {
-    if (s_initialized) {
+bool Window::Init()
+{
+    if (s_initialized)
+    {
         spdlog::error("Window failed to initialize: already initialized");
         return false;
     }
 
-    if (!glfwInit()) {
+    if (!glfwInit())
+    {
         spdlog::error("Window failed to initialize: glfwInit failed");
         return false;
     }
 
-    if (!glfwVulkanSupported()) {
+    if (!glfwVulkanSupported())
+    {
         spdlog::error("Window failed to initialize: GLFW doesn't support Vulkan");
         return false;
     }
@@ -117,8 +140,10 @@ bool Window::Init() {
     return true;
 }
 
-void Window::Shutdown() {
-    if (!s_initialized) {
+void Window::Shutdown()
+{
+    if (!s_initialized)
+    {
         spdlog::error("Window failed to shutdown: not initialized");
         return;
     }
@@ -128,34 +153,41 @@ void Window::Shutdown() {
     spdlog::info("Shut down window");
 }
 
-bool Window::IsValid() const {
+bool Window::IsValid() const
+{
     return m_windowHandle != nullptr;
 }
 
-bool Window::ShouldClose() const {
+bool Window::ShouldClose() const
+{
     return glfwWindowShouldClose(m_windowHandle);
 }
 
-GLFWwindow *Window::GLFWWindow() const {
+GLFWwindow* Window::GLFWWindow() const
+{
     return m_windowHandle;
 }
 
-glm::uvec2 Window::GetDimensions() const {
+glm::uvec2 Window::GetDimensions() const
+{
     glm::ivec2 size;
     glfwGetWindowSize(m_windowHandle, &size.x, &size.y);
     return size;
 }
 
-void Window::Update() {
+void Window::Update()
+{
     ASSUME(s_initialized);
 
     // pressed -> held
-    for (int key: m_pressedKeys) {
+    for (int key : m_pressedKeys)
+    {
         m_heldKeys.insert(key);
     }
     m_pressedKeys.clear();
 
-    for (int button: m_pressedMouseButtons) {
+    for (int button : m_pressedMouseButtons)
+    {
         m_heldMouseButtons.insert(button);
     }
     m_pressedMouseButtons.clear();
@@ -172,31 +204,43 @@ void Window::Update() {
     m_scrollDeltaTemp = {0, 0};
 }
 
-void Window::KeyCallback(int key, int scanCode, int action, int mods) {
-    if (action == GLFW_PRESS) {
+void Window::KeyCallback(int key, [[maybe_unused]] int scanCode, int action, [[maybe_unused]] int mods)
+{
+    if (action == GLFW_PRESS)
+    {
         m_heldKeys.erase(key);
         m_pressedKeys.insert(key);
-    } else if (action == GLFW_RELEASE) {
+    }
+    else if (action == GLFW_RELEASE)
+    {
         m_heldKeys.erase(key);
         m_pressedKeys.erase(key);
     }
 }
 
-void Window::MouseCallback(double xPos, double yPos) {
+void Window::MouseCallback(double xPos, double yPos)
+{
     m_mouseRawPos = {xPos, yPos};
 }
 
-void Window::MouseButtonCallback(int button, int action, int mods) {
-    if (action == GLFW_PRESS) {
+void Window::MouseButtonCallback(int button, int action, [[maybe_unused]] int mods)
+{
+    if (ImGui::GetIO().WantCaptureMouse) return;
+
+    if (action == GLFW_PRESS)
+    {
         m_heldMouseButtons.erase(button);
         m_pressedMouseButtons.insert(button);
-    } else if (action == GLFW_RELEASE) {
+    }
+    else if (action == GLFW_RELEASE)
+    {
         m_heldMouseButtons.erase(button);
         m_pressedMouseButtons.erase(button);
     }
 }
 
-void Window::ScrollCallback(double xOffset, double yOffset) {
+void Window::ScrollCallback(double xOffset, double yOffset)
+{
     m_scrollDeltaTemp += glm::vec2{xOffset, yOffset};
 }
 
