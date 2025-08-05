@@ -5,7 +5,9 @@
 #include "RenderingCommandManager.h"
 #include "RenderingManager.h"
 #include "RenderingSync.h"
+#include "VulkanAllocator.h"
 #include "VulkanBuffer.h"
+#include "VulkanImage.h"
 #include "VulkanQueue.h"
 #include "Engine/Utils/ImageLoader.h"
 
@@ -17,12 +19,13 @@ TextureManager::TextureManager(RenderingManager& renderingManager)
 
 TextureManager::~TextureManager()
 {
+    DEBUG_ASSERT(m_numAllocatedImages == 0);
     ASSERT(&m_renderingManager.GetCommandManager() != nullptr);
     ASSERT(&m_renderingManager.GetBufferManager() != nullptr);
     m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_commandBuffer);
 }
 
-VulkanImage TextureManager::CreateTexture(const char* filename) const
+VulkanImage TextureManager::CreateImageFromFile(const char* filename)
 {
     // Load image
     VulkanImage texture = {};
@@ -54,17 +57,22 @@ VulkanImage TextureManager::CreateTexture(const char* filename) const
     return texture;
 }
 
-void TextureManager::DestroyTexture(const VulkanImage& vulkanTexture) const
+void TextureManager::DestroyImage(const VulkanImage& vulkanTexture)
 {
+    DEBUG_ASSERT(m_numAllocatedImages > 0);
     VkDevice device = m_renderingManager.GetDevice();
     vkDestroySampler(device, vulkanTexture.Sampler, nullptr);
     vkDestroyImageView(device, vulkanTexture.ImageView, nullptr);
-    vkDestroyImage(device, vulkanTexture.Image, nullptr);
-    vkFreeMemory(device, vulkanTexture.DeviceMemory, nullptr);
+    vmaDestroyImage(
+        m_renderingManager.GetAllocatorWrapper().GetAllocator(),
+        vulkanTexture.Image,
+        vulkanTexture.Allocation
+    );
+    m_numAllocatedImages--;
 }
 
 void TextureManager::CreateImage(VulkanImage& texture, glm::uvec2 dimensions,
-                                 VkImageUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkFormat format) const
+                                 VkImageUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkFormat format)
 {
     VkImageCreateInfo imageInfo = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -88,41 +96,26 @@ void TextureManager::CreateImage(VulkanImage& texture, glm::uvec2 dimensions,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    VkDevice device = m_renderingManager.GetDevice();
+    VmaAllocationCreateInfo allocInfo = {
+        .flags = 0,
+        .usage = VMA_MEMORY_USAGE_AUTO,
+        .requiredFlags = propertyFlags
+    };
 
-    // create the image object
-    VkResult res = vkCreateImage(device, &imageInfo, nullptr, &texture.Image);
+    VkResult res = vmaCreateImage(
+        m_renderingManager.GetAllocatorWrapper().GetAllocator(),
+        &imageInfo,
+        &allocInfo,
+        &texture.Image,
+        &texture.Allocation,
+        nullptr);
+
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to create vulkan image");
-    }
-
-    // memory info
-    VkMemoryRequirements memoryRequirements = {};
-    vkGetImageMemoryRequirements(device, texture.Image, &memoryRequirements);
-
-    glm::u32 memoryTypeIndex = m_renderingManager.GetBufferManager().GetMemoryTypeIndex(
-        memoryRequirements.memoryTypeBits, propertyFlags);
-
-    // allocate memory
-    VkMemoryAllocateInfo memoryAllocationInfo = {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .allocationSize = memoryRequirements.size,
-        .memoryTypeIndex = memoryTypeIndex
-    };
-
-    res = vkAllocateMemory(device, &memoryAllocationInfo, nullptr, &texture.DeviceMemory);
-    if (res != VK_SUCCESS)
+    }else
     {
-        spdlog::error("Failed to allocate memory for vulkan image");
-    }
-
-    //  bind memory
-    res = vkBindImageMemory(device, texture.Image, texture.DeviceMemory, 0);
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to bind memory for vulkan image");
+        m_numAllocatedImages++;
     }
 }
 
@@ -210,7 +203,7 @@ void TextureManager::UpdateTextureImage(const VulkanImage& texture, const Loaded
 }
 
 void TextureManager::CreateTextureImageFromData(VulkanImage& texture, const LoadedImage& loadedImage,
-                                                VkFormat format) const
+                                                VkFormat format)
 {
     constexpr VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
     constexpr VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;

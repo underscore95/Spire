@@ -54,6 +54,7 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/VulkanAllocator.h
         Source/Engine/Rendering/VmaUsage.cpp
         Source/Engine/Rendering/VulkanBuffer.h
+        Source/Engine/Rendering/VulkanImage.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

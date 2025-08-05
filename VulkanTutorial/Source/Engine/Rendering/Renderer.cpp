@@ -7,6 +7,7 @@
 #include "RenderingSync.h"
 #include "Swapchain.h"
 #include "TextureManager.h"
+#include "VulkanImage.h"
 #include "Engine/Window/Window.h"
 
 Renderer::Renderer(RenderingManager& renderingManager,

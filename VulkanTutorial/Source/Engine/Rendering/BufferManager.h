@@ -15,17 +15,15 @@ public:
 
     ~BufferManager();
 
-    VulkanBuffer CreateStorageBufferForVertices(const void* vertices, glm::u32 size) ;
+    VulkanBuffer CreateStorageBufferForVertices(const void* vertices, glm::u32 size);
 
     void DestroyBuffer(const VulkanBuffer& buffer);
 
-    std::vector<VulkanBuffer> CreateUniformBuffers(size_t bufferSize) ;
+    std::vector<VulkanBuffer> CreateUniformBuffers(size_t bufferSize);
 
     void UpdateBuffer(const VulkanBuffer& buffer, const void* data, glm::u32 size) const;
 
 private:
-    glm::u32 GetMemoryTypeIndex(glm::u32 memTypeBitsMask, VkMemoryPropertyFlags reqMemPropFlags) const;
-
     void CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const;
 
     VulkanBuffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);

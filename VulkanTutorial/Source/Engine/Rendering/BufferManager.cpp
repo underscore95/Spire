@@ -83,28 +83,6 @@ void BufferManager::UpdateBuffer(const VulkanBuffer& buffer, const void* data, g
     vmaUnmapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation);
 }
 
-glm::u32 BufferManager::GetMemoryTypeIndex(glm::u32 memTypeBitsMask, VkMemoryPropertyFlags reqMemPropFlags) const
-{
-    const VkPhysicalDeviceMemoryProperties& memoryProperties = m_renderingManager.GetPhysicalDevice().MemoryProperties;
-
-    for (glm::u32 i = 0; i < memoryProperties.memoryTypeCount; i++)
-    {
-        const VkMemoryType& memoryType = memoryProperties.memoryTypes[i];
-        glm::u32 currentBitmask = (1 << i);
-
-        bool isCurrentMemoryTypeSupported = (memTypeBitsMask & currentBitmask);
-        bool hasRequiredMemoryProperties = ((memoryType.propertyFlags & reqMemPropFlags) == reqMemPropFlags);
-
-        if (isCurrentMemoryTypeSupported && hasRequiredMemoryProperties)
-        {
-            return i;
-        }
-    }
-
-    spdlog::error("Cannot find memory type for type {} requested mem props {}", memTypeBitsMask, reqMemPropFlags);
-    return INVALID_MEMORY_TYPE_INDEX;
-}
-
 void BufferManager::CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const
 {
     m_renderingManager.GetCommandManager().BeginCommandBuffer(m_copyCommandBuffer,

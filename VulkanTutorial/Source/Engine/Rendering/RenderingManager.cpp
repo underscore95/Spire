@@ -20,6 +20,7 @@
 #include "TextureManager.h"
 #include "VulkanAllocator.h"
 #include "VulkanDebugCallback.h"
+#include "VulkanImage.h"
 
 RenderingManager::RenderingManager(const std::string& applicationName, const Window& window)
 {
@@ -73,7 +74,7 @@ RenderingManager::~RenderingManager()
 
     for (const auto& depthTexture : m_depthImages)
     {
-        m_textureManager->DestroyTexture(depthTexture);
+        m_textureManager->DestroyImage(depthTexture);
     }
 
     m_textureManager.reset();
@@ -146,7 +147,7 @@ BufferManager& RenderingManager::GetBufferManager() const
     return *m_bufferManager;
 }
 
-const TextureManager& RenderingManager::GetTextureManager() const
+TextureManager& RenderingManager::GetTextureManager() const
 {
     return *m_textureManager;
 }
@@ -196,7 +197,6 @@ void RenderingManager::CreateDepthResources(glm::uvec2 windowDimensions)
     spdlog::info("Created {} depth images", m_depthImages.size());
 }
 
-// https://github.com/emeiri/ogldev/blob/VULKAN_02/Vulkan/VulkanCore/Source/core.cpp
 void RenderingManager::CreateInstance(const std::string& applicationName)
 {
     std::vector Layers = {

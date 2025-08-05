@@ -22,6 +22,7 @@
 #include "Engine/Rendering/RenderingSync.h"
 #include "Engine/Rendering/Renderer.h"
 #include "Engine/Rendering/VulkanBuffer.h"
+#include "Engine/Rendering/VulkanImage.h"
 
 #include "Engine/Utils/Camera/Camera.h"
 #include "Engine/Utils/Timer.h"

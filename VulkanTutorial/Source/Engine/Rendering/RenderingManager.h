@@ -46,7 +46,7 @@ public:
 
     [[nodiscard]] BufferManager& GetBufferManager() const;
 
-    [[nodiscard]] const TextureManager& GetTextureManager() const;
+    [[nodiscard]] TextureManager& GetTextureManager() const;
 
     [[nodiscard]] const VulkanImage& GetDepthImage(glm::u32 imageIndex) const;
 

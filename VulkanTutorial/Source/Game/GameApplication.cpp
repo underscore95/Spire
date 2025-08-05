@@ -34,7 +34,7 @@ void GameApplication::Start(Engine& engine)
 
     // Textures
     std::string textureFile = std::format("{}/test.png", ASSETS_DIRECTORY);
-    m_texture = rm.GetTextureManager().CreateTexture(textureFile.c_str());
+    m_texture = rm.GetTextureManager().CreateImageFromFile(textureFile.c_str());
 
     // Pipeline
     SetupGraphicsPipeline();
@@ -59,7 +59,7 @@ GameApplication::~GameApplication()
         rm.GetBufferManager().DestroyBuffer(m_uniformBuffers[i]);
     }
 
-    rm.GetTextureManager().DestroyTexture(m_texture);
+    rm.GetTextureManager().DestroyImage(m_texture);
 
     m_graphicsPipeline.reset();
 
