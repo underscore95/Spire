@@ -8,6 +8,7 @@
 
 #include "VulkanVersion.h"
 
+class VulkanAllocator;
 class ImGuiRenderer;
 class Renderer;
 class RenderingSync;
@@ -43,7 +44,7 @@ public:
 
     [[nodiscard]] const PhysicalDevice& GetPhysicalDevice() const;
 
-    [[nodiscard]] const BufferManager& GetBufferManager() const;
+    [[nodiscard]] BufferManager& GetBufferManager() const;
 
     [[nodiscard]] const TextureManager& GetTextureManager() const;
 
@@ -58,6 +59,8 @@ public:
     [[nodiscard]] Renderer& GetRenderer() const;
 
     [[nodiscard]] ImGuiRenderer& GetImGuiRenderer() const;
+
+    [[nodiscard]] VulkanAllocator& GetAllocatorWrapper() const;
 
 private:
     void GetInstanceVersion();
@@ -74,6 +77,7 @@ private:
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
     std::unique_ptr<RenderingDeviceManager> m_deviceManager = nullptr;
     std::unique_ptr<LogicalDevice> m_logicalDevice = nullptr;
+    std::unique_ptr<VulkanAllocator> m_allocator = nullptr;
     std::unique_ptr<Swapchain> m_swapchain = nullptr;
     std::unique_ptr<RenderingCommandManager> m_commandManager = nullptr;
     std::unique_ptr<VulkanQueue> m_queue = nullptr;

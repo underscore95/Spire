@@ -18,6 +18,7 @@
 #include "RenderingSync.h"
 #include "Swapchain.h"
 #include "TextureManager.h"
+#include "VulkanAllocator.h"
 #include "VulkanDebugCallback.h"
 
 RenderingManager::RenderingManager(const std::string& applicationName, const Window& window)
@@ -36,6 +37,12 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
     m_deviceManager = std::make_unique<RenderingDeviceManager>(m_instance, m_surface, false);
 
     m_logicalDevice = std::make_unique<LogicalDevice>(*m_deviceManager, m_instanceVersion);
+
+    m_allocator = std::make_unique<VulkanAllocator>(
+        m_logicalDevice->GetDevice(),
+        m_deviceManager->Selected().PhysicalDeviceHandle,
+        m_instance,
+        m_instanceVersion);
 
     m_swapchain = std::make_unique<Swapchain>(m_logicalDevice->GetDevice(), m_deviceManager->Selected(),
                                               m_logicalDevice->GetDeviceQueueFamily(), m_surface);
@@ -77,6 +84,8 @@ RenderingManager::~RenderingManager()
     m_commandManager.reset();
 
     m_swapchain.reset();
+
+    m_allocator.reset();
 
     m_logicalDevice.reset();
     m_deviceManager.reset();
@@ -132,7 +141,7 @@ const PhysicalDevice& RenderingManager::GetPhysicalDevice() const
     return m_deviceManager->Selected();
 }
 
-const BufferManager& RenderingManager::GetBufferManager() const
+BufferManager& RenderingManager::GetBufferManager() const
 {
     return *m_bufferManager;
 }
@@ -279,4 +288,9 @@ Renderer& RenderingManager::GetRenderer() const
 ImGuiRenderer& RenderingManager::GetImGuiRenderer() const
 {
     return *m_imGuiRenderer;
+}
+
+VulkanAllocator& RenderingManager::GetAllocatorWrapper() const
+{
+    return *m_allocator;
 }

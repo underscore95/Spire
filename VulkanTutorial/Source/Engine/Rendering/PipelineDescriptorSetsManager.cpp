@@ -9,6 +9,7 @@
 #include "RenderingManager.h"
 #include "Swapchain.h"
 #include "TextureManager.h"
+#include "VulkanBuffer.h"
 
 PipelineDescriptorSetsManager::PipelineDescriptorSetsManager(RenderingManager& renderingManager,
                                                              const std::vector<PipelineResourceInfo>& resources)

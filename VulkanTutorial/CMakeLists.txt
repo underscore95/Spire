@@ -50,6 +50,10 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/ImGuiRenderer.h
         Source/Engine/Rendering/Renderer.cpp
         Source/Engine/Rendering/Renderer.h
+        Source/Engine/Rendering/VulkanAllocator.cpp
+        Source/Engine/Rendering/VulkanAllocator.h
+        Source/Engine/Rendering/VmaUsage.cpp
+        Source/Engine/Rendering/VulkanBuffer.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")
@@ -57,6 +61,10 @@ target_include_directories(VulkanTutorial PUBLIC "Source")
 # Vulkan
 find_package(Vulkan REQUIRED)
 target_link_libraries(VulkanTutorial PRIVATE Vulkan::Vulkan)
+
+# Vulkan Memory Allocator
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+target_link_libraries(VulkanTutorial PRIVATE GPUOpen::VulkanMemoryAllocator)
 
 # glslang
 find_package(glslang REQUIRED)

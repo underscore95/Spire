@@ -5,6 +5,7 @@
 #include "RenderingCommandManager.h"
 #include "RenderingManager.h"
 #include "RenderingSync.h"
+#include "VulkanBuffer.h"
 #include "VulkanQueue.h"
 #include "Engine/Utils/ImageLoader.h"
 
@@ -192,10 +193,10 @@ void TextureManager::UpdateTextureImage(const VulkanImage& texture, const Loaded
     VkDeviceSize imageSize = layerCount * layerSize;
 
     VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
     auto& bufferManager = m_renderingManager.GetBufferManager();
-    VulkanBuffer stagingBuffer = bufferManager.CreateBuffer(imageSize, usage, properties);
+    VulkanBuffer stagingBuffer = bufferManager.CreateBuffer(imageSize, usage, memoryProperties);
     bufferManager.UpdateBuffer(stagingBuffer, loadedImage.Data, imageSize);
 
     TransitionImageLayout(texture.Image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
