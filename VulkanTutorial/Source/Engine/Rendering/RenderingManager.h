@@ -28,8 +28,9 @@ class Engine;
 class RenderingManager
 {
     friend class Engine;
+
 public:
-    explicit RenderingManager(const std::string& applicationName, const Window& window);
+    explicit RenderingManager(Engine& engine, const std::string& applicationName, const Window& window);
 
     ~RenderingManager();
 
@@ -64,9 +65,9 @@ public:
 
     [[nodiscard]] VulkanAllocator& GetAllocatorWrapper() const;
 
-    void HandleWindowResizing( );
-
 private:
+    void OnWindowResize();
+
     void GetInstanceVersion();
 
     void CreateDepthResources(glm::uvec2 windowDimensions);
@@ -80,6 +81,7 @@ private:
     void CreateQueue();
 
 private:
+    Engine& m_engine;
     const Window& m_window;
     VkInstance m_instance = VK_NULL_HANDLE;
     std::unique_ptr<VulkanDebugCallback> m_debugCallback = nullptr;

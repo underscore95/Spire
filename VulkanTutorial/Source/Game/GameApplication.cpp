@@ -49,7 +49,7 @@ GameApplication::~GameApplication()
 {
     auto& rm = m_engine->GetRenderingManager();
 
-    rm.GetQueue().WaitUntilExecutedAll();
+    rm.GetQueue().WaitIdle();
     rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
     spdlog::info("Freed command buffers");
 
@@ -77,7 +77,7 @@ void GameApplication::Render()
 {
     auto& rm = m_engine->GetRenderingManager();
 
-    rm.GetQueue().WaitUntilExecutedAll();
+    rm.GetQueue().WaitIdle();
     glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
     if (imageIndex == rm.GetQueue().INVALID_IMAGE_INDEX) return;
 
@@ -85,12 +85,12 @@ void GameApplication::Render()
 
     RenderUi();
 
-    rm.GetQueue().WaitUntilExecutedAll();
+    rm.GetQueue().WaitIdle();
 
     std::array commandBuffersToSubmit = {
         rm.GetRenderer().GetBeginRenderingCommandBuffer(imageIndex),
-       // m_commandBuffers[imageIndex],
-       // rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex),
+        //  m_commandBuffers[imageIndex],
+        // rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex),
         rm.GetRenderer().GetEndRenderingCommandBuffer(imageIndex)
     };
     rm.GetQueue().SubmitAsync(commandBuffersToSubmit.size(), commandBuffersToSubmit.data());
@@ -126,6 +126,10 @@ const char* GameApplication::GetApplicationName() const
     return "MyApp";
 }
 
+void GameApplication::OnWindowResize() const
+{
+}
+
 void GameApplication::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const
 {
     auto& rm = m_engine->GetRenderingManager();
@@ -154,6 +158,8 @@ void GameApplication::RecordCommandBuffers() const
         BeginRendering(commandBuffer, i);
 
         m_graphicsPipeline->BindTo(commandBuffer, i);
+
+        m_graphicsPipeline->SetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
         vkCmdDraw(commandBuffer, 9, 1, 0, 0);
 
@@ -249,11 +255,11 @@ void GameApplication::SetupGraphicsPipeline()
 
     m_graphicsPipeline = std::make_unique<GraphicsPipeline>(
         rm.GetDevice(),
-        m_engine->GetWindow().GetDimensions(),
         m_vertexShader,
         m_fragmentShader,
         std::make_unique<PipelineDescriptorSetsManager>(rm, pipelineResources),
         rm.GetSwapchain().GetSurfaceFormat().format,
-        rm.GetPhysicalDevice().DepthFormat
+        rm.GetPhysicalDevice().DepthFormat,
+        rm
     );
 }

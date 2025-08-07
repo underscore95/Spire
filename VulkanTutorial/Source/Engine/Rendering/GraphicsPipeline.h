@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.hpp>
 #include <glm/fwd.hpp>
 
+class RenderingManager;
 class PipelineDescriptorSetsManager;
 struct GLFWwindow;
 struct VulkanBuffer;
@@ -10,11 +11,14 @@ struct VulkanBuffer;
 class GraphicsPipeline
 {
 public:
-    GraphicsPipeline(VkDevice device, glm::uvec2 windowSize, VkShaderModule vertexShader, VkShaderModule fragmentShader,
+    GraphicsPipeline(VkDevice device, VkShaderModule vertexShader, VkShaderModule fragmentShader,
                      std::unique_ptr<PipelineDescriptorSetsManager> descriptorSetsManager, VkFormat colorFormat,
-                     VkFormat depthFormat);
+                     VkFormat depthFormat, RenderingManager& renderingManager);
 
     ~GraphicsPipeline();
+
+    void SetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport, const VkRect2D* scissor) const;
+    void SetViewportToWindowSize(VkCommandBuffer commandBuffer,glm::uvec2 windowDimensions) const;
 
 public:
     void BindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainImageIndex) const;
@@ -24,4 +28,5 @@ private:
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
     std::unique_ptr<PipelineDescriptorSetsManager> m_descriptorSetsManager = nullptr;
+    RenderingManager& m_renderingManager;
 };

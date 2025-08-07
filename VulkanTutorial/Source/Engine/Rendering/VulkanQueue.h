@@ -4,21 +4,23 @@
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan.h>
 
+class Engine;
 class RenderingManager;
 
 class VulkanQueue
 {
 public:
     VulkanQueue(RenderingManager& renderingManager,
+                Engine& engine,
                 VkDevice device,
-             VkSwapchainKHR swapChain,
+                VkSwapchainKHR swapchain,
                 glm::u32 queueFamily,
                 glm::u32 queueIndex);
 
     ~VulkanQueue();
 
 public:
-    [[nodiscard]] glm::u32 AcquireNextImage();
+    [[nodiscard]] glm::u32 AcquireNextImage() const;
 
     void SubmitSync(VkCommandBuffer commandBuffer) const;
 
@@ -27,7 +29,7 @@ public:
 
     void Present(glm::u32 imageIndex);
 
-    void WaitUntilExecutedAll() const;
+    void WaitIdle() const;
 
     [[nodiscard]] VkQueue GetQueueHandle() const;
 
@@ -39,6 +41,7 @@ private:
 
 private:
     RenderingManager& m_renderingManager;
+    Engine& m_engine;
     VkDevice m_device = VK_NULL_HANDLE;
     VkSwapchainKHR m_swapchain;
     VkQueue m_queue = VK_NULL_HANDLE;

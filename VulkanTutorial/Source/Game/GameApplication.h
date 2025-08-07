@@ -24,6 +24,8 @@ public:
 
     [[nodiscard]] const char* GetApplicationName() const override;
 
+    void OnWindowResize() const override;
+
 private:
     void BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const;
 

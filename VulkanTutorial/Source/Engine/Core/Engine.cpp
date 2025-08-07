@@ -11,7 +11,8 @@
 Engine::Engine(std::unique_ptr<Application> app)
     : m_application(std::move(app)),
       m_initialized(false),
-      m_beginInitializationTimePoint(std::chrono::high_resolution_clock::now()) {
+      m_beginInitializationTimePoint(std::chrono::high_resolution_clock::now())
+{
     spdlog::info("Initializing engine...");
 
     // Window
@@ -20,10 +21,12 @@ Engine::Engine(std::unique_ptr<Application> app)
 
     // RenderingManager
     m_renderingManager = std::make_unique<RenderingManager>(
+        *this,
         m_application->GetApplicationName(),
         GetWindow()
     );
-    if (!m_renderingManager->IsValid()) {
+    if (!m_renderingManager->IsValid())
+    {
         spdlog::error("Failed to initialize rendering manager");
         return;
     }
@@ -35,7 +38,8 @@ Engine::Engine(std::unique_ptr<Application> app)
     Start();
 }
 
-Engine::~Engine() {
+Engine::~Engine()
+{
     const auto beginShutdown = std::chrono::high_resolution_clock::now();
 
     spdlog::info("");
@@ -52,7 +56,8 @@ Engine::~Engine() {
 
     m_renderingManager.reset();
 
-    if (ImageLoader::GetNumLoadedImages() != 0) {
+    if (ImageLoader::GetNumLoadedImages() != 0)
+    {
         spdlog::error("There was {} images still loaded when the engine shut down!", ImageLoader::GetNumLoadedImages());
     }
 
@@ -72,20 +77,24 @@ Engine::~Engine() {
     spdlog::info("Total shutdown time: {} ms\n", totalShutdownTime);
 }
 
-const Window &Engine::GetWindow() const {
+const Window& Engine::GetWindow() const
+{
     return *m_window;
 }
 
-RenderingManager &Engine::GetRenderingManager() const {
+RenderingManager& Engine::GetRenderingManager() const
+{
     return *m_renderingManager;
 }
 
 // ReSharper disable once CppDFAConstantFunctionResult
-float Engine::GetDeltaTime() const {
+float Engine::GetDeltaTime() const
+{
     return m_deltaTime;
 }
 
-void Engine::Start() {
+void Engine::Start()
+{
     spdlog::info("Initializing application...");
     const auto beginApplicationInit = std::chrono::high_resolution_clock::now();
     m_application->Start(*this);
@@ -94,7 +103,8 @@ void Engine::Start() {
                  std::chrono::duration_cast<std::chrono::milliseconds>(now - beginApplicationInit).count(),
                  std::chrono::duration_cast<std::chrono::milliseconds>(now - m_beginInitializationTimePoint).count());
 
-    while (!m_application->ShouldClose()) {
+    while (!m_application->ShouldClose())
+    {
         m_deltaTimeTimer.Start();
         Update();
         Render();
@@ -102,12 +112,20 @@ void Engine::Start() {
     }
 }
 
-void Engine::Update() const {
+void Engine::Update() const
+{
     m_window->Update();
 
     m_application->Update();
 }
 
-void Engine::Render() const {
+void Engine::Render() const
+{
     m_application->Render();
+}
+
+void Engine::OnWindowResize() const
+{
+    m_renderingManager->OnWindowResize();
+    m_application->OnWindowResize();
 }

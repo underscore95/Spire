@@ -16,4 +16,6 @@ public:
     virtual bool ShouldClose() const = 0;
 
     virtual const char* GetApplicationName() const = 0;
+
+    virtual void OnWindowResize() const = 0;
 };

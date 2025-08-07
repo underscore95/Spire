@@ -2,21 +2,23 @@
 #include <glm/glm.hpp>
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
-
 #include "BufferManager.h"
 #include "PipelineDescriptorSetsManager.h"
+#include "RenderingCommandManager.h"
 
 GraphicsPipeline::GraphicsPipeline(
     VkDevice device,
-    glm::uvec2 windowSize,
     VkShaderModule vertexShader,
     VkShaderModule fragmentShader,
     std::unique_ptr<PipelineDescriptorSetsManager> descriptorSetsManager,
     VkFormat colorFormat,
-    VkFormat depthFormat)
+    VkFormat depthFormat,
+    RenderingManager& renderingManager)
     : m_device(device),
-      m_descriptorSetsManager(std::move(descriptorSetsManager))
+      m_descriptorSetsManager(std::move(descriptorSetsManager)),
+      m_renderingManager(renderingManager)
 {
+    // pipeline
     constexpr glm::u32 NUM_SHADER_STAGES = 2;
     VkPipelineShaderStageCreateInfo shaderStageCreateInfo[NUM_SHADER_STAGES] = {
         {
@@ -43,33 +45,23 @@ GraphicsPipeline::GraphicsPipeline(
         .primitiveRestartEnable = VK_FALSE
     };
 
-    VkViewport viewport = {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(windowSize.x),
-        .height = static_cast<float>(windowSize.y),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f
-    };
-
-    VkRect2D scissor{
-        .offset = {
-            .x = 0,
-            .y = 0,
-        },
-        .extent = {
-            .width = windowSize.x,
-            .height = windowSize.y,
-        }
-    };
-
     VkPipelineViewportStateCreateInfo viewportCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .viewportCount = 1,
-        .pViewports = &viewport,
+        .pViewports = nullptr,
         .scissorCount = 1,
-        .pScissors = &scissor
+        .pScissors = nullptr
     };
+
+    VkDynamicState dynamicStates[] = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+
+    VkPipelineDynamicStateCreateInfo dynamicState{};
+    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.dynamicStateCount = 2;
+    dynamicState.pDynamicStates = dynamicStates;
 
     VkPipelineRasterizationStateCreateInfo rastCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
@@ -147,6 +139,7 @@ GraphicsPipeline::GraphicsPipeline(
         .pMultisampleState = &pipelineMultisampleCreateInfo,
         .pDepthStencilState = &depthStencilState,
         .pColorBlendState = &blendCreateInfo,
+        .pDynamicState = &dynamicState,
         .layout = m_pipelineLayout,
         .renderPass = VK_NULL_HANDLE,
         .subpass = 0,
@@ -170,6 +163,37 @@ GraphicsPipeline::~GraphicsPipeline()
     vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
     m_descriptorSetsManager.reset();
     vkDestroyPipeline(m_device, m_pipeline, nullptr);
+}
+
+void GraphicsPipeline::SetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport, const VkRect2D* scissor) const
+{
+    if (viewport) vkCmdSetViewport(commandBuffer, 0, 1, viewport);
+    if (scissor) vkCmdSetScissor(commandBuffer, 0, 1, scissor);
+}
+
+void GraphicsPipeline::SetViewportToWindowSize(VkCommandBuffer commandBuffer, glm::uvec2 windowDimensions) const
+{
+    VkViewport viewport = {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(windowDimensions.x),
+        .height = static_cast<float>(windowDimensions.y),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+    };
+
+    VkRect2D scissor{
+        .offset = {
+            .x = 0,
+            .y = 0,
+        },
+        .extent = {
+            .width = windowDimensions.x,
+            .height = windowDimensions.y,
+        }
+    };
+
+    SetViewport(commandBuffer, &viewport, &scissor);
 }
 
 void GraphicsPipeline::BindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainImageIndex) const

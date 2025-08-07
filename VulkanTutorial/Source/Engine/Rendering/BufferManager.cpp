@@ -100,7 +100,7 @@ void BufferManager::CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) c
 
     m_renderingManager.GetQueue().SubmitSync(m_copyCommandBuffer);
 
-    m_renderingManager.GetQueue().WaitUntilExecutedAll();
+    m_renderingManager.GetQueue().WaitIdle();
 }
 
 VulkanBuffer BufferManager::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)

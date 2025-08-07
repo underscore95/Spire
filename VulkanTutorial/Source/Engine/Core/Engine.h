@@ -22,6 +22,8 @@ public:
 
     [[nodiscard]] float GetDeltaTime() const;
 
+    void OnWindowResize() const;
+
 private:
     void Start();
 

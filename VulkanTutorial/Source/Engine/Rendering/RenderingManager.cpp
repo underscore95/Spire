@@ -22,8 +22,11 @@
 #include "VulkanDebugCallback.h"
 #include "VulkanImage.h"
 
-RenderingManager::RenderingManager(const std::string& applicationName, const Window& window)
-    : m_window(window)
+RenderingManager::RenderingManager(Engine& engine,
+                                   const std::string& applicationName,
+                                   const Window& window)
+    : m_engine(engine),
+      m_window(window)
 {
     spdlog::info("Initializing RenderingManager...");
 
@@ -51,7 +54,7 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
     m_commandManager = std::make_unique<RenderingCommandManager>(m_logicalDevice->GetDeviceQueueFamily(),
                                                                  m_logicalDevice->GetDevice());
 
-   CreateQueue();
+    CreateQueue();
 
     m_bufferManager = std::make_unique<BufferManager>(*this);
     m_textureManager = std::make_unique<TextureManager>(*this);
@@ -272,7 +275,7 @@ void RenderingManager::CreateSwapchain()
 
 void RenderingManager::CreateQueue()
 {
-    m_queue = std::make_unique<VulkanQueue>(*this, m_logicalDevice->GetDevice(), m_swapchain->GetSwapchain(),
+    m_queue = std::make_unique<VulkanQueue>(*this, m_engine, m_logicalDevice->GetDevice(), m_swapchain->GetSwapchain(),
                                             m_logicalDevice->GetDeviceQueueFamily(), 0);
 }
 
@@ -306,14 +309,15 @@ VulkanAllocator& RenderingManager::GetAllocatorWrapper() const
     return *m_allocator;
 }
 
-void RenderingManager::HandleWindowResizing()
+void RenderingManager::OnWindowResize()
 {
-    m_queue->WaitUntilExecutedAll();
+    m_queue->WaitIdle();
     vkDeviceWaitIdle(GetDevice());
     m_queue.reset();
     m_swapchain.reset();
     m_deviceManager->UpdateSurfaceCapabilities();
     CreateSwapchain();
     CreateQueue();
+
     m_renderer->RecreateCommandBuffers();
 }

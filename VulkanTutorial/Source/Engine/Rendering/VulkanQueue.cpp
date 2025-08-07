@@ -4,16 +4,19 @@
 #include "RenderingManager.h"
 #include "RenderingSync.h"
 #include "Swapchain.h"
+#include "Engine/Core/Engine.h"
 
 VulkanQueue::VulkanQueue(
     RenderingManager& renderingManager,
+    Engine& engine,
     VkDevice device,
-    VkSwapchainKHR swapChain,
+    VkSwapchainKHR swapchain,
     glm::u32 queueFamily,
     glm::u32 queueIndex)
     : m_renderingManager(renderingManager),
+      m_engine(engine),
       m_device(device),
-      m_swapchain(swapChain)
+      m_swapchain(swapchain)
 {
     vkGetDeviceQueue(device, queueFamily, queueIndex, &m_queue);
 
@@ -30,7 +33,7 @@ VulkanQueue::~VulkanQueue()
     spdlog::info("VulkanQueue shutdown");
 }
 
-glm::u32 VulkanQueue::AcquireNextImage()
+glm::u32 VulkanQueue::AcquireNextImage() const
 {
     glm::u32 imageIndex = 0;
     VkResult res = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_presentCompleteSemaphore,
@@ -38,7 +41,7 @@ glm::u32 VulkanQueue::AcquireNextImage()
                                          &imageIndex);
     if (res == VK_ERROR_OUT_OF_DATE_KHR)
     {
-        m_renderingManager.HandleWindowResizing();
+        m_engine.OnWindowResize();
         return INVALID_IMAGE_INDEX;
     }
     if (res != VK_SUCCESS)
@@ -114,7 +117,7 @@ void VulkanQueue::Present(glm::u32 imageIndex)
     VkResult res = vkQueuePresentKHR(m_queue, &presentInfo);
     if (res == VK_ERROR_OUT_OF_DATE_KHR)
     {
-        m_renderingManager.HandleWindowResizing();
+        m_engine.OnWindowResize();
         return;
     }
     if (res != VK_SUCCESS)
@@ -123,7 +126,7 @@ void VulkanQueue::Present(glm::u32 imageIndex)
     }
 }
 
-void VulkanQueue::WaitUntilExecutedAll() const
+void VulkanQueue::WaitIdle() const
 {
     vkQueueWaitIdle(m_queue);
 }

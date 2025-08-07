@@ -173,7 +173,7 @@ void TextureManager::CopyBufferToImage(VkImage dest, VkBuffer source, const glm:
 
     m_renderingManager.GetQueue().SubmitSync(m_commandBuffer);
 
-    m_renderingManager.GetQueue().WaitUntilExecutedAll();
+    m_renderingManager.GetQueue().WaitIdle();
 }
 
 void TextureManager::UpdateTextureImage(const VulkanImage& texture, const LoadedImage& loadedImage,
@@ -224,7 +224,7 @@ void TextureManager::TransitionImageLayout(const VkImage& image, VkFormat format
 
     m_renderingManager.GetQueue().SubmitSync(m_commandBuffer);
 
-    m_renderingManager.GetQueue().WaitUntilExecutedAll();
+    m_renderingManager.GetQueue().WaitIdle();
 }
 
 VkImageView TextureManager::CreateImageView(VkImage image, VkFormat format, VkFlags aspectFlags) const
