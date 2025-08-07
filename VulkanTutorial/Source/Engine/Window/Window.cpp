@@ -188,10 +188,8 @@ void Window::Update()
     ASSUME(s_initialized);
 
     // window dimensions
-    glm::ivec2 newWindowDimensions;
-    glfwGetWindowSize(m_windowHandle, &newWindowDimensions.x, &newWindowDimensions.y);
-    m_dimensionsChangedThisFrame = m_windowDimensions != static_cast<glm::uvec2>(newWindowDimensions);
-    m_windowDimensions = newWindowDimensions;
+    // not early but i didn't want to make a new function, this is normal update time for dimensions
+    UpdateDimensionsEarly();
 
     // pressed -> held
     for (int key : m_pressedKeys)
@@ -256,6 +254,14 @@ void Window::MouseButtonCallback(int button, int action, [[maybe_unused]] int mo
 void Window::ScrollCallback(double xOffset, double yOffset)
 {
     m_scrollDeltaTemp += glm::vec2{xOffset, yOffset};
+}
+
+void Window::UpdateDimensionsEarly()
+{
+    glm::ivec2 newWindowDimensions;
+    glfwGetWindowSize(m_windowHandle, &newWindowDimensions.x, &newWindowDimensions.y);
+    m_dimensionsChangedThisFrame = m_windowDimensions != static_cast<glm::uvec2>(newWindowDimensions);
+    m_windowDimensions = newWindowDimensions;
 }
 
 bool Window::s_initialized = false;

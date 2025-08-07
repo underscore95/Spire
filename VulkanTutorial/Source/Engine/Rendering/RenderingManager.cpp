@@ -24,7 +24,7 @@
 
 RenderingManager::RenderingManager(Engine& engine,
                                    const std::string& applicationName,
-                                   const Window& window)
+                                   Window& window)
     : m_engine(engine),
       m_window(window)
 {
@@ -233,7 +233,7 @@ void RenderingManager::CreateInstance(const std::string& applicationName)
         .apiVersion = m_instanceVersion.RawVersion
     };
 
-    VkInstanceCreateInfo CreateInfo = {
+    VkInstanceCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0, // reserved for future use. Must be zero
@@ -244,7 +244,7 @@ void RenderingManager::CreateInstance(const std::string& applicationName)
         .ppEnabledExtensionNames = Extensions.data()
     };
 
-    VkResult res = vkCreateInstance(&CreateInfo, nullptr, &m_instance);
+    VkResult res = vkCreateInstance(&createInfo, nullptr, &m_instance);
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to create Vulkan instance");
@@ -315,6 +315,7 @@ void RenderingManager::OnWindowResize()
     vkDeviceWaitIdle(GetDevice());
     m_queue.reset();
     m_swapchain.reset();
+    m_window.UpdateDimensionsEarly();
     m_deviceManager->UpdateSurfaceCapabilities();
     CreateSwapchain();
     CreateQueue();

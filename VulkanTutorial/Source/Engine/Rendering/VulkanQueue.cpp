@@ -128,7 +128,11 @@ void VulkanQueue::Present(glm::u32 imageIndex)
 
 void VulkanQueue::WaitIdle() const
 {
-    vkQueueWaitIdle(m_queue);
+    VkResult res = vkQueueWaitIdle(m_queue);
+    if (res != VK_SUCCESS)
+    {
+        spdlog::info("Failed to wait until queue is idle");
+    }
 }
 
 VkQueue VulkanQueue::GetQueueHandle() const

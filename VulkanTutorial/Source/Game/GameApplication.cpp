@@ -89,7 +89,7 @@ void GameApplication::Render()
 
     std::array commandBuffersToSubmit = {
         rm.GetRenderer().GetBeginRenderingCommandBuffer(imageIndex),
-        //  m_commandBuffers[imageIndex],
+          m_commandBuffers[imageIndex],
         // rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex),
         rm.GetRenderer().GetEndRenderingCommandBuffer(imageIndex)
     };
@@ -128,6 +128,7 @@ const char* GameApplication::GetApplicationName() const
 
 void GameApplication::OnWindowResize() const
 {
+    RecordCommandBuffers();
 }
 
 void GameApplication::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const

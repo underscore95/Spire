@@ -302,6 +302,7 @@ void RenderingDeviceManager::GetSurfaceCapabilities(glm::u32 deviceIndex)
 {
     VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_devices[deviceIndex].PhysicalDeviceHandle, m_surface,
                                                              &(m_devices[deviceIndex].SurfaceCapabilities));
+
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to get device capabilities");

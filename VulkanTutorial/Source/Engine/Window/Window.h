@@ -49,6 +49,9 @@ public:
 
     void ScrollCallback(double xOffset, double yOffset);
 
+    // Recheck the dimensions early, usually we only recheck the dimensions at the beginning of each frame
+    void UpdateDimensionsEarly();
+
 private:
     static bool Init();
 

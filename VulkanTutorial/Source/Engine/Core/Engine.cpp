@@ -23,7 +23,7 @@ Engine::Engine(std::unique_ptr<Application> app)
     m_renderingManager = std::make_unique<RenderingManager>(
         *this,
         m_application->GetApplicationName(),
-        GetWindow()
+        *m_window
     );
     if (!m_renderingManager->IsValid())
     {

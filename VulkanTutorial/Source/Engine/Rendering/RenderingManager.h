@@ -30,7 +30,7 @@ class RenderingManager
     friend class Engine;
 
 public:
-    explicit RenderingManager(Engine& engine, const std::string& applicationName, const Window& window);
+    explicit RenderingManager(Engine& engine, const std::string& applicationName, Window& window);
 
     ~RenderingManager();
 
@@ -82,7 +82,7 @@ private:
 
 private:
     Engine& m_engine;
-    const Window& m_window;
+    Window& m_window;
     VkInstance m_instance = VK_NULL_HANDLE;
     std::unique_ptr<VulkanDebugCallback> m_debugCallback = nullptr;
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
