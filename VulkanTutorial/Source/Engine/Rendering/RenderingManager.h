@@ -70,7 +70,9 @@ private:
 
     void GetInstanceVersion();
 
-    void CreateDepthResources(glm::uvec2 windowDimensions);
+    void CreateDepthResources();
+
+    void FreeDepthResources();
 
     void CreateInstance(const std::string& applicationName);
 

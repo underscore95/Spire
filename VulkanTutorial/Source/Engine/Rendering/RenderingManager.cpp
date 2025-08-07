@@ -59,7 +59,7 @@ RenderingManager::RenderingManager(Engine& engine,
     m_bufferManager = std::make_unique<BufferManager>(*this);
     m_textureManager = std::make_unique<TextureManager>(*this);
 
-    CreateDepthResources(window.GetDimensions());
+    CreateDepthResources();
 
     m_renderer = std::make_unique<Renderer>(*this, window);
     m_imGuiRenderer = std::make_unique<ImGuiRenderer>(*this, window);
@@ -74,10 +74,7 @@ RenderingManager::~RenderingManager()
     m_imGuiRenderer.reset();
     m_renderer.reset();
 
-    for (const auto& depthTexture : m_depthImages)
-    {
-        m_textureManager->DestroyImage(depthTexture);
-    }
+    FreeDepthResources();
 
     m_textureManager.reset();
     m_bufferManager.reset();
@@ -177,7 +174,7 @@ void RenderingManager::GetInstanceVersion()
                  m_instanceVersion.Minor, m_instanceVersion.Patch);
 }
 
-void RenderingManager::CreateDepthResources(glm::uvec2 windowDimensions)
+void RenderingManager::CreateDepthResources()
 {
     m_depthImages.resize(m_swapchain->GetNumImages());
 
@@ -187,7 +184,7 @@ void RenderingManager::CreateDepthResources(glm::uvec2 windowDimensions)
     {
         VkImageUsageFlagBits usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
         VkMemoryPropertyFlagBits propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        m_textureManager->CreateImage(m_depthImages[i], windowDimensions, usage, propertyFlags, depthFormat);
+        m_textureManager->CreateImage(m_depthImages[i], m_window.GetDimensions(), usage, propertyFlags, depthFormat);
 
         m_textureManager->TransitionImageLayout(m_depthImages[i].Image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                                                 VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
@@ -197,6 +194,15 @@ void RenderingManager::CreateDepthResources(glm::uvec2 windowDimensions)
     }
 
     spdlog::info("Created {} depth images", m_depthImages.size());
+}
+
+void RenderingManager::FreeDepthResources()
+{
+    for (const auto& depthTexture : m_depthImages)
+    {
+        m_textureManager->DestroyImage(depthTexture);
+    }
+    m_depthImages.clear();
 }
 
 void RenderingManager::CreateInstance(const std::string& applicationName)
@@ -319,6 +325,8 @@ void RenderingManager::OnWindowResize()
     m_deviceManager->UpdateSurfaceCapabilities();
     CreateSwapchain();
     CreateQueue();
+    FreeDepthResources();
+    CreateDepthResources();
 
     m_renderer->RecreateCommandBuffers();
 }
