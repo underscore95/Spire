@@ -17,11 +17,11 @@ public:
 
     ~GraphicsPipeline();
 
-    void SetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport, const VkRect2D* scissor) const;
-    void SetViewportToWindowSize(VkCommandBuffer commandBuffer,glm::uvec2 windowDimensions) const;
-
 public:
-    void BindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainImageIndex) const;
+    void CmdSetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport, const VkRect2D* scissor) const;
+    void CmdSetViewportToWindowSize(VkCommandBuffer commandBuffer, glm::uvec2 windowDimensions) const;
+
+    void CmdBindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainImageIndex) const;
 
 private:
     VkDevice m_device = VK_NULL_HANDLE;

@@ -15,6 +15,9 @@ public:
     );
     ~ImGuiRenderer();
 
+public:
+    void SetDisplaySize(glm::uvec2 displaySize) const;
+
     VkCommandBuffer PrepareCommandBuffer(glm::u32 imageIndex) const;
 
 private:

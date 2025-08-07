@@ -319,14 +319,20 @@ void RenderingManager::OnWindowResize()
 {
     m_queue->WaitIdle();
     vkDeviceWaitIdle(GetDevice());
+
     m_queue.reset();
     m_swapchain.reset();
+
     m_window.UpdateDimensionsEarly();
     m_deviceManager->UpdateSurfaceCapabilities();
+
     CreateSwapchain();
     CreateQueue();
+
     FreeDepthResources();
     CreateDepthResources();
 
     m_renderer->RecreateCommandBuffers();
+
+    m_imGuiRenderer->SetDisplaySize(m_window.GetDimensions());
 }

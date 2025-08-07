@@ -165,13 +165,13 @@ GraphicsPipeline::~GraphicsPipeline()
     vkDestroyPipeline(m_device, m_pipeline, nullptr);
 }
 
-void GraphicsPipeline::SetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport, const VkRect2D* scissor) const
+void GraphicsPipeline::CmdSetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport, const VkRect2D* scissor) const
 {
     if (viewport) vkCmdSetViewport(commandBuffer, 0, 1, viewport);
     if (scissor) vkCmdSetScissor(commandBuffer, 0, 1, scissor);
 }
 
-void GraphicsPipeline::SetViewportToWindowSize(VkCommandBuffer commandBuffer, glm::uvec2 windowDimensions) const
+void GraphicsPipeline::CmdSetViewportToWindowSize(VkCommandBuffer commandBuffer, glm::uvec2 windowDimensions) const
 {
     VkViewport viewport = {
         .x = 0.0f,
@@ -193,10 +193,10 @@ void GraphicsPipeline::SetViewportToWindowSize(VkCommandBuffer commandBuffer, gl
         }
     };
 
-    SetViewport(commandBuffer, &viewport, &scissor);
+    CmdSetViewport(commandBuffer, &viewport, &scissor);
 }
 
-void GraphicsPipeline::BindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainImageIndex) const
+void GraphicsPipeline::CmdBindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainImageIndex) const
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 

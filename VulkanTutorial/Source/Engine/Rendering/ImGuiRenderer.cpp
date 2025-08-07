@@ -8,7 +8,6 @@
 #include "RenderingCommandManager.h"
 #include "RenderingDeviceManager.h"
 #include "RenderingManager.h"
-#include "RenderingSync.h"
 #include "Swapchain.h"
 #include "VulkanQueue.h"
 #include "Engine/Window/Window.h"
@@ -35,6 +34,13 @@ ImGuiRenderer::~ImGuiRenderer()
     m_renderingManager.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
 
     spdlog::info("Shut down ImGui renderer");
+}
+
+void ImGuiRenderer::SetDisplaySize(glm::uvec2 displaySize) const
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize.x = displaySize.x;
+    io.DisplaySize.y = displaySize.y;
 }
 
 VkCommandBuffer ImGuiRenderer::PrepareCommandBuffer(glm::u32 imageIndex) const
@@ -92,8 +98,7 @@ void ImGuiRenderer::InitImGUI()
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
-    io.DisplaySize.x = m_window.GetDimensions().x;
-    io.DisplaySize.y = m_window.GetDimensions().y;
+    SetDisplaySize(m_window.GetDimensions());
 
     ImGui::StyleColorsDark();
 

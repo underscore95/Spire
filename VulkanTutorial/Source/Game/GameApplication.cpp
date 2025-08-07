@@ -89,8 +89,8 @@ void GameApplication::Render()
 
     std::array commandBuffersToSubmit = {
         rm.GetRenderer().GetBeginRenderingCommandBuffer(imageIndex),
-          m_commandBuffers[imageIndex],
-        // rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex),
+        m_commandBuffers[imageIndex],
+        rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex),
         rm.GetRenderer().GetEndRenderingCommandBuffer(imageIndex)
     };
     rm.GetQueue().SubmitAsync(commandBuffersToSubmit.size(), commandBuffersToSubmit.data());
@@ -158,9 +158,9 @@ void GameApplication::RecordCommandBuffers() const
 
         BeginRendering(commandBuffer, i);
 
-        m_graphicsPipeline->BindTo(commandBuffer, i);
+        m_graphicsPipeline->CmdBindTo(commandBuffer, i);
 
-        m_graphicsPipeline->SetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
+        m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
         vkCmdDraw(commandBuffer, 9, 1, 0, 0);
 
