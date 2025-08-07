@@ -23,9 +23,11 @@ class RenderingDeviceManager;
 struct PhysicalDevice;
 class VulkanQueue;
 class BufferManager;
+class Engine;
 
 class RenderingManager
 {
+    friend class Engine;
 public:
     explicit RenderingManager(const std::string& applicationName, const Window& window);
 
@@ -62,6 +64,8 @@ public:
 
     [[nodiscard]] VulkanAllocator& GetAllocatorWrapper() const;
 
+    void HandleWindowResizing( );
+
 private:
     void GetInstanceVersion();
 
@@ -71,7 +75,12 @@ private:
 
     void CreateSurface(const Window& window);
 
+    void CreateSwapchain();
+
+    void CreateQueue();
+
 private:
+    const Window& m_window;
     VkInstance m_instance = VK_NULL_HANDLE;
     std::unique_ptr<VulkanDebugCallback> m_debugCallback = nullptr;
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;

@@ -9,17 +9,18 @@
 struct GLFWwindow;
 class Engine;
 
-class Window {
+class Window
+{
     friend class Engine;
 
 private:
-    Window(const std::string &title, glm::ivec2 size);
+    Window(const std::string& title, glm::ivec2 size);
 
 public:
     ~Window();
 
 public:
-    [[nodiscard]] static std::unique_ptr<Window> Create(const std::string &title = "My Window",
+    [[nodiscard]] static std::unique_ptr<Window> Create(const std::string& title = "My Window",
                                                         glm::ivec2 size = {1280, 720});
 
     [[nodiscard]] bool IsKeyHeld(int key) const;
@@ -37,6 +38,8 @@ public:
     [[nodiscard]] glm::vec2 GetScrollDelta() const;
 
     [[nodiscard]] float GetAspectRatio() const;
+
+    [[nodiscard]] bool HasSizeChangedThisFrame() const;
 
     void KeyCallback(int key, int scanCode, int action, int mods);
 
@@ -58,14 +61,14 @@ public:
 
     [[nodiscard]] bool ShouldClose() const;
 
-    [[nodiscard]] GLFWwindow *GLFWWindow() const;
+    [[nodiscard]] GLFWwindow* GLFWWindow() const;
 
     [[nodiscard]] glm::uvec2 GetDimensions() const;
 
 private:
     static bool s_initialized;
 
-    GLFWwindow *m_windowHandle;
+    GLFWwindow* m_windowHandle;
 
     std::unordered_set<int> m_pressedKeys;
     std::unordered_set<int> m_heldKeys;
@@ -76,4 +79,6 @@ private:
     glm::vec2 m_mouseDelta;
     glm::vec2 m_scrollDelta;
     glm::vec2 m_scrollDeltaTemp;
+    glm::uvec2 m_windowDimensions;
+    bool m_dimensionsChangedThisFrame;
 };

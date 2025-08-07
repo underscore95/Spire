@@ -41,7 +41,7 @@ Window::Window(const std::string& title, glm::ivec2 size)
     ASSERT(s_initialized);
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
     m_windowHandle = glfwCreateWindow(size.x, size.y, title.data(), nullptr, nullptr);
 
@@ -51,6 +51,11 @@ Window::Window(const std::string& title, glm::ivec2 size)
     glfwSetCursorPosCallback(m_windowHandle, GLFW_MouseCallback);
     glfwSetMouseButtonCallback(m_windowHandle, GLFW_MouseButtonCallback);
     glfwSetScrollCallback(m_windowHandle, GLFW_ScrollCallback);
+
+    glm::ivec2 newWindowDimensions;
+    glfwGetWindowSize(m_windowHandle, &newWindowDimensions.x, &newWindowDimensions.y);
+    m_windowDimensions = newWindowDimensions;
+    m_dimensionsChangedThisFrame = false;
 }
 
 Window::~Window()
@@ -115,6 +120,11 @@ float Window::GetAspectRatio() const
     return size.x / size.y;
 }
 
+bool Window::HasSizeChangedThisFrame() const
+{
+    return m_dimensionsChangedThisFrame;
+}
+
 bool Window::Init()
 {
     if (s_initialized)
@@ -170,14 +180,18 @@ GLFWwindow* Window::GLFWWindow() const
 
 glm::uvec2 Window::GetDimensions() const
 {
-    glm::ivec2 size;
-    glfwGetWindowSize(m_windowHandle, &size.x, &size.y);
-    return size;
+    return m_windowDimensions;
 }
 
 void Window::Update()
 {
     ASSUME(s_initialized);
+
+    // window dimensions
+    glm::ivec2 newWindowDimensions;
+    glfwGetWindowSize(m_windowHandle, &newWindowDimensions.x, &newWindowDimensions.y);
+    m_dimensionsChangedThisFrame = m_windowDimensions != static_cast<glm::uvec2>(newWindowDimensions);
+    m_windowDimensions = newWindowDimensions;
 
     // pressed -> held
     for (int key : m_pressedKeys)

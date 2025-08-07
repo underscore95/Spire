@@ -4,6 +4,7 @@
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan_core.h>
 
+class Window;
 struct PhysicalDevice;
 
 class Swapchain
@@ -12,7 +13,8 @@ public:
     Swapchain(VkDevice device,
               const PhysicalDevice& physicalDevice,
               glm::u32 deviceQueueFamily,
-              VkSurfaceKHR surface);
+              VkSurfaceKHR surface,
+              const Window& window);
     ~Swapchain();
 
 public:

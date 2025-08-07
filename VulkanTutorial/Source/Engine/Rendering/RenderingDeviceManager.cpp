@@ -13,6 +13,7 @@ RenderingDeviceManager::RenderingDeviceManager(
     const VkSurfaceKHR& surface,
     bool logDeviceInfo
 )
+    : m_surface(surface)
 {
     spdlog::info("Initializing RenderingDeviceManager...");
     glm::u32 numDevices = 0;
@@ -161,11 +162,7 @@ RenderingDeviceManager::RenderingDeviceManager(
         }
 
         // Surface capabilities
-        res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &(m_devices[i].SurfaceCapabilities));
-        if (res != VK_SUCCESS)
-        {
-            spdlog::error("Failed to get device capabilities");
-        }
+        GetSurfaceCapabilities(i);
 
         // Present modes
         glm::u32 numSurfacePresentModes = 0;
@@ -291,6 +288,24 @@ bool RenderingDeviceManager::IsExtensionSupported(const PhysicalDevice& device, 
         if (std::string(extensionProperties.extensionName) == extensionName) return true;
     }
     return false;
+}
+
+void RenderingDeviceManager::UpdateSurfaceCapabilities()
+{
+    for (glm::u32 i = 0; i < m_devices.size(); ++i)
+    {
+        GetSurfaceCapabilities(i);
+    }
+}
+
+void RenderingDeviceManager::GetSurfaceCapabilities(glm::u32 deviceIndex)
+{
+    VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_devices[deviceIndex].PhysicalDeviceHandle, m_surface,
+                                                             &(m_devices[deviceIndex].SurfaceCapabilities));
+    if (res != VK_SUCCESS)
+    {
+        spdlog::error("Failed to get device capabilities");
+    }
 }
 
 VkFormat RenderingDeviceManager::FindDepthFormat(VkPhysicalDevice device) const

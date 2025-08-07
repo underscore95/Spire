@@ -37,7 +37,11 @@ public:
 
     [[nodiscard]] bool IsExtensionSupported(const PhysicalDevice& device, const char* extensionName) const;
 
+    void UpdateSurfaceCapabilities();
+
 private:
+    void GetSurfaceCapabilities(glm::u32 deviceIndex);
+
     [[nodiscard]] VkFormat FindDepthFormat(VkPhysicalDevice device) const;
     [[nodiscard]] VkFormat FindSupportedFormat(VkPhysicalDevice device, const std::vector<VkFormat>& candidates,
                                                VkImageTiling tiling,
@@ -46,6 +50,7 @@ private:
     std::vector<VkExtensionProperties> GetExtensions(VkPhysicalDevice device) const;
 
 private:
+    VkSurfaceKHR m_surface;
     int m_deviceIndex = -1;
     bool m_initialized = false;
     std::vector<PhysicalDevice> m_devices;

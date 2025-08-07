@@ -8,7 +8,6 @@
 #include "BufferManager.h"
 #include "RenderingManager.h"
 #include "Swapchain.h"
-#include "TextureManager.h"
 #include "VulkanBuffer.h"
 #include "VulkanImage.h"
 

@@ -1,11 +1,9 @@
 #include "VulkanQueue.h"
-
 #include <spdlog/spdlog.h>
 #include <glm/glm.hpp>
-#include <libassert/assert.hpp>
-
 #include "RenderingManager.h"
 #include "RenderingSync.h"
+#include "Swapchain.h"
 
 VulkanQueue::VulkanQueue(
     RenderingManager& renderingManager,
@@ -15,7 +13,7 @@ VulkanQueue::VulkanQueue(
     glm::u32 queueIndex)
     : m_renderingManager(renderingManager),
       m_device(device),
-      m_swapChain(swapChain)
+      m_swapchain(swapChain)
 {
     vkGetDeviceQueue(device, queueFamily, queueIndex, &m_queue);
 
@@ -32,11 +30,17 @@ VulkanQueue::~VulkanQueue()
     spdlog::info("VulkanQueue shutdown");
 }
 
-glm::u32 VulkanQueue::AcquireNextImage() const
+glm::u32 VulkanQueue::AcquireNextImage()
 {
     glm::u32 imageIndex = 0;
-    VkResult res = vkAcquireNextImageKHR(m_device, m_swapChain, UINT64_MAX, m_presentCompleteSemaphore, nullptr,
+    VkResult res = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_presentCompleteSemaphore,
+                                         nullptr,
                                          &imageIndex);
+    if (res == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        m_renderingManager.HandleWindowResizing();
+        return INVALID_IMAGE_INDEX;
+    }
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to acquire next free image");
@@ -103,11 +107,16 @@ void VulkanQueue::Present(glm::u32 imageIndex)
         .waitSemaphoreCount = 1,
         .pWaitSemaphores = &m_renderCompleteSemaphore,
         .swapchainCount = 1,
-        .pSwapchains = &m_swapChain,
+        .pSwapchains = &m_swapchain,
         .pImageIndices = &imageIndex
     };
 
     VkResult res = vkQueuePresentKHR(m_queue, &presentInfo);
+    if (res == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        m_renderingManager.HandleWindowResizing();
+        return;
+    }
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to present swapchain image");

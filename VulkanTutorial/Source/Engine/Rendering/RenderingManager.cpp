@@ -23,6 +23,7 @@
 #include "VulkanImage.h"
 
 RenderingManager::RenderingManager(const std::string& applicationName, const Window& window)
+    : m_window(window)
 {
     spdlog::info("Initializing RenderingManager...");
 
@@ -45,14 +46,12 @@ RenderingManager::RenderingManager(const std::string& applicationName, const Win
         m_instance,
         m_instanceVersion);
 
-    m_swapchain = std::make_unique<Swapchain>(m_logicalDevice->GetDevice(), m_deviceManager->Selected(),
-                                              m_logicalDevice->GetDeviceQueueFamily(), m_surface);
+    CreateSwapchain();
 
     m_commandManager = std::make_unique<RenderingCommandManager>(m_logicalDevice->GetDeviceQueueFamily(),
                                                                  m_logicalDevice->GetDevice());
 
-    m_queue = std::make_unique<VulkanQueue>(*this, m_logicalDevice->GetDevice(), m_swapchain->GetSwapchain(),
-                                            m_logicalDevice->GetDeviceQueueFamily(), 0);
+   CreateQueue();
 
     m_bufferManager = std::make_unique<BufferManager>(*this);
     m_textureManager = std::make_unique<TextureManager>(*this);
@@ -265,6 +264,18 @@ void RenderingManager::CreateSurface(const Window& window)
     }
 }
 
+void RenderingManager::CreateSwapchain()
+{
+    m_swapchain = std::make_unique<Swapchain>(m_logicalDevice->GetDevice(), m_deviceManager->Selected(),
+                                              m_logicalDevice->GetDeviceQueueFamily(), m_surface, m_window);
+}
+
+void RenderingManager::CreateQueue()
+{
+    m_queue = std::make_unique<VulkanQueue>(*this, m_logicalDevice->GetDevice(), m_swapchain->GetSwapchain(),
+                                            m_logicalDevice->GetDeviceQueueFamily(), 0);
+}
+
 Swapchain& RenderingManager::GetSwapchain() const
 {
     return *m_swapchain;
@@ -293,4 +304,16 @@ ImGuiRenderer& RenderingManager::GetImGuiRenderer() const
 VulkanAllocator& RenderingManager::GetAllocatorWrapper() const
 {
     return *m_allocator;
+}
+
+void RenderingManager::HandleWindowResizing()
+{
+    m_queue->WaitUntilExecutedAll();
+    vkDeviceWaitIdle(GetDevice());
+    m_queue.reset();
+    m_swapchain.reset();
+    m_deviceManager->UpdateSurfaceCapabilities();
+    CreateSwapchain();
+    CreateQueue();
+    m_renderer->RecreateCommandBuffers();
 }

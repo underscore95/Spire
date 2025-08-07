@@ -10,12 +10,14 @@
 #include <spdlog/spdlog.h>
 
 #include "RenderingDeviceManager.h"
+#include "Engine/Window/Window.h"
 
 Swapchain::Swapchain(
     VkDevice device,
     const PhysicalDevice& physicalDevice,
     glm::u32 deviceQueueFamily,
-    VkSurfaceKHR surface)
+    VkSurfaceKHR surface,
+    const Window& window)
     : m_device(device)
 {
     // Create swapchain
@@ -25,7 +27,7 @@ Swapchain::Swapchain(
 
     m_swapChainSurfaceFormat = ChooseSurfaceFormatAndColorSpace(physicalDevice.SurfaceFormats);
 
-    VkSwapchainCreateInfoKHR SwapChainCreateInfo = {
+    VkSwapchainCreateInfoKHR swapChainCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext = nullptr,
         .flags = 0,
@@ -45,7 +47,7 @@ Swapchain::Swapchain(
         .clipped = VK_TRUE
     };
 
-    VkResult res = vkCreateSwapchainKHR(m_device, &SwapChainCreateInfo, nullptr, &m_swapChain);
+    VkResult res = vkCreateSwapchainKHR(m_device, &swapChainCreateInfo, nullptr, &m_swapChain);
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to create Vulkan swapchain");

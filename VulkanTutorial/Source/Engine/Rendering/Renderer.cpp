@@ -1,12 +1,9 @@
 #include "Renderer.h"
-
 #include <libassert/assert.hpp>
-
 #include "RenderingCommandManager.h"
 #include "RenderingManager.h"
 #include "RenderingSync.h"
 #include "Swapchain.h"
-#include "TextureManager.h"
 #include "VulkanImage.h"
 #include "Engine/Window/Window.h"
 
@@ -15,28 +12,13 @@ Renderer::Renderer(RenderingManager& renderingManager,
     : m_renderingManager(renderingManager),
       m_window(window)
 {
-    m_beginRenderingCommandBuffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
-    m_renderingManager.GetCommandManager().CreateCommandBuffers(
-        m_beginRenderingCommandBuffers.size(),
-        m_beginRenderingCommandBuffers.data());
-
-    m_endRenderingCommandBuffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
-    m_renderingManager.GetCommandManager().CreateCommandBuffers(
-        m_endRenderingCommandBuffers.size(),
-        m_endRenderingCommandBuffers.data());
-
+    CreateCommandBuffers();
     RecordCommandBuffers();
 }
 
 Renderer::~Renderer()
 {
-    m_renderingManager.GetCommandManager().FreeCommandBuffers(
-        m_beginRenderingCommandBuffers.size(),
-        m_beginRenderingCommandBuffers.data());
-
-    m_renderingManager.GetCommandManager().FreeCommandBuffers(
-        m_endRenderingCommandBuffers.size(),
-        m_endRenderingCommandBuffers.data());
+    FreeCommandBuffers();
 }
 
 void Renderer::BeginDynamicRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex, const VkClearValue* clearColor,
@@ -97,6 +79,37 @@ VkCommandBuffer Renderer::GetBeginRenderingCommandBuffer(glm::u32 imageIndex) co
 VkCommandBuffer Renderer::GetEndRenderingCommandBuffer(glm::u32 imageIndex) const
 {
     return m_endRenderingCommandBuffers[imageIndex];
+}
+
+void Renderer::RecreateCommandBuffers()
+{
+    FreeCommandBuffers();
+    CreateCommandBuffers();
+    RecordCommandBuffers();
+}
+
+void Renderer::CreateCommandBuffers()
+{
+    m_beginRenderingCommandBuffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
+    m_renderingManager.GetCommandManager().CreateCommandBuffers(
+        m_beginRenderingCommandBuffers.size(),
+        m_beginRenderingCommandBuffers.data());
+
+    m_endRenderingCommandBuffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
+    m_renderingManager.GetCommandManager().CreateCommandBuffers(
+        m_endRenderingCommandBuffers.size(),
+        m_endRenderingCommandBuffers.data());
+}
+
+void Renderer::FreeCommandBuffers() const
+{
+    m_renderingManager.GetCommandManager().FreeCommandBuffers(
+        m_beginRenderingCommandBuffers.size(),
+        m_beginRenderingCommandBuffers.data());
+
+    m_renderingManager.GetCommandManager().FreeCommandBuffers(
+        m_endRenderingCommandBuffers.size(),
+        m_endRenderingCommandBuffers.data());
 }
 
 void Renderer::RecordCommandBuffers() const

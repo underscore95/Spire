@@ -14,12 +14,16 @@ public:
 
 public:
     void BeginDynamicRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex, const VkClearValue* clearColor,
-                        const VkClearValue* depthValue) const;
+                               const VkClearValue* depthValue) const;
 
     VkCommandBuffer GetBeginRenderingCommandBuffer(glm::u32 imageIndex) const;
     VkCommandBuffer GetEndRenderingCommandBuffer(glm::u32 imageIndex) const;
 
+    void RecreateCommandBuffers();
+
 private:
+    void CreateCommandBuffers();
+    void FreeCommandBuffers() const;
     void RecordCommandBuffers() const;
 
 private:

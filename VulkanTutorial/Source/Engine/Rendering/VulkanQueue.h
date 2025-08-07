@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan.h>
 
@@ -10,14 +11,14 @@ class VulkanQueue
 public:
     VulkanQueue(RenderingManager& renderingManager,
                 VkDevice device,
-                VkSwapchainKHR swapChain,
+             VkSwapchainKHR swapChain,
                 glm::u32 queueFamily,
                 glm::u32 queueIndex);
 
     ~VulkanQueue();
 
 public:
-    [[nodiscard]] glm::u32 AcquireNextImage() const;
+    [[nodiscard]] glm::u32 AcquireNextImage();
 
     void SubmitSync(VkCommandBuffer commandBuffer) const;
 
@@ -39,7 +40,7 @@ private:
 private:
     RenderingManager& m_renderingManager;
     VkDevice m_device = VK_NULL_HANDLE;
-    VkSwapchainKHR m_swapChain = VK_NULL_HANDLE;
+    VkSwapchainKHR m_swapchain;
     VkQueue m_queue = VK_NULL_HANDLE;
     VkSemaphore m_renderCompleteSemaphore = VK_NULL_HANDLE;
     VkSemaphore m_presentCompleteSemaphore = VK_NULL_HANDLE;

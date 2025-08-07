@@ -79,6 +79,7 @@ void GameApplication::Render()
 
     rm.GetQueue().WaitUntilExecutedAll();
     glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
+    if (imageIndex == rm.GetQueue().INVALID_IMAGE_INDEX) return;
 
     UpdateUniformBuffers(imageIndex);
 
@@ -88,8 +89,8 @@ void GameApplication::Render()
 
     std::array commandBuffersToSubmit = {
         rm.GetRenderer().GetBeginRenderingCommandBuffer(imageIndex),
-        m_commandBuffers[imageIndex],
-        rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex),
+       // m_commandBuffers[imageIndex],
+       // rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex),
         rm.GetRenderer().GetEndRenderingCommandBuffer(imageIndex)
     };
     rm.GetQueue().SubmitAsync(commandBuffersToSubmit.size(), commandBuffersToSubmit.data());
