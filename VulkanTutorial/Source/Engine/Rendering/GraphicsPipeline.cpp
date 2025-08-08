@@ -5,6 +5,7 @@
 #include "BufferManager.h"
 #include "PipelineDescriptorSetsManager.h"
 #include "RenderingCommandManager.h"
+#include "PushConstants.h"
 
 GraphicsPipeline::GraphicsPipeline(
     VkDevice device,
@@ -13,10 +14,12 @@ GraphicsPipeline::GraphicsPipeline(
     std::unique_ptr<PipelineDescriptorSetsManager> descriptorSetsManager,
     VkFormat colorFormat,
     VkFormat depthFormat,
-    RenderingManager& renderingManager)
+    RenderingManager& renderingManager,
+    glm::u32 pushConstantSize)
     : m_device(device),
       m_descriptorSetsManager(std::move(descriptorSetsManager)),
-      m_renderingManager(renderingManager)
+      m_renderingManager(renderingManager),
+      m_pushConstantSize(pushConstantSize)
 {
     // pipeline
     constexpr glm::u32 NUM_SHADER_STAGES = 2;
@@ -105,10 +108,18 @@ GraphicsPipeline::GraphicsPipeline(
         .pAttachments = &blendAttachState
     };
 
+    VkPushConstantRange pushConstantRange = {
+        .stageFlags = VK_SHADER_STAGE_ALL,
+        .offset = 0,
+        .size = m_pushConstantSize
+    };
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = 1,
-        .pSetLayouts = m_descriptorSetsManager->GetPointerToFirstDescriptorSetLayout()
+        .pSetLayouts = m_descriptorSetsManager->GetPointerToFirstDescriptorSetLayout(),
+        .pushConstantRangeCount = 1,
+        .pPushConstantRanges = &pushConstantRange
     };
 
     VkResult res = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
@@ -165,7 +176,8 @@ GraphicsPipeline::~GraphicsPipeline()
     vkDestroyPipeline(m_device, m_pipeline, nullptr);
 }
 
-void GraphicsPipeline::CmdSetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport, const VkRect2D* scissor) const
+void GraphicsPipeline::CmdSetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport,
+                                      const VkRect2D* scissor) const
 {
     if (viewport) vkCmdSetViewport(commandBuffer, 0, 1, viewport);
     if (scissor) vkCmdSetScissor(commandBuffer, 0, 1, scissor);
@@ -210,4 +222,20 @@ void GraphicsPipeline::CmdBindTo(VkCommandBuffer commandBuffer, glm::u32 swapcha
                                 0, // dynamicOffsetCount
                                 nullptr); // pDynamicOffsets
     }
+}
+
+void GraphicsPipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size, glm::u32 offset) const
+{
+    DEBUG_ASSERT(data != nullptr);
+    DEBUG_ASSERT(size + offset <= m_pushConstantSize);
+    DEBUG_ASSERT(size > 0);
+
+    vkCmdPushConstants(
+        commandBuffer,
+        m_pipelineLayout,
+        VK_SHADER_STAGE_ALL,
+        0,
+        size,
+        data
+    );
 }

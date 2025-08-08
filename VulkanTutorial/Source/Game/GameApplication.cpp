@@ -254,6 +254,7 @@ void GameApplication::SetupGraphicsPipeline()
         std::make_unique<PipelineDescriptorSetsManager>(rm, pipelineResources),
         rm.GetSwapchain().GetSurfaceFormat().format,
         rm.GetPhysicalDevice().DepthFormat,
-        rm
+        rm,
+        sizeof(PushConstants)
     );
 }

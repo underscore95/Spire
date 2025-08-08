@@ -58,6 +58,7 @@ add_executable(VulkanTutorial
         Source/Engine/Resources/Mesh.h
         Source/Engine/Rendering/SceneModels.cpp
         Source/Engine/Rendering/SceneModels.h
+        Source/Engine/Rendering/PushConstants.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")
