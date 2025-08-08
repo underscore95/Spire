@@ -31,7 +31,7 @@ private:
 
     void RecordCommandBuffers() const;
 
-    void CreateModel();
+    void CreateModels();
 
     void CreateUniformBuffers();
 

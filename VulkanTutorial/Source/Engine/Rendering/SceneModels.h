@@ -33,7 +33,6 @@ public:
     void CmdRenderModels(VkCommandBuffer commandBuffer,
                          const GraphicsPipeline& pipeline,
                          glm::u32 modelIndex,
-                         glm::u32 currentImage,
                          glm::u32 instances = 1
     ) const;
     [[nodiscard]] std::array<PipelineResourceInfo, 1> GetPipelineResourceInfo() const;

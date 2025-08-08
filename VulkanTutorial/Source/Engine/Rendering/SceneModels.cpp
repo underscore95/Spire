@@ -32,7 +32,6 @@ void SceneModels::CmdRenderModels(
     VkCommandBuffer commandBuffer,
     const GraphicsPipeline& pipeline,
     glm::u32 modelIndex,
-    glm::u32 currentImage,
     glm::u32 instances
 ) const
 {
@@ -50,9 +49,7 @@ void SceneModels::CmdRenderModels(
         );
 
         // draw the mesh
-        m_renderingManager.GetRenderer().BeginDynamicRendering(commandBuffer, currentImage, nullptr, nullptr);
         vkCmdDraw(commandBuffer, sceneMesh.NumVertices, instances, 0, 0);
-        vkCmdEndRendering(commandBuffer);
     }
 }
 

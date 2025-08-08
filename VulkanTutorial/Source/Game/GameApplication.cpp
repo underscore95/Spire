@@ -30,7 +30,7 @@ void GameApplication::Start(Engine& engine)
     spdlog::info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
     // Shader data
-    CreateModel();
+    CreateModels();
     CreateUniformBuffers();
 
     // Textures
@@ -163,9 +163,9 @@ void GameApplication::RecordCommandBuffers() const
 
         m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
-        vkCmdEndRendering(commandBuffer);
+        m_models->CmdRenderModels(commandBuffer, *m_graphicsPipeline, 0);
 
-        m_models->CmdRenderModels(commandBuffer, *m_graphicsPipeline, 0, i);
+        vkCmdEndRendering(commandBuffer);
 
         rm.GetCommandManager().EndCommandBuffer(commandBuffer);
     }
@@ -173,7 +173,7 @@ void GameApplication::RecordCommandBuffers() const
     spdlog::info("Command buffers recorded");
 }
 
-void GameApplication::CreateModel()
+void GameApplication::CreateModels()
 {
     std::vector<Model> models;
 
