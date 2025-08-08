@@ -165,7 +165,7 @@ void GameApplication::RecordCommandBuffers() const
 
         vkCmdEndRendering(commandBuffer);
 
-        m_models->CmdRenderModels(commandBuffer, 0, i);
+        m_models->CmdRenderModels(commandBuffer, *m_graphicsPipeline, 0, i);
 
         rm.GetCommandManager().EndCommandBuffer(commandBuffer);
     }
@@ -201,7 +201,10 @@ void GameApplication::CreateModel()
             }
         }));
 
-    m_models = std::make_unique<SceneModels>(m_engine->GetRenderingManager(), models);
+    m_models = std::make_unique<SceneModels>(
+        m_engine->GetRenderingManager(),
+        models
+    );
 }
 
 void GameApplication::CreateUniformBuffers()

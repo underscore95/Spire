@@ -1,7 +1,9 @@
 #include "SceneModels.h"
 #include <libassert/assert.hpp>
 #include "BufferManager.h"
+#include "GraphicsPipeline.h"
 #include "PipelineDescriptorSetsManager.h"
+#include "PushConstants.h"
 #include "Renderer.h"
 #include "RenderingManager.h"
 #include "VulkanBuffer.h"
@@ -19,62 +21,32 @@ SceneModels::SceneModels(
     : m_renderingManager(renderingManager)
 {
     CreateVertexBuffer(models);
-
-    m_vertexOffsetBuffers = m_renderingManager.GetBufferManager().CreateUniformBuffers(sizeof(VertexOffset), true);
-
-    CreateAndPopulateVertexOffsetStagingBuffer();
 }
 
 SceneModels::~SceneModels()
 {
-    m_renderingManager.GetBufferManager().DestroyBuffer(m_vertexOffsetStagingBuffer);
     m_renderingManager.GetBufferManager().DestroyBuffer(m_vertexStorageBuffer);
-    for (auto& buffer : m_vertexOffsetBuffers)
-    {
-        m_renderingManager.GetBufferManager().DestroyBuffer(buffer);
-    }
 }
 
-void SceneModels::CmdRenderModels(VkCommandBuffer commandBuffer, glm::u32 modelIndex, glm::u32 currentImage,
-                          glm::u32 instances) const
+void SceneModels::CmdRenderModels(
+    VkCommandBuffer commandBuffer,
+    const GraphicsPipeline& pipeline,
+    glm::u32 modelIndex,
+    glm::u32 currentImage,
+    glm::u32 instances
+) const
 {
     DEBUG_ASSERT(modelIndex < m_models.size());
     for (glm::u32 meshIndex = 0; meshIndex < m_models[modelIndex].size(); meshIndex++)
     {
         auto& sceneMesh = m_models[modelIndex][meshIndex];
 
-        // Copy global index into the vertex offset buffer (tells the shader where the vertices start)
-        VkBufferCopy region = {
-            .srcOffset = sceneMesh.GlobalMeshIndex * sizeof(glm::u32),
-            .dstOffset = 0,
-            .size = sizeof(glm::u32)
-        };
-        vkCmdCopyBuffer(
+        // set starting vertex index
+        pipeline.CmdSetPushConstants(
             commandBuffer,
-            m_vertexOffsetStagingBuffer.Buffer,
-            m_vertexOffsetBuffers[currentImage].Buffer,
-            1, &region
-        );
-
-        // barrier
-        VkBufferMemoryBarrier barrier{};
-        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.buffer = m_vertexOffsetBuffers[currentImage].Buffer;
-        barrier.offset = 0;
-        barrier.size = VK_WHOLE_SIZE;
-
-        vkCmdPipelineBarrier(
-            commandBuffer,
-            VK_PIPELINE_STAGE_TRANSFER_BIT,
-            VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-            0,
-            0, nullptr,
-            1, &barrier,
-            0, nullptr
+            &sceneMesh.VertexStartIndex,
+            sizeof(sceneMesh.VertexStartIndex),
+            static_cast<glm::u32>(offsetof(PushConstants, StartingVertexIndex))
         );
 
         // draw the mesh
@@ -84,7 +56,7 @@ void SceneModels::CmdRenderModels(VkCommandBuffer commandBuffer, glm::u32 modelI
     }
 }
 
-std::array<PipelineResourceInfo, 2> SceneModels::GetPipelineResourceInfo() const
+std::array<PipelineResourceInfo, 1> SceneModels::GetPipelineResourceInfo() const
 {
     std::array info = {
         PipelineResourceInfo{
@@ -93,14 +65,6 @@ std::array<PipelineResourceInfo, 2> SceneModels::GetPipelineResourceInfo() const
             .Stages = VK_SHADER_STAGE_VERTEX_BIT,
             .SameResourceForAllImages = true,
             .ResourcePtrs = &m_vertexStorageBuffer
-        },
-
-        PipelineResourceInfo{
-            .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .Binding = 1,
-            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-            .SameResourceForAllImages = false,
-            .ResourcePtrs = m_vertexOffsetBuffers.data()
         }
     };
 
@@ -120,7 +84,6 @@ void SceneModels::CreateVertexBuffer(const std::vector<Model>& models)
         {
             m_models.back().push_back({
                 .NumVertices = static_cast<glm::u32>(mesh->Vertices.size()),
-                .GlobalMeshIndex = numMeshes,
                 .VertexStartIndex = totalSize / VERTEX_SIZE
             });
             totalSize += mesh->Vertices.size() * VERTEX_SIZE;
@@ -145,28 +108,4 @@ void SceneModels::CreateVertexBuffer(const std::vector<Model>& models)
     // create buffer for vertices
     m_vertexStorageBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(
         vertices.data(), totalSize, VERTEX_SIZE);
-}
-
-void SceneModels::CreateAndPopulateVertexOffsetStagingBuffer()
-{
-    // get data
-    std::vector<glm::u32> vertexOffsets;
-    for (auto& model : m_models)
-    {
-        for (auto& mesh : model)
-        {
-            vertexOffsets.push_back(mesh.VertexStartIndex);
-        }
-    }
-
-    // create buffer
-    m_vertexOffsetStagingBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(
-        vertexOffsets.data(), vertexOffsets.size() * sizeof(glm::u32), sizeof(glm::u32), true
-    );
-
-    // upload data
-    m_renderingManager.GetBufferManager().UpdateBuffer(
-        m_vertexOffsetStagingBuffer, vertexOffsets.data(),
-        vertexOffsets.size() * sizeof(glm::u32)
-    );
 }

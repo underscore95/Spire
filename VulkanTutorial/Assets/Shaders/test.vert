@@ -8,15 +8,17 @@ struct VertexData
 
 layout (binding = 0) readonly buffer Vertices { VertexData data[]; } in_Vertices;
 
-layout (binding = 1) readonly uniform VertexStart { uint Index; } vertexStart;
-
 layout (binding = 3) readonly uniform UniformBuffer { mat4 WVP; } ubo;
 
-layout(location = 0) out vec2 texCoord;
+layout (location = 0) out vec2 texCoord;
+
+layout (push_constant) uniform PushConstants {
+	uint StartingVertexIndex;
+} pushConstants;
 
 void main()
 {
-	VertexData vtx = in_Vertices.data[vertexStart.Index + gl_VertexIndex];
+	VertexData vtx = in_Vertices.data[pushConstants.StartingVertexIndex + gl_VertexIndex];
 
 	vec3 pos = vec3(vtx.x, vtx.y, vtx.z);
 
