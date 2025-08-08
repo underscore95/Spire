@@ -46,7 +46,7 @@ private:
     VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline = nullptr;
     std::vector<VulkanBuffer> m_uniformBuffers;
+    std::unique_ptr<SceneModels> m_models;
     std::unique_ptr<Camera> m_camera;
     VulkanImage m_texture;
-    std::unique_ptr<Model> m_model;
 };

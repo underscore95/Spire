@@ -15,11 +15,11 @@ public:
 
     ~BufferManager();
 
-    VulkanBuffer CreateStorageBufferForVertices(const void* vertices, glm::u32 size, glm::u32 elementSize);
+    VulkanBuffer CreateStorageBuffer(const void* elements, glm::u32 size, glm::u32 elementSize, bool isTransferSource = false);
 
     void DestroyBuffer(const VulkanBuffer& buffer);
 
-    std::vector<VulkanBuffer> CreateUniformBuffers(size_t bufferSize);
+    std::vector<VulkanBuffer> CreateUniformBuffers(size_t bufferSize, bool isTransferDest = false);
 
     void UpdateBuffer(const VulkanBuffer& buffer, const void* data, glm::u32 size) const;
 

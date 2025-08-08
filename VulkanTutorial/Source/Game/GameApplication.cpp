@@ -54,7 +54,7 @@ GameApplication::~GameApplication()
     rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
     spdlog::info("Freed command buffers");
 
-    m_model.reset();
+    m_models.reset();
     for (int i = 0; i < m_uniformBuffers.size(); i++)
     {
         rm.GetBufferManager().DestroyBuffer(m_uniformBuffers[i]);
@@ -163,9 +163,9 @@ void GameApplication::RecordCommandBuffers() const
 
         m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
-        m_model->CmdDraw(commandBuffer);
-
         vkCmdEndRendering(commandBuffer);
+
+        m_models->CmdRenderModels(commandBuffer, 0, i);
 
         rm.GetCommandManager().EndCommandBuffer(commandBuffer);
     }
@@ -175,8 +175,10 @@ void GameApplication::RecordCommandBuffers() const
 
 void GameApplication::CreateModel()
 {
-    std::vector<std::unique_ptr<Mesh>> meshes;
-    meshes.push_back(std::make_unique<Mesh>(Mesh{
+    std::vector<Model> models;
+
+    models.push_back({});
+    models.back().push_back(std::make_unique<Mesh>(Mesh{
         std::vector{
             // Quad
             ModelVertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
@@ -193,7 +195,7 @@ void GameApplication::CreateModel()
         }
     }));
 
-    m_model = std::make_unique<Model>(m_engine->GetRenderingManager(), meshes);
+    m_models = std::make_unique<SceneModels>(m_engine->GetRenderingManager(), models);
 }
 
 void GameApplication::CreateUniformBuffers()
@@ -218,17 +220,8 @@ void GameApplication::SetupGraphicsPipeline()
     std::vector<PipelineResourceInfo> pipelineResources;
 
     // ModelVertex buffer
-    std::vector<PipelineResourceInfo> modelResources = m_model->GetPipelineResourceInfo();
+    std::array modelResources = m_models->GetPipelineResourceInfo();
     for (const auto& info : modelResources) pipelineResources.push_back(info);
-
-    // Uniform buffers
-    pipelineResources.push_back({
-        .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .Binding = 1,
-        .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-        .SameResourceForAllImages = false,
-        .ResourcePtrs = m_uniformBuffers.data()
-    });
 
     // Texture
     pipelineResources.push_back({
@@ -237,6 +230,15 @@ void GameApplication::SetupGraphicsPipeline()
         .Stages = VK_SHADER_STAGE_FRAGMENT_BIT,
         .SameResourceForAllImages = true,
         .ResourcePtrs = &m_texture
+    });
+
+    // Uniform buffers
+    pipelineResources.push_back({
+        .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .Binding = 3,
+        .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+        .SameResourceForAllImages = false,
+        .ResourcePtrs = m_uniformBuffers.data()
     });
 
     m_graphicsPipeline = std::make_unique<GraphicsPipeline>(

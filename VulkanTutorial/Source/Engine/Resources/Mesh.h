@@ -21,10 +21,10 @@ struct Mesh
 {
 public:
     explicit Mesh(const std::vector<ModelVertex>& vertices)
-        : m_vertices(vertices)
+        : Vertices(vertices)
     {
     }
 
 public:
-    std::vector<ModelVertex> m_vertices;
+    std::vector<ModelVertex> Vertices;
 };

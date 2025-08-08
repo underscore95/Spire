@@ -22,7 +22,8 @@ BufferManager::~BufferManager()
     m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_copyCommandBuffer);
 }
 
-VulkanBuffer BufferManager::CreateStorageBufferForVertices(const void* vertices, glm::u32 size, glm::u32 elementSize)
+VulkanBuffer BufferManager::CreateStorageBuffer(const void* elements, glm::u32 size, glm::u32 elementSize,
+                                                bool isTransferSource)
 {
     // create the staging buffer
     VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -31,15 +32,16 @@ VulkanBuffer BufferManager::CreateStorageBufferForVertices(const void* vertices,
     VulkanBuffer stagingBuffer = CreateBuffer(size, usage, memoryProperties);
 
     // copy vertices into staging buffer
-    UpdateBuffer(stagingBuffer, vertices, size);
+    UpdateBuffer(stagingBuffer, elements, size);
 
     // create the final buffer
     usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    if (isTransferSource) usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    VulkanBuffer vertexBuffer = CreateBuffer(size, usage, memoryProperties);
+    VulkanBuffer buffer = CreateBuffer(size, usage, memoryProperties);
 
     // copy the staging buffer to the final buffer
-    CopyBuffer(vertexBuffer.Buffer, stagingBuffer.Buffer, size);
+    CopyBuffer(buffer.Buffer, stagingBuffer.Buffer, size);
 
     // release the resources of the staging buffer
     DestroyBuffer(stagingBuffer);
@@ -47,11 +49,11 @@ VulkanBuffer BufferManager::CreateStorageBufferForVertices(const void* vertices,
     // size / element size / count
     DEBUG_ASSERT(elementSize > 0);
     DEBUG_ASSERT(size % elementSize == 0);
-    vertexBuffer.Count = size / elementSize;
-    vertexBuffer.Size = size;
-    vertexBuffer.ElementSize = elementSize;
+    buffer.Count = size / elementSize;
+    buffer.Size = size;
+    buffer.ElementSize = elementSize;
 
-    return vertexBuffer;
+    return buffer;
 }
 
 void BufferManager::DestroyBuffer(const VulkanBuffer& buffer)
@@ -61,12 +63,13 @@ void BufferManager::DestroyBuffer(const VulkanBuffer& buffer)
     m_numAllocatedBuffers--;
 }
 
-std::vector<VulkanBuffer> BufferManager::CreateUniformBuffers(size_t bufferSize)
+std::vector<VulkanBuffer> BufferManager::CreateUniformBuffers(size_t bufferSize, bool isTransferDest)
 {
     std::vector<VulkanBuffer> buffers;
     buffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
 
     VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    if (isTransferDest) usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 

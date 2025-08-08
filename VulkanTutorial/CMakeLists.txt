@@ -56,8 +56,8 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/VulkanBuffer.h
         Source/Engine/Rendering/VulkanImage.h
         Source/Engine/Resources/Mesh.h
-        Source/Engine/Rendering/Model.cpp
-        Source/Engine/Rendering/Model.h
+        Source/Engine/Rendering/SceneModels.cpp
+        Source/Engine/Rendering/SceneModels.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")
