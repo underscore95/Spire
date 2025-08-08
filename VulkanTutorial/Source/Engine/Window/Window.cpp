@@ -7,6 +7,8 @@
 #include <spdlog/spdlog.h>
 #include <libassert/assert.hpp>
 
+#include "Engine/Core/Engine.h"
+
 static void GLFW_KeyCallback(GLFWwindow* pWindow, int key, int scanCode, int action, int mods)
 {
     auto window = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));
@@ -36,7 +38,8 @@ static void GLFW_ScrollCallback(GLFWwindow* pWindow, double xOffset, double yOff
     window->ScrollCallback(xOffset, yOffset);
 }
 
-Window::Window(const std::string& title, glm::ivec2 size)
+Window::Window(const std::string& title, glm::ivec2 size, Engine& engine)
+    : m_engine(engine)
 {
     ASSERT(s_initialized);
 
@@ -52,10 +55,7 @@ Window::Window(const std::string& title, glm::ivec2 size)
     glfwSetMouseButtonCallback(m_windowHandle, GLFW_MouseButtonCallback);
     glfwSetScrollCallback(m_windowHandle, GLFW_ScrollCallback);
 
-    glm::ivec2 newWindowDimensions;
-    glfwGetWindowSize(m_windowHandle, &newWindowDimensions.x, &newWindowDimensions.y);
-    m_windowDimensions = newWindowDimensions;
-    m_dimensionsChangedThisFrame = false;
+    UpdateDimensions();
 }
 
 Window::~Window()
@@ -67,7 +67,7 @@ Window::~Window()
     }
 }
 
-std::unique_ptr<Window> Window::Create(const std::string& title, glm::ivec2 size)
+std::unique_ptr<Window> Window::Create(Engine& engine, const std::string& title, glm::ivec2 size)
 {
     if (!s_initialized)
     {
@@ -75,7 +75,7 @@ std::unique_ptr<Window> Window::Create(const std::string& title, glm::ivec2 size
         return nullptr;
     }
 
-    return std::unique_ptr<Window>(new Window(title, size));
+    return std::unique_ptr<Window>(new Window(title, size, engine));
 }
 
 bool Window::IsKeyHeld(int key) const
@@ -118,11 +118,6 @@ float Window::GetAspectRatio() const
     const glm::vec2 size = GetDimensions();
     ASSERT(size.y != 0.0f);
     return size.x / size.y;
-}
-
-bool Window::HasSizeChangedThisFrame() const
-{
-    return m_dimensionsChangedThisFrame;
 }
 
 bool Window::Init()
@@ -188,8 +183,12 @@ void Window::Update()
     ASSUME(s_initialized);
 
     // window dimensions
-    // not early but i didn't want to make a new function, this is normal update time for dimensions
-    UpdateDimensionsEarly();
+    m_windowDimensionsLastUpdate = m_windowDimensions;
+    UpdateDimensions();
+    if (m_windowDimensions != m_windowDimensionsLastUpdate)
+    {
+        m_engine.OnWindowResize();
+    }
 
     // pressed -> held
     for (int key : m_pressedKeys)
@@ -256,11 +255,10 @@ void Window::ScrollCallback(double xOffset, double yOffset)
     m_scrollDeltaTemp += glm::vec2{xOffset, yOffset};
 }
 
-void Window::UpdateDimensionsEarly()
+void Window::UpdateDimensions()
 {
     glm::ivec2 newWindowDimensions;
     glfwGetWindowSize(m_windowHandle, &newWindowDimensions.x, &newWindowDimensions.y);
-    m_dimensionsChangedThisFrame = m_windowDimensions != static_cast<glm::uvec2>(newWindowDimensions);
     m_windowDimensions = newWindowDimensions;
 }
 

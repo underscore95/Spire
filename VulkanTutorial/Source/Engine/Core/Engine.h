@@ -22,7 +22,7 @@ public:
 
     [[nodiscard]] float GetDeltaTime() const;
 
-    void OnWindowResize() const;
+    void OnWindowResize();
 
 private:
     void Start();
@@ -45,4 +45,6 @@ private:
 
     Timer m_deltaTimeTimer;
     float m_deltaTime = 1.0f / 1000.0f;
+
+    bool m_isMinimized = false;
 };

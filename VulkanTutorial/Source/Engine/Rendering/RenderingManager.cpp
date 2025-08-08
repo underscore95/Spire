@@ -323,7 +323,6 @@ void RenderingManager::OnWindowResize()
     m_queue.reset();
     m_swapchain.reset();
 
-    m_window.UpdateDimensionsEarly();
     m_deviceManager->UpdateSurfaceCapabilities();
 
     CreateSwapchain();

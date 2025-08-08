@@ -39,7 +39,7 @@ glm::u32 VulkanQueue::AcquireNextImage() const
     VkResult res = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_presentCompleteSemaphore,
                                          nullptr,
                                          &imageIndex);
-    if (res == VK_ERROR_OUT_OF_DATE_KHR)
+    if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR)
     {
         m_engine.OnWindowResize();
         return INVALID_IMAGE_INDEX;
@@ -115,7 +115,7 @@ void VulkanQueue::Present(glm::u32 imageIndex)
     };
 
     VkResult res = vkQueuePresentKHR(m_queue, &presentInfo);
-    if (res == VK_ERROR_OUT_OF_DATE_KHR)
+    if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR)
     {
         m_engine.OnWindowResize();
         return;

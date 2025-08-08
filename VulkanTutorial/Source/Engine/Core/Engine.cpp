@@ -17,7 +17,7 @@ Engine::Engine(std::unique_ptr<Application> app)
 
     // Window
     if (!Window::Init()) return;
-    m_window = Window::Create();
+    m_window = Window::Create(*this);
 
     // RenderingManager
     m_renderingManager = std::make_unique<RenderingManager>(
@@ -121,11 +121,18 @@ void Engine::Update() const
 
 void Engine::Render() const
 {
-    m_application->Render();
+    if (!m_isMinimized) {
+        m_application->Render();
+    }
 }
 
-void Engine::OnWindowResize() const
+void Engine::OnWindowResize()
 {
-    m_renderingManager->OnWindowResize();
-    m_application->OnWindowResize();
+    m_window->UpdateDimensions();
+    m_isMinimized = m_window->GetDimensions().x == 0 || m_window->GetDimensions().y == 0;
+
+    if (!m_isMinimized) {
+        m_renderingManager->OnWindowResize();
+        m_application->OnWindowResize();
+    }
 }
