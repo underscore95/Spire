@@ -178,22 +178,28 @@ void GameApplication::CreateModel()
     std::vector<Model> models;
 
     models.push_back({});
-    models.back().push_back(std::make_unique<Mesh>(Mesh{
-        std::vector{
-            // Quad
-            ModelVertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
-            ModelVertex({-1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}), // Top left
-            ModelVertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
-            ModelVertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
-            ModelVertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
-            ModelVertex({1.0f, -1.0f, 0.0f}, {1.0f, 0.0f}), // Bottom right
+    models.back().push_back(
+        std::make_unique<Mesh>(Mesh{
+            std::vector{
+                // Quad
+                ModelVertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
+                ModelVertex({-1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}), // Top left
+                ModelVertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
+                ModelVertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
+                ModelVertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
+                ModelVertex({1.0f, -1.0f, 0.0f}, {1.0f, 0.0f}), // Bottom right
+            }
+        }));
 
-            // Triangle
-            ModelVertex({-1.0f, -1.0f, -5.0f}, {0.0f, 0.0f}), // Bottom left
-            ModelVertex({-1.0f, 1.0f, -5.0f}, {0.0f, 1.0f}), // Top left
-            ModelVertex({1.0f, 1.0f, -5.0f}, {1.0f, 1.0f}) // Top right
-        }
-    }));
+    models.back().push_back(
+        std::make_unique<Mesh>(Mesh{
+            std::vector{
+                // Triangle
+                ModelVertex({-1.0f, -1.0f, -5.0f}, {0.0f, 0.0f}), // Bottom left
+                ModelVertex({-1.0f, 1.0f, -5.0f}, {0.0f, 1.0f}), // Top left
+                ModelVertex({1.0f, 1.0f, -5.0f}, {1.0f, 1.0f}) // Top right
+            }
+        }));
 
     m_models = std::make_unique<SceneModels>(m_engine->GetRenderingManager(), models);
 }
