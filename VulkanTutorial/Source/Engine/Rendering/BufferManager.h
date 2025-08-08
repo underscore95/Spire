@@ -15,7 +15,7 @@ public:
 
     ~BufferManager();
 
-    VulkanBuffer CreateStorageBufferForVertices(const void* vertices, glm::u32 size);
+    VulkanBuffer CreateStorageBufferForVertices(const void* vertices, glm::u32 size, glm::u32 elementSize);
 
     void DestroyBuffer(const VulkanBuffer& buffer);
 

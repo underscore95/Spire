@@ -33,8 +33,8 @@ add_executable(VulkanTutorial
         Source/Engine/Utils/Camera/Camera.h
         Source/Engine/Rendering/TextureManager.cpp
         Source/Engine/Rendering/TextureManager.h
-        Source/Engine/Utils/ImageLoader.cpp
-        Source/Engine/Utils/ImageLoader.h
+        Source/Engine/Resources/ImageLoader.cpp
+        Source/Engine/Resources/ImageLoader.h
         Source/Engine/Utils/FileIO.cpp
         Source/Engine/Utils/FileIO.h
         Source/Engine/Rendering/Swapchain.cpp
@@ -55,6 +55,9 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/VmaUsage.cpp
         Source/Engine/Rendering/VulkanBuffer.h
         Source/Engine/Rendering/VulkanImage.h
+        Source/Engine/Resources/Mesh.h
+        Source/Engine/Rendering/Model.cpp
+        Source/Engine/Rendering/Model.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")
@@ -66,6 +69,10 @@ target_link_libraries(VulkanTutorial PRIVATE Vulkan::Vulkan)
 # Vulkan Memory Allocator
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 target_link_libraries(VulkanTutorial PRIVATE GPUOpen::VulkanMemoryAllocator)
+
+# assimp
+find_package(assimp CONFIG REQUIRED)
+target_link_libraries(VulkanTutorial PRIVATE assimp::assimp)
 
 # glslang
 find_package(glslang REQUIRED)

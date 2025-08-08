@@ -22,7 +22,7 @@ BufferManager::~BufferManager()
     m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_copyCommandBuffer);
 }
 
-VulkanBuffer BufferManager::CreateStorageBufferForVertices(const void* vertices, glm::u32 size)
+VulkanBuffer BufferManager::CreateStorageBufferForVertices(const void* vertices, glm::u32 size, glm::u32 elementSize)
 {
     // create the staging buffer
     VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -43,6 +43,13 @@ VulkanBuffer BufferManager::CreateStorageBufferForVertices(const void* vertices,
 
     // release the resources of the staging buffer
     DestroyBuffer(stagingBuffer);
+
+    // size / element size / count
+    DEBUG_ASSERT(elementSize > 0);
+    DEBUG_ASSERT(size % elementSize == 0);
+    vertexBuffer.Count = size / elementSize;
+    vertexBuffer.Size = size;
+    vertexBuffer.ElementSize = elementSize;
 
     return vertexBuffer;
 }

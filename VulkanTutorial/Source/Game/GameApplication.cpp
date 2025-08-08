@@ -6,6 +6,7 @@
 
 #include "Engine/Rendering/ImGuiRenderer.h"
 #include "Engine/Rendering/RenderingDeviceManager.h"
+#include "Engine/Resources/Mesh.h"
 
 void GameApplication::Start(Engine& engine)
 {
@@ -28,8 +29,8 @@ void GameApplication::Start(Engine& engine)
     DEBUG_ASSERT(m_fragmentShader != VK_NULL_HANDLE);
     spdlog::info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
-    // Buffers
-    CreateStorageBufferForVertices();
+    // Shader data
+    CreateModel();
     CreateUniformBuffers();
 
     // Textures
@@ -53,7 +54,7 @@ GameApplication::~GameApplication()
     rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
     spdlog::info("Freed command buffers");
 
-    rm.GetBufferManager().DestroyBuffer(m_vertexStorageBuffer);
+    m_model.reset();
     for (int i = 0; i < m_uniformBuffers.size(); i++)
     {
         rm.GetBufferManager().DestroyBuffer(m_uniformBuffers[i]);
@@ -162,7 +163,7 @@ void GameApplication::RecordCommandBuffers() const
 
         m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
-        vkCmdDraw(commandBuffer, 9, 1, 0, 0);
+        m_model->CmdDraw(commandBuffer);
 
         vkCmdEndRendering(commandBuffer);
 
@@ -172,38 +173,27 @@ void GameApplication::RecordCommandBuffers() const
     spdlog::info("Command buffers recorded");
 }
 
-void GameApplication::CreateStorageBufferForVertices()
+void GameApplication::CreateModel()
 {
-    struct Vertex
-    {
-        Vertex(const glm::vec3& p, const glm::vec2& t)
-        {
-            Pos = p;
-            Tex = t;
+    std::vector<std::unique_ptr<Mesh>> meshes;
+    meshes.push_back(std::make_unique<Mesh>(Mesh{
+        std::vector{
+            // Quad
+            ModelVertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
+            ModelVertex({-1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}), // Top left
+            ModelVertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
+            ModelVertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
+            ModelVertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
+            ModelVertex({1.0f, -1.0f, 0.0f}, {1.0f, 0.0f}), // Bottom right
+
+            // Triangle
+            ModelVertex({-1.0f, -1.0f, -5.0f}, {0.0f, 0.0f}), // Bottom left
+            ModelVertex({-1.0f, 1.0f, -5.0f}, {0.0f, 1.0f}), // Top left
+            ModelVertex({1.0f, 1.0f, -5.0f}, {1.0f, 1.0f}) // Top right
         }
+    }));
 
-        glm::vec3 Pos;
-        glm::vec2 Tex;
-    };
-
-    std::vector vertices = {
-        // Quad
-        Vertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
-        Vertex({-1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}), // Top left
-        Vertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
-        Vertex({-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}), // Bottom left
-        Vertex({1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}), // Top right
-        Vertex({1.0f, -1.0f, 0.0f}, {1.0f, 0.0f}), // Bottom right
-
-        // Triangle
-        Vertex({-1.0f, -1.0f, -5.0f}, {0.0f, 0.0f}), // Bottom left
-        Vertex({-1.0f, 1.0f, -5.0f}, {0.0f, 1.0f}), // Top left
-        Vertex({1.0f, 1.0f, -5.0f}, {1.0f, 1.0f}) // Top right
-    };
-
-    m_vertexBufferSize = sizeof(vertices[0]) * vertices.size();
-    m_vertexStorageBuffer = m_engine->GetRenderingManager().GetBufferManager().CreateStorageBufferForVertices(
-        vertices.data(), m_vertexBufferSize);
+    m_model = std::make_unique<Model>(m_engine->GetRenderingManager(), meshes);
 }
 
 void GameApplication::CreateUniformBuffers()
@@ -227,14 +217,9 @@ void GameApplication::SetupGraphicsPipeline()
 
     std::vector<PipelineResourceInfo> pipelineResources;
 
-    // Vertex buffer
-    pipelineResources.push_back({
-        .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .Binding = 0,
-        .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-        .SameResourceForAllImages = true,
-        .ResourcePtrs = &m_vertexStorageBuffer
-    });
+    // ModelVertex buffer
+    std::vector<PipelineResourceInfo> modelResources = m_model->GetPipelineResourceInfo();
+    for (const auto& info : modelResources) pipelineResources.push_back(info);
 
     // Uniform buffers
     pipelineResources.push_back({

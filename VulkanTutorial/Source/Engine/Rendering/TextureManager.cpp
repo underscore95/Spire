@@ -9,7 +9,7 @@
 #include "VulkanBuffer.h"
 #include "VulkanImage.h"
 #include "VulkanQueue.h"
-#include "Engine/Utils/ImageLoader.h"
+#include "../Resources/ImageLoader.h"
 
 TextureManager::TextureManager(RenderingManager& renderingManager)
     : m_renderingManager(renderingManager)

@@ -5,7 +5,7 @@
 
 #include "Application.h"
 #include "Engine/Rendering/RenderingManager.h"
-#include "Engine/Utils/ImageLoader.h"
+#include "Engine/Resources/ImageLoader.h"
 #include "Engine/Window/Window.h"
 
 Engine::Engine(std::unique_ptr<Application> app)

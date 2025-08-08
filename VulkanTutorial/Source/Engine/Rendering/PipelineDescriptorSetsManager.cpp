@@ -174,7 +174,9 @@ void PipelineDescriptorSetsManager::UpdateDescriptorSets() const
             // Textures
             else if (IsTextureSampler(resource.ResourceType))
             {
-                VulkanImage& tex = resource.ResourcePtrs.Textures[resource.SameResourceForAllImages ? 0 : imageIndex];
+                const VulkanImage& tex = resource.ResourcePtrs.Textures[resource.SameResourceForAllImages
+                                                                            ? 0
+                                                                            : imageIndex];
                 imageInfos.push_back({
                     .sampler = tex.Sampler,
                     .imageView = tex.ImageView,

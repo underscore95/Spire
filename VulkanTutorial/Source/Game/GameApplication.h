@@ -31,7 +31,7 @@ private:
 
     void RecordCommandBuffers() const;
 
-    void CreateStorageBufferForVertices();
+    void CreateModel();
 
     void CreateUniformBuffers();
 
@@ -45,9 +45,8 @@ private:
     VkShaderModule m_vertexShader = VK_NULL_HANDLE;
     VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline = nullptr;
-    VulkanBuffer m_vertexStorageBuffer = {};
-    glm::u32 m_vertexBufferSize = 0;
     std::vector<VulkanBuffer> m_uniformBuffers;
     std::unique_ptr<Camera> m_camera;
     VulkanImage m_texture;
+    std::unique_ptr<Model> m_model;
 };
