@@ -31,7 +31,8 @@ private:
 
     void RecordCommandBuffers() const;
 
-    void CreateModels();
+    // returns paths to textures to load
+    std::vector<std::string> CreateModels();
 
     void CreateUniformBuffers();
 
@@ -48,5 +49,5 @@ private:
     std::vector<VulkanBuffer> m_uniformBuffers;
     std::unique_ptr<SceneModels> m_models;
     std::unique_ptr<Camera> m_camera;
-   std::unique_ptr<SceneTextures> m_sceneTextures;
+    std::unique_ptr<SceneTextures> m_sceneTextures;
 };

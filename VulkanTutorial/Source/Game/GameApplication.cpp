@@ -26,7 +26,7 @@ void GameApplication::Start(Engine& engine)
     spdlog::info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
     // Shader data
-    CreateModels();
+    std::vector<std::string> texturesToLoad = CreateModels();
     CreateUniformBuffers();
 
     // Textures
@@ -168,8 +168,9 @@ void GameApplication::RecordCommandBuffers() const
     spdlog::info("Command buffers recorded");
 }
 
-void GameApplication::CreateModels()
+std::vector<std::string> GameApplication::CreateModels()
 {
+    std::vector<std::string> texturesToLoad = {"test.png"};
     std::vector<Model> models;
 
     // models.push_back({});
@@ -197,12 +198,14 @@ void GameApplication::CreateModels()
     //     }));
 
     auto fileName = std::format("{}/Cube.obj", ASSETS_DIRECTORY);
-    models.push_back(ModelLoader::LoadModel(fileName.c_str()));
+    models.push_back(ModelLoader::LoadModel(fileName.c_str(), texturesToLoad));
 
     m_models = std::make_unique<SceneModels>(
         m_engine->GetRenderingManager(),
         models
     );
+
+    return texturesToLoad;
 }
 
 void GameApplication::CreateUniformBuffers()

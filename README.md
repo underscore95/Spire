@@ -15,3 +15,5 @@ https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/%2B/H
 https://vkguide.dev/docs/extra-chapter/implementing_imgui/
 
 https://learnopengl.com/Model-Loading/Model
+
+https://github.com/underscore95/Chimp/blob/main/Chimp/ChimpFramework/Source/impl/utils/FilePath.cpp#L4
