@@ -25,6 +25,13 @@
 #include "Engine/Rendering/VulkanImage.h"
 #include "Engine/Rendering/SceneModels.h"
 #include "Engine/Rendering/PushConstants.h"
+#include "Engine/Rendering/ImGuiRenderer.h"
+#include "Engine/Rendering/RenderingDeviceManager.h"
+
+#include "Engine/Resources/ImageLoader.h"
+#include "Engine/Resources/Model.h"
+#include "Engine/Resources/Mesh.h"
+#include "Engine/Resources/ModelLoader.h"
 
 #include "Engine/Utils/Camera/Camera.h"
 #include "Engine/Utils/Timer.h"

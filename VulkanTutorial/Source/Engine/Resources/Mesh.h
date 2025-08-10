@@ -12,6 +12,8 @@ public:
         Tex = t;
     }
 
+    ModelVertex() = default;
+
 public:
     glm::vec3 Pos;
     glm::vec2 Tex;
@@ -24,6 +26,8 @@ public:
         : Vertices(vertices)
     {
     }
+
+    Mesh() = default;
 
 public:
     std::vector<ModelVertex> Vertices;

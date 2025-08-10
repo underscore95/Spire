@@ -13,3 +13,5 @@ https://github.com/underscore95/Chimp/blob/main/Chimp/ChimpFramework/CMakeLists.
 https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/%2B/HEAD/glslang/ResourceLimits/ResourceLimits.cpp
 
 https://vkguide.dev/docs/extra-chapter/implementing_imgui/
+
+https://learnopengl.com/Model-Loading/Model

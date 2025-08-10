@@ -1,17 +1,14 @@
 #pragma once
 
-#include <memory>
 #include <vector>
-
 #include "BufferManager.h"
 #include "VulkanBuffer.h"
+#include "Engine/Resources/Model.h"
 
 class GraphicsPipeline;
 struct PipelineResourceInfo;
 class RenderingManager;
 struct Mesh;
-
-typedef std::vector<std::unique_ptr<Mesh>> Model;
 
 class SceneModels
 {
