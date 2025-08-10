@@ -32,6 +32,8 @@ void GameApplication::Start(Engine& engine)
     // Textures
     std::string textureFile = std::format("{}/test.png", ASSETS_DIRECTORY);
     m_texture = rm.GetTextureManager().CreateImageFromFile(textureFile.c_str());
+    textureFile = std::format("{}/test2.png", ASSETS_DIRECTORY);
+    m_texture2 = rm.GetTextureManager().CreateImageFromFile(textureFile.c_str());
 
     // Pipeline
     SetupGraphicsPipeline();
@@ -57,6 +59,7 @@ GameApplication::~GameApplication()
     }
 
     rm.GetTextureManager().DestroyImage(m_texture);
+    rm.GetTextureManager().DestroyImage(m_texture2);
 
     m_graphicsPipeline.reset();
 
@@ -232,7 +235,7 @@ void GameApplication::SetupGraphicsPipeline()
     for (const auto& info : modelResources) pipelineResources.push_back(info);
 
     // Texture
-    std::array<VulkanImage, 2> textures = {m_texture,m_texture};
+    std::array textures = {m_texture, m_texture2};
     pipelineResources.push_back({
         .ResourceType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
         .Binding = 2,

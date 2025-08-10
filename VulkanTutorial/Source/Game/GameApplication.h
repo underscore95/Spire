@@ -49,4 +49,5 @@ private:
     std::unique_ptr<SceneModels> m_models;
     std::unique_ptr<Camera> m_camera;
     VulkanImage m_texture;
+    VulkanImage m_texture2;
 };

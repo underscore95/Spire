@@ -183,10 +183,10 @@ void PipelineDescriptorSetsManager::UpdateDescriptorSets() const
             // Textures
             else if (IsTextureSampler(resource.ResourceType))
             {
-                const VulkanImage& tex = resource.ResourcePtrs
-                                                 .Textures[resource.SameResourceForAllFrames ? 0 : imageIndex];
                 for (glm::u32 texIndex = 0; texIndex < resource.NumDescriptors; texIndex++)
                 {
+                    const VulkanImage& tex =
+                        resource.ResourcePtrs.Textures[texIndex + (resource.SameResourceForAllFrames ? 0 : imageIndex)];
                     imageInfos.push_back({
                         .sampler = tex.Sampler,
                         .imageView = tex.ImageView,
