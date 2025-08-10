@@ -48,6 +48,14 @@ void SceneModels::CmdRenderModels(
             static_cast<glm::u32>(offsetof(PushConstants, StartingVertexIndex))
         );
 
+        // set the texture index
+        pipeline.CmdSetPushConstants(
+           commandBuffer,
+           &sceneMesh.TextureIndex,
+           sizeof(sceneMesh.TextureIndex),
+           static_cast<glm::u32>(offsetof(PushConstants, TextureIndex))
+       );
+
         // draw the mesh
         vkCmdDraw(commandBuffer, sceneMesh.NumVertices, instances, 0, 0);
     }
@@ -81,7 +89,8 @@ void SceneModels::CreateVertexBuffer(const std::vector<Model>& models)
         {
             m_models.back().push_back({
                 .NumVertices = static_cast<glm::u32>(mesh->Vertices.size()),
-                .VertexStartIndex = totalSize / VERTEX_SIZE
+                .VertexStartIndex = totalSize / VERTEX_SIZE,
+                .TextureIndex =   mesh->TextureIndex
             });
             totalSize += mesh->Vertices.size() * VERTEX_SIZE;
             numMeshes++;

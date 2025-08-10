@@ -234,7 +234,7 @@ void GraphicsPipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const 
         commandBuffer,
         m_pipelineLayout,
         VK_SHADER_STAGE_ALL,
-        0,
+        offset,
         size,
         data
     );

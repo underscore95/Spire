@@ -17,6 +17,7 @@ private:
     {
         glm::u32 NumVertices = 0;
         glm::u32 VertexStartIndex = 0;
+        glm::u32 TextureIndex = 0;
     };
 
 public:

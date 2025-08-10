@@ -1,5 +1,7 @@
 #version 460
 
+#include "PushConstants.glsl"
+
 struct VertexData
 {
 	float x, y, z;
@@ -11,10 +13,6 @@ layout (binding = 0) readonly buffer Vertices { VertexData data[]; } in_Vertices
 layout (binding = 3) readonly uniform UniformBuffer { mat4 WVP; } ubo;
 
 layout (location = 0) out vec2 texCoord;
-
-layout (push_constant) uniform PushConstants {
-	uint StartingVertexIndex;
-} pushConstants;
 
 void main()
 {

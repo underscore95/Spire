@@ -31,4 +31,5 @@ public:
 
 public:
     std::vector<ModelVertex> Vertices;
+    glm::u32 TextureIndex;
 };
