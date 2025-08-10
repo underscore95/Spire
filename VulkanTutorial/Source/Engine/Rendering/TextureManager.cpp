@@ -57,16 +57,16 @@ VulkanImage TextureManager::CreateImageFromFile(const char* filename)
     return texture;
 }
 
-void TextureManager::DestroyImage(const VulkanImage& vulkanTexture)
+void TextureManager::DestroyImage(const VulkanImage& image)
 {
     DEBUG_ASSERT(m_numAllocatedImages > 0);
     VkDevice device = m_renderingManager.GetDevice();
-    vkDestroySampler(device, vulkanTexture.Sampler, nullptr);
-    vkDestroyImageView(device, vulkanTexture.ImageView, nullptr);
+    vkDestroySampler(device, image.Sampler, nullptr);
+    vkDestroyImageView(device, image.ImageView, nullptr);
     vmaDestroyImage(
         m_renderingManager.GetAllocatorWrapper().GetAllocator(),
-        vulkanTexture.Image,
-        vulkanTexture.Allocation
+        image.Image,
+        image.Allocation
     );
     m_numAllocatedImages--;
 }

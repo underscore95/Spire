@@ -30,10 +30,7 @@ void GameApplication::Start(Engine& engine)
     CreateUniformBuffers();
 
     // Textures
-    std::string textureFile = std::format("{}/test.png", ASSETS_DIRECTORY);
-    m_texture = rm.GetTextureManager().CreateImageFromFile(textureFile.c_str());
-    textureFile = std::format("{}/test2.png", ASSETS_DIRECTORY);
-    m_texture2 = rm.GetTextureManager().CreateImageFromFile(textureFile.c_str());
+    m_sceneTextures = std::make_unique<SceneTextures>(rm, std::vector<std::string>{"test.png", "test2.png"});
 
     // Pipeline
     SetupGraphicsPipeline();
@@ -58,8 +55,7 @@ GameApplication::~GameApplication()
         rm.GetBufferManager().DestroyBuffer(m_uniformBuffers[i]);
     }
 
-    rm.GetTextureManager().DestroyImage(m_texture);
-    rm.GetTextureManager().DestroyImage(m_texture2);
+    m_sceneTextures.reset();
 
     m_graphicsPipeline.reset();
 
@@ -234,16 +230,8 @@ void GameApplication::SetupGraphicsPipeline()
     std::array modelResources = m_models->GetPipelineResourceInfo();
     for (const auto& info : modelResources) pipelineResources.push_back(info);
 
-    // Texture
-    std::array textures = {m_texture, m_texture2};
-    pipelineResources.push_back({
-        .ResourceType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        .Binding = 2,
-        .Stages = VK_SHADER_STAGE_FRAGMENT_BIT,
-        .SameResourceForAllFrames = true,
-        .ResourcePtrs = textures.data(),
-        .NumDescriptors = textures.size()
-    });
+    // Textures
+    pipelineResources.push_back(m_sceneTextures->GetPipelineResourceInfo(2));
 
     // Uniform buffers
     pipelineResources.push_back({

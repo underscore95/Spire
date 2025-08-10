@@ -48,6 +48,5 @@ private:
     std::vector<VulkanBuffer> m_uniformBuffers;
     std::unique_ptr<SceneModels> m_models;
     std::unique_ptr<Camera> m_camera;
-    VulkanImage m_texture;
-    VulkanImage m_texture2;
+   std::unique_ptr<SceneTextures> m_sceneTextures;
 };

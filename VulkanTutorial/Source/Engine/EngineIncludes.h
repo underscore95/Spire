@@ -27,6 +27,7 @@
 #include "Engine/Rendering/PushConstants.h"
 #include "Engine/Rendering/ImGuiRenderer.h"
 #include "Engine/Rendering/RenderingDeviceManager.h"
+#include "Engine/Rendering/SceneTextures.h"
 
 #include "Engine/Resources/ImageLoader.h"
 #include "Engine/Resources/Model.h"

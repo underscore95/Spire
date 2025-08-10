@@ -15,7 +15,7 @@ public:
 
 public:
     VulkanImage CreateImageFromFile(const char* filename);
-    void DestroyImage(const VulkanImage& vulkanTexture);
+    void DestroyImage(const VulkanImage& image);
 
     void CreateImage(VulkanImage& texture, glm::uvec2 dimensions, VkImageUsageFlags usage,
                      VkImageUsageFlags propertyFlags, VkFormat format);
