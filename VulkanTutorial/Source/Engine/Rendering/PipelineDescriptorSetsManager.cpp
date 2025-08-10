@@ -51,7 +51,7 @@ void PipelineDescriptorSetsManager::CreateDescriptorPool()
     std::unordered_map<VkDescriptorType, glm::u32> numResourcesPerType;
     for (const auto& resource : m_resources)
     {
-        numResourcesPerType[resource.ResourceType] += m_numSwapchainImages;
+        numResourcesPerType[resource.ResourceType] += m_numSwapchainImages * resource.NumDescriptors;
     }
 
     std::vector<VkDescriptorPoolSize> sizes;
@@ -97,7 +97,7 @@ void PipelineDescriptorSetsManager::CreateDescriptorSetLayout()
         layoutBindings.push_back({
             .binding = resource.Binding,
             .descriptorType = resource.ResourceType,
-            .descriptorCount = 1,
+            .descriptorCount = resource.NumDescriptors,
             .stageFlags = resource.Stages,
         });
     }
@@ -107,7 +107,7 @@ void PipelineDescriptorSetsManager::CreateDescriptorSetLayout()
         .pNext = nullptr,
         .flags = 0, // reserved - must be zero
         .bindingCount = static_cast<glm::u32>(layoutBindings.size()),
-        .pBindings = layoutBindings.data()
+        .pBindings = layoutBindings.data(),
     };
 
     VkResult res = vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout);
@@ -148,6 +148,15 @@ void PipelineDescriptorSetsManager::UpdateDescriptorSets() const
 
     for (const auto& resource : m_resources)
     {
+        DEBUG_ASSERT(resource.NumDescriptors > 0);
+        if (resource.NumDescriptors > 1)
+        {
+            // texture arrays that need to be different per frame might not work
+            DEBUG_ASSERT(resource.SameResourceForAllFrames);
+            // only tested for texture arrays
+            DEBUG_ASSERT(IsTextureSampler(resource.ResourceType));
+        }
+
         for (glm::u32 imageIndex = 0; imageIndex < m_numSwapchainImages; imageIndex++)
         {
             // Common to all resources
@@ -156,7 +165,7 @@ void PipelineDescriptorSetsManager::UpdateDescriptorSets() const
                 .dstSet = m_descriptorSets[imageIndex],
                 .dstBinding = resource.Binding,
                 .dstArrayElement = 0,
-                .descriptorCount = 1,
+                .descriptorCount = resource.NumDescriptors,
                 .descriptorType = resource.ResourceType,
             };
 
@@ -164,7 +173,7 @@ void PipelineDescriptorSetsManager::UpdateDescriptorSets() const
             if (IsBuffer(resource.ResourceType))
             {
                 bufferInfos.push_back({
-                    .buffer = resource.ResourcePtrs.Buffers[resource.SameResourceForAllImages ? 0 : imageIndex].Buffer,
+                    .buffer = resource.ResourcePtrs.Buffers[resource.SameResourceForAllFrames ? 0 : imageIndex].Buffer,
                     .offset = 0,
                     .range = VK_WHOLE_SIZE
                 });
@@ -174,15 +183,17 @@ void PipelineDescriptorSetsManager::UpdateDescriptorSets() const
             // Textures
             else if (IsTextureSampler(resource.ResourceType))
             {
-                const VulkanImage& tex = resource.ResourcePtrs.Textures[resource.SameResourceForAllImages
-                                                                            ? 0
-                                                                            : imageIndex];
-                imageInfos.push_back({
-                    .sampler = tex.Sampler,
-                    .imageView = tex.ImageView,
-                    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                });
-                writeDescriptorSet.pImageInfo = &(imageInfos[imageInfos.size() - 1]);
+                const VulkanImage& tex = resource.ResourcePtrs
+                                                 .Textures[resource.SameResourceForAllFrames ? 0 : imageIndex];
+                for (glm::u32 texIndex = 0; texIndex < resource.NumDescriptors; texIndex++)
+                {
+                    imageInfos.push_back({
+                        .sampler = tex.Sampler,
+                        .imageView = tex.ImageView,
+                        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+                    });
+                }
+                writeDescriptorSet.pImageInfo = &(imageInfos[imageInfos.size() - resource.NumDescriptors]);
             }
 
             // ---

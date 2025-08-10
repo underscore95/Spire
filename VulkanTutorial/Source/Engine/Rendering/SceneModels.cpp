@@ -60,7 +60,7 @@ std::array<PipelineResourceInfo, 1> SceneModels::GetPipelineResourceInfo() const
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = 0,
             .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-            .SameResourceForAllImages = true,
+            .SameResourceForAllFrames = true,
             .ResourcePtrs = &m_vertexStorageBuffer
         }
     };

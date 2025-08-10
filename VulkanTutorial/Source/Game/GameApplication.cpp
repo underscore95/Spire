@@ -232,12 +232,14 @@ void GameApplication::SetupGraphicsPipeline()
     for (const auto& info : modelResources) pipelineResources.push_back(info);
 
     // Texture
+    std::array<VulkanImage, 2> textures = {m_texture,m_texture};
     pipelineResources.push_back({
         .ResourceType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
         .Binding = 2,
         .Stages = VK_SHADER_STAGE_FRAGMENT_BIT,
-        .SameResourceForAllImages = true,
-        .ResourcePtrs = &m_texture
+        .SameResourceForAllFrames = true,
+        .ResourcePtrs = textures.data(),
+        .NumDescriptors = textures.size()
     });
 
     // Uniform buffers
@@ -245,8 +247,9 @@ void GameApplication::SetupGraphicsPipeline()
         .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
         .Binding = 3,
         .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-        .SameResourceForAllImages = false,
-        .ResourcePtrs = m_uniformBuffers.data()
+        .SameResourceForAllFrames = false,
+        .ResourcePtrs = m_uniformBuffers.data(),
+        .NumDescriptors = 1
     });
 
     m_graphicsPipeline = std::make_unique<GraphicsPipeline>(

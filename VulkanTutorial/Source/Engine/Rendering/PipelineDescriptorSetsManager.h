@@ -13,7 +13,7 @@ struct PipelineResourceInfo
     glm::u32 Binding;
     VkShaderStageFlags Stages;
 
-    bool SameResourceForAllImages;
+    bool SameResourceForAllFrames;
 
     union ResourcePtr
     {
@@ -21,6 +21,8 @@ struct PipelineResourceInfo
         const VulkanBuffer* Buffers;
         const VulkanImage* Textures;
     } ResourcePtrs;
+
+    glm::u32 NumDescriptors = 1;
 };
 
 class PipelineDescriptorSetsManager
