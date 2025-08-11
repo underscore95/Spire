@@ -21,10 +21,10 @@ public:
 public:
     [[nodiscard]] glm::u32 AcquireNextImage() const;
 
-    void SubmitSync(VkCommandBuffer commandBuffer) const;
+    void SubmitImmediate(VkCommandBuffer commandBuffer) const;
 
-    void SubmitAsync(VkCommandBuffer commandBuffer);
-    void SubmitAsync(glm::u32 count, VkCommandBuffer* commandBuffers);
+    void SubmitRenderCommand(VkCommandBuffer commandBuffer);
+    void SubmitRenderCommands(glm::u32 count, VkCommandBuffer* commandBuffers);
 
     void Present(glm::u32 imageIndex);
 

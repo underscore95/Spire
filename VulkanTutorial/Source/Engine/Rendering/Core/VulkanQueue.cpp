@@ -53,7 +53,7 @@ glm::u32 VulkanQueue::AcquireNextImage() const
     return imageIndex;
 }
 
-void VulkanQueue::SubmitSync(VkCommandBuffer commandBuffer) const
+void VulkanQueue::SubmitImmediate(VkCommandBuffer commandBuffer) const
 {
     VkSubmitInfo submitInfo = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -74,12 +74,12 @@ void VulkanQueue::SubmitSync(VkCommandBuffer commandBuffer) const
     }
 }
 
-void VulkanQueue::SubmitAsync(VkCommandBuffer commandBuffer)
+void VulkanQueue::SubmitRenderCommand(VkCommandBuffer commandBuffer)
 {
-    SubmitAsync(1, &commandBuffer);
+    SubmitRenderCommands(1, &commandBuffer);
 }
 
-void VulkanQueue::SubmitAsync(glm::u32 count, VkCommandBuffer* commandBuffers)
+void VulkanQueue::SubmitRenderCommands(glm::u32 count, VkCommandBuffer* commandBuffers)
 {
     VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 

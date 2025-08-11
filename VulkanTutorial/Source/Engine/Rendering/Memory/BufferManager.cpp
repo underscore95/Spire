@@ -108,7 +108,7 @@ void BufferManager::CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) c
 
     vkEndCommandBuffer(m_copyCommandBuffer);
 
-    m_renderingManager.GetQueue().SubmitSync(m_copyCommandBuffer);
+    m_renderingManager.GetQueue().SubmitImmediate(m_copyCommandBuffer);
 
     m_renderingManager.GetQueue().WaitIdle();
 }

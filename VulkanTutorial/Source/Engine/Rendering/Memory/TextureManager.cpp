@@ -171,7 +171,7 @@ void TextureManager::CopyBufferToImage(VkImage dest, VkBuffer source, const glm:
 
     vkEndCommandBuffer(m_commandBuffer);
 
-    m_renderingManager.GetQueue().SubmitSync(m_commandBuffer);
+    m_renderingManager.GetQueue().SubmitImmediate(m_commandBuffer);
 
     m_renderingManager.GetQueue().WaitIdle();
 }
@@ -222,7 +222,7 @@ void TextureManager::TransitionImageLayout(const VkImage& image, VkFormat format
 
     vkEndCommandBuffer(m_commandBuffer);
 
-    m_renderingManager.GetQueue().SubmitSync(m_commandBuffer);
+    m_renderingManager.GetQueue().SubmitImmediate(m_commandBuffer);
 
     m_renderingManager.GetQueue().WaitIdle();
 }

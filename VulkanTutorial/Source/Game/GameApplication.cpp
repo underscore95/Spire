@@ -89,7 +89,7 @@ void GameApplication::Render()
         rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex),
         rm.GetRenderer().GetEndRenderingCommandBuffer(imageIndex)
     };
-    rm.GetQueue().SubmitAsync(commandBuffersToSubmit.size(), commandBuffersToSubmit.data());
+    rm.GetQueue().SubmitRenderCommands(commandBuffersToSubmit.size(), commandBuffersToSubmit.data());
 
     rm.GetQueue().Present(imageIndex);
 }

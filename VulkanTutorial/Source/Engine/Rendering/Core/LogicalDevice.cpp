@@ -4,17 +4,17 @@
 
 LogicalDevice::LogicalDevice(
     RenderingDeviceManager& deviceManager,
-     VulkanVersion vulkanVersion)
+    VulkanVersion vulkanVersion)
 {
     m_deviceQueueFamily = deviceManager.SelectDevice(VK_QUEUE_GRAPHICS_BIT, true);
 
-     float queuePriorities[] = {1.0f};
+    float queuePriorities[] = {1.0f};
 
     VkDeviceQueueCreateInfo queueInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0, // must be zero
-        .queueFamilyIndex =m_deviceQueueFamily,
+        .queueFamilyIndex = m_deviceQueueFamily,
         .queueCount = 1,
         .pQueuePriorities = &queuePriorities[0]
     };
@@ -24,7 +24,7 @@ LogicalDevice::LogicalDevice(
         VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
     };
 
-    DynamicRenderingSupport dynamicRenderingSupport = GetDynamicRenderingSupport(deviceManager,vulkanVersion );
+    DynamicRenderingSupport dynamicRenderingSupport = GetDynamicRenderingSupport(deviceManager, vulkanVersion);
     if (dynamicRenderingSupport == DynamicRenderingSupport::EXTENSION_REQUIRED)
         deviceExtensions.push_back(
             VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
@@ -72,7 +72,7 @@ LogicalDevice::LogicalDevice(
     VkResult result = vkCreateDevice(
         deviceManager.Selected().PhysicalDeviceHandle,
         &deviceCreateInfo, nullptr,
-     &m_device
+        &m_device
     );
     if (result != VK_SUCCESS)
     {
@@ -108,7 +108,8 @@ glm::u32 LogicalDevice::GetDeviceQueueFamily() const
     return m_deviceQueueFamily;
 }
 
-LogicalDevice::DynamicRenderingSupport LogicalDevice::GetDynamicRenderingSupport(const RenderingDeviceManager& deviceManager, const VulkanVersion& vulkanVersion) const
+LogicalDevice::DynamicRenderingSupport LogicalDevice::GetDynamicRenderingSupport(
+    const RenderingDeviceManager& deviceManager, const VulkanVersion& vulkanVersion) const
 {
     bool dynamicRenderingExtension = deviceManager.IsExtensionSupported(
         deviceManager.Selected(), VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
