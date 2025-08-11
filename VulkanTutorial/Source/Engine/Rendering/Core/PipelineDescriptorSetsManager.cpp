@@ -48,38 +48,7 @@ const VkDescriptorSetLayout* PipelineDescriptorSetsManager::GetPointerToFirstDes
 
 void PipelineDescriptorSetsManager::CreateDescriptorPool()
 {
-    std::unordered_map<VkDescriptorType, glm::u32> numResourcesPerType;
-    for (const auto& resource : m_resources)
-    {
-        numResourcesPerType[resource.ResourceType] += m_numSwapchainImages * resource.NumDescriptors;
-    }
 
-    std::vector<VkDescriptorPoolSize> sizes;
-    for (auto& [descriptorType, descriptorCount] : numResourcesPerType)
-    {
-        sizes.push_back({
-            .type = descriptorType,
-            .descriptorCount = descriptorCount
-        });
-    }
-
-    VkDescriptorPoolCreateInfo poolInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .flags = 0,
-        .maxSets = m_numSwapchainImages, // each image currently gets one set of descriptors
-        .poolSizeCount = static_cast<glm::u32>(sizes.size()),
-        .pPoolSizes = sizes.data()
-    };
-
-    VkResult res = vkCreateDescriptorPool(m_device, &poolInfo, nullptr, &m_descriptorPool);
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to create descriptor pool");
-    }
-    else
-    {
-        spdlog::info("Created descriptor pool");
-    }
 }
 
 void PipelineDescriptorSetsManager::CreateDescriptorSetLayout()
