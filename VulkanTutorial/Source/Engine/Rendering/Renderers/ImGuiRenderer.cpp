@@ -5,11 +5,11 @@
 #include <spdlog/spdlog.h>
 
 #include "Renderer.h"
-#include "RenderingCommandManager.h"
-#include "RenderingDeviceManager.h"
-#include "RenderingManager.h"
-#include "Swapchain.h"
-#include "VulkanQueue.h"
+#include "Engine/Rendering/Core/RenderingCommandManager.h"
+#include "Engine/Rendering/Core/RenderingDeviceManager.h"
+#include "Engine/Rendering/RenderingManager.h"
+#include "Engine/Rendering/Core/Swapchain.h"
+#include "Engine/Rendering/Core/VulkanQueue.h"
 #include "Engine/Window/Window.h"
 
 ImGuiRenderer::ImGuiRenderer(

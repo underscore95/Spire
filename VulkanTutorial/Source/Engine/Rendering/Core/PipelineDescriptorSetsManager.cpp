@@ -5,11 +5,11 @@
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 
-#include "BufferManager.h"
-#include "RenderingManager.h"
+#include "Engine/Rendering/Memory/BufferManager.h"
+#include "Engine/Rendering/RenderingManager.h"
 #include "Swapchain.h"
-#include "VulkanBuffer.h"
-#include "VulkanImage.h"
+#include "Engine/Rendering/Memory/VulkanBuffer.h"
+#include "Engine/Rendering/Memory/VulkanImage.h"
 
 PipelineDescriptorSetsManager::PipelineDescriptorSetsManager(RenderingManager& renderingManager,
                                                              const std::vector<PipelineResourceInfo>& resources)

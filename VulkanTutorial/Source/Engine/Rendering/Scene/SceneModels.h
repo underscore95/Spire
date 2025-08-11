@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include "BufferManager.h"
-#include "VulkanBuffer.h"
+#include "Engine/Rendering/Memory/BufferManager.h"
+#include "Engine/Rendering/Memory/VulkanBuffer.h"
 #include "Engine/Resources/Model.h"
 
 class GraphicsPipeline;

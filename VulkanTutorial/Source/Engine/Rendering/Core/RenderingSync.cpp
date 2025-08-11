@@ -3,7 +3,7 @@
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 
-#include "RenderingManager.h"
+#include "Engine/Rendering/RenderingManager.h"
 
 RenderingSync::RenderingSync(RenderingManager& renderingManager)
     : m_renderingManager(renderingManager)

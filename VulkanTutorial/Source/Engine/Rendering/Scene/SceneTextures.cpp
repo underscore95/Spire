@@ -1,12 +1,12 @@
-#include "SceneTextures.h"
+#include "Engine/Rendering/Scene/SceneTextures.h"
 
 #include <format>
 #include <vulkan/vulkan_core.h>
 
-#include "PipelineDescriptorSetsManager.h"
-#include "RenderingManager.h"
-#include "TextureManager.h"
-#include "VulkanImage.h"
+#include "Engine/Rendering/Core/PipelineDescriptorSetsManager.h"
+#include "Engine/Rendering/RenderingManager.h"
+#include "Engine/Rendering/Memory/TextureManager.h"
+#include "Engine/Rendering/Memory/VulkanImage.h"
 
 SceneTextures::SceneTextures(RenderingManager& renderingManager,
                              const std::vector<std::string>& textureFileNames)

@@ -1,10 +1,10 @@
 #include "Renderer.h"
 #include <libassert/assert.hpp>
-#include "RenderingCommandManager.h"
-#include "RenderingManager.h"
-#include "RenderingSync.h"
-#include "Swapchain.h"
-#include "VulkanImage.h"
+#include "Engine/Rendering/Core/RenderingCommandManager.h"
+#include "Engine/Rendering/RenderingManager.h"
+#include "Engine/Rendering/Core/RenderingSync.h"
+#include "Engine/Rendering/Core/Swapchain.h"
+#include "Engine/Rendering/Memory/VulkanImage.h"
 #include "Engine/Window/Window.h"
 
 Renderer::Renderer(RenderingManager& renderingManager,

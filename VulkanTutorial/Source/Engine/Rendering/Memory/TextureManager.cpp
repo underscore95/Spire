@@ -2,14 +2,14 @@
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 #include "BufferManager.h"
-#include "RenderingCommandManager.h"
-#include "RenderingManager.h"
-#include "RenderingSync.h"
+#include "Engine/Rendering/Core/RenderingCommandManager.h"
+#include "Engine/Rendering/RenderingManager.h"
+#include "Engine/Rendering/Core/RenderingSync.h"
 #include "VulkanAllocator.h"
-#include "VulkanBuffer.h"
+#include "Engine/Rendering/Memory/VulkanBuffer.h"
 #include "VulkanImage.h"
-#include "VulkanQueue.h"
-#include "../Resources/ImageLoader.h"
+#include "Engine/Rendering/Core/VulkanQueue.h"
+#include "Engine/Resources/ImageLoader.h"
 
 TextureManager::TextureManager(RenderingManager& renderingManager)
     : m_renderingManager(renderingManager)

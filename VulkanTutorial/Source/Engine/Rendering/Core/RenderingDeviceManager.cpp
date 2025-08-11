@@ -3,7 +3,7 @@
 // ReSharper disable CppDFAConstantParameter
 // ReSharper disable CppDFAConstantConditions
 
-#include "RenderingDeviceManager.h"
+#include "Engine/Rendering/Core/RenderingDeviceManager.h"
 #include <glm/glm.hpp>
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>

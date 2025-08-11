@@ -1,12 +1,12 @@
 #include "SceneModels.h"
 #include <libassert/assert.hpp>
-#include "BufferManager.h"
-#include "GraphicsPipeline.h"
-#include "PipelineDescriptorSetsManager.h"
+#include "Engine/Rendering/Memory/BufferManager.h"
+#include "Engine/Rendering/Core/GraphicsPipeline.h"
+#include "Engine/Rendering/Core/PipelineDescriptorSetsManager.h"
 #include "PushConstants.h"
-#include "Renderer.h"
-#include "RenderingManager.h"
-#include "VulkanBuffer.h"
+#include "Engine/Rendering/Renderers/Renderer.h"
+#include "Engine/Rendering/RenderingManager.h"
+#include "Engine/Rendering/Memory/VulkanBuffer.h"
 #include "Engine/Resources/Mesh.h"
 
 struct VertexOffset

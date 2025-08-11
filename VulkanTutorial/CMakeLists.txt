@@ -12,58 +12,58 @@ add_executable(VulkanTutorial
         Source/Engine/EngineIncludes.h
         Source/Engine/Rendering/RenderingManager.cpp
         Source/Engine/Rendering/RenderingManager.h
-        Source/Engine/Rendering/VulkanUtils.h
-        Source/Engine/Rendering/RenderingDeviceManager.cpp
-        Source/Engine/Rendering/RenderingDeviceManager.h
-        Source/Engine/Rendering/RenderingCommandManager.cpp
-        Source/Engine/Rendering/RenderingCommandManager.h
-        Source/Engine/Rendering/VulkanQueue.cpp
-        Source/Engine/Rendering/VulkanQueue.h
-        Source/Engine/Rendering/ShaderCompiler.cpp
-        Source/Engine/Rendering/ShaderCompiler.h
-        Source/Engine/Rendering/GraphicsPipeline.cpp
-        Source/Engine/Rendering/GraphicsPipeline.h
-        Source/Engine/Rendering/BufferManager.cpp
-        Source/Engine/Rendering/BufferManager.h
+        Source/Engine/Rendering/Core/VulkanUtils.h
+        Source/Engine/Rendering/Core/RenderingDeviceManager.cpp
+        Source/Engine/Rendering/Core/RenderingDeviceManager.h
+        Source/Engine/Rendering/Core/RenderingCommandManager.cpp
+        Source/Engine/Rendering/Core/RenderingCommandManager.h
+        Source/Engine/Rendering/Core/VulkanQueue.cpp
+        Source/Engine/Rendering/Core/VulkanQueue.h
+        Source/Engine/Rendering/Core/ShaderCompiler.cpp
+        Source/Engine/Rendering/Core/ShaderCompiler.h
+        Source/Engine/Rendering/Core/GraphicsPipeline.cpp
+        Source/Engine/Rendering/Core/GraphicsPipeline.h
+        Source/Engine/Rendering/Memory/BufferManager.cpp
+        Source/Engine/Rendering/Memory/BufferManager.h
         Source/Engine/Utils/Timer.cpp
         Source/Engine/Utils/Timer.h
-        Source/Engine/Rendering/PipelineDescriptorSetsManager.cpp
-        Source/Engine/Rendering/PipelineDescriptorSetsManager.h
+        Source/Engine/Rendering/Core/PipelineDescriptorSetsManager.cpp
+        Source/Engine/Rendering/Core/PipelineDescriptorSetsManager.h
         Source/Engine/Utils/Camera/Camera.cpp
         Source/Engine/Utils/Camera/Camera.h
-        Source/Engine/Rendering/TextureManager.cpp
-        Source/Engine/Rendering/TextureManager.h
+        Source/Engine/Rendering/Memory/TextureManager.cpp
+        Source/Engine/Rendering/Memory/TextureManager.h
         Source/Engine/Resources/ImageLoader.cpp
         Source/Engine/Resources/ImageLoader.h
         Source/Engine/Utils/FileIO.cpp
         Source/Engine/Utils/FileIO.h
-        Source/Engine/Rendering/Swapchain.cpp
-        Source/Engine/Rendering/Swapchain.h
-        Source/Engine/Rendering/VulkanDebugCallback.cpp
-        Source/Engine/Rendering/VulkanDebugCallback.h
-        Source/Engine/Rendering/LogicalDevice.cpp
-        Source/Engine/Rendering/LogicalDevice.h
-        Source/Engine/Rendering/VulkanVersion.h
-        Source/Engine/Rendering/RenderingSync.cpp
-        Source/Engine/Rendering/RenderingSync.h
-        Source/Engine/Rendering/ImGuiRenderer.cpp
-        Source/Engine/Rendering/ImGuiRenderer.h
-        Source/Engine/Rendering/Renderer.cpp
-        Source/Engine/Rendering/Renderer.h
-        Source/Engine/Rendering/VulkanAllocator.cpp
-        Source/Engine/Rendering/VulkanAllocator.h
-        Source/Engine/Rendering/VmaUsage.cpp
-        Source/Engine/Rendering/VulkanBuffer.h
-        Source/Engine/Rendering/VulkanImage.h
+        Source/Engine/Rendering/Core/Swapchain.cpp
+        Source/Engine/Rendering/Core/Swapchain.h
+        Source/Engine/Rendering/Core/VulkanDebugCallback.cpp
+        Source/Engine/Rendering/Core/VulkanDebugCallback.h
+        Source/Engine/Rendering/Core/LogicalDevice.cpp
+        Source/Engine/Rendering/Core/LogicalDevice.h
+        Source/Engine/Rendering/Core/VulkanVersion.h
+        Source/Engine/Rendering/Core/RenderingSync.cpp
+        Source/Engine/Rendering/Core/RenderingSync.h
+        Source/Engine/Rendering/Renderers/ImGuiRenderer.cpp
+        Source/Engine/Rendering/Renderers/ImGuiRenderer.h
+        Source/Engine/Rendering/Renderers/Renderer.cpp
+        Source/Engine/Rendering/Renderers/Renderer.h
+        Source/Engine/Rendering/Memory/VulkanAllocator.cpp
+        Source/Engine/Rendering/Memory/VulkanAllocator.h
+        Source/Engine/Rendering/Memory/VmaUsage.cpp
+        Source/Engine/Rendering/Memory/VulkanBuffer.h
+        Source/Engine/Rendering/Memory/VulkanImage.h
         Source/Engine/Resources/Mesh.h
-        Source/Engine/Rendering/SceneModels.cpp
-        Source/Engine/Rendering/SceneModels.h
-        Source/Engine/Rendering/PushConstants.h
+        Source/Engine/Rendering/Scene/SceneModels.cpp
+        Source/Engine/Rendering/Scene/SceneModels.h
+        Source/Engine/Rendering/Scene/PushConstants.h
         Source/Engine/Resources/ModelLoader.cpp
         Source/Engine/Resources/ModelLoader.h
         Source/Engine/Resources/Model.h
-        Source/Engine/Rendering/SceneTextures.cpp
-        Source/Engine/Rendering/SceneTextures.h
+        Source/Engine/Rendering/Scene/SceneTextures.cpp
+        Source/Engine/Rendering/Scene/SceneTextures.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

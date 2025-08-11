@@ -5,22 +5,22 @@
 #include <vector>
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
-#include "RenderingCommandManager.h"
-#include "RenderingDeviceManager.h"
-#include "VulkanQueue.h"
+#include "Core/RenderingCommandManager.h"
+#include "Core/RenderingDeviceManager.h"
+#include "Core/VulkanQueue.h"
 #include "Engine/Core/Engine.h"
-#include "VulkanUtils.h"
+#include "Core/VulkanUtils.h"
 #include "Engine/Window/Window.h"
-#include "BufferManager.h"
-#include "ImGuiRenderer.h"
-#include "LogicalDevice.h"
-#include "Renderer.h"
-#include "RenderingSync.h"
-#include "Swapchain.h"
-#include "TextureManager.h"
-#include "VulkanAllocator.h"
-#include "VulkanDebugCallback.h"
-#include "VulkanImage.h"
+#include "Memory/BufferManager.h"
+#include "Renderers/ImGuiRenderer.h"
+#include "Core/LogicalDevice.h"
+#include "Renderers/Renderer.h"
+#include "Core/RenderingSync.h"
+#include "Core/Swapchain.h"
+#include "Memory/TextureManager.h"
+#include "Memory/VulkanAllocator.h"
+#include "Core/VulkanDebugCallback.h"
+#include "Memory/VulkanImage.h"
 
 RenderingManager::RenderingManager(Engine& engine,
                                    const std::string& applicationName,

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vk_mem_alloc.h>
-#include "VulkanVersion.h"
+#include "Engine/Rendering/Core/VulkanVersion.h"
 
 class VulkanAllocator
 {
