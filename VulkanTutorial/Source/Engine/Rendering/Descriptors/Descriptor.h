@@ -12,10 +12,11 @@ struct Descriptor
     glm::u32 Binding;
     VkShaderStageFlags Stages;
 
+    glm::u32 NumResources;
     union ResourcePtr
     {
         const void* Raw;
-        const VulkanBuffer* Buffer;
-        const VulkanImage* Texture;
-    } ResourcePtr;
+        const VulkanBuffer* Buffers;
+        const VulkanImage* Textures;
+    } ResourcePtrs;
 };

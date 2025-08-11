@@ -53,37 +53,7 @@ void PipelineDescriptorSetsManager::CreateDescriptorPool()
 
 void PipelineDescriptorSetsManager::CreateDescriptorSetLayout()
 {
-    std::unordered_set<glm::u32> usedBindings;
-    std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
 
-    for (const auto& resource : m_resources)
-    {
-        // check bindings are unique
-        DEBUG_ASSERT(!usedBindings.contains(resource.Binding));
-        usedBindings.insert(resource.Binding);
-
-        // create layout
-        layoutBindings.push_back({
-            .binding = resource.Binding,
-            .descriptorType = resource.ResourceType,
-            .descriptorCount = resource.NumDescriptors,
-            .stageFlags = resource.Stages,
-        });
-    }
-
-    VkDescriptorSetLayoutCreateInfo layoutInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0, // reserved - must be zero
-        .bindingCount = static_cast<glm::u32>(layoutBindings.size()),
-        .pBindings = layoutBindings.data(),
-    };
-
-    VkResult res = vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout);
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to create descriptor set layout");
-    }
 }
 
 void PipelineDescriptorSetsManager::AllocateDescriptorSets()

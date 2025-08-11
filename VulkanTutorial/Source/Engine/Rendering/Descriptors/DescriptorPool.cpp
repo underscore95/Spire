@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <spdlog/spdlog.h>
 #include "Descriptor.h"
+#include "DescriptorSet.h"
 #include "Engine/Rendering/RenderingManager.h"
 
 DescriptorPool::DescriptorPool(
@@ -16,7 +17,7 @@ DescriptorPool::DescriptorPool(
     {
         for (const auto& descriptor : descriptorSet)
         {
-            numResources[descriptor.ResourceType]++;
+            numResources[descriptor.ResourceType] += descriptor.NumResources;
         }
     }
 

@@ -68,6 +68,7 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/Descriptors/DescriptorPool.cpp
         Source/Engine/Rendering/Descriptors/DescriptorPool.h
         Source/Engine/Rendering/Descriptors/DescriptorSet.h
+        Source/Engine/Rendering/Descriptors/DescriptorSet.cpp
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")
