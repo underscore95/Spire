@@ -254,6 +254,6 @@ void GameApplication::SetupGraphicsPipeline()
         rm.GetSwapchain().GetSurfaceFormat().format,
         rm.GetPhysicalDevice().DepthFormat,
         rm,
-        sizeof(PushConstants)
+        static_cast<glm::u32>(sizeof(PushConstants))
     );
 }

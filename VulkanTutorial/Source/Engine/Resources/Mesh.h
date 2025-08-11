@@ -22,11 +22,6 @@ public:
 struct Mesh
 {
 public:
-    explicit Mesh(const std::vector<ModelVertex>& vertices)
-        : Vertices(vertices)
-    {
-    }
-
     Mesh() = default;
 
 public:

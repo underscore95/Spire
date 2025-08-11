@@ -10,7 +10,7 @@ char* FileIO::ReadBinaryFile(const char* pFilename, int& size)
 
     if (!f)
     {
-        char buf[256] = {0};
+        char buf[256] = {};
         strerror_s(buf, sizeof(buf), err);
         spdlog::error("Error opening '{}': {}", pFilename, buf);
         return nullptr;
@@ -21,7 +21,7 @@ char* FileIO::ReadBinaryFile(const char* pFilename, int& size)
 
     if (error)
     {
-        char buf[256] = {0};
+        char buf[256] = {};
         strerror_s(buf, sizeof(buf), err);
         spdlog::error("Error getting file stats: {}", buf);
         return nullptr;
@@ -36,7 +36,7 @@ char* FileIO::ReadBinaryFile(const char* pFilename, int& size)
 
     if (bytes_read != size)
     {
-        char buf[256] = {0};
+        char buf[256] = {};
         strerror_s(buf, sizeof(buf), err);
         spdlog::error("Read file error file: {}", buf);
         return nullptr;

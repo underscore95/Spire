@@ -338,7 +338,7 @@ VkFormat RenderingDeviceManager::FindSupportedFormat(VkPhysicalDevice device, co
         {
             return candidateFormat;
         }
-        else if (tiling == VK_IMAGE_TILING_OPTIMAL &&
+        if (tiling == VK_IMAGE_TILING_OPTIMAL &&
             (properties.optimalTilingFeatures & requestedFeatures) == requestedFeatures)
         {
             return candidateFormat;

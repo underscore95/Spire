@@ -2,7 +2,6 @@
 
 #include <libassert/assert.hpp>
 #include <vulkan/vulkan.h>
-#include <spdlog/spdlog.h>
 
 class VulkanUtils {
 public:

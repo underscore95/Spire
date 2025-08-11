@@ -50,7 +50,7 @@ static void PrintShaderSource(const char* text)
 }
 
 
-static bool CompileShader(const char* shaderName, const VkDevice& device, glslang_stage_t stage,
+static bool CompileShader(const VkDevice& device, glslang_stage_t stage,
                           const char* pShaderCode,
                           CompiledShader& ShaderModule)
 {
@@ -366,7 +366,7 @@ ShaderCompiler::~ShaderCompiler()
 void ShaderCompiler::CreateShaderModuleAsync(VkShaderModule* out, const std::string& fileName)
 {
     ++m_currentTasks;
-    std::thread([this, out, fileName]()
+    std::thread([this, out, fileName]
     {
         VkShaderModule result = CreateShaderModule(fileName);
         if (out) *out = result;
@@ -452,7 +452,7 @@ VkShaderModule ShaderCompiler::CreateShaderModuleFromSource(const std::string& f
 
     VkShaderModule ret = nullptr;
 
-    bool success = CompileShader(shaderSource.c_str(), m_device, shaderStage, shaderSource.c_str(), shaderModule);
+    bool success = CompileShader(m_device, shaderStage, shaderSource.c_str(), shaderModule);
 
     if (success)
     {

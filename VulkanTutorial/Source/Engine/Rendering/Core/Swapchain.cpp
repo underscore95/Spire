@@ -17,7 +17,7 @@ Swapchain::Swapchain(
     const PhysicalDevice& physicalDevice,
     glm::u32 deviceQueueFamily,
     VkSurfaceKHR surface,
-    const Window& window)
+    const Window&)
     : m_device(device)
 {
     // Create swapchain

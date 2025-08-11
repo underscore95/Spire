@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan.h>
 
