@@ -58,23 +58,7 @@ void PipelineDescriptorSetsManager::CreateDescriptorSetLayout()
 
 void PipelineDescriptorSetsManager::AllocateDescriptorSets()
 {
-    std::vector layouts(m_numSwapchainImages, m_descriptorSetLayout);
 
-    VkDescriptorSetAllocateInfo allocInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .descriptorPool = m_descriptorPool,
-        .descriptorSetCount = m_numSwapchainImages,
-        .pSetLayouts = layouts.data()
-    };
-
-    m_descriptorSets.resize(m_numSwapchainImages);
-
-    VkResult res = vkAllocateDescriptorSets(m_device, &allocInfo, m_descriptorSets.data());
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to allocate descriptor sets");
-    }
 }
 
 void PipelineDescriptorSetsManager::UpdateDescriptorSets() const
