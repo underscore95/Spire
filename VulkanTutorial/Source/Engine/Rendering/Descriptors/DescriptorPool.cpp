@@ -1,43 +1,38 @@
 #include "DescriptorPool.h"
 #include <glm/glm.hpp>
 #include <unordered_map>
+#include <unordered_set>
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 #include "Descriptor.h"
-#include "DescriptorSet.h"
 #include "DescriptorSetLayout.h"
 #include "Engine/Rendering/RenderingManager.h"
 
 DescriptorPool::DescriptorPool(
-    RenderingManager& renderingManager,
-    const std::vector<DescriptorSetLayout>& descriptorSets)
+    RenderingManager& renderingManager)
     : m_renderingManager(renderingManager)
 {
-    // Count number of each type of resource
-    std::unordered_map<VkDescriptorType, glm::u32> numResources;
-    for (const auto& descriptorSet : descriptorSets)
-    {
-        for (const auto& descriptor : descriptorSet)
-        {
-            numResources[descriptor.ResourceType] += descriptor.NumResources;
-        }
-    }
-
     // Generate pool sizes
     std::vector<VkDescriptorPoolSize> sizes;
-    for (auto& [descriptorType, descriptorCount] : numResources)
-    {
-        sizes.push_back({
-            .type = descriptorType,
-            .descriptorCount = descriptorCount
-        });
-    }
+
+    sizes.push_back({
+        .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 100
+    });
+    sizes.push_back({
+        .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .descriptorCount = 100
+    });
+    sizes.push_back({
+        .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .descriptorCount = 100
+    });
 
     // Create pool
     VkDescriptorPoolCreateInfo poolInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .flags = 0,
-        .maxSets = static_cast<glm::u32>(descriptorSets.size()),
+        .maxSets = static_cast<glm::u32>(300),
         .poolSizeCount = static_cast<glm::u32>(sizes.size()),
         .pPoolSizes = sizes.data()
     };
@@ -60,60 +55,97 @@ DescriptorPool::~DescriptorPool()
     vkDestroyDescriptorPool(m_renderingManager.GetDevice(), m_descriptorPool, nullptr);
 }
 
-std::vector<DescriptorSet> DescriptorPool::Allocate(
-    glm::u32 numDescriptorSets,
-    const DescriptorSetLayout* descriptorSets
+std::vector<DescriptorSetLayout> DescriptorPool::Allocate(
+    const std::vector<std::vector<Descriptor>>& descriptorsLists
 )
 {
-    // Create vector of layouts
+    // Generate layouts
     std::vector<VkDescriptorSetLayout> layouts;
-    layouts.reserve(numDescriptorSets);
-    for (glm::u32 i = 0; i < numDescriptorSets; i++)
+    layouts.reserve(descriptorsLists.size());
+
+    for (const auto& descriptors : descriptorsLists)
     {
-        layouts.push_back(descriptorSets[i].GetLayout());
+        std::unordered_set<glm::u32> usedBindings;
+        std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
+        layoutBindings.reserve(descriptors.size());
+
+        for (const auto& descriptor : descriptors)
+        {
+            // check bindings are unique
+            DEBUG_ASSERT(!usedBindings.contains(descriptor.Binding));
+            usedBindings.insert(descriptor.Binding);
+
+            // create layout
+            layoutBindings.push_back({
+                .binding = descriptor.Binding,
+                .descriptorType = descriptor.ResourceType,
+                .descriptorCount = descriptor.NumResources,
+                .stageFlags = descriptor.Stages,
+            });
+        }
+
+        VkDescriptorSetLayoutCreateInfo layoutInfo = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0, // reserved - must be zero
+            .bindingCount = static_cast<glm::u32>(layoutBindings.size()),
+            .pBindings = layoutBindings.data(),
+        };
+
+        VkDescriptorSetLayout layout = VK_NULL_HANDLE;
+        VkResult res = vkCreateDescriptorSetLayout(m_renderingManager.GetDevice(), &layoutInfo, nullptr, &layout);
+        layouts.push_back(layout);
+        if (res != VK_SUCCESS)
+        {
+            spdlog::error("Failed to create descriptor set layout");
+        }
     }
 
     // Make allocation
-    std::vector<VkDescriptorSet> descriptorSets;
-    descriptorSets.resize(numDescriptorSets);
+    std::vector<VkDescriptorSet> rawDescriptorSets;
+    rawDescriptorSets.resize(descriptorsLists.size());
 
     VkDescriptorSetAllocateInfo allocInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .pNext = nullptr,
         .descriptorPool = m_descriptorPool,
-        .descriptorSetCount = numDescriptorSets,
+        .descriptorSetCount = static_cast<glm::u32>(descriptorsLists.size()),
         .pSetLayouts = layouts.data()
     };
 
-    VkResult res = vkAllocateDescriptorSets(m_renderingManager.GetDevice(), &allocInfo, descriptorSets.data());
+    VkResult res = vkAllocateDescriptorSets(m_renderingManager.GetDevice(), &allocInfo, rawDescriptorSets.data());
 
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to allocate descriptor sets");
     }
-    else m_numAllocatedSets += numDescriptorSets;
+    else m_numAllocatedSets += descriptorsLists.size();
 
     // Convert to our wrapper
-    std::vector<DescriptorSet> sets;
-    sets.reserve(numDescriptorSets);
-    for (VkDescriptorSet set : descriptorSets)
+    std::vector<DescriptorSetLayout> descriptorSets;
+    descriptorSets.reserve(rawDescriptorSets.size());
+    for (int i = 0; i < rawDescriptorSets.size(); i++)
     {
-        sets.push_back(DescriptorSet{set});
+        descriptorSets.push_back(DescriptorSetLayout{
+            .Descriptors = descriptorsLists[i],
+            .Layout = layouts[i],
+            .Handle = rawDescriptorSets[i]
+        });
     }
-    return sets;
+    return descriptorSets;
 }
 
-void DescriptorPool::Free(glm::u32 numDescriptorSets, const DescriptorSet* descriptorSets)
+void DescriptorPool::Free(const std::vector<DescriptorSetLayout>& descriptorSets)
 {
-    DEBUG_ASSERT(m_numAllocatedSets > numDescriptorSets);
-    DEBUG_ASSERT(descriptorSets != nullptr);
+    DEBUG_ASSERT(m_numAllocatedSets >= descriptorSets.size());
+    DEBUG_ASSERT(!descriptorSets.empty());
 
     // Convert from our wrapper to vulkan handles
     std::vector<VkDescriptorSet> vulkanDescriptorSets;
-    vulkanDescriptorSets.resize(numDescriptorSets);
-    for (glm::u32 i = 0; i < numDescriptorSets; i++)
+    vulkanDescriptorSets.resize(descriptorSets.size());
+    for (glm::u32 i = 0; i < descriptorSets.size(); i++)
     {
-        vulkanDescriptorSets[i] = descriptorSets[i].GetHandle();
+        vulkanDescriptorSets[i] = descriptorSets[i].Handle;
     }
 
     // Free
@@ -123,10 +155,14 @@ void DescriptorPool::Free(glm::u32 numDescriptorSets, const DescriptorSet* descr
         vulkanDescriptorSets.size(),
         vulkanDescriptorSets.data()
     );
+    for (int i = 0; i < descriptorSets.size(); i++)
+    {
+        vkDestroyDescriptorSetLayout(m_renderingManager.GetDevice(), descriptorSets[i].Layout, nullptr);
+    }
 
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to free descriptor sets");
     }
-    else m_numAllocatedSets -= numDescriptorSets;
+    else m_numAllocatedSets -= descriptorSets.size();
 }

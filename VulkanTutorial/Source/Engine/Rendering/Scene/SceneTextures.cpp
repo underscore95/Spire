@@ -2,9 +2,8 @@
 
 #include <format>
 #include <vulkan/vulkan_core.h>
-
-#include "Engine/Rendering/Core/PipelineDescriptorSetsManager.h"
 #include "Engine/Rendering/RenderingManager.h"
+#include "Engine/Rendering/Descriptors/Descriptor.h"
 #include "Engine/Rendering/Memory/TextureManager.h"
 #include "Engine/Rendering/Memory/VulkanImage.h"
 
@@ -27,15 +26,14 @@ SceneTextures::~SceneTextures()
     }
 }
 
-PipelineResourceInfo SceneTextures::GetPipelineResourceInfo(glm::u32 binding)
+Descriptor SceneTextures::GetDescriptor(glm::u32 binding) const
 {
     return {
         .ResourceType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
         .Binding = binding,
         .Stages = VK_SHADER_STAGE_FRAGMENT_BIT,
-        .SameResourceForAllFrames = true,
+        .NumResources = static_cast<glm::u32>(m_loadedTextures.size()),
         .ResourcePtrs = m_loadedTextures.data(),
-        .NumDescriptors = static_cast<glm::u32>(m_loadedTextures.size())
     };
 }
 

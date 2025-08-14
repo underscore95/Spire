@@ -3,22 +3,28 @@
 #include <vulkan/vulkan_core.h>
 #include <glm/fwd.hpp>
 
+struct Descriptor;
 class DescriptorSetLayout;
 class RenderingManager;
-class DescriptorSet;
 
 class DescriptorPool
 {
 public:
     DescriptorPool(
-        RenderingManager& renderingManager,
-        const std::vector<DescriptorSetLayout>& descriptorSets
+        RenderingManager& renderingManager
     );
     ~DescriptorPool();
 
 public:
-    std::vector<DescriptorSet> Allocate(glm::u32 numDescriptorSets, const DescriptorSetLayout* descriptorSets);
-    void Free(glm::u32 numDescriptorSets, const DescriptorSet* descriptorSets);
+    // represents a single descriptor set
+    struct Allocation
+    {
+        glm::u32 NumDescriptors;
+        Descriptor* Descriptors;
+    };
+
+    std::vector<DescriptorSetLayout> Allocate(const std::vector<std::vector<Descriptor>>& descriptorsLists);
+    void Free(const std::vector<DescriptorSetLayout>& descriptorSets);
 
 private:
     glm::u32 m_numAllocatedSets = 0;

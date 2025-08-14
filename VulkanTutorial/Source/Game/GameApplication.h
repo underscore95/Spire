@@ -38,6 +38,8 @@ private:
 
     void UpdateUniformBuffers(glm::u32 imageIndex) const;
 
+    void SetupDescriptors();
+
     void SetupGraphicsPipeline();
 
 private:
@@ -50,4 +52,6 @@ private:
     std::unique_ptr<SceneModels> m_models;
     std::unique_ptr<Camera> m_camera;
     std::unique_ptr<SceneTextures> m_sceneTextures;
+    std::unique_ptr<DescriptorPool> m_descriptorPool;
+    std::vector<DescriptorSetLayout> m_descriptorSets;
 };

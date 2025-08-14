@@ -6,7 +6,7 @@
 #include "Engine/Resources/Model.h"
 
 class GraphicsPipeline;
-struct PipelineResourceInfo;
+struct Descriptor;
 class RenderingManager;
 struct Mesh;
 
@@ -33,7 +33,8 @@ public:
                          glm::u32 modelIndex,
                          glm::u32 instances = 1
     ) const;
-    [[nodiscard]] std::array<PipelineResourceInfo, 1> GetPipelineResourceInfo() const;
+
+    [[nodiscard]] Descriptor GetDescriptor(glm::u32 binding) const;
 
 private:
     void CreateVertexBuffer(const std::vector<Model>& models);

@@ -3,22 +3,22 @@
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 #include "Engine/Rendering/Memory/BufferManager.h"
-#include "PipelineDescriptorSetsManager.h"
 #include "RenderingCommandManager.h"
+#include "Engine/Rendering/Descriptors/DescriptorSetLayout.h"
 
 GraphicsPipeline::GraphicsPipeline(
     VkDevice device,
     VkShaderModule vertexShader,
     VkShaderModule fragmentShader,
-    std::unique_ptr<PipelineDescriptorSetsManager> descriptorSetsManager,
+    const std::vector<DescriptorSetLayout>& descriptorSets,
     VkFormat colorFormat,
     VkFormat depthFormat,
     RenderingManager& renderingManager,
     glm::u32 pushConstantSize)
     : m_device(device),
-      m_descriptorSetsManager(std::move(descriptorSetsManager)),
       m_renderingManager(renderingManager),
-      m_pushConstantSize(pushConstantSize)
+      m_pushConstantSize(pushConstantSize),
+      m_descriptorSetLayouts(DescriptorSetLayout::ToLayoutVector(descriptorSets))
 {
     // pipeline
     constexpr glm::u32 NUM_SHADER_STAGES = 2;
@@ -115,8 +115,8 @@ GraphicsPipeline::GraphicsPipeline(
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 1,
-        .pSetLayouts = m_descriptorSetsManager->GetPointerToFirstDescriptorSetLayout(),
+        .setLayoutCount = static_cast<glm::u32>(m_descriptorSetLayouts.size()),
+        .pSetLayouts = m_descriptorSetLayouts.data(),
         .pushConstantRangeCount = 1,
         .pPushConstantRanges = &pushConstantRange
     };
@@ -171,7 +171,6 @@ GraphicsPipeline::GraphicsPipeline(
 GraphicsPipeline::~GraphicsPipeline()
 {
     vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
-    m_descriptorSetsManager.reset();
     vkDestroyPipeline(m_device, m_pipeline, nullptr);
 }
 
@@ -207,23 +206,13 @@ void GraphicsPipeline::CmdSetViewportToWindowSize(VkCommandBuffer commandBuffer,
     CmdSetViewport(commandBuffer, &viewport, &scissor);
 }
 
-void GraphicsPipeline::CmdBindTo(VkCommandBuffer commandBuffer, glm::u32 swapchainImageIndex) const
+void GraphicsPipeline::CmdBindTo(VkCommandBuffer commandBuffer) const
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
-
-    const auto& descriptorSets = m_descriptorSetsManager->GetDescriptorSets();
-    if (descriptorSets.size() > 0)
-    {
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout,
-                                0, // firstSet
-                                1, // descriptorSetCount
-                                &descriptorSets[swapchainImageIndex],
-                                0, // dynamicOffsetCount
-                                nullptr); // pDynamicOffsets
-    }
 }
 
-void GraphicsPipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size, glm::u32 offset) const
+void GraphicsPipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size,
+                                           glm::u32 offset) const
 {
     DEBUG_ASSERT(data != nullptr);
     DEBUG_ASSERT(size + offset <= m_pushConstantSize);
@@ -237,4 +226,9 @@ void GraphicsPipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const 
         size,
         data
     );
+}
+
+VkPipelineLayout GraphicsPipeline::GetLayout() const
+{
+    return m_pipelineLayout;
 }

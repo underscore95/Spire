@@ -27,8 +27,6 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/Memory/BufferManager.h
         Source/Engine/Utils/Timer.cpp
         Source/Engine/Utils/Timer.h
-        Source/Engine/Rendering/Core/PipelineDescriptorSetsManager.cpp
-        Source/Engine/Rendering/Core/PipelineDescriptorSetsManager.h
         Source/Engine/Utils/Camera/Camera.cpp
         Source/Engine/Utils/Camera/Camera.h
         Source/Engine/Rendering/Memory/TextureManager.cpp
@@ -68,9 +66,8 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/Descriptors/DescriptorPool.cpp
         Source/Engine/Rendering/Descriptors/DescriptorPool.h
         Source/Engine/Rendering/Descriptors/DescriptorSetLayout.h
-        Source/Engine/Rendering/Descriptors/DescriptorSetLayout.cpp
-        Source/Engine/Rendering/Descriptors/DescriptorSet.cpp
-        Source/Engine/Rendering/Descriptors/DescriptorSet.h
+        Source/Engine/Rendering/Descriptors/DescriptorSetsUpdater.cpp
+        Source/Engine/Rendering/Descriptors/DescriptorSetsUpdater.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

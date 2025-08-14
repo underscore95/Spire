@@ -4,6 +4,8 @@
 #include <spdlog/spdlog.h>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Engine/Rendering/Descriptors/DescriptorSetsUpdater.h"
+
 void GameApplication::Start(Engine& engine)
 {
     m_engine = &engine;
@@ -32,6 +34,9 @@ void GameApplication::Start(Engine& engine)
     // Textures
     m_sceneTextures = std::make_unique<SceneTextures>(rm, std::vector<std::string>{"test.png", "test2.png"});
 
+    // Descriptors
+    SetupDescriptors();
+
     // Pipeline
     SetupGraphicsPipeline();
 
@@ -58,6 +63,9 @@ GameApplication::~GameApplication()
     m_sceneTextures.reset();
 
     m_graphicsPipeline.reset();
+    
+    m_descriptorPool->Free(m_descriptorSets);
+    m_descriptorPool.reset();
 
     vkDestroyShaderModule(rm.GetDevice(), m_vertexShader, nullptr);
     vkDestroyShaderModule(rm.GetDevice(), m_fragmentShader, nullptr);
@@ -154,7 +162,8 @@ void GameApplication::RecordCommandBuffers() const
 
         BeginRendering(commandBuffer, i);
 
-        m_graphicsPipeline->CmdBindTo(commandBuffer, i);
+        m_graphicsPipeline->CmdBindTo(commandBuffer);
+        m_descriptorSets[i].CmdBind(commandBuffer, m_graphicsPipeline->GetLayout(), 0);
 
         m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
@@ -223,34 +232,49 @@ void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const
     m_engine->GetRenderingManager().GetBufferManager().UpdateBuffer(m_uniformBuffers[imageIndex], &WVP, sizeof(WVP));
 }
 
+void GameApplication::SetupDescriptors()
+{
+    std::vector<std::vector<Descriptor>> descriptorLists;
+    for (glm::u32 i = 0; i < m_engine->GetRenderingManager().GetSwapchain().GetNumImages(); i++)
+    {
+        std::vector<Descriptor> descriptors;
+
+        // ModelVertex buffer
+        descriptors.push_back(m_models->GetDescriptor(0));
+
+        // Textures
+        descriptors.push_back(m_sceneTextures->GetDescriptor(2));
+
+        // Uniform buffers
+        descriptors.push_back(Descriptor{
+            .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .Binding = 3,
+            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+            .NumResources = 1,
+            .ResourcePtrs = &m_uniformBuffers[i],
+        });
+        descriptorLists.push_back(descriptors);
+    }
+
+    // Allocate
+    m_descriptorPool = std::make_unique<DescriptorPool>(m_engine->GetRenderingManager());
+    m_descriptorSets = m_descriptorPool->Allocate(descriptorLists);
+
+    // Update
+    DescriptorSetsUpdater updater(m_engine->GetRenderingManager().GetDevice(), m_descriptorSets.size(),
+                                  m_descriptorSets.data());
+    updater.Update();
+}
+
 void GameApplication::SetupGraphicsPipeline()
 {
     auto& rm = m_engine->GetRenderingManager();
-
-    std::vector<PipelineResourceInfo> pipelineResources;
-
-    // ModelVertex buffer
-    std::array modelResources = m_models->GetPipelineResourceInfo();
-    for (const auto& info : modelResources) pipelineResources.push_back(info);
-
-    // Textures
-    pipelineResources.push_back(m_sceneTextures->GetPipelineResourceInfo(2));
-
-    // Uniform buffers
-    pipelineResources.push_back({
-        .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .Binding = 3,
-        .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-        .SameResourceForAllFrames = false,
-        .ResourcePtrs = m_uniformBuffers.data(),
-        .NumDescriptors = 1
-    });
 
     m_graphicsPipeline = std::make_unique<GraphicsPipeline>(
         rm.GetDevice(),
         m_vertexShader,
         m_fragmentShader,
-        std::make_unique<PipelineDescriptorSetsManager>(rm, pipelineResources),
+        m_descriptorSets,
         rm.GetSwapchain().GetSurfaceFormat().format,
         rm.GetPhysicalDevice().DepthFormat,
         rm,

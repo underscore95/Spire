@@ -7,6 +7,7 @@
 struct VulkanImage;
 class RenderingManager;
 struct PipelineResourceInfo;
+struct Descriptor;
 
 class SceneTextures
 {
@@ -15,7 +16,8 @@ public:
     ~SceneTextures();
 
 public:
-    PipelineResourceInfo GetPipelineResourceInfo(glm::u32 binding);
+    [[nodiscard]] Descriptor GetDescriptor(glm::u32 binding) const;
+
     glm::u32 NumLoadedTextures() const;
 
 private:

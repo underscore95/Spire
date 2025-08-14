@@ -12,7 +12,7 @@ struct Descriptor
     glm::u32 Binding;
     VkShaderStageFlags Stages;
 
-    glm::u32 NumResources;
+    glm::u32 NumResources; // This class can represent multiple descriptors if it is e.g. an array of images
     union ResourcePtr
     {
         const void* Raw;

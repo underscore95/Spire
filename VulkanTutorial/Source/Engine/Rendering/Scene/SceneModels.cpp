@@ -2,10 +2,10 @@
 #include <libassert/assert.hpp>
 #include "Engine/Rendering/Memory/BufferManager.h"
 #include "Engine/Rendering/Core/GraphicsPipeline.h"
-#include "Engine/Rendering/Core/PipelineDescriptorSetsManager.h"
 #include "PushConstants.h"
 #include "Engine/Rendering/Renderers/Renderer.h"
 #include "Engine/Rendering/RenderingManager.h"
+#include "Engine/Rendering/Descriptors/Descriptor.h"
 #include "Engine/Rendering/Memory/VulkanBuffer.h"
 #include "Engine/Resources/Mesh.h"
 
@@ -50,30 +50,26 @@ void SceneModels::CmdRenderModels(
 
         // set the texture index
         pipeline.CmdSetPushConstants(
-           commandBuffer,
-           &sceneMesh.TextureIndex,
-           sizeof(sceneMesh.TextureIndex),
-           static_cast<glm::u32>(offsetof(PushConstants, TextureIndex))
-       );
+            commandBuffer,
+            &sceneMesh.TextureIndex,
+            sizeof(sceneMesh.TextureIndex),
+            static_cast<glm::u32>(offsetof(PushConstants, TextureIndex))
+        );
 
         // draw the mesh
         vkCmdDraw(commandBuffer, sceneMesh.NumVertices, instances, 0, 0);
     }
 }
 
-std::array<PipelineResourceInfo, 1> SceneModels::GetPipelineResourceInfo() const
+Descriptor SceneModels::GetDescriptor(glm::u32 binding) const
 {
-    std::array info = {
-        PipelineResourceInfo{
-            .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .Binding = 0,
-            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-            .SameResourceForAllFrames = true,
-            .ResourcePtrs = &m_vertexStorageBuffer
-        }
+    return {
+        .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .Binding = binding,
+        .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+        .NumResources = 1,
+        .ResourcePtrs = &m_vertexStorageBuffer
     };
-
-    return info;
 }
 
 void SceneModels::CreateVertexBuffer(const std::vector<Model>& models)
@@ -90,7 +86,7 @@ void SceneModels::CreateVertexBuffer(const std::vector<Model>& models)
             m_models.back().push_back({
                 .NumVertices = static_cast<glm::u32>(mesh->Vertices.size()),
                 .VertexStartIndex = totalSize / VERTEX_SIZE,
-                .TextureIndex =   mesh->TextureIndex
+                .TextureIndex = mesh->TextureIndex
             });
             totalSize += mesh->Vertices.size() * VERTEX_SIZE;
             numMeshes++;
