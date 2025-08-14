@@ -162,8 +162,8 @@ void GameApplication::RecordCommandBuffers() const
         BeginRendering(commandBuffer, i);
 
         m_graphicsPipeline->CmdBindTo(commandBuffer);
-        m_descriptorManager->CmdBind(commandBuffer, m_graphicsPipeline->GetLayout(), 0, 0);
-        m_descriptorManager->CmdBind(commandBuffer, m_graphicsPipeline->GetLayout(), 1+i, 1);
+        m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 0, 0);
+        m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 1, 1);
 
         m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
@@ -235,7 +235,7 @@ void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const
 void GameApplication::SetupDescriptors()
 {
     // Set layouts
-    DescriptorSetLayoutList layouts;
+    DescriptorSetLayoutList layouts(m_engine->GetRenderingManager().GetSwapchain().GetNumImages());
     {
         DescriptorSetLayout layout;
 
@@ -248,18 +248,23 @@ void GameApplication::SetupDescriptors()
         layouts.Push(layout);
     }
 
-    for (glm::u32 i = 0; i < m_engine->GetRenderingManager().GetSwapchain().GetNumImages(); i++)
     {
-        DescriptorSetLayout layout;
+        PerImageDescriptorSetLayout layout;
+
+        PerImageDescriptor perImageDescriptor;
+        for (glm::u32 i = 0; i < m_engine->GetRenderingManager().GetSwapchain().GetNumImages(); i++)
+        {
+            perImageDescriptor.Descriptors.push_back(Descriptor{
+                .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                .Binding = 3,
+                .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+                .NumResources = 1,
+                .ResourcePtrs = &m_uniformBuffers[i],
+            });
+        }
 
         // Uniform buffers
-        layout.push_back(Descriptor{
-            .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .Binding = 3,
-            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-            .NumResources = 1,
-            .ResourcePtrs = &m_uniformBuffers[i],
-        });
+        layout.push_back(perImageDescriptor);
 
         layouts.Push(layout);
     }

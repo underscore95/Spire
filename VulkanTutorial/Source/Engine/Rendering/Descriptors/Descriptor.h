@@ -20,3 +20,8 @@ struct Descriptor
         const VulkanImage* Textures;
     } ResourcePtrs;
 };
+
+struct PerImageDescriptor
+{
+    std::vector<Descriptor> Descriptors; // each descriptor should go in a different set
+};

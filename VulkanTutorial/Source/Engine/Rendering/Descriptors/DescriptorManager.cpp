@@ -2,6 +2,7 @@
 #include "DescriptorPool.h"
 #include "DescriptorSetsUpdater.h"
 #include "Engine/Rendering/RenderingManager.h"
+#include "Engine/Rendering/Core/Swapchain.h"
 
 DescriptorManager::DescriptorManager(
     RenderingManager& renderingManager,
@@ -30,10 +31,12 @@ DescriptorManager::~DescriptorManager()
     m_pool.reset();
 }
 
-void DescriptorManager::CmdBind(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, glm::u32 setIndex,
+void DescriptorManager::CmdBind(VkCommandBuffer commandBuffer, glm::u32 currentSwapchainImage,
+                                VkPipelineLayout pipelineLayout, glm::u32 setIndex,
                                 glm::u32 shaderSetIndex) const
 {
-    m_descriptorSets[setIndex].CmdBind(commandBuffer, pipelineLayout, shaderSetIndex);
+    glm::u32 offset = m_layouts.IsSetPerImage(setIndex) ? currentSwapchainImage : 0;
+    m_descriptorSets[setIndex + offset].CmdBind(commandBuffer, pipelineLayout, shaderSetIndex);
 }
 
 const std::vector<VkDescriptorSetLayout>& DescriptorManager::GetRawLayouts() const

@@ -17,7 +17,8 @@ public:
     ~DescriptorManager();
 
 public:
-    void CmdBind(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, glm::u32 setIndex, glm::u32 shaderSetIndex) const;
+    void CmdBind(VkCommandBuffer commandBuffer, glm::u32 currentSwapchainImage, VkPipelineLayout pipelineLayout, glm::u32 setIndex, glm
+                 ::u32 shaderSetIndex) const;
 
     const std::vector<VkDescriptorSetLayout>& GetRawLayouts() const;
 
