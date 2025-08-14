@@ -70,8 +70,8 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/Descriptors/DescriptorSetsUpdater.h
         Source/Engine/Rendering/Descriptors/DescriptorManager.cpp
         Source/Engine/Rendering/Descriptors/DescriptorManager.h
-        Source/Engine/Rendering/Descriptors/DescriptorSetLayout.cpp
-        Source/Engine/Rendering/Descriptors/DescriptorSetLayout.h
+        Source/Engine/Rendering/Descriptors/DescriptorSetLayoutList.cpp
+        Source/Engine/Rendering/Descriptors/DescriptorSetLayoutList.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

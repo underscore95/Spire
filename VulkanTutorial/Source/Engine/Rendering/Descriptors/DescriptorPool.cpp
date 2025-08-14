@@ -6,7 +6,7 @@
 #include <spdlog/spdlog.h>
 #include "Descriptor.h"
 #include "DescriptorSet.h"
-#include "DescriptorSetLayout.h"
+#include "DescriptorSetLayoutList.h"
 #include "Engine/Rendering/RenderingManager.h"
 
 DescriptorPool::DescriptorPool(
@@ -32,7 +32,7 @@ DescriptorPool::DescriptorPool(
     // Create pool
     VkDescriptorPoolCreateInfo poolInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .flags = 0,
+        .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
         .maxSets = static_cast<glm::u32>(300),
         .poolSizeCount = static_cast<glm::u32>(sizes.size()),
         .pPoolSizes = sizes.data()
@@ -68,9 +68,9 @@ std::vector<DescriptorSet> DescriptorPool::Allocate(
     {
         std::unordered_set<glm::u32> usedBindings;
         std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-        layoutBindings.reserve(descriptors.Size());
+        layoutBindings.reserve(descriptors.size());
 
-        for (const auto& descriptor : descriptors.GetDescriptors())
+        for (const auto& descriptor : descriptors)
         {
             // check bindings are unique
             DEBUG_ASSERT(!usedBindings.contains(descriptor.Binding));
@@ -128,7 +128,7 @@ std::vector<DescriptorSet> DescriptorPool::Allocate(
     for (int i = 0; i < rawDescriptorSets.size(); i++)
     {
         descriptorSets.push_back(DescriptorSet{
-            .Descriptors = descriptorsLists.GetSet(i).GetDescriptors(),
+            .Descriptors = descriptorsLists.GetSet(i),
             .Layout = layouts[i],
             .Handle = rawDescriptorSets[i]
         });

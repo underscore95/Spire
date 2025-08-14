@@ -18,7 +18,7 @@
 #include "Rendering/Descriptors/DescriptorSet.h"
 #include "Rendering/Descriptors/DescriptorPool.h"
 #include "Rendering/Descriptors/DescriptorManager.h"
-#include "Rendering/Descriptors/DescriptorSetLayout.h"
+#include "Rendering/Descriptors/DescriptorSetLayoutList.h"
 #include "Rendering/Memory/TextureManager.h"
 #include "Engine/Rendering/Core/Swapchain.h"
 #include "Rendering/Core/LogicalDevice.h"

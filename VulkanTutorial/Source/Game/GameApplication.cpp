@@ -237,23 +237,23 @@ void GameApplication::SetupDescriptors()
     // Set layouts
     DescriptorSetLayoutList layouts;
     {
-        DescriptorSetLayout layout(true);
+        DescriptorSetLayout layout;
 
         // ModelVertex buffer
-        layout.Push(m_models->GetDescriptor(0));
+        layout.push_back(m_models->GetDescriptor(0));
 
         // Textures
-        layout.Push(m_sceneTextures->GetDescriptor(2));
+        layout.push_back(m_sceneTextures->GetDescriptor(2));
 
         layouts.Push(layout);
     }
 
     for (glm::u32 i = 0; i < m_engine->GetRenderingManager().GetSwapchain().GetNumImages(); i++)
     {
-        DescriptorSetLayout layout(false);
+        DescriptorSetLayout layout;
 
         // Uniform buffers
-        layout.Push(Descriptor{
+        layout.push_back(Descriptor{
             .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .Binding = 3,
             .Stages = VK_SHADER_STAGE_VERTEX_BIT,

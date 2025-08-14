@@ -1,30 +1,5 @@
-#include "DescriptorSetLayout.h"
+#include "DescriptorSetLayoutList.h"
 #include <libassert/assert.hpp>
-
-DescriptorSetLayout::DescriptorSetLayout(bool isConstantData)
-    : m_isConstant(isConstantData)
-{
-}
-
-void DescriptorSetLayout::Push(const Descriptor& descriptor)
-{
-    m_descriptors.push_back(descriptor);
-}
-
-const std::vector<Descriptor>& DescriptorSetLayout::GetDescriptors() const
-{
-    return m_descriptors;
-}
-
-bool DescriptorSetLayout::IsConstant() const
-{
-    return m_isConstant;
-}
-
-glm::u32 DescriptorSetLayout::Size() const
-{
-    return m_descriptors.size();
-}
 
 glm::u32 DescriptorSetLayoutList::Push(const DescriptorSetLayout& layout)
 {

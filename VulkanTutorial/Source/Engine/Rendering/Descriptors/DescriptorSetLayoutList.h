@@ -3,22 +3,7 @@
 #include <vector>
 #include "Descriptor.h"
 
-class DescriptorSetLayout
-{
-public:
-    explicit DescriptorSetLayout(bool isConstantData);
-
-    void Push(const Descriptor& descriptor);
-
-    const std::vector<Descriptor>& GetDescriptors() const;
-    bool IsConstant() const;
-
-    glm::u32 Size() const;
-
-private:
-    std::vector<Descriptor> m_descriptors;
-    bool m_isConstant;
-};
+typedef std::vector<Descriptor> DescriptorSetLayout;
 
 class DescriptorSetLayoutList
 {
