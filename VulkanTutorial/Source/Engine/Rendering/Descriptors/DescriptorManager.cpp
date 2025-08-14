@@ -31,9 +31,9 @@ DescriptorManager::~DescriptorManager()
 }
 
 void DescriptorManager::CmdBind(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, glm::u32 setIndex,
-                                glm::u32 firstSet) const
+                                glm::u32 shaderSetIndex) const
 {
-    m_descriptorSets[setIndex].CmdBind(commandBuffer, pipelineLayout, firstSet);
+    m_descriptorSets[setIndex].CmdBind(commandBuffer, pipelineLayout, shaderSetIndex);
 }
 
 const std::vector<VkDescriptorSetLayout>& DescriptorManager::GetRawLayouts() const

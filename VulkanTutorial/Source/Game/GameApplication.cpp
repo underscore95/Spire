@@ -162,7 +162,8 @@ void GameApplication::RecordCommandBuffers() const
         BeginRendering(commandBuffer, i);
 
         m_graphicsPipeline->CmdBindTo(commandBuffer);
-        m_descriptorManager->CmdBind(commandBuffer, m_graphicsPipeline->GetLayout(), i, 0);
+        m_descriptorManager->CmdBind(commandBuffer, m_graphicsPipeline->GetLayout(), 0, 0);
+        m_descriptorManager->CmdBind(commandBuffer, m_graphicsPipeline->GetLayout(), 1+i, 1);
 
         m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
@@ -235,15 +236,21 @@ void GameApplication::SetupDescriptors()
 {
     // Set layouts
     DescriptorSetLayoutList layouts;
-    for (glm::u32 i = 0; i < m_engine->GetRenderingManager().GetSwapchain().GetNumImages(); i++)
     {
-        DescriptorSetLayout layout(false);
+        DescriptorSetLayout layout(true);
 
         // ModelVertex buffer
         layout.Push(m_models->GetDescriptor(0));
 
         // Textures
         layout.Push(m_sceneTextures->GetDescriptor(2));
+
+        layouts.Push(layout);
+    }
+
+    for (glm::u32 i = 0; i < m_engine->GetRenderingManager().GetSwapchain().GetNumImages(); i++)
+    {
+        DescriptorSetLayout layout(false);
 
         // Uniform buffers
         layout.Push(Descriptor{

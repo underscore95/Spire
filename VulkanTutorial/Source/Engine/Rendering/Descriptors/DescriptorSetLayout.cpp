@@ -1,8 +1,8 @@
 #include "DescriptorSetLayout.h"
 #include <libassert/assert.hpp>
 
-DescriptorSetLayout::DescriptorSetLayout(bool isConstant)
-    : m_isConstant(isConstant)
+DescriptorSetLayout::DescriptorSetLayout(bool isConstantData)
+    : m_isConstant(isConstantData)
 {
 }
 

@@ -8,9 +8,9 @@ struct VertexData
 	float u, v;
 };
 
-layout (binding = 0) readonly buffer Vertices { VertexData data[]; } in_Vertices;
+layout (set = 0, binding = 0) readonly buffer Vertices { VertexData data[]; } in_Vertices;
 
-layout (binding = 3) readonly uniform UniformBuffer { mat4 WVP; } ubo;
+layout (set = 1, binding = 3) readonly uniform UniformBuffer { mat4 WVP; } ubo;
 
 layout (location = 0) out vec2 texCoord;
 

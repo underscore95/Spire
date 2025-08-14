@@ -6,7 +6,7 @@
 class DescriptorSetLayout
 {
 public:
-    explicit DescriptorSetLayout(bool isConstant);
+    explicit DescriptorSetLayout(bool isConstantData);
 
     void Push(const Descriptor& descriptor);
 
