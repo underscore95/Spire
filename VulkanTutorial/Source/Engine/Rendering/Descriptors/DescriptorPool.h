@@ -2,15 +2,16 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 #include <glm/fwd.hpp>
+#include "DescriptorSetLayout.h"
+#include "DescriptorSet.h"
 
 struct Descriptor;
-class DescriptorSetLayout;
 class RenderingManager;
 
 class DescriptorPool
 {
 public:
-    DescriptorPool(
+    explicit DescriptorPool(
         RenderingManager& renderingManager
     );
     ~DescriptorPool();
@@ -23,8 +24,8 @@ public:
         Descriptor* Descriptors;
     };
 
-    std::vector<DescriptorSetLayout> Allocate(const std::vector<std::vector<Descriptor>>& descriptorsLists);
-    void Free(const std::vector<DescriptorSetLayout>& descriptorSets);
+    std::vector<DescriptorSet> Allocate(const DescriptorSetLayoutList& descriptorsLists);
+    void Free(const std::vector<DescriptorSet>& descriptorSets);
 
 private:
     glm::u32 m_numAllocatedSets = 0;

@@ -3,17 +3,25 @@
 #include <vulkan/vulkan.hpp>
 #include <glm/fwd.hpp>
 
+class DescriptorManager;
 class RenderingManager;
 struct GLFWwindow;
 struct VulkanBuffer;
-class DescriptorSetLayout;
+class DescriptorSet;
 
 class GraphicsPipeline
 {
 public:
-    GraphicsPipeline(VkDevice device, VkShaderModule vertexShader, VkShaderModule fragmentShader,
-                     const std::vector<DescriptorSetLayout>& descriptorSets, VkFormat colorFormat,
-                     VkFormat depthFormat, RenderingManager& renderingManager, glm::u32 pushConstantSize);
+    GraphicsPipeline(
+        VkDevice device,
+        VkShaderModule vertexShader,
+        VkShaderModule fragmentShader,
+        const DescriptorManager& descriptorManager,
+        VkFormat colorFormat,
+        VkFormat depthFormat,
+        RenderingManager& renderingManager,
+        glm::u32 pushConstantSize
+    );
 
     ~GraphicsPipeline();
 

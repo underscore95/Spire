@@ -63,9 +63,8 @@ GameApplication::~GameApplication()
     m_sceneTextures.reset();
 
     m_graphicsPipeline.reset();
-    
-    m_descriptorPool->Free(m_descriptorSets);
-    m_descriptorPool.reset();
+
+    m_descriptorManager.reset();
 
     vkDestroyShaderModule(rm.GetDevice(), m_vertexShader, nullptr);
     vkDestroyShaderModule(rm.GetDevice(), m_fragmentShader, nullptr);
@@ -163,7 +162,7 @@ void GameApplication::RecordCommandBuffers() const
         BeginRendering(commandBuffer, i);
 
         m_graphicsPipeline->CmdBindTo(commandBuffer);
-        m_descriptorSets[i].CmdBind(commandBuffer, m_graphicsPipeline->GetLayout(), 0);
+        m_descriptorManager->CmdBind(commandBuffer, m_graphicsPipeline->GetLayout(), i, 0);
 
         m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
@@ -234,36 +233,32 @@ void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const
 
 void GameApplication::SetupDescriptors()
 {
-    std::vector<std::vector<Descriptor>> descriptorLists;
+    // Set layouts
+    DescriptorSetLayoutList layouts;
     for (glm::u32 i = 0; i < m_engine->GetRenderingManager().GetSwapchain().GetNumImages(); i++)
     {
-        std::vector<Descriptor> descriptors;
+        DescriptorSetLayout layout(false);
 
         // ModelVertex buffer
-        descriptors.push_back(m_models->GetDescriptor(0));
+        layout.Push(m_models->GetDescriptor(0));
 
         // Textures
-        descriptors.push_back(m_sceneTextures->GetDescriptor(2));
+        layout.Push(m_sceneTextures->GetDescriptor(2));
 
         // Uniform buffers
-        descriptors.push_back(Descriptor{
+        layout.Push(Descriptor{
             .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .Binding = 3,
             .Stages = VK_SHADER_STAGE_VERTEX_BIT,
             .NumResources = 1,
             .ResourcePtrs = &m_uniformBuffers[i],
         });
-        descriptorLists.push_back(descriptors);
+
+        layouts.Push(layout);
     }
 
-    // Allocate
-    m_descriptorPool = std::make_unique<DescriptorPool>(m_engine->GetRenderingManager());
-    m_descriptorSets = m_descriptorPool->Allocate(descriptorLists);
-
-    // Update
-    DescriptorSetsUpdater updater(m_engine->GetRenderingManager().GetDevice(), m_descriptorSets.size(),
-                                  m_descriptorSets.data());
-    updater.Update();
+    // Create descriptor manager
+    m_descriptorManager = std::make_unique<DescriptorManager>(m_engine->GetRenderingManager(), layouts);
 }
 
 void GameApplication::SetupGraphicsPipeline()
@@ -274,7 +269,7 @@ void GameApplication::SetupGraphicsPipeline()
         rm.GetDevice(),
         m_vertexShader,
         m_fragmentShader,
-        m_descriptorSets,
+        *m_descriptorManager,
         rm.GetSwapchain().GetSurfaceFormat().format,
         rm.GetPhysicalDevice().DepthFormat,
         rm,

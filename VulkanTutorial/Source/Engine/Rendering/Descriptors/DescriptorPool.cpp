@@ -5,6 +5,7 @@
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 #include "Descriptor.h"
+#include "DescriptorSet.h"
 #include "DescriptorSetLayout.h"
 #include "Engine/Rendering/RenderingManager.h"
 
@@ -55,21 +56,21 @@ DescriptorPool::~DescriptorPool()
     vkDestroyDescriptorPool(m_renderingManager.GetDevice(), m_descriptorPool, nullptr);
 }
 
-std::vector<DescriptorSetLayout> DescriptorPool::Allocate(
-    const std::vector<std::vector<Descriptor>>& descriptorsLists
+std::vector<DescriptorSet> DescriptorPool::Allocate(
+    const DescriptorSetLayoutList& descriptorsLists
 )
 {
     // Generate layouts
     std::vector<VkDescriptorSetLayout> layouts;
-    layouts.reserve(descriptorsLists.size());
+    layouts.reserve(descriptorsLists.Size());
 
-    for (const auto& descriptors : descriptorsLists)
+    for (const auto& descriptors : descriptorsLists.GetDescriptorSets())
     {
         std::unordered_set<glm::u32> usedBindings;
         std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-        layoutBindings.reserve(descriptors.size());
+        layoutBindings.reserve(descriptors.Size());
 
-        for (const auto& descriptor : descriptors)
+        for (const auto& descriptor : descriptors.GetDescriptors())
         {
             // check bindings are unique
             DEBUG_ASSERT(!usedBindings.contains(descriptor.Binding));
@@ -103,13 +104,13 @@ std::vector<DescriptorSetLayout> DescriptorPool::Allocate(
 
     // Make allocation
     std::vector<VkDescriptorSet> rawDescriptorSets;
-    rawDescriptorSets.resize(descriptorsLists.size());
+    rawDescriptorSets.resize(descriptorsLists.Size());
 
     VkDescriptorSetAllocateInfo allocInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .pNext = nullptr,
         .descriptorPool = m_descriptorPool,
-        .descriptorSetCount = static_cast<glm::u32>(descriptorsLists.size()),
+        .descriptorSetCount = descriptorsLists.Size(),
         .pSetLayouts = layouts.data()
     };
 
@@ -119,15 +120,15 @@ std::vector<DescriptorSetLayout> DescriptorPool::Allocate(
     {
         spdlog::error("Failed to allocate descriptor sets");
     }
-    else m_numAllocatedSets += descriptorsLists.size();
+    else m_numAllocatedSets += descriptorsLists.Size();
 
     // Convert to our wrapper
-    std::vector<DescriptorSetLayout> descriptorSets;
+    std::vector<DescriptorSet> descriptorSets;
     descriptorSets.reserve(rawDescriptorSets.size());
     for (int i = 0; i < rawDescriptorSets.size(); i++)
     {
-        descriptorSets.push_back(DescriptorSetLayout{
-            .Descriptors = descriptorsLists[i],
+        descriptorSets.push_back(DescriptorSet{
+            .Descriptors = descriptorsLists.GetSet(i).GetDescriptors(),
             .Layout = layouts[i],
             .Handle = rawDescriptorSets[i]
         });
@@ -135,7 +136,7 @@ std::vector<DescriptorSetLayout> DescriptorPool::Allocate(
     return descriptorSets;
 }
 
-void DescriptorPool::Free(const std::vector<DescriptorSetLayout>& descriptorSets)
+void DescriptorPool::Free(const std::vector<DescriptorSet>& descriptorSets)
 {
     DEBUG_ASSERT(m_numAllocatedSets >= descriptorSets.size());
     DEBUG_ASSERT(!descriptorSets.empty());

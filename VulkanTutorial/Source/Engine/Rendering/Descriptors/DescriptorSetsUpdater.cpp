@@ -2,12 +2,12 @@
 #include <libassert/assert.hpp>
 #include "Engine/Rendering/Memory/VulkanImage.h"
 #include "Engine/Rendering/Memory/VulkanBuffer.h"
-#include "DescriptorSetLayout.h"
+#include "DescriptorSet.h"
 
 DescriptorSetsUpdater::DescriptorSetsUpdater(
     VkDevice device,
     glm::u32 numDescriptorSets,
-    const DescriptorSetLayout* descriptorSets
+    const DescriptorSet* descriptorSets
 ) : m_device(device)
 {
     // Constructor just prepares the write descriptor sets but doesn't update anything
@@ -19,7 +19,7 @@ DescriptorSetsUpdater::DescriptorSetsUpdater(
     glm::u32 totalWriteDescriptorsRequired = 0;
     for (glm::u32 i = 0; i < numDescriptorSets; i++)
     {
-        const DescriptorSetLayout& descriptorSet = descriptorSets[i];
+        const DescriptorSet& descriptorSet = descriptorSets[i];
         for (const Descriptor& descriptor : descriptorSet.Descriptors)
         {
             totalWriteDescriptorsRequired++;
@@ -32,7 +32,7 @@ DescriptorSetsUpdater::DescriptorSetsUpdater(
     // Create the write descriptors
     for (glm::u32 i = 0; i < numDescriptorSets; i++)
     {
-        const DescriptorSetLayout& descriptorSet = descriptorSets[i];
+        const DescriptorSet& descriptorSet = descriptorSets[i];
         for (const Descriptor& descriptor : descriptorSet.Descriptors)
         {
             DEBUG_ASSERT(descriptor.ResourcePtrs.Raw != nullptr);

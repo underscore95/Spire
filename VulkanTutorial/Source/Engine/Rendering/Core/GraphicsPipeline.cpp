@@ -4,13 +4,14 @@
 #include <spdlog/spdlog.h>
 #include "Engine/Rendering/Memory/BufferManager.h"
 #include "RenderingCommandManager.h"
-#include "Engine/Rendering/Descriptors/DescriptorSetLayout.h"
+#include "Engine/Rendering/Descriptors/DescriptorManager.h"
+#include "Engine/Rendering/Descriptors/DescriptorSet.h"
 
 GraphicsPipeline::GraphicsPipeline(
     VkDevice device,
     VkShaderModule vertexShader,
     VkShaderModule fragmentShader,
-    const std::vector<DescriptorSetLayout>& descriptorSets,
+    const DescriptorManager& descriptorManager,
     VkFormat colorFormat,
     VkFormat depthFormat,
     RenderingManager& renderingManager,
@@ -18,7 +19,7 @@ GraphicsPipeline::GraphicsPipeline(
     : m_device(device),
       m_renderingManager(renderingManager),
       m_pushConstantSize(pushConstantSize),
-      m_descriptorSetLayouts(DescriptorSetLayout::ToLayoutVector(descriptorSets))
+      m_descriptorSetLayouts(descriptorManager.GetRawLayouts())
 {
     // pipeline
     constexpr glm::u32 NUM_SHADER_STAGES = 2;

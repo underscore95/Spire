@@ -2,7 +2,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-#include "DescriptorSetLayout.h"
+#include "DescriptorSet.h"
 
 union DescriptorInfo
 {
@@ -13,7 +13,7 @@ union DescriptorInfo
 class DescriptorSetsUpdater
 {
 public:
-    DescriptorSetsUpdater(VkDevice device, glm::u32 numDescriptorSets, const DescriptorSetLayout* descriptorSets);
+    DescriptorSetsUpdater(VkDevice device, glm::u32 numDescriptorSets, const DescriptorSet* descriptorSets);
     ~DescriptorSetsUpdater();
 
     void Update();

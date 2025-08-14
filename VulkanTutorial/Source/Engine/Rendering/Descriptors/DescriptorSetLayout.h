@@ -3,44 +3,36 @@
 #include <vector>
 #include "Descriptor.h"
 
-struct DescriptorSetLayout
+class DescriptorSetLayout
 {
-    std::vector<Descriptor> Descriptors;
-    VkDescriptorSetLayout Layout;
-    VkDescriptorSet Handle;
+public:
+    explicit DescriptorSetLayout(bool isConstant);
 
-    static std::vector<VkDescriptorSet> ToRawVector(const std::vector<DescriptorSetLayout>& sets)
-    {
-        std::vector<VkDescriptorSet> raw;
-        raw.resize(sets.size());
-        for (glm::u32 i = 0; i < sets.size(); i++)
-        {
-            raw[i] = sets[i].Handle;
-        }
-        return raw;
-    }
+    void Push(const Descriptor& descriptor);
 
-    static std::vector<VkDescriptorSetLayout> ToLayoutVector(const std::vector<DescriptorSetLayout>& sets)
-    {
-        std::vector<VkDescriptorSetLayout> raw;
-        raw.resize(sets.size());
-        for (glm::u32 i = 0; i < sets.size(); i++)
-        {
-            raw[i] = sets[i].Layout;
-        }
-        return raw;
-    }
+    const std::vector<Descriptor>& GetDescriptors() const;
+    bool IsConstant() const;
 
-    void CmdBind(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, glm::u32 firstSet) const
-    {
-        vkCmdBindDescriptorSets(
-            commandBuffer,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipelineLayout,
-            firstSet,
-            1,
-            &Handle,
-            0,
-            nullptr);
-    }
+    glm::u32 Size() const;
+
+private:
+    std::vector<Descriptor> m_descriptors;
+    bool m_isConstant;
+};
+
+class DescriptorSetLayoutList
+{
+public:
+    DescriptorSetLayoutList() = default;
+
+    glm::u32 Push(const DescriptorSetLayout& layout);
+
+    const std::vector<DescriptorSetLayout>& GetDescriptorSets() const;
+
+    const DescriptorSetLayout& GetSet(glm::u32 index) const;
+
+    glm::u32 Size() const;
+
+private:
+    std::vector<DescriptorSetLayout> m_descriptorSets;
 };
