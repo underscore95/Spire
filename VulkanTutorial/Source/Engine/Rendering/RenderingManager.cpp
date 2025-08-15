@@ -335,6 +335,7 @@ void RenderingManager::OnWindowResize()
     m_deviceManager->UpdateSurfaceCapabilities();
 
     CreateSwapchain();
+    if (!m_swapchain || m_swapchain->IsValid()) spdlog::error("Failed to recreate swapchain {}", static_cast<const void*>(m_swapchain.get()));
     CreateQueue();
 
     FreeDepthResources();

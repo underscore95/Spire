@@ -12,6 +12,8 @@
 #include "RenderingDeviceManager.h"
 #include "Engine/Window/Window.h"
 
+static glm::u32 s_numSwapchainImages = -1;
+
 Swapchain::Swapchain(
     VkDevice device,
     const PhysicalDevice& physicalDevice,
@@ -22,6 +24,14 @@ Swapchain::Swapchain(
 {
     // Create swapchain
     glm::u32 numImages = ChooseNumImages(physicalDevice.SurfaceCapabilities);
+
+    if (s_numSwapchainImages != -1 && s_numSwapchainImages != numImages)
+    {
+        spdlog::error("Swapchain was created with a new number of swapchain images! New: {} Old: {} New Device: {}",
+                      numImages, s_numSwapchainImages, physicalDevice.DeviceProperties.deviceName);
+        return;
+    }
+    s_numSwapchainImages = numImages;
 
     VkPresentModeKHR presentMode = ChoosePresentMode(physicalDevice.PresentModes);
 
