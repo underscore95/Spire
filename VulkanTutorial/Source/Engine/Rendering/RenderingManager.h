@@ -24,6 +24,7 @@ struct PhysicalDevice;
 class VulkanQueue;
 class BufferManager;
 class Engine;
+class DescriptorCreator;
 
 class RenderingManager
 {
@@ -65,6 +66,8 @@ public:
 
     [[nodiscard]] VulkanAllocator& GetAllocatorWrapper() const;
 
+    [[nodiscard]] DescriptorCreator& GetDescriptorCreator() const;
+
 private:
     void OnWindowResize();
 
@@ -101,4 +104,5 @@ private:
     std::unique_ptr<RenderingSync> m_renderingSync = nullptr;
     std::unique_ptr<Renderer> m_renderer = nullptr;
     std::unique_ptr<ImGuiRenderer> m_imGuiRenderer = nullptr;
+    std::unique_ptr<DescriptorCreator> m_descriptorCreator = nullptr;
 };

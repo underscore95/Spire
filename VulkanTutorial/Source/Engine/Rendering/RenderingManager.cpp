@@ -20,6 +20,7 @@
 #include "Memory/TextureManager.h"
 #include "Memory/VulkanAllocator.h"
 #include "Core/VulkanDebugCallback.h"
+#include "Descriptors/DescriptorCreator.h"
 #include "Memory/VulkanImage.h"
 
 RenderingManager::RenderingManager(Engine& engine,
@@ -50,6 +51,7 @@ RenderingManager::RenderingManager(Engine& engine,
         m_instanceVersion);
 
     CreateSwapchain();
+    m_descriptorCreator = std::make_unique<DescriptorCreator>(m_swapchain->GetNumImages());
 
     m_commandManager = std::make_unique<RenderingCommandManager>(m_logicalDevice->GetDeviceQueueFamily(),
                                                                  m_logicalDevice->GetDevice());
@@ -95,6 +97,8 @@ RenderingManager::~RenderingManager()
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
         spdlog::info("Destroyed Vulkan surface instance");
     }
+
+    m_descriptorCreator.reset();
 
     m_debugCallback.reset();
 
@@ -313,6 +317,11 @@ ImGuiRenderer& RenderingManager::GetImGuiRenderer() const
 VulkanAllocator& RenderingManager::GetAllocatorWrapper() const
 {
     return *m_allocator;
+}
+
+DescriptorCreator& RenderingManager::GetDescriptorCreator() const
+{
+    return *m_descriptorCreator;
 }
 
 void RenderingManager::OnWindowResize()

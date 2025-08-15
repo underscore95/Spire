@@ -2,9 +2,10 @@
 
 #include <glm/glm.hpp>
 #include <vulkan/vulkan_core.h>
+#include <vector>
 
 struct VulkanImage;
-class VulkanBuffer;
+struct VulkanBuffer;
 
 struct Descriptor
 {

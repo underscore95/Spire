@@ -234,6 +234,8 @@ void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const
 
 void GameApplication::SetupDescriptors()
 {
+    auto& dc = m_engine->GetRenderingManager().GetDescriptorCreator();
+
     // Set layouts
     DescriptorSetLayoutList layouts(m_engine->GetRenderingManager().GetSwapchain().GetNumImages());
     {
@@ -251,20 +253,8 @@ void GameApplication::SetupDescriptors()
     {
         PerImageDescriptorSetLayout layout;
 
-        PerImageDescriptor perImageDescriptor;
-        for (glm::u32 i = 0; i < m_engine->GetRenderingManager().GetSwapchain().GetNumImages(); i++)
-        {
-            perImageDescriptor.Descriptors.push_back(Descriptor{
-                .ResourceType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .Binding = 3,
-                .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-                .NumResources = 1,
-                .ResourcePtrs = &m_uniformBuffers[i],
-            });
-        }
-
         // Uniform buffers
-        layout.push_back(perImageDescriptor);
+        layout.push_back(dc.CreatePerImageUniformBuffer(3, 1, m_uniformBuffers.data(), VK_SHADER_STAGE_VERTEX_BIT));
 
         layouts.Push(layout);
     }
