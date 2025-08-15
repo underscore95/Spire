@@ -165,5 +165,7 @@ Model ModelLoader::LoadModel(const char* fileName, std::vector<std::string>& tex
                                     GetFilePathRelativeToAssetsDirectoryNoFileName(fileName)));
     }
 
+    importer.FreeScene();
+
     return model;
 }
