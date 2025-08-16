@@ -15,8 +15,8 @@ class SceneModels
 private:
     struct SceneMesh
     {
-        glm::u32 NumVertices = 0;
-        glm::u32 VertexStartIndex = 0;
+        glm::u32 NumIndices = 0;
+        glm::u32 FirstIndex = 0;
         glm::u32 TextureIndex = 0;
     };
 
@@ -28,6 +28,10 @@ public:
     ~SceneModels();
 
 public:
+void CmdBindIndexBuffer(
+    VkCommandBuffer commandBuffer
+    ) const;
+
     void CmdRenderModels(VkCommandBuffer commandBuffer,
                          const GraphicsPipeline& pipeline,
                          glm::u32 modelIndex,
@@ -37,10 +41,11 @@ public:
     [[nodiscard]] Descriptor GetDescriptor(glm::u32 binding) const;
 
 private:
-    void CreateVertexBuffer(const std::vector<Model>& models);
+    void CreateVertexAndIndexBuffer(const std::vector<Model>& models);
 
 private:
     RenderingManager& m_renderingManager;
     VulkanBuffer m_vertexStorageBuffer;
+    VulkanBuffer m_indexBuffer;
     std::vector<std::vector<SceneMesh>> m_models;
 };

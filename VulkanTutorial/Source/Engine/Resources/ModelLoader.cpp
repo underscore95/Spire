@@ -52,23 +52,41 @@ static std::unique_ptr<Mesh> ConvertMesh(const aiMesh* aiMesh, const aiScene* ai
 
     auto mesh = std::make_unique<Mesh>();
 
-    // vertices & indices
+    // indices
     for (glm::u32 faceIndex = 0; faceIndex < aiMesh->mNumFaces; faceIndex++)
     {
         const aiFace& face = aiMesh->mFaces[faceIndex];
         DEBUG_ASSERT(face.mNumIndices == 3);
 
+        // for (glm::u32 indexIndex = 0; indexIndex < face.mNumIndices; indexIndex++)
+        // {
+        //     const glm::u32 index = face.mIndices[indexIndex];
+        //
+        //     ModelVertex vert;
+        //
+        //     vert.Pos = {aiMesh->mVertices[index].x, aiMesh->mVertices[index].y, aiMesh->mVertices[index].z};
+        //     vert.Tex = {aiMesh->mTextureCoords[0][index].x, aiMesh->mTextureCoords[0][index].y};
+        //
+        //     mesh->Vertices.push_back(vert);
+        // }
+
         for (glm::u32 indexIndex = 0; indexIndex < face.mNumIndices; indexIndex++)
         {
-            const glm::u32 index = face.mIndices[indexIndex];
-
-            ModelVertex vert;
-
-            vert.Pos = {aiMesh->mVertices[index].x, aiMesh->mVertices[index].y, aiMesh->mVertices[index].z};
-            vert.Tex = {aiMesh->mTextureCoords[0][index].x, aiMesh->mTextureCoords[0][index].y};
-
-            mesh->Vertices.push_back(vert);
+            mesh->Indices.push_back(face.mIndices[indexIndex]);
         }
+    }
+
+    // vertices
+    for (glm::u32 vertexIndex = 0; vertexIndex < aiMesh->mNumVertices; vertexIndex++)
+    {
+        ModelVertex vert = {};
+        vert.Pos = {
+            aiMesh->mVertices[vertexIndex].x, aiMesh->mVertices[vertexIndex].y, aiMesh->mVertices[vertexIndex].z
+        };
+        vert.Tex = {
+            aiMesh->mTextureCoords[0][vertexIndex].x, aiMesh->mTextureCoords[0][vertexIndex].y
+        };
+        mesh->Vertices.push_back(vert);
     }
 
     // texture

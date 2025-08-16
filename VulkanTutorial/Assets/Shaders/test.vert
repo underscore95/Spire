@@ -16,7 +16,7 @@ layout (location = 0) out vec2 texCoord;
 
 void main()
 {
-	VertexData vtx = in_Vertices.data[pushConstants.StartingVertexIndex + gl_VertexIndex];
+	VertexData vtx = in_Vertices.data[gl_VertexIndex];
 
 	vec3 pos = vec3(vtx.x, vtx.y, vtx.z);
 

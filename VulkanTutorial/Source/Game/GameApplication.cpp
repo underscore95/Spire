@@ -167,6 +167,7 @@ void GameApplication::RecordCommandBuffers() const
 
         m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
+        m_models->CmdBindIndexBuffer(commandBuffer);
         m_models->CmdRenderModels(commandBuffer, *m_graphicsPipeline, 0);
 
         vkCmdEndRendering(commandBuffer);

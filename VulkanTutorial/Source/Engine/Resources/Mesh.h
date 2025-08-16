@@ -6,10 +6,10 @@
 struct ModelVertex
 {
 public:
-    ModelVertex(const glm::vec3& p, const glm::vec2& t)
+    ModelVertex(const glm::vec3& pos, const glm::vec2& tex)
     {
-        Pos = p;
-        Tex = t;
+        Pos = pos;
+        Tex = tex;
     }
 
     ModelVertex() = default;
@@ -23,5 +23,8 @@ struct Mesh
 {
 public:
     std::vector<ModelVertex> Vertices;
+    std::vector<glm::u32> Indices;
     glm::u32 TextureIndex;
+
+#define MESH_INDEX_TYPE glm::u32
 };

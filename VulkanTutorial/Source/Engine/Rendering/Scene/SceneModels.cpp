@@ -20,12 +20,19 @@ SceneModels::SceneModels(
 )
     : m_renderingManager(renderingManager)
 {
-    CreateVertexBuffer(models);
+    CreateVertexAndIndexBuffer(models);
 }
 
 SceneModels::~SceneModels()
 {
+    m_renderingManager.GetBufferManager().DestroyBuffer(m_indexBuffer);
     m_renderingManager.GetBufferManager().DestroyBuffer(m_vertexStorageBuffer);
+}
+
+void SceneModels::CmdBindIndexBuffer(VkCommandBuffer commandBuffer) const
+{
+    static_assert(sizeof(MESH_INDEX_TYPE) == sizeof(glm::u32)); // update index type if changed!
+    vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
 void SceneModels::CmdRenderModels(
@@ -40,14 +47,6 @@ void SceneModels::CmdRenderModels(
     {
         auto& sceneMesh = m_models[modelIndex][meshIndex];
 
-        // set starting vertex index
-        pipeline.CmdSetPushConstants(
-            commandBuffer,
-            &sceneMesh.VertexStartIndex,
-            sizeof(sceneMesh.VertexStartIndex),
-            static_cast<glm::u32>(offsetof(PushConstants, StartingVertexIndex))
-        );
-
         // set the texture index
         pipeline.CmdSetPushConstants(
             commandBuffer,
@@ -57,7 +56,7 @@ void SceneModels::CmdRenderModels(
         );
 
         // draw the mesh
-        vkCmdDraw(commandBuffer, sceneMesh.NumVertices, instances, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, sceneMesh.NumIndices, instances, sceneMesh.FirstIndex, 0, 0);
     }
 }
 
@@ -72,23 +71,25 @@ Descriptor SceneModels::GetDescriptor(glm::u32 binding) const
     };
 }
 
-void SceneModels::CreateVertexBuffer(const std::vector<Model>& models)
+void SceneModels::CreateVertexAndIndexBuffer(const std::vector<Model>& models)
 {
     // calculate total size of all models
     constexpr glm::u32 VERTEX_SIZE = sizeof(ModelVertex);
     glm::u32 totalSize = 0;
     glm::u32 numMeshes = 0;
+    glm::u32 numIndices = 0;
     for (auto& model : models)
     {
         m_models.push_back({});
         for (auto& mesh : model)
         {
             m_models.back().push_back({
-                .NumVertices = static_cast<glm::u32>(mesh->Vertices.size()),
-                .VertexStartIndex = totalSize / VERTEX_SIZE,
+                .NumIndices = static_cast<glm::u32>(mesh->Indices.size()),
+                .FirstIndex = numIndices,
                 .TextureIndex = mesh->TextureIndex
             });
             totalSize += mesh->Vertices.size() * VERTEX_SIZE;
+            numIndices += mesh->Indices.size();
             numMeshes++;
         }
     }
@@ -110,4 +111,25 @@ void SceneModels::CreateVertexBuffer(const std::vector<Model>& models)
     // create buffer for vertices
     m_vertexStorageBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(
         vertices.data(), totalSize, VERTEX_SIZE);
+
+    // create global index vector
+    std::vector<MESH_INDEX_TYPE> indices;
+    indices.reserve(numIndices);
+    glm::u32 startingIndex = 0;
+    for (auto& model : models)
+    {
+        for (auto& mesh : model)
+        {
+            for (glm::u32 index : mesh->Indices)
+            {
+                indices.push_back(index + startingIndex);
+            }
+            startingIndex += mesh->Indices.size();
+        }
+    }
+
+    // create index buffer
+    m_indexBuffer = m_renderingManager.GetBufferManager().CreateIndexBuffer(
+        sizeof(MESH_INDEX_TYPE), indices.data(), numIndices
+    );
 }
