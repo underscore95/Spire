@@ -10,7 +10,7 @@ public:
     ~RenderingCommandManager();
 
 public:
-    void CreateCommandBuffers(glm::u32 count, VkCommandBuffer *commandBuffers);
+    void CreateCommandBuffers(glm::u32 count, VkCommandBuffer *commandBuffers, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
     void FreeCommandBuffers(glm::u32 count, const VkCommandBuffer *commandBuffers);
 

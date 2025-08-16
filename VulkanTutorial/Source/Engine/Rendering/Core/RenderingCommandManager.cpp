@@ -36,13 +36,13 @@ RenderingCommandManager::~RenderingCommandManager()
     }
 }
 
-void RenderingCommandManager::CreateCommandBuffers(glm::u32 count, VkCommandBuffer* commandBuffers)
+void RenderingCommandManager::CreateCommandBuffers(glm::u32 count, VkCommandBuffer* commandBuffers, VkCommandBufferLevel level)
 {
     VkCommandBufferAllocateInfo cmdBufAllocInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .pNext = nullptr,
         .commandPool = m_commandPool,
-        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .level = level,
         .commandBufferCount = count
     };
 

@@ -22,9 +22,6 @@ public:
 struct Mesh
 {
 public:
-    Mesh() = default;
-
-public:
     std::vector<ModelVertex> Vertices;
     glm::u32 TextureIndex;
 };

@@ -22,38 +22,21 @@ BufferManager::~BufferManager()
     m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_copyCommandBuffer);
 }
 
+VulkanBuffer BufferManager::CreateIndexBuffer(glm::u32 indexTypeSize, const void* indices, glm::u32 numIndices)
+{
+    VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    VkMemoryPropertyFlags memoryProperties =  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    return CreateBufferWithData(indexTypeSize * numIndices, usage, memoryProperties, indices, indexTypeSize);
+}
+
 VulkanBuffer BufferManager::CreateStorageBuffer(const void* elements, glm::u32 size, glm::u32 elementSize,
                                                 bool isTransferSource)
 {
-    // create the staging buffer
-    VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    VulkanBuffer stagingBuffer = CreateBuffer(size, usage, memoryProperties);
-
-    // copy vertices into staging buffer
-    UpdateBuffer(stagingBuffer, elements, size);
-
-    // create the final buffer
-    usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    VkBufferUsageFlags usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     if (isTransferSource) usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    VulkanBuffer buffer = CreateBuffer(size, usage, memoryProperties);
+    VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-    // copy the staging buffer to the final buffer
-    CopyBuffer(buffer.Buffer, stagingBuffer.Buffer, size);
-
-    // release the resources of the staging buffer
-    DestroyBuffer(stagingBuffer);
-
-    // size / element size / count
-    DEBUG_ASSERT(elementSize > 0);
-    DEBUG_ASSERT(size % elementSize == 0);
-    buffer.Count = size / elementSize;
-    buffer.Size = size;
-    buffer.ElementSize = elementSize;
-
-    return buffer;
+    return CreateBufferWithData(size, usage, memoryProperties, elements, elementSize);
 }
 
 void BufferManager::DestroyBuffer(const VulkanBuffer& buffer)
@@ -111,6 +94,38 @@ void BufferManager::CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) c
     m_renderingManager.GetQueue().SubmitImmediate(m_copyCommandBuffer);
 
     m_renderingManager.GetQueue().WaitIdle();
+}
+
+VulkanBuffer BufferManager::CreateBufferWithData(VkDeviceSize size, VkBufferUsageFlags usage,
+                                                 VkMemoryPropertyFlags properties, const void* data,
+                                                 glm::u32 elementSize)
+{
+    // create the staging buffer
+    VkBufferUsageFlags stagingUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    VkMemoryPropertyFlags stagingProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    VulkanBuffer stagingBuffer = CreateBuffer(size, stagingUsage, stagingProperties);
+
+    // copy vertices into staging buffer
+    UpdateBuffer(stagingBuffer, data, size);
+
+    // create the final buffer
+    VulkanBuffer buffer = CreateBuffer(size, usage, properties);
+
+    // copy the staging buffer to the final buffer
+    CopyBuffer(buffer.Buffer, stagingBuffer.Buffer, size);
+
+    // release the resources of the staging buffer
+    DestroyBuffer(stagingBuffer);
+
+    // size / element size / count
+    DEBUG_ASSERT(elementSize > 0);
+    DEBUG_ASSERT(size % elementSize == 0);
+    buffer.Count = size / elementSize;
+    buffer.Size = size;
+    buffer.ElementSize = elementSize;
+
+    return buffer;
 }
 
 VulkanBuffer BufferManager::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
