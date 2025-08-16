@@ -1,11 +1,8 @@
 #include "GraphicsPipeline.h"
 #include <glm/glm.hpp>
-#include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 #include "Engine/Rendering/Memory/BufferManager.h"
 #include "RenderingCommandManager.h"
-#include "Engine/Rendering/Descriptors/DescriptorManager.h"
-#include "Engine/Rendering/Descriptors/DescriptorSet.h"
 
 GraphicsPipeline::GraphicsPipeline(
     VkDevice device,
@@ -16,27 +13,11 @@ GraphicsPipeline::GraphicsPipeline(
     VkFormat depthFormat,
     RenderingManager& renderingManager,
     glm::u32 pushConstantSize)
-    : m_device(device),
-      m_renderingManager(renderingManager),
-      m_pushConstantSize(pushConstantSize),
-      m_descriptorSetLayouts(descriptorManager.GetRawLayouts())
+    : Pipeline(device, descriptorManager, renderingManager, pushConstantSize)
 {
     // pipeline
-    constexpr glm::u32 NUM_SHADER_STAGES = 2;
-    VkPipelineShaderStageCreateInfo shaderStageCreateInfo[NUM_SHADER_STAGES] = {
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = vertexShader,
-            .pName = "main",
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = fragmentShader,
-            .pName = "main"
-        }
-    };
+    std::array<VkPipelineShaderStageCreateInfo, 2> shaderStageCreateInfo = CreateVertFragShaderInfo(
+        vertexShader, fragmentShader);
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
@@ -108,26 +89,6 @@ GraphicsPipeline::GraphicsPipeline(
         .pAttachments = &blendAttachState
     };
 
-    VkPushConstantRange pushConstantRange = {
-        .stageFlags = VK_SHADER_STAGE_ALL,
-        .offset = 0,
-        .size = m_pushConstantSize
-    };
-
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = static_cast<glm::u32>(m_descriptorSetLayouts.size()),
-        .pSetLayouts = m_descriptorSetLayouts.data(),
-        .pushConstantRangeCount = 1,
-        .pPushConstantRanges = &pushConstantRange
-    };
-
-    VkResult res = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to create graphics pipeline layout");
-    }
-
     VkPipelineRenderingCreateInfo renderingInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
         .pNext = nullptr,
@@ -141,8 +102,8 @@ GraphicsPipeline::GraphicsPipeline(
     VkGraphicsPipelineCreateInfo pipelineInfo = {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = &renderingInfo,
-        .stageCount = NUM_SHADER_STAGES,
-        .pStages = &shaderStageCreateInfo[0],
+        .stageCount = shaderStageCreateInfo.size(),
+        .pStages = shaderStageCreateInfo.data(),
         .pVertexInputState = &vertexInputInfo,
         .pInputAssemblyState = &pipelineIACreateInfo,
         .pViewportState = &viewportCreateInfo,
@@ -158,7 +119,7 @@ GraphicsPipeline::GraphicsPipeline(
         .basePipelineIndex = -1
     };
 
-    res = vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline);
+ VkResult   res = vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline);
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to create graphics pipeline layout");
@@ -171,7 +132,6 @@ GraphicsPipeline::GraphicsPipeline(
 
 GraphicsPipeline::~GraphicsPipeline()
 {
-    vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
     vkDestroyPipeline(m_device, m_pipeline, nullptr);
 }
 
@@ -210,26 +170,4 @@ void GraphicsPipeline::CmdSetViewportToWindowSize(VkCommandBuffer commandBuffer,
 void GraphicsPipeline::CmdBindTo(VkCommandBuffer commandBuffer) const
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
-}
-
-void GraphicsPipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size,
-                                           glm::u32 offset) const
-{
-    DEBUG_ASSERT(data != nullptr);
-    DEBUG_ASSERT(size + offset <= m_pushConstantSize);
-    DEBUG_ASSERT(size > 0);
-
-    vkCmdPushConstants(
-        commandBuffer,
-        m_pipelineLayout,
-        VK_SHADER_STAGE_ALL,
-        offset,
-        size,
-        data
-    );
-}
-
-VkPipelineLayout GraphicsPipeline::GetLayout() const
-{
-    return m_pipelineLayout;
 }
