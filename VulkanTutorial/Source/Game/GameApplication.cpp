@@ -34,7 +34,8 @@ void GameApplication::Start(Engine& engine)
     std::vector<std::string> texturesToLoad = CreateModels();
 
     // Textures
-    m_sceneTextures = std::make_unique<SceneTextures>(rm, std::vector<std::string>{"test.png", "test2.png"});
+    while (texturesToLoad.size()<2) texturesToLoad.push_back("test.png"); // shader forces 2 images to be bound so hack
+    m_sceneTextures = std::make_unique<SceneTextures>(rm, texturesToLoad);
 
     // Descriptors
     SetupDescriptors();
@@ -83,8 +84,8 @@ void GameApplication::Update()
 void GameApplication::Render()
 {
     auto& rm = m_engine->GetRenderingManager();
-
     rm.GetQueue().WaitIdle();
+
     glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
     if (imageIndex == rm.GetQueue().INVALID_IMAGE_INDEX) return;
 
@@ -188,7 +189,7 @@ void GameApplication::RecordCommandBuffers() const
 
 std::vector<std::string> GameApplication::CreateModels()
 {
-    std::vector<std::string> texturesToLoad = {"test.png"};
+    std::vector<std::string> texturesToLoad;
     std::vector<Model> models;
 
     auto fileName = std::format("{}/Cube.obj", ASSETS_DIRECTORY);
@@ -204,9 +205,6 @@ std::vector<std::string> GameApplication::CreateModels()
 
 void GameApplication::SetupDescriptors()
 {
-    auto& dc = m_engine->GetRenderingManager().GetDescriptorCreator();
-
-    // Set layouts
     DescriptorSetLayoutList layouts(m_engine->GetRenderingManager().GetSwapchain().GetNumImages());
     {
         DescriptorSetLayout layout;
