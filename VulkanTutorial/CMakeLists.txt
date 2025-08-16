@@ -78,6 +78,9 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/Core/Pipelines/Pipeline.h
         Source/Engine/Rendering/Core/Pipelines/ComputePipeline.cpp
         Source/Engine/Rendering/Core/Pipelines/ComputePipeline.h
+        Source/Engine/Rendering/Memory/PerImageBuffer.cpp
+        Source/Engine/Rendering/Memory/PerImageBuffer.h
+        Source/Engine/Utils/MacroDisableCopy.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

@@ -6,8 +6,12 @@
 #include "Engine/Rendering/Core/Swapchain.h"
 #include "Engine/Rendering/Core/VulkanQueue.h"
 #include <libassert/assert.hpp>
+
+#include "PerImageBuffer.h"
 #include "Engine/Rendering/Memory/VulkanBuffer.h"
 #include "VulkanAllocator.h"
+
+bool s_isDestroyed = false;
 
 BufferManager::BufferManager(RenderingManager& renderingManager)
     : m_renderingManager(renderingManager)
@@ -17,6 +21,9 @@ BufferManager::BufferManager(RenderingManager& renderingManager)
 
 BufferManager::~BufferManager()
 {
+    DEBUG_ASSERT(!s_isDestroyed);
+    s_isDestroyed = true;
+
     DEBUG_ASSERT(m_numAllocatedBuffers == 0);
 
     m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_copyCommandBuffer);
@@ -25,7 +32,7 @@ BufferManager::~BufferManager()
 VulkanBuffer BufferManager::CreateIndexBuffer(glm::u32 indexTypeSize, const void* indices, glm::u32 numIndices)
 {
     VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    VkMemoryPropertyFlags memoryProperties =  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     return CreateBufferWithData(indexTypeSize * numIndices, usage, memoryProperties, indices, indexTypeSize);
 }
 
@@ -46,7 +53,7 @@ void BufferManager::DestroyBuffer(const VulkanBuffer& buffer)
     m_numAllocatedBuffers--;
 }
 
-std::vector<VulkanBuffer> BufferManager::CreateUniformBuffers(size_t bufferSize, bool isTransferDest)
+std::unique_ptr<PerImageBuffer> BufferManager::CreateUniformBuffers(size_t bufferSize, bool isTransferDest)
 {
     std::vector<VulkanBuffer> buffers;
     buffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
@@ -61,19 +68,25 @@ std::vector<VulkanBuffer> BufferManager::CreateUniformBuffers(size_t bufferSize,
         buffers[i] = CreateBuffer(bufferSize, usage, memoryProperties);
     }
 
-    return buffers;
+    return std::unique_ptr<PerImageBuffer>(new PerImageBuffer(*this, buffers));
 }
 
-void BufferManager::UpdateBuffer(const VulkanBuffer& buffer, const void* data, glm::u32 size) const
+void BufferManager::UpdateBuffer(const VulkanBuffer& buffer, const void* data, glm::u32 size, glm::u32 offset) const
 {
     void* pMem = nullptr;
     VkResult res = vmaMapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation, &pMem);
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to update buffer memory with size {} bytes", size);
+        return;
     }
-    memcpy(pMem, data, size);
+    memcpy(static_cast<char*>(pMem) + offset, data, size);
     vmaUnmapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation);
+}
+
+bool BufferManager::HasBufferManagerBeenDestroyed()
+{
+    return s_isDestroyed;
 }
 
 void BufferManager::CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const

@@ -3,6 +3,8 @@
 #include "Engine/Rendering/Memory/VulkanImage.h"
 #include <libassert/assert.hpp>
 
+#include "Engine/Rendering/Memory/PerImageBuffer.h"
+
 DescriptorCreator::DescriptorCreator(glm::u32 numSwapchainImages)
     : m_numSwapchainImages(numSwapchainImages)
 {
@@ -10,17 +12,16 @@ DescriptorCreator::DescriptorCreator(glm::u32 numSwapchainImages)
 
 PerImageDescriptor DescriptorCreator::CreatePerImageUniformBuffer(
     glm::u32 binding,
-    glm::u32 numBuffersPerImage,
-    const VulkanBuffer* buffers,
+    const PerImageBuffer& buffer,
     VkShaderStageFlags stages
 ) const
 {
     return CreatePerImageDescriptor(
         binding,
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        numBuffersPerImage,
+        1,
         sizeof(VulkanBuffer),
-        buffers,
+        buffer.GetBuffers().data(),
         stages);
 }
 

@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include "Descriptor.h"
+#include "Engine/Rendering/Memory/PerImageBuffer.h"
 
 struct PerImageDescriptor;
 struct VulkanBuffer;
@@ -15,8 +16,7 @@ public:
 public:
     PerImageDescriptor CreatePerImageUniformBuffer(
         glm::u32 binding,
-        glm::u32 numBuffersPerImage,
-        const VulkanBuffer* buffers,
+        const PerImageBuffer& buffer,
         VkShaderStageFlags stages = VK_SHADER_STAGE_ALL
     ) const;
 

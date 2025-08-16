@@ -1,8 +1,9 @@
 #pragma once
+#include <memory>
 #include <vector>
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan_core.h>
-
+class PerImageBuffer;
 struct VulkanBuffer;
 class RenderingManager;
 
@@ -18,18 +19,23 @@ public:
     // Create an index buffer, indexTypeSize determines type of indices, either sizeof(std::uint32_t) or sizeof(std::uint16_t) or sizeof(std::uint8_t)
     VulkanBuffer CreateIndexBuffer(glm::u32 indexTypeSize, const void* indices, glm::u32 numIndices);
 
-    VulkanBuffer CreateStorageBuffer(const void* elements, glm::u32 size, glm::u32 elementSize, bool isTransferSource = false);
+    VulkanBuffer CreateStorageBuffer(const void* elements, glm::u32 size, glm::u32 elementSize,
+                                     bool isTransferSource = false);
 
     void DestroyBuffer(const VulkanBuffer& buffer);
 
-    std::vector<VulkanBuffer> CreateUniformBuffers(size_t bufferSize, bool isTransferDest = false);
+    std::unique_ptr<PerImageBuffer> CreateUniformBuffers(size_t bufferSize, bool isTransferDest = false);
 
-    void UpdateBuffer(const VulkanBuffer& buffer, const void* data, glm::u32 size) const;
+    void UpdateBuffer(const VulkanBuffer& buffer, const void* data, glm::u32 size, glm::u32 offset = 0) const;
+
+public:
+    static bool HasBufferManagerBeenDestroyed();
 
 private:
     void CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const;
 
-    VulkanBuffer CreateBufferWithData(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, const void* data, glm::u32 elementSize);
+    VulkanBuffer CreateBufferWithData(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+                                      const void* data, glm::u32 elementSize);
 
     VulkanBuffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 

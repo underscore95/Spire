@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Engine/Rendering/Descriptors/DescriptorSetsUpdater.h"
+#include "Engine/Rendering/Memory/PerImageBuffer.h"
 
 void GameApplication::Start(Engine& engine)
 {
@@ -55,10 +56,7 @@ GameApplication::~GameApplication()
     spdlog::info("Freed command buffers");
 
     m_models.reset();
-    for (int i = 0; i < m_uniformBuffers.size(); i++)
-    {
-        rm.GetBufferManager().DestroyBuffer(m_uniformBuffers[i]);
-    }
+    m_uniformBuffer.reset();
 
     m_sceneTextures.reset();
 
@@ -197,7 +195,7 @@ std::vector<std::string> GameApplication::CreateModels()
 void GameApplication::CreateUniformBuffers()
 {
     auto& rm = m_engine->GetRenderingManager();
-    m_uniformBuffers = rm.GetBufferManager().CreateUniformBuffers(sizeof(UniformData));
+    m_uniformBuffer = rm.GetBufferManager().CreateUniformBuffers(sizeof(UniformData));
     spdlog::info("Created uniform buffers");
 }
 
@@ -206,7 +204,7 @@ void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const
     glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -10.0f));
 
     glm::mat4 WVP = m_camera->GetProjectionMatrix() * m_camera->GetViewMatrix() * model;
-    m_engine->GetRenderingManager().GetBufferManager().UpdateBuffer(m_uniformBuffers[imageIndex], &WVP, sizeof(WVP));
+    m_uniformBuffer->Update(imageIndex, &WVP, sizeof(WVP));
 }
 
 void GameApplication::SetupDescriptors()
@@ -231,7 +229,7 @@ void GameApplication::SetupDescriptors()
         PerImageDescriptorSetLayout layout;
 
         // Uniform buffers
-        layout.push_back(dc.CreatePerImageUniformBuffer(3, 1, m_uniformBuffers.data(), VK_SHADER_STAGE_VERTEX_BIT));
+        layout.push_back(dc.CreatePerImageUniformBuffer(3, *m_uniformBuffer, VK_SHADER_STAGE_VERTEX_BIT));
 
         layouts.Push(layout);
     }
