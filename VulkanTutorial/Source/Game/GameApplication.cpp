@@ -84,7 +84,6 @@ void GameApplication::Update()
 void GameApplication::Render()
 {
     auto& rm = m_engine->GetRenderingManager();
-    rm.GetQueue().WaitIdle();
 
     glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
     if (imageIndex == rm.GetQueue().INVALID_IMAGE_INDEX) return;
@@ -96,8 +95,6 @@ void GameApplication::Render()
     m_camera->Render(renderInfo);
 
     RenderUi();
-
-    rm.GetQueue().WaitIdle();
 
     std::array commandBuffersToSubmit = {
         rm.GetRenderer().GetBeginRenderingCommandBuffer(imageIndex),

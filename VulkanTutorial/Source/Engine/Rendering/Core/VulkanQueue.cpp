@@ -20,25 +20,57 @@ VulkanQueue::VulkanQueue(
 {
     vkGetDeviceQueue(device, queueFamily, queueIndex, &m_queue);
 
-    CreateSemaphores();
+    // Create fences and semaphores
+    m_framesInFlightFences.resize(renderingManager.GetSwapchain().GetNumImages());
+    for (glm::u32 i = 0; i < renderingManager.GetSwapchain().GetNumImages(); i++)
+    {
+        VkFenceCreateInfo fenceInfo = {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = VK_FENCE_CREATE_SIGNALED_BIT
+        };
+        vkCreateFence(m_device, &fenceInfo, nullptr, &m_framesInFlightFences[i]);
+
+        m_presentCompleteSemaphore.push_back(m_renderingManager.GetRenderingSync().CreateSemaphore());
+        m_renderCompleteSemaphore.push_back(m_renderingManager.GetRenderingSync().CreateSemaphore());
+    }
 
     spdlog::info("VulkanQueue initialized");
 }
 
 VulkanQueue::~VulkanQueue()
 {
-    m_renderingManager.GetRenderingSync().DestroySemaphore(m_presentCompleteSemaphore);
-    m_renderingManager.GetRenderingSync().DestroySemaphore(m_renderCompleteSemaphore);
+    for (VkSemaphore semaphore : m_presentCompleteSemaphore)
+    {
+        m_renderingManager.GetRenderingSync().DestroySemaphore(semaphore);
+    }
+    for (VkSemaphore semaphore : m_renderCompleteSemaphore)
+    {
+        m_renderingManager.GetRenderingSync().DestroySemaphore(semaphore);
+    }
+    for (VkFence fence : m_framesInFlightFences)
+    {
+        vkDestroyFence(m_device, fence, nullptr);
+    }
 
     spdlog::info("VulkanQueue shutdown");
 }
 
 glm::u32 VulkanQueue::AcquireNextImage() const
 {
+    vkWaitForFences(m_device, 1, &m_framesInFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
+
     glm::u32 imageIndex = 0;
-    VkResult res = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_presentCompleteSemaphore,
-                                         nullptr,
-                                         &imageIndex);
+    VkResult res = vkAcquireNextImageKHR(
+        m_device,
+        m_swapchain,
+        UINT64_MAX,
+        m_presentCompleteSemaphore[m_currentFrame],
+        nullptr,
+        &imageIndex);
+
+    vkResetFences(m_device, 1, &m_framesInFlightFences[m_currentFrame]);
+
     if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR)
     {
         m_engine.OnWindowResize();
@@ -87,15 +119,16 @@ void VulkanQueue::SubmitRenderCommands(glm::u32 count, VkCommandBuffer* commandB
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext = nullptr,
         .waitSemaphoreCount = 1,
-        .pWaitSemaphores = &m_presentCompleteSemaphore,
+        .pWaitSemaphores = &m_presentCompleteSemaphore[m_currentFrame],
         .pWaitDstStageMask = &waitFlags,
         .commandBufferCount = count,
         .pCommandBuffers = commandBuffers,
         .signalSemaphoreCount = 1,
-        .pSignalSemaphores = &m_renderCompleteSemaphore
+        .pSignalSemaphores = &m_renderCompleteSemaphore[m_currentFrame]
     };
 
-    VkResult res = vkQueueSubmit(m_queue, 1, &submitInfo, nullptr);
+    VkResult res = vkQueueSubmit(m_queue, 1, &submitInfo, m_framesInFlightFences[m_currentFrame]);
+    // todo fence might be better on present
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to submit commands to queue async");
@@ -108,13 +141,14 @@ void VulkanQueue::Present(glm::u32 imageIndex)
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext = nullptr,
         .waitSemaphoreCount = 1,
-        .pWaitSemaphores = &m_renderCompleteSemaphore,
+        .pWaitSemaphores = &m_renderCompleteSemaphore[m_currentFrame],
         .swapchainCount = 1,
         .pSwapchains = &m_swapchain,
         .pImageIndices = &imageIndex
     };
 
     VkResult res = vkQueuePresentKHR(m_queue, &presentInfo);
+    m_currentFrame = (m_currentFrame + 1) % m_renderingManager.GetSwapchain().GetNumImages();
     if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR)
     {
         m_engine.OnWindowResize();
@@ -138,10 +172,4 @@ void VulkanQueue::WaitIdle() const
 VkQueue VulkanQueue::GetQueueHandle() const
 {
     return m_queue;
-}
-
-void VulkanQueue::CreateSemaphores()
-{
-    m_presentCompleteSemaphore = m_renderingManager.GetRenderingSync().CreateSemaphore();
-    m_renderCompleteSemaphore = m_renderingManager.GetRenderingSync().CreateSemaphore();
 }

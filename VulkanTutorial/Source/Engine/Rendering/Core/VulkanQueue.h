@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan.h>
 
@@ -36,14 +37,13 @@ public:
     const glm::u32 INVALID_IMAGE_INDEX = -1; // underflow
 
 private:
-    void CreateSemaphores();
-
-private:
     RenderingManager& m_renderingManager;
     Engine& m_engine;
     VkDevice m_device = VK_NULL_HANDLE;
     VkSwapchainKHR m_swapchain;
     VkQueue m_queue = VK_NULL_HANDLE;
-    VkSemaphore m_renderCompleteSemaphore = VK_NULL_HANDLE;
-    VkSemaphore m_presentCompleteSemaphore = VK_NULL_HANDLE;
+    std::vector<VkSemaphore> m_renderCompleteSemaphore;
+    std::vector<VkSemaphore> m_presentCompleteSemaphore;
+    std::vector<VkFence> m_framesInFlightFences;
+    glm::u32 m_currentFrame = 0;
 };
