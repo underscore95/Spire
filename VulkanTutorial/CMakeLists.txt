@@ -21,8 +21,8 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/Core/VulkanQueue.h
         Source/Engine/Rendering/Core/ShaderCompiler.cpp
         Source/Engine/Rendering/Core/ShaderCompiler.h
-        Source/Engine/Rendering/Core/GraphicsPipeline.cpp
-        Source/Engine/Rendering/Core/GraphicsPipeline.h
+        Source/Engine/Rendering/Core/Pipelines/GraphicsPipeline.cpp
+        Source/Engine/Rendering/Core/Pipelines/GraphicsPipeline.h
         Source/Engine/Rendering/Memory/BufferManager.cpp
         Source/Engine/Rendering/Memory/BufferManager.h
         Source/Engine/Utils/Timer.cpp
@@ -74,8 +74,10 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/Descriptors/DescriptorSetLayoutList.h
         Source/Engine/Rendering/Descriptors/DescriptorCreator.cpp
         Source/Engine/Rendering/Descriptors/DescriptorCreator.h
-        Source/Engine/Rendering/Core/Pipeline.cpp
-        Source/Engine/Rendering/Core/Pipeline.h
+        Source/Engine/Rendering/Core/Pipelines/Pipeline.cpp
+        Source/Engine/Rendering/Core/Pipelines/Pipeline.h
+        Source/Engine/Rendering/Core/Pipelines/ComputePipeline.cpp
+        Source/Engine/Rendering/Core/Pipelines/ComputePipeline.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

@@ -1,7 +1,7 @@
 #include "SceneModels.h"
 #include <libassert/assert.hpp>
 #include "Engine/Rendering/Memory/BufferManager.h"
-#include "Engine/Rendering/Core/GraphicsPipeline.h"
+#include "../Core/Pipelines/GraphicsPipeline.h"
 #include "PushConstants.h"
 #include "Engine/Rendering/Renderers/Renderer.h"
 #include "Engine/Rendering/RenderingManager.h"

@@ -8,7 +8,7 @@ struct GLFWwindow;
 struct VulkanBuffer;
 class DescriptorSet;
 
-class GraphicsPipeline : public Pipeline
+class GraphicsPipeline final : public Pipeline
 {
 public:
     GraphicsPipeline(
@@ -28,5 +28,5 @@ public:
     void CmdSetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport, const VkRect2D* scissor) const;
     void CmdSetViewportToWindowSize(VkCommandBuffer commandBuffer, glm::uvec2 windowDimensions) const;
 
-    void CmdBindTo(VkCommandBuffer commandBuffer) const;
+    void CmdBindTo(VkCommandBuffer commandBuffer) const override;
 };

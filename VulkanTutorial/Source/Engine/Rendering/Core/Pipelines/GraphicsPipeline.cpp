@@ -1,8 +1,9 @@
 #include "GraphicsPipeline.h"
 #include <glm/glm.hpp>
+#include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 #include "Engine/Rendering/Memory/BufferManager.h"
-#include "RenderingCommandManager.h"
+#include "../RenderingCommandManager.h"
 
 GraphicsPipeline::GraphicsPipeline(
     VkDevice device,
@@ -119,7 +120,7 @@ GraphicsPipeline::GraphicsPipeline(
         .basePipelineIndex = -1
     };
 
- VkResult   res = vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline);
+    VkResult res = vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline);
     if (res != VK_SUCCESS)
     {
         spdlog::error("Failed to create graphics pipeline layout");
@@ -133,6 +134,7 @@ GraphicsPipeline::GraphicsPipeline(
 GraphicsPipeline::~GraphicsPipeline()
 {
     vkDestroyPipeline(m_device, m_pipeline, nullptr);
+    m_pipeline = VK_NULL_HANDLE;
 }
 
 void GraphicsPipeline::CmdSetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport,

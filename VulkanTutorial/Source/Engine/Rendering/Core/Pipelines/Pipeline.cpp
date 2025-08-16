@@ -23,6 +23,7 @@ Pipeline::Pipeline(
 Pipeline::~Pipeline()
 {
     vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
+    DEBUG_ASSERT(m_pipeline == VK_NULL_HANDLE); // child class should destroy it and set the handle to VK_NULL_HANDLE
 }
 
 void Pipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size,

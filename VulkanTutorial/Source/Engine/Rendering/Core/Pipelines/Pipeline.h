@@ -25,6 +25,8 @@ public:
 
     [[nodiscard]] VkPipelineLayout GetLayout() const;
 
+    virtual void CmdBindTo(VkCommandBuffer commandBuffer) const = 0;
+
 protected:
     std::array<VkPipelineShaderStageCreateInfo, 2> CreateVertFragShaderInfo(
         VkShaderModule vertexShader,
