@@ -4,7 +4,7 @@ class Engine;
 
 class Application {
 public:
-    virtual ~Application() = default;
+    virtual ~Application();
 
 public:
     virtual void Start(Engine& engine) = 0;

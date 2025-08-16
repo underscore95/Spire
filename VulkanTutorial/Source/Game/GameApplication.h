@@ -1,18 +1,21 @@
 #pragma once
 
 #include "Engine/EngineIncludes.h"
+#include "RenderInfo.h"
 
-struct UniformData
-{
-    glm::mat4 WVP;
-};
+class GameCamera;
 
 class GameApplication final : public Application
 {
 public:
-    void Start(Engine& engine) override;
+    GameApplication();
 
     ~GameApplication() override;
+
+public:
+    void Start(Engine& engine) override;
+
+    void Cleanup();
 
     void Update() override;
 
@@ -34,10 +37,6 @@ private:
     // returns paths to textures to load
     std::vector<std::string> CreateModels();
 
-    void CreateUniformBuffers();
-
-    void UpdateUniformBuffers(glm::u32 imageIndex) const;
-
     void SetupDescriptors();
 
     void SetupGraphicsPipeline();
@@ -48,9 +47,8 @@ private:
     VkShaderModule m_vertexShader = VK_NULL_HANDLE;
     VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline = nullptr;
-    std::unique_ptr<PerImageBuffer> m_uniformBuffer = nullptr;
-    std::unique_ptr<SceneModels> m_models;
-    std::unique_ptr<Camera> m_camera;
-    std::unique_ptr<SceneTextures> m_sceneTextures;
-    std::unique_ptr<DescriptorManager> m_descriptorManager;
+    std::unique_ptr<SceneModels> m_models = nullptr;
+    std::unique_ptr<SceneTextures> m_sceneTextures = nullptr;
+    std::unique_ptr<DescriptorManager> m_descriptorManager = nullptr;
+    std::unique_ptr<GameCamera> m_camera = nullptr;
 };

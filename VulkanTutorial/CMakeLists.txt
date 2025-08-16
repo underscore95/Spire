@@ -81,6 +81,10 @@ add_executable(VulkanTutorial
         Source/Engine/Rendering/Memory/PerImageBuffer.cpp
         Source/Engine/Rendering/Memory/PerImageBuffer.h
         Source/Engine/Utils/MacroDisableCopy.h
+        Source/Game/GameCamera.cpp
+        Source/Game/GameCamera.h
+        Source/Game/RenderInfo.h
+        Source/Engine/Core/Application.cpp
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")

@@ -1,11 +1,13 @@
 #include "GameApplication.h"
-
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include "GameCamera.h"
 
-#include "Engine/Rendering/Descriptors/DescriptorSetsUpdater.h"
-#include "Engine/Rendering/Memory/PerImageBuffer.h"
+GameApplication::GameApplication()
+{
+    // don't do anything here!
+}
 
 void GameApplication::Start(Engine& engine)
 {
@@ -14,7 +16,7 @@ void GameApplication::Start(Engine& engine)
     auto& rm = m_engine->GetRenderingManager();
 
     // Camera
-    m_camera = std::make_unique<Camera>(m_engine->GetWindow());
+    m_camera = std::make_unique<GameCamera>(*m_engine);
 
     // Shaders
     Timer shaderCompileTimer;
@@ -30,7 +32,6 @@ void GameApplication::Start(Engine& engine)
 
     // Shader data
     std::vector<std::string> texturesToLoad = CreateModels();
-    CreateUniformBuffers();
 
     // Textures
     m_sceneTextures = std::make_unique<SceneTextures>(rm, std::vector<std::string>{"test.png", "test2.png"});
@@ -49,6 +50,11 @@ void GameApplication::Start(Engine& engine)
 
 GameApplication::~GameApplication()
 {
+    Cleanup();
+}
+
+void GameApplication::Cleanup()
+{
     auto& rm = m_engine->GetRenderingManager();
 
     rm.GetQueue().WaitIdle();
@@ -56,7 +62,7 @@ GameApplication::~GameApplication()
     spdlog::info("Freed command buffers");
 
     m_models.reset();
-    m_uniformBuffer.reset();
+    m_camera.reset();
 
     m_sceneTextures.reset();
 
@@ -71,7 +77,7 @@ GameApplication::~GameApplication()
 
 void GameApplication::Update()
 {
-    m_camera->Update(m_engine->GetDeltaTime());
+    m_camera->Update();
 }
 
 void GameApplication::Render()
@@ -82,7 +88,11 @@ void GameApplication::Render()
     glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
     if (imageIndex == rm.GetQueue().INVALID_IMAGE_INDEX) return;
 
-    UpdateUniformBuffers(imageIndex);
+    RenderInfo renderInfo = {
+        .ImageIndex = imageIndex
+    };
+
+    m_camera->Render(renderInfo);
 
     RenderUi();
 
@@ -192,21 +202,6 @@ std::vector<std::string> GameApplication::CreateModels()
     return texturesToLoad;
 }
 
-void GameApplication::CreateUniformBuffers()
-{
-    auto& rm = m_engine->GetRenderingManager();
-    m_uniformBuffer = rm.GetBufferManager().CreateUniformBuffers(sizeof(UniformData));
-    spdlog::info("Created uniform buffers");
-}
-
-void GameApplication::UpdateUniformBuffers(glm::u32 imageIndex) const
-{
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -10.0f));
-
-    glm::mat4 WVP = m_camera->GetProjectionMatrix() * m_camera->GetViewMatrix() * model;
-    m_uniformBuffer->Update(imageIndex, &WVP, sizeof(WVP));
-}
-
 void GameApplication::SetupDescriptors()
 {
     auto& dc = m_engine->GetRenderingManager().GetDescriptorCreator();
@@ -228,8 +223,8 @@ void GameApplication::SetupDescriptors()
     {
         PerImageDescriptorSetLayout layout;
 
-        // Uniform buffers
-        layout.push_back(dc.CreatePerImageUniformBuffer(3, *m_uniformBuffer, VK_SHADER_STAGE_VERTEX_BIT));
+        // Camera
+        layout.push_back(m_camera->GetDescriptor(3));
 
         layouts.Push(layout);
     }
