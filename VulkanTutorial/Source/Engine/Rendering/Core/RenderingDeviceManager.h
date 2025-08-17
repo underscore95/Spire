@@ -12,7 +12,7 @@ namespace Spire
         VkPhysicalDeviceProperties DeviceProperties;
         std::vector<VkQueueFamilyProperties> QueueFamilyProperties; // Similar to command lists
         std::vector<VkBool32> QueueSupportsPresent;
-        std::vector<VkSurfaceFormatKHR> SurfaceFormats; // Texture formats & color spaces
+        std::vector<VkSurfaceFormatKHR> SurfaceFormats; // Image formats & color spaces
         VkSurfaceCapabilitiesKHR SurfaceCapabilities;
         VkPhysicalDeviceMemoryProperties MemoryProperties;
         std::vector<VkPresentModeKHR> PresentModes;

@@ -18,7 +18,7 @@ namespace Spire
     class VulkanDebugCallback;
     class Swapchain;
     struct VulkanImage;
-    class TextureManager;
+    class ImageManager;
     class RenderingCommandManager;
     class Window;
     class RenderingDeviceManager;
@@ -52,7 +52,7 @@ namespace Spire
 
         [[nodiscard]] BufferManager& GetBufferManager() const;
 
-        [[nodiscard]] TextureManager& GetTextureManager() const;
+        [[nodiscard]] ImageManager& GetImageManager() const;
 
         [[nodiscard]] const VulkanImage& GetDepthImage(glm::u32 imageIndex) const;
 
@@ -100,7 +100,7 @@ namespace Spire
         std::unique_ptr<RenderingCommandManager> m_commandManager = nullptr;
         std::unique_ptr<VulkanQueue> m_queue = nullptr;
         std::unique_ptr<BufferManager> m_bufferManager = nullptr;
-        std::unique_ptr<TextureManager> m_textureManager = nullptr;
+        std::unique_ptr<ImageManager> m_imageManager = nullptr;
         std::vector<VulkanImage> m_depthImages;
         VulkanVersion m_instanceVersion;
         std::unique_ptr<RenderingSync> m_renderingSync = nullptr;

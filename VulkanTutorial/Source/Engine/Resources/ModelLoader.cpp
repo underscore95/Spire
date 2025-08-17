@@ -97,7 +97,7 @@ namespace Spire
         material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
         DEBUG_ASSERT(!aiScene->GetEmbeddedTexture(texturePath.C_Str())); // don't support embedded textures
         std::string assetTexturePath = std::format("{}{}", absoluteModelDirectoryPath, texturePath.C_Str());
-        mesh->TextureIndex = GetIndexOfElementAddIfMissing(texturePaths, assetTexturePath);
+        mesh->ImageIndex = GetIndexOfElementAddIfMissing(texturePaths, assetTexturePath);
 
         return std::move(mesh);
     }
@@ -129,7 +129,7 @@ namespace Spire
         return result;
     }
 
-    Model ModelLoader::LoadModel(const char* fileName, std::vector<std::string>& texturePaths,
+    Model ModelLoader::LoadModel(const char* fileName, std::vector<std::string>& imagePaths,
                                  const ModelLoadingSettings& settings)
     {
         ASSERT(settings.IgnoreNonTriangleMeshes); // Don't support not doing this rn
@@ -181,7 +181,7 @@ namespace Spire
             }
 
             // convert
-            model.push_back(ConvertMesh(scene->mMeshes[i], scene, texturePaths,
+            model.push_back(ConvertMesh(scene->mMeshes[i], scene, imagePaths,
                                         GetFilePathRelativeToAssetsDirectoryNoFileName(fileName)));
         }
 

@@ -20,7 +20,7 @@ namespace Spire
         {
             const void* Raw;
             const VulkanBuffer* Buffers;
-            const VulkanImage* Textures;
+            const VulkanImage* Images;
         } ResourcePtrs;
     };
 

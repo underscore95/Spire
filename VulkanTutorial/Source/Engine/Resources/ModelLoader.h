@@ -18,7 +18,7 @@ namespace Spire
     public:
         ModelLoader() = delete;
 
-        // texturePaths - list of textures we're going to load, new ones may be added
-        static Model LoadModel(const char* fileName, std::vector<std::string>& texturePaths, const ModelLoadingSettings& settings = {});
+        // imagePaths - list of images we're going to load, new ones may be added
+        static Model LoadModel(const char* fileName, std::vector<std::string>& imagePaths, const ModelLoadingSettings& settings = {});
     };
 }

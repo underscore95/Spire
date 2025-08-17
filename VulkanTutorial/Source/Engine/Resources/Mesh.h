@@ -26,7 +26,7 @@ namespace Spire
     public:
         std::vector<ModelVertex> Vertices;
         std::vector<glm::u32> Indices;
-        glm::u32 TextureIndex;
+        glm::u32 ImageIndex;
 
 #define MESH_INDEX_TYPE glm::u32
     };

@@ -66,10 +66,10 @@ namespace Spire
                         };
                     }
 
-                    // Textures
-                    else if (IsTextureSampler(descriptor.ResourceType))
+                    // Images
+                    else if (IsImageSampler(descriptor.ResourceType))
                     {
-                        const VulkanImage& texture = descriptor.ResourcePtrs.Textures[resourceIndex];
+                        const VulkanImage& texture = descriptor.ResourcePtrs.Images[resourceIndex];
                         descriptorInfo.ImageInfo = {
                             .sampler = texture.Sampler,
                             .imageView = texture.ImageView,
@@ -90,7 +90,7 @@ namespace Spire
                     writeDescriptorSet.pBufferInfo = &(m_descriptorInfos[firstDescriptorInfoIndex].BufferInfo);
                 }
 
-                else if (IsTextureSampler(descriptor.ResourceType))
+                else if (IsImageSampler(descriptor.ResourceType))
                 {
                     writeDescriptorSet.pImageInfo = &(m_descriptorInfos[firstDescriptorInfoIndex].ImageInfo);
                 }
@@ -133,7 +133,7 @@ namespace Spire
         }
     }
 
-    bool DescriptorSetsUpdater::IsTextureSampler(VkDescriptorType resourceType) const
+    bool DescriptorSetsUpdater::IsImageSampler(VkDescriptorType resourceType) const
     {
         switch (resourceType)
         {
@@ -146,6 +146,6 @@ namespace Spire
 
     bool DescriptorSetsUpdater::IsSupportedResourceType(VkDescriptorType resourceType) const
     {
-        return IsBuffer(resourceType) || IsTextureSampler(resourceType);
+        return IsBuffer(resourceType) || IsImageSampler(resourceType);
     }
 }

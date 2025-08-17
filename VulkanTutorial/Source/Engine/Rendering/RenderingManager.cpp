@@ -17,7 +17,7 @@
 #include "Renderers/Renderer.h"
 #include "Core/RenderingSync.h"
 #include "Core/Swapchain.h"
-#include "Memory/TextureManager.h"
+#include "Memory/ImageManager.h"
 #include "Memory/VulkanAllocator.h"
 #include "Core/VulkanDebugCallback.h"
 #include "Descriptors/DescriptorCreator.h"
@@ -61,7 +61,7 @@ namespace Spire
         CreateQueue();
 
         m_bufferManager = std::make_unique<BufferManager>(*this);
-        m_textureManager = std::make_unique<TextureManager>(*this);
+        m_imageManager = std::make_unique<ImageManager>(*this);
 
         CreateDepthResources();
 
@@ -80,7 +80,7 @@ namespace Spire
 
         FreeDepthResources();
 
-        m_textureManager.reset();
+        m_imageManager.reset();
         m_bufferManager.reset();
 
         m_queue.reset();
@@ -152,9 +152,9 @@ namespace Spire
         return *m_bufferManager;
     }
 
-    TextureManager& RenderingManager::GetTextureManager() const
+    ImageManager& RenderingManager::GetImageManager() const
     {
-        return *m_textureManager;
+        return *m_imageManager;
     }
 
     const VulkanImage& RenderingManager::GetDepthImage(glm::u32 imageIndex) const
@@ -190,12 +190,12 @@ namespace Spire
         {
             VkImageUsageFlagBits usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
             VkMemoryPropertyFlagBits propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-            m_textureManager->CreateImage(m_depthImages[i], m_window.GetDimensions(), usage, propertyFlags, depthFormat);
+            m_imageManager->CreateImage(m_depthImages[i], m_window.GetDimensions(), usage, propertyFlags, depthFormat);
 
-            m_textureManager->TransitionImageLayout(m_depthImages[i].Image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+            m_imageManager->TransitionImageLayout(m_depthImages[i].Image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                                                     VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-            m_depthImages[i].ImageView = m_textureManager->CreateImageView(m_depthImages[i].Image, depthFormat,
+            m_depthImages[i].ImageView = m_imageManager->CreateImageView(m_depthImages[i].Image, depthFormat,
                                                                            VK_IMAGE_ASPECT_DEPTH_BIT);
         }
 
@@ -204,9 +204,9 @@ namespace Spire
 
     void RenderingManager::FreeDepthResources()
     {
-        for (const auto& depthTexture : m_depthImages)
+        for (const auto& depthImage : m_depthImages)
         {
-            m_textureManager->DestroyImage(depthTexture);
+            m_imageManager->DestroyImage(depthImage);
         }
         m_depthImages.clear();
     }

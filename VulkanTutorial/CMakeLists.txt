@@ -29,8 +29,8 @@ add_executable(VulkanTutorial
         Source/Engine/Utils/Timer.h
         Source/Engine/Utils/Camera/Camera.cpp
         Source/Engine/Utils/Camera/Camera.h
-        Source/Engine/Rendering/Memory/TextureManager.cpp
-        Source/Engine/Rendering/Memory/TextureManager.h
+        Source/Engine/Rendering/Memory/ImageManager.cpp
+        Source/Engine/Rendering/Memory/ImageManager.h
         Source/Engine/Resources/ImageLoader.cpp
         Source/Engine/Resources/ImageLoader.h
         Source/Engine/Utils/FileIO.cpp
@@ -60,8 +60,8 @@ add_executable(VulkanTutorial
         Source/Engine/Resources/ModelLoader.cpp
         Source/Engine/Resources/ModelLoader.h
         Source/Engine/Resources/Model.h
-        Source/Engine/Rendering/Scene/SceneTextures.cpp
-        Source/Engine/Rendering/Scene/SceneTextures.h
+        Source/Engine/Rendering/Scene/SceneImages.cpp
+        Source/Engine/Rendering/Scene/SceneImages.h
         Source/Engine/Rendering/Descriptors/Descriptor.h
         Source/Engine/Rendering/Descriptors/DescriptorPool.cpp
         Source/Engine/Rendering/Descriptors/DescriptorPool.h

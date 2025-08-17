@@ -21,7 +21,7 @@
 #include "Rendering/Descriptors/DescriptorManager.h"
 #include "Rendering/Descriptors/DescriptorSetLayoutList.h"
 #include "Rendering/Descriptors/DescriptorCreator.h"
-#include "Rendering/Memory/TextureManager.h"
+#include "Rendering/Memory/ImageManager.h"
 #include "Engine/Rendering/Core/Swapchain.h"
 #include "Rendering/Core/LogicalDevice.h"
 #include "Rendering/Core/RenderingSync.h"
@@ -32,7 +32,7 @@
 #include "Rendering/Scene/PushConstants.h"
 #include "Rendering/Renderers/ImGuiRenderer.h"
 #include "Engine/Rendering/Core/RenderingDeviceManager.h"
-#include "Rendering/Scene/SceneTextures.h"
+#include "Rendering/Scene/SceneImages.h"
 #include "Rendering/Memory/PerImageBuffer.h"
 
 #include "Engine/Resources/ImageLoader.h"

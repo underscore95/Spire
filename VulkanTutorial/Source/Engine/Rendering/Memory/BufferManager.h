@@ -12,7 +12,7 @@ namespace Spire
 
     class BufferManager
     {
-        friend class TextureManager;
+        friend class ImageManager;
 
     public:
         explicit BufferManager(RenderingManager& renderingManager);

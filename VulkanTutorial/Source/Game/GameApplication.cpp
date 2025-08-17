@@ -33,11 +33,11 @@ void GameApplication::Start(Engine& engine)
     spdlog::info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
     // Shader data
-    std::vector<std::string> texturesToLoad = CreateModels();
+    std::vector<std::string> imagesToLoad = CreateModels();
 
-    // Textures
-    while (texturesToLoad.size()<2) texturesToLoad.push_back("test.png"); // shader forces 2 images to be bound so hack
-    m_sceneTextures = std::make_unique<SceneTextures>(rm, texturesToLoad);
+    // Images
+    while (imagesToLoad.size()<2) imagesToLoad.push_back("test.png"); // shader forces 2 images to be bound so hack
+    m_sceneImages = std::make_unique<SceneImages>(rm, imagesToLoad);
 
     // Descriptors
     SetupDescriptors();
@@ -67,7 +67,7 @@ void GameApplication::Cleanup()
     m_models.reset();
     m_camera.reset();
 
-    m_sceneTextures.reset();
+    m_sceneImages.reset();
 
     m_graphicsPipeline.reset();
 
@@ -188,18 +188,18 @@ void GameApplication::RecordCommandBuffers() const
 
 std::vector<std::string> GameApplication::CreateModels()
 {
-    std::vector<std::string> texturesToLoad;
+    std::vector<std::string> imagesToLoad;
     std::vector<Model> models;
 
     auto fileName = std::format("{}/Cube.obj", ASSETS_DIRECTORY);
-    models.push_back(ModelLoader::LoadModel(fileName.c_str(), texturesToLoad));
+    models.push_back(ModelLoader::LoadModel(fileName.c_str(), imagesToLoad));
 
     m_models = std::make_unique<SceneModels>(
         m_engine->GetRenderingManager(),
         models
     );
 
-    return texturesToLoad;
+    return imagesToLoad;
 }
 
 void GameApplication::SetupDescriptors()
@@ -211,8 +211,8 @@ void GameApplication::SetupDescriptors()
         // ModelVertex buffer
         layout.push_back(m_models->GetDescriptor(0));
 
-        // Textures
-        layout.push_back(m_sceneTextures->GetDescriptor(2));
+        // Images
+        layout.push_back(m_sceneImages->GetDescriptor(2));
 
         layouts.Push(layout);
     }

@@ -1,3 +1,3 @@
 layout (push_constant) uniform PushConstants {
-    uint TextureIndex;
+    uint ImageIndex;
 } pushConstants;

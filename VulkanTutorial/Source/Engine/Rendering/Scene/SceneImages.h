@@ -11,19 +11,19 @@ namespace Spire
     struct PipelineResourceInfo;
     struct Descriptor;
 
-    class SceneTextures
+    class SceneImages
     {
     public:
-        SceneTextures(RenderingManager& renderingManager, const std::vector<std::string>& textureFileNames);
-        ~SceneTextures();
+        SceneImages(RenderingManager& renderingManager, const std::vector<std::string>& imageFileNames);
+        ~SceneImages();
 
     public:
         [[nodiscard]] Descriptor GetDescriptor(glm::u32 binding) const;
 
-        glm::u32 NumLoadedTextures() const;
+        glm::u32 NumLoadedImages() const;
 
     private:
         RenderingManager& m_renderingManager;
-        std::vector<VulkanImage> m_loadedTextures;
+        std::vector<VulkanImage> m_loadedImages;
     };
 }

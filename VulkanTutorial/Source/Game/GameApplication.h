@@ -34,7 +34,7 @@ private:
 
     void RecordCommandBuffers() const;
 
-    // returns paths to textures to load
+    // returns paths to images to load
     std::vector<std::string> CreateModels();
 
     void SetupDescriptors();
@@ -48,7 +48,7 @@ private:
     VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
     std::unique_ptr<Spire::GraphicsPipeline> m_graphicsPipeline = nullptr;
     std::unique_ptr<Spire::SceneModels> m_models = nullptr;
-    std::unique_ptr<Spire::SceneTextures> m_sceneTextures = nullptr;
+    std::unique_ptr<Spire::SceneImages> m_sceneImages = nullptr;
     std::unique_ptr<Spire::DescriptorManager> m_descriptorManager = nullptr;
     std::unique_ptr<GameCamera> m_camera = nullptr;
 };

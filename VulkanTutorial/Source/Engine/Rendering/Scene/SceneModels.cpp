@@ -52,9 +52,9 @@ namespace Spire
             // set the texture index
             pipeline.CmdSetPushConstants(
                 commandBuffer,
-                &sceneMesh.TextureIndex,
-                sizeof(sceneMesh.TextureIndex),
-                static_cast<glm::u32>(offsetof(PushConstants, TextureIndex))
+                &sceneMesh.ImageIndex,
+                sizeof(sceneMesh.ImageIndex),
+                static_cast<glm::u32>(offsetof(PushConstants, ImageIndex))
             );
 
             // draw the mesh
@@ -88,7 +88,7 @@ namespace Spire
                 m_models.back().push_back({
                     .NumIndices = static_cast<glm::u32>(mesh->Indices.size()),
                     .FirstIndex = numIndices,
-                    .TextureIndex = mesh->TextureIndex
+                    .ImageIndex = mesh->ImageIndex
                 });
                 totalSize += mesh->Vertices.size() * VERTEX_SIZE;
                 numIndices += mesh->Indices.size();

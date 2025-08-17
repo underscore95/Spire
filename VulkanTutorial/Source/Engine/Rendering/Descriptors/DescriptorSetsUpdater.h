@@ -23,7 +23,7 @@ namespace Spire
     private:
         bool IsBuffer(VkDescriptorType resourceType) const;
 
-        bool IsTextureSampler(VkDescriptorType resourceType) const;
+        bool IsImageSampler(VkDescriptorType resourceType) const;
 
         bool IsSupportedResourceType(VkDescriptorType resourceType) const;
 

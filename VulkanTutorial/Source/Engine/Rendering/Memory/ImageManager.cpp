@@ -1,4 +1,4 @@
-#include "TextureManager.h"
+#include "ImageManager.h"
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 #include "BufferManager.h"
@@ -13,13 +13,13 @@
 
 namespace Spire
 {
-    TextureManager::TextureManager(RenderingManager& renderingManager)
+    ImageManager::ImageManager(RenderingManager& renderingManager)
         : m_renderingManager(renderingManager)
     {
         m_renderingManager.GetCommandManager().CreateCommandBuffers(1, &m_commandBuffer);
     }
 
-    TextureManager::~TextureManager()
+    ImageManager::~ImageManager()
     {
         DEBUG_ASSERT(m_numAllocatedImages == 0);
         ASSERT(&m_renderingManager.GetCommandManager() != nullptr);
@@ -27,39 +27,39 @@ namespace Spire
         m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_commandBuffer);
     }
 
-    VulkanImage TextureManager::CreateImageFromFile(const char* filename)
+    VulkanImage ImageManager::CreateImageFromFile(const char* filename)
     {
         // Load image
-        VulkanImage texture = {};
+        VulkanImage images = {};
         LoadedImage loadedImage = ImageLoader::LoadImage(filename);
         if (!loadedImage.IsValid())
         {
-            return texture;
+            return images;
         }
 
-        // Create vulkan texture
+        // Create vulkan image
         constexpr VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
-        CreateTextureImageFromData(texture, loadedImage, format);
+        CreateImageFromData(images, loadedImage, format);
 
         // Unload image
         ImageLoader::UnloadImage(loadedImage);
 
         // Create image view
         VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
-        texture.ImageView = CreateImageView(texture.Image, format, aspectFlags);
+        images.ImageView = CreateImageView(images.Image, format, aspectFlags);
 
         // Create sampler
         VkFilter minFilter = VK_FILTER_LINEAR;
         VkFilter maxFilter = VK_FILTER_LINEAR;
         VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
-        texture.Sampler = CreateTextureSampler(minFilter, maxFilter, addressMode);
+        images.Sampler = CreateImageSampler(minFilter, maxFilter, addressMode);
 
-        spdlog::info("Created vulkan texture from '{}'", filename);
-        return texture;
+        spdlog::info("Created vulkan image from '{}'", filename);
+        return images;
     }
 
-    void TextureManager::DestroyImage(const VulkanImage& image)
+    void ImageManager::DestroyImage(const VulkanImage& image)
     {
         DEBUG_ASSERT(m_numAllocatedImages > 0);
         VkDevice device = m_renderingManager.GetDevice();
@@ -73,7 +73,7 @@ namespace Spire
         m_numAllocatedImages--;
     }
 
-    void TextureManager::CreateImage(VulkanImage& texture, glm::uvec2 dimensions,
+    void ImageManager::CreateImage(VulkanImage& image, glm::uvec2 dimensions,
                                      VkImageUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkFormat format)
     {
         VkImageCreateInfo imageInfo = {
@@ -108,8 +108,8 @@ namespace Spire
             m_renderingManager.GetAllocatorWrapper().GetAllocator(),
             &imageInfo,
             &allocInfo,
-            &texture.Image,
-            &texture.Allocation,
+            &image.Image,
+            &image.Allocation,
             nullptr);
 
         if (res != VK_SUCCESS)
@@ -121,7 +121,7 @@ namespace Spire
         }
     }
 
-    glm::u32 TextureManager::GetBytesPerTexFormat(VkFormat format) const
+    glm::u32 ImageManager::GetBytesPerTexFormat(VkFormat format) const
     {
         switch (format)
         {
@@ -142,14 +142,14 @@ namespace Spire
         case VK_FORMAT_R32G32B32A32_SFLOAT:
             return 4 * sizeof(float);
         default:
-            spdlog::error("Unknown texture format {}", static_cast<int>(format));
+            spdlog::error("Unknown image format {}", static_cast<int>(format));
             ASSERT(false);
         }
 
         return 0;
     }
 
-    void TextureManager::CopyBufferToImage(VkImage dest, VkBuffer source, const glm::uvec2& imageDimensions) const
+    void ImageManager::CopyBufferToImage(VkImage dest, VkBuffer source, const glm::uvec2& imageDimensions) const
     {
         auto& commandManager = m_renderingManager.GetCommandManager();
         commandManager.BeginCommandBuffer(m_commandBuffer, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
@@ -178,7 +178,7 @@ namespace Spire
         m_renderingManager.GetQueue().WaitIdle();
     }
 
-    void TextureManager::UpdateTextureImage(const VulkanImage& texture, const LoadedImage& loadedImage,
+    void ImageManager::UpdateImageImage(const VulkanImage& image, const LoadedImage& loadedImage,
                                             VkFormat format) const
     {
         glm::u32 bytesPerPixel = GetBytesPerTexFormat(format);
@@ -194,27 +194,27 @@ namespace Spire
         VulkanBuffer stagingBuffer = bufferManager.CreateBuffer(imageSize, usage, memoryProperties);
         bufferManager.UpdateBuffer(stagingBuffer, loadedImage.Data, imageSize);
 
-        TransitionImageLayout(texture.Image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        TransitionImageLayout(image.Image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-        CopyBufferToImage(texture.Image, stagingBuffer.Buffer, loadedImage.Dimensions);
+        CopyBufferToImage(image.Image, stagingBuffer.Buffer, loadedImage.Dimensions);
 
-        TransitionImageLayout(texture.Image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        TransitionImageLayout(image.Image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         bufferManager.DestroyBuffer(stagingBuffer);
     }
 
-    void TextureManager::CreateTextureImageFromData(VulkanImage& texture, const LoadedImage& loadedImage,
+    void ImageManager::CreateImageFromData(VulkanImage& image, const LoadedImage& loadedImage,
                                                     VkFormat format)
     {
         constexpr VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         constexpr VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        CreateImage(texture, loadedImage.Dimensions, usage, propertyFlags, format);
+        CreateImage(image, loadedImage.Dimensions, usage, propertyFlags, format);
 
-        UpdateTextureImage(texture, loadedImage, format);
+        UpdateImageImage(image, loadedImage, format);
     }
 
-    void TextureManager::TransitionImageLayout(const VkImage& image, VkFormat format, VkImageLayout oldLayout,
+    void ImageManager::TransitionImageLayout(const VkImage& image, VkFormat format, VkImageLayout oldLayout,
                                                VkImageLayout newLayout) const
     {
         m_renderingManager.GetCommandManager().BeginCommandBuffer(m_commandBuffer,
@@ -229,7 +229,7 @@ namespace Spire
         m_renderingManager.GetQueue().WaitIdle();
     }
 
-    VkImageView TextureManager::CreateImageView(VkImage image, VkFormat format, VkFlags aspectFlags) const
+    VkImageView ImageManager::CreateImageView(VkImage image, VkFormat format, VkFlags aspectFlags) const
     {
         VkImageViewCreateInfo viewInfo =
         {
@@ -263,7 +263,7 @@ namespace Spire
         return imageView;
     }
 
-    VkSampler TextureManager::CreateTextureSampler(VkFilter minFilter, VkFilter maxFilter,
+    VkSampler ImageManager::CreateImageSampler(VkFilter minFilter, VkFilter maxFilter,
                                                    VkSamplerAddressMode addressMode) const
     {
         VkSamplerCreateInfo samplerInfo = {
@@ -291,7 +291,7 @@ namespace Spire
         VkResult res = vkCreateSampler(m_renderingManager.GetDevice(), &samplerInfo, nullptr, &sampler);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create texture sampler");
+            spdlog::error("Failed to create image sampler");
         }
         return sampler;
     }

@@ -19,7 +19,7 @@ namespace Spire
         {
             glm::u32 NumIndices = 0;
             glm::u32 FirstIndex = 0;
-            glm::u32 TextureIndex = 0;
+            glm::u32 ImageIndex = 0;
         };
 
     public:
