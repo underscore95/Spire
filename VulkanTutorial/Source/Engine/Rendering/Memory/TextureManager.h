@@ -3,39 +3,42 @@
 #include <vulkan/vulkan_core.h>
 #include <glm/fwd.hpp>
 
-struct LoadedImage;
-class RenderingManager;
-struct VulkanImage;
-
-class TextureManager
+namespace Spire
 {
-public:
-    explicit TextureManager(RenderingManager& renderingManager);
-    ~TextureManager();
+    struct LoadedImage;
+    class RenderingManager;
+    struct VulkanImage;
 
-public:
-    VulkanImage CreateImageFromFile(const char* filename);
-    void DestroyImage(const VulkanImage& image);
+    class TextureManager
+    {
+    public:
+        explicit TextureManager(RenderingManager& renderingManager);
+        ~TextureManager();
 
-    void CreateImage(VulkanImage& texture, glm::uvec2 dimensions, VkImageUsageFlags usage,
-                     VkImageUsageFlags propertyFlags, VkFormat format);
+    public:
+        VulkanImage CreateImageFromFile(const char* filename);
+        void DestroyImage(const VulkanImage& image);
 
-    void TransitionImageLayout(const VkImage& image, VkFormat format, VkImageLayout oldLayout,
-                               VkImageLayout newLayout) const;
+        void CreateImage(VulkanImage& texture, glm::uvec2 dimensions, VkImageUsageFlags usage,
+                         VkImageUsageFlags propertyFlags, VkFormat format);
 
-    VkImageView CreateImageView(VkImage image, VkFormat format, VkFlags aspectFlags) const;
+        void TransitionImageLayout(const VkImage& image, VkFormat format, VkImageLayout oldLayout,
+                                   VkImageLayout newLayout) const;
 
-private:
-    glm::u32 GetBytesPerTexFormat(VkFormat format) const;
+        VkImageView CreateImageView(VkImage image, VkFormat format, VkFlags aspectFlags) const;
 
-    void CopyBufferToImage(VkImage dest, VkBuffer source, const glm::uvec2& imageDimensions) const;
-    void UpdateTextureImage(const VulkanImage& texture, const LoadedImage& loadedImage, VkFormat format) const;
-    void CreateTextureImageFromData(VulkanImage& texture, const LoadedImage& loadedImage, VkFormat format);
+    private:
+        glm::u32 GetBytesPerTexFormat(VkFormat format) const;
 
-    VkSampler CreateTextureSampler(VkFilter minFilter, VkFilter maxFilter, VkSamplerAddressMode addressMode) const;
+        void CopyBufferToImage(VkImage dest, VkBuffer source, const glm::uvec2& imageDimensions) const;
+        void UpdateTextureImage(const VulkanImage& texture, const LoadedImage& loadedImage, VkFormat format) const;
+        void CreateTextureImageFromData(VulkanImage& texture, const LoadedImage& loadedImage, VkFormat format);
 
-private:
-    RenderingManager& m_renderingManager;
-    VkCommandBuffer m_commandBuffer;
-    glm::u32 m_numAllocatedImages = 0;
-};
+        VkSampler CreateTextureSampler(VkFilter minFilter, VkFilter maxFilter, VkSamplerAddressMode addressMode) const;
+
+    private:
+        RenderingManager& m_renderingManager;
+        VkCommandBuffer m_commandBuffer;
+        glm::u32 m_numAllocatedImages = 0;
+    };
+}

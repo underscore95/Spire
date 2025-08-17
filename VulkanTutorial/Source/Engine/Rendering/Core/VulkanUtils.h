@@ -3,12 +3,14 @@
 #include <libassert/assert.hpp>
 #include <vulkan/vulkan.h>
 
-class VulkanUtils {
-public:
-    VulkanUtils() = delete;
+namespace Spire
+{
+    class VulkanUtils {
+    public:
+        VulkanUtils() = delete;
 
-    static const char *GetDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity) {
-        switch (Severity) {
+        static const char *GetDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity) {
+            switch (Severity) {
             case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
                 return "Verbose";
 
@@ -23,12 +25,12 @@ public:
 
             default:
                 UNREACHABLE();
+            }
         }
-    }
 
 
-    static const char *GetDebugType(VkDebugUtilsMessageTypeFlagsEXT Type) {
-        switch (Type) {
+        static const char *GetDebugType(VkDebugUtilsMessageTypeFlagsEXT Type) {
+            switch (Type) {
             case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT:
                 return "General";
 
@@ -45,6 +47,7 @@ public:
 
             default:
                 UNREACHABLE();
+            }
         }
-    }
-};
+    };
+}

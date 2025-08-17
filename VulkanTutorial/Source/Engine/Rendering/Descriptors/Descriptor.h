@@ -4,25 +4,28 @@
 #include <vulkan/vulkan_core.h>
 #include <vector>
 
-struct VulkanImage;
-struct VulkanBuffer;
-
-struct Descriptor
+namespace Spire
 {
-    VkDescriptorType ResourceType;
-    glm::u32 Binding;
-    VkShaderStageFlags Stages;
+    struct VulkanImage;
+    struct VulkanBuffer;
 
-    glm::u32 NumResources; // This struct can represent multiple descriptors if it is e.g. an array of images
-    union ResourcePtr
+    struct Descriptor
     {
-        const void* Raw;
-        const VulkanBuffer* Buffers;
-        const VulkanImage* Textures;
-    } ResourcePtrs;
-};
+        VkDescriptorType ResourceType;
+        glm::u32 Binding;
+        VkShaderStageFlags Stages;
 
-struct PerImageDescriptor
-{
-    std::vector<Descriptor> Descriptors; // each descriptor should go in a different set
-};
+        glm::u32 NumResources; // This struct can represent multiple descriptors if it is e.g. an array of images
+        union ResourcePtr
+        {
+            const void* Raw;
+            const VulkanBuffer* Buffers;
+            const VulkanImage* Textures;
+        } ResourcePtrs;
+    };
+
+    struct PerImageDescriptor
+    {
+        std::vector<Descriptor> Descriptors; // each descriptor should go in a different set
+    };
+}

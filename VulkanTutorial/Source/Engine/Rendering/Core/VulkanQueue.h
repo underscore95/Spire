@@ -4,46 +4,49 @@
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan.h>
 
-class Engine;
-class RenderingManager;
-
-class VulkanQueue
+namespace Spire
 {
-public:
-    VulkanQueue(RenderingManager& renderingManager,
-                Engine& engine,
-                VkDevice device,
-                VkSwapchainKHR swapchain,
-                glm::u32 queueFamily,
-                glm::u32 queueIndex);
+    class Engine;
+    class RenderingManager;
 
-    ~VulkanQueue();
+    class VulkanQueue
+    {
+    public:
+        VulkanQueue(RenderingManager& renderingManager,
+                    Engine& engine,
+                    VkDevice device,
+                    VkSwapchainKHR swapchain,
+                    glm::u32 queueFamily,
+                    glm::u32 queueIndex);
 
-public:
-    [[nodiscard]] glm::u32 AcquireNextImage() const;
+        ~VulkanQueue();
 
-    void SubmitImmediate(VkCommandBuffer commandBuffer) const;
+    public:
+        [[nodiscard]] glm::u32 AcquireNextImage() const;
 
-    void SubmitRenderCommand(VkCommandBuffer commandBuffer);
-    void SubmitRenderCommands(glm::u32 count, VkCommandBuffer* commandBuffers);
+        void SubmitImmediate(VkCommandBuffer commandBuffer) const;
 
-    void Present(glm::u32 imageIndex);
+        void SubmitRenderCommand(VkCommandBuffer commandBuffer);
+        void SubmitRenderCommands(glm::u32 count, VkCommandBuffer* commandBuffers);
 
-    void WaitIdle() const;
+        void Present(glm::u32 imageIndex);
 
-    [[nodiscard]] VkQueue GetQueueHandle() const;
+        void WaitIdle() const;
 
-public:
-    const glm::u32 INVALID_IMAGE_INDEX = -1; // underflow
+        [[nodiscard]] VkQueue GetQueueHandle() const;
 
-private:
-    RenderingManager& m_renderingManager;
-    Engine& m_engine;
-    VkDevice m_device = VK_NULL_HANDLE;
-    VkSwapchainKHR m_swapchain;
-    VkQueue m_queue = VK_NULL_HANDLE;
-    std::vector<VkSemaphore> m_renderCompleteSemaphore;
-    std::vector<VkSemaphore> m_presentCompleteSemaphore;
-    std::vector<VkFence> m_framesInFlightFences;
-    glm::u32 m_currentFrame = 0;
-};
+    public:
+        const glm::u32 INVALID_IMAGE_INDEX = -1; // underflow
+
+    private:
+        RenderingManager& m_renderingManager;
+        Engine& m_engine;
+        VkDevice m_device = VK_NULL_HANDLE;
+        VkSwapchainKHR m_swapchain;
+        VkQueue m_queue = VK_NULL_HANDLE;
+        std::vector<VkSemaphore> m_renderCompleteSemaphore;
+        std::vector<VkSemaphore> m_presentCompleteSemaphore;
+        std::vector<VkFence> m_framesInFlightFences;
+        glm::u32 m_currentFrame = 0;
+    };
+}

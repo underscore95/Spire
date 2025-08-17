@@ -4,30 +4,33 @@
 
 #include "DescriptorSet.h"
 
-union DescriptorInfo
+namespace Spire
 {
-    VkDescriptorBufferInfo BufferInfo;
-    VkDescriptorImageInfo ImageInfo;
-};
+    union DescriptorInfo
+    {
+        VkDescriptorBufferInfo BufferInfo;
+        VkDescriptorImageInfo ImageInfo;
+    };
 
-class DescriptorSetsUpdater
-{
-public:
-    DescriptorSetsUpdater(VkDevice device, glm::u32 numDescriptorSets, const DescriptorSet* descriptorSets);
-    ~DescriptorSetsUpdater();
+    class DescriptorSetsUpdater
+    {
+    public:
+        DescriptorSetsUpdater(VkDevice device, glm::u32 numDescriptorSets, const DescriptorSet* descriptorSets);
+        ~DescriptorSetsUpdater();
 
-    void Update();
+        void Update();
 
-private:
-    bool IsBuffer(VkDescriptorType resourceType) const;
+    private:
+        bool IsBuffer(VkDescriptorType resourceType) const;
 
-    bool IsTextureSampler(VkDescriptorType resourceType) const;
+        bool IsTextureSampler(VkDescriptorType resourceType) const;
 
-    bool IsSupportedResourceType(VkDescriptorType resourceType) const;
+        bool IsSupportedResourceType(VkDescriptorType resourceType) const;
 
-private:
-    VkDevice m_device;
-    std::vector<VkWriteDescriptorSet> m_writeDescriptorSets;
-    std::vector<DescriptorInfo> m_descriptorInfos;
-    bool m_hasUpdatedAtLeastOnce = false;
-};
+    private:
+        VkDevice m_device;
+        std::vector<VkWriteDescriptorSet> m_writeDescriptorSets;
+        std::vector<DescriptorInfo> m_descriptorInfos;
+        bool m_hasUpdatedAtLeastOnce = false;
+    };
+}

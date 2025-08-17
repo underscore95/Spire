@@ -5,30 +5,33 @@
 #include <vulkan/vulkan.h>
 #include "DescriptorSetLayoutList.h"
 
-struct DescriptorSet;
-class DescriptorSetsUpdater;
-class DescriptorPool;
-class RenderingManager;
-
-class DescriptorManager
+namespace Spire
 {
-public:
-    DescriptorManager(RenderingManager& renderingManager, const DescriptorSetLayoutList& layouts);
-    ~DescriptorManager();
+    struct DescriptorSet;
+    class DescriptorSetsUpdater;
+    class DescriptorPool;
+    class RenderingManager;
 
-public:
-    void CmdBind(VkCommandBuffer commandBuffer, glm::u32 currentSwapchainImage, VkPipelineLayout pipelineLayout, glm::u32 setIndex, glm
-                 ::u32 shaderSetIndex) const;
+    class DescriptorManager
+    {
+    public:
+        DescriptorManager(RenderingManager& renderingManager, const DescriptorSetLayoutList& layouts);
+        ~DescriptorManager();
 
-    const std::vector<VkDescriptorSetLayout>& GetRawLayouts() const;
+    public:
+        void CmdBind(VkCommandBuffer commandBuffer, glm::u32 currentSwapchainImage, VkPipelineLayout pipelineLayout, glm::u32 setIndex, glm
+                     ::u32 shaderSetIndex) const;
 
-private:
+        const std::vector<VkDescriptorSetLayout>& GetRawLayouts() const;
 
-private:
-    RenderingManager& m_renderingManager;
-    DescriptorSetLayoutList m_layouts;
-    std::unique_ptr<DescriptorPool> m_pool;
-    std::unique_ptr<DescriptorSetsUpdater> m_updater;
-    std::vector<VkDescriptorSetLayout> m_rawLayouts;
-    std::vector<DescriptorSet> m_descriptorSets;
-};
+    private:
+
+    private:
+        RenderingManager& m_renderingManager;
+        DescriptorSetLayoutList m_layouts;
+        std::unique_ptr<DescriptorPool> m_pool;
+        std::unique_ptr<DescriptorSetsUpdater> m_updater;
+        std::vector<VkDescriptorSetLayout> m_rawLayouts;
+        std::vector<DescriptorSet> m_descriptorSets;
+    };
+}

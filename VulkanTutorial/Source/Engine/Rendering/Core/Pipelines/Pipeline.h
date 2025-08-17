@@ -4,45 +4,48 @@
 #include <vulkan/vulkan_core.h>
 #include <glm/glm.hpp>
 
-class DescriptorManager;
-class RenderingManager;
-
-class Pipeline
+namespace Spire
 {
-protected:
-    Pipeline(
-        VkDevice device,
-        const DescriptorManager& descriptorManager,
-        RenderingManager& renderingManager,
-        glm::u32 pushConstantSize
-    );
+    class DescriptorManager;
+    class RenderingManager;
 
-public:
-    virtual ~Pipeline();
+    class Pipeline
+    {
+    protected:
+        Pipeline(
+            VkDevice device,
+            const DescriptorManager& descriptorManager,
+            RenderingManager& renderingManager,
+            glm::u32 pushConstantSize
+        );
 
-public:
-    void CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size, glm::u32 offset = 0) const;
+    public:
+        virtual ~Pipeline();
 
-    [[nodiscard]] VkPipelineLayout GetLayout() const;
+    public:
+        void CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size, glm::u32 offset = 0) const;
 
-    virtual void CmdBindTo(VkCommandBuffer commandBuffer) const = 0;
+        [[nodiscard]] VkPipelineLayout GetLayout() const;
 
-protected:
-    std::array<VkPipelineShaderStageCreateInfo, 2> CreateVertFragShaderInfo(
-        VkShaderModule vertexShader,
-        VkShaderModule fragmentShader
-    ) const;
+        virtual void CmdBindTo(VkCommandBuffer commandBuffer) const = 0;
 
-    VkPipelineShaderStageCreateInfo CreateShaderInfo(VkShaderModule shader, VkShaderStageFlagBits stage, const char* entryPoint = "main") const;
+    protected:
+        std::array<VkPipelineShaderStageCreateInfo, 2> CreateVertFragShaderInfo(
+            VkShaderModule vertexShader,
+            VkShaderModule fragmentShader
+        ) const;
 
-private:
-    void CreatePipelineLayout();
+        VkPipelineShaderStageCreateInfo CreateShaderInfo(VkShaderModule shader, VkShaderStageFlagBits stage, const char* entryPoint = "main") const;
 
-protected:
-    VkDevice m_device = VK_NULL_HANDLE;
-    VkPipeline m_pipeline = VK_NULL_HANDLE;
-    VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
-    RenderingManager& m_renderingManager;
-    const glm::u32 m_pushConstantSize;
-    std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
-};
+    private:
+        void CreatePipelineLayout();
+
+    protected:
+        VkDevice m_device = VK_NULL_HANDLE;
+        VkPipeline m_pipeline = VK_NULL_HANDLE;
+        VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
+        RenderingManager& m_renderingManager;
+        const glm::u32 m_pushConstantSize;
+        std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
+    };
+}

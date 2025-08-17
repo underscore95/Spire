@@ -11,18 +11,18 @@ struct CameraInfo
 class GameCamera
 {
 public:
-    explicit GameCamera(const Engine& engine);
+    explicit GameCamera(const Spire::Engine& engine);
 
     void Update();
     void Render(const RenderInfo& renderInfo);
 
-    Camera& GetCamera() const;
+    Spire::Camera& GetCamera() const;
 
-    PerImageDescriptor GetDescriptor(glm::u32 binding) const;
+    Spire::PerImageDescriptor GetDescriptor(glm::u32 binding) const;
 
 private:
-    const Engine& m_engine;
-    std::unique_ptr<PerImageBuffer> m_uniformBuffer = nullptr;
-    std::unique_ptr<Camera> m_camera;
+    const Spire::Engine& m_engine;
+    std::unique_ptr<Spire::PerImageBuffer> m_uniformBuffer = nullptr;
+    std::unique_ptr<Spire::Camera> m_camera;
     CameraInfo m_cameraInfo;
 };

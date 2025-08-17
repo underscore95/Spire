@@ -3,32 +3,35 @@
 #include <vulkan/vulkan.hpp>
 #include <glm/glm.hpp>
 
-class Window;
-class RenderingManager;
-
-class Renderer
+namespace Spire
 {
-public:
-    explicit Renderer(RenderingManager& renderingManager, const Window& window);
-    ~Renderer();
+    class Window;
+    class RenderingManager;
 
-public:
-    void BeginDynamicRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex, const VkClearValue* clearColor,
-                               const VkClearValue* depthValue) const;
+    class Renderer
+    {
+    public:
+        explicit Renderer(RenderingManager& renderingManager, const Window& window);
+        ~Renderer();
 
-    VkCommandBuffer GetBeginRenderingCommandBuffer(glm::u32 imageIndex) const;
-    VkCommandBuffer GetEndRenderingCommandBuffer(glm::u32 imageIndex) const;
+    public:
+        void BeginDynamicRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex, const VkClearValue* clearColor,
+                                   const VkClearValue* depthValue) const;
 
-    void RecreateCommandBuffers();
+        VkCommandBuffer GetBeginRenderingCommandBuffer(glm::u32 imageIndex) const;
+        VkCommandBuffer GetEndRenderingCommandBuffer(glm::u32 imageIndex) const;
 
-private:
-    void CreateCommandBuffers();
-    void FreeCommandBuffers() const;
-    void RecordCommandBuffers() const;
+        void RecreateCommandBuffers();
 
-private:
-    RenderingManager& m_renderingManager;
-    const Window& m_window;
-    std::vector<VkCommandBuffer> m_beginRenderingCommandBuffers;
-    std::vector<VkCommandBuffer> m_endRenderingCommandBuffers;
-};
+    private:
+        void CreateCommandBuffers();
+        void FreeCommandBuffers() const;
+        void RecordCommandBuffers() const;
+
+    private:
+        RenderingManager& m_renderingManager;
+        const Window& m_window;
+        std::vector<VkCommandBuffer> m_beginRenderingCommandBuffers;
+        std::vector<VkCommandBuffer> m_endRenderingCommandBuffers;
+    };
+}

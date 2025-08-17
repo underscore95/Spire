@@ -23,325 +23,328 @@
 #include "Descriptors/DescriptorCreator.h"
 #include "Memory/VulkanImage.h"
 
-RenderingManager::RenderingManager(Engine& engine,
-                                   const std::string& applicationName,
-                                   Window& window)
-    : m_engine(engine),
-      m_window(window)
+namespace Spire
 {
-    spdlog::info("Initializing RenderingManager...");
+    RenderingManager::RenderingManager(Engine& engine,
+                                       const std::string& applicationName,
+                                       Window& window)
+        : m_engine(engine),
+          m_window(window)
+    {
+        spdlog::info("Initializing RenderingManager...");
 
-    m_renderingSync = std::make_unique<RenderingSync>(*this);
+        m_renderingSync = std::make_unique<RenderingSync>(*this);
 
-    GetInstanceVersion();
-    CreateInstance(applicationName);
+        GetInstanceVersion();
+        CreateInstance(applicationName);
 #ifndef NDEBUG
-    m_debugCallback = std::make_unique<VulkanDebugCallback>(m_instance);
+        m_debugCallback = std::make_unique<VulkanDebugCallback>(m_instance);
 #endif
-    CreateSurface(window);
+        CreateSurface(window);
 
-    m_deviceManager = std::make_unique<RenderingDeviceManager>(m_instance, m_surface, false);
+        m_deviceManager = std::make_unique<RenderingDeviceManager>(m_instance, m_surface, false);
 
-    m_logicalDevice = std::make_unique<LogicalDevice>(*m_deviceManager, m_instanceVersion);
+        m_logicalDevice = std::make_unique<LogicalDevice>(*m_deviceManager, m_instanceVersion);
 
-    m_allocator = std::make_unique<VulkanAllocator>(
-        m_logicalDevice->GetDevice(),
-        m_deviceManager->Selected().PhysicalDeviceHandle,
-        m_instance,
-        m_instanceVersion);
+        m_allocator = std::make_unique<VulkanAllocator>(
+            m_logicalDevice->GetDevice(),
+            m_deviceManager->Selected().PhysicalDeviceHandle,
+            m_instance,
+            m_instanceVersion);
 
-    CreateSwapchain();
-    m_descriptorCreator = std::make_unique<DescriptorCreator>(m_swapchain->GetNumImages());
+        CreateSwapchain();
+        m_descriptorCreator = std::make_unique<DescriptorCreator>(m_swapchain->GetNumImages());
 
-    m_commandManager = std::make_unique<RenderingCommandManager>(m_logicalDevice->GetDeviceQueueFamily(),
-                                                                 m_logicalDevice->GetDevice());
+        m_commandManager = std::make_unique<RenderingCommandManager>(m_logicalDevice->GetDeviceQueueFamily(),
+                                                                     m_logicalDevice->GetDevice());
 
-    CreateQueue();
+        CreateQueue();
 
-    m_bufferManager = std::make_unique<BufferManager>(*this);
-    m_textureManager = std::make_unique<TextureManager>(*this);
+        m_bufferManager = std::make_unique<BufferManager>(*this);
+        m_textureManager = std::make_unique<TextureManager>(*this);
 
-    CreateDepthResources();
+        CreateDepthResources();
 
-    m_renderer = std::make_unique<Renderer>(*this, window);
-    m_imGuiRenderer = std::make_unique<ImGuiRenderer>(*this, window);
+        m_renderer = std::make_unique<Renderer>(*this, window);
+        m_imGuiRenderer = std::make_unique<ImGuiRenderer>(*this, window);
 
-    spdlog::info("Initialized RenderingManager!");
-}
-
-RenderingManager::~RenderingManager()
-{
-    spdlog::info("Destroying RenderingManager...");
-
-    m_imGuiRenderer.reset();
-    m_renderer.reset();
-
-    FreeDepthResources();
-
-    m_textureManager.reset();
-    m_bufferManager.reset();
-
-    m_queue.reset();
-
-    m_commandManager.reset();
-
-    m_swapchain.reset();
-
-    m_allocator.reset();
-
-    m_logicalDevice.reset();
-    m_deviceManager.reset();
-
-    if (m_surface)
-    {
-        vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
-        spdlog::info("Destroyed Vulkan surface instance");
+        spdlog::info("Initialized RenderingManager!");
     }
 
-    m_descriptorCreator.reset();
-
-    m_debugCallback.reset();
-
-    if (m_instance)
+    RenderingManager::~RenderingManager()
     {
-        vkDestroyInstance(m_instance, nullptr);
-        spdlog::info("Destroyed Vulkan instance");
+        spdlog::info("Destroying RenderingManager...");
+
+        m_imGuiRenderer.reset();
+        m_renderer.reset();
+
+        FreeDepthResources();
+
+        m_textureManager.reset();
+        m_bufferManager.reset();
+
+        m_queue.reset();
+
+        m_commandManager.reset();
+
+        m_swapchain.reset();
+
+        m_allocator.reset();
+
+        m_logicalDevice.reset();
+        m_deviceManager.reset();
+
+        if (m_surface)
+        {
+            vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+            spdlog::info("Destroyed Vulkan surface instance");
+        }
+
+        m_descriptorCreator.reset();
+
+        m_debugCallback.reset();
+
+        if (m_instance)
+        {
+            vkDestroyInstance(m_instance, nullptr);
+            spdlog::info("Destroyed Vulkan instance");
+        }
+
+        spdlog::info("Destroyed RenderingManager!");
     }
 
-    spdlog::info("Destroyed RenderingManager!");
-}
-
-bool RenderingManager::IsValid() const
-{
-    return m_instance &&
-        m_surface &&
-        m_deviceManager &&
-        m_logicalDevice->IsValid() &&
-        m_swapchain->IsValid();
-}
-
-RenderingCommandManager& RenderingManager::GetCommandManager() const
-{
-    return *m_commandManager;
-}
-
-VulkanQueue& RenderingManager::GetQueue() const
-{
-    return *m_queue;
-}
-
-glm::u32 RenderingManager::GetQueueFamily() const
-{
-    return m_logicalDevice->GetDeviceQueueFamily();
-}
-
-VkDevice RenderingManager::GetDevice() const
-{
-    return m_logicalDevice->GetDevice();
-}
-
-const PhysicalDevice& RenderingManager::GetPhysicalDevice() const
-{
-    return m_deviceManager->Selected();
-}
-
-BufferManager& RenderingManager::GetBufferManager() const
-{
-    return *m_bufferManager;
-}
-
-TextureManager& RenderingManager::GetTextureManager() const
-{
-    return *m_textureManager;
-}
-
-const VulkanImage& RenderingManager::GetDepthImage(glm::u32 imageIndex) const
-{
-    ASSERT(imageIndex < m_depthImages.size());
-    return m_depthImages[imageIndex];
-}
-
-void RenderingManager::GetInstanceVersion()
-{
-    VkResult res = vkEnumerateInstanceVersion(&m_instanceVersion.RawVersion);
-    if (res != VK_SUCCESS)
+    bool RenderingManager::IsValid() const
     {
-        spdlog::error("Failed to get vulkan instance version");
+        return m_instance &&
+            m_surface &&
+            m_deviceManager &&
+            m_logicalDevice->IsValid() &&
+            m_swapchain->IsValid();
     }
 
-    m_instanceVersion.Variant = VK_API_VERSION_VARIANT(m_instanceVersion.RawVersion);
-    m_instanceVersion.Major = VK_API_VERSION_MAJOR(m_instanceVersion.RawVersion);
-    m_instanceVersion.Minor = VK_API_VERSION_MINOR(m_instanceVersion.RawVersion);
-    m_instanceVersion.Patch = VK_API_VERSION_PATCH(m_instanceVersion.RawVersion);
-
-    spdlog::info("Vulkan loader supports version {}.{}.{}.{}", m_instanceVersion.Variant, m_instanceVersion.Major,
-                 m_instanceVersion.Minor, m_instanceVersion.Patch);
-}
-
-void RenderingManager::CreateDepthResources()
-{
-    m_depthImages.resize(m_swapchain->GetNumImages());
-
-    VkFormat depthFormat = m_deviceManager->Selected().DepthFormat;
-
-    for (int i = 0; i < m_depthImages.size(); i++)
+    RenderingCommandManager& RenderingManager::GetCommandManager() const
     {
-        VkImageUsageFlagBits usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-        VkMemoryPropertyFlagBits propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        m_textureManager->CreateImage(m_depthImages[i], m_window.GetDimensions(), usage, propertyFlags, depthFormat);
-
-        m_textureManager->TransitionImageLayout(m_depthImages[i].Image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
-                                                VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-
-        m_depthImages[i].ImageView = m_textureManager->CreateImageView(m_depthImages[i].Image, depthFormat,
-                                                                       VK_IMAGE_ASPECT_DEPTH_BIT);
+        return *m_commandManager;
     }
 
-    spdlog::info("Created {} depth images", m_depthImages.size());
-}
-
-void RenderingManager::FreeDepthResources()
-{
-    for (const auto& depthTexture : m_depthImages)
+    VulkanQueue& RenderingManager::GetQueue() const
     {
-        m_textureManager->DestroyImage(depthTexture);
-    }
-    m_depthImages.clear();
-}
-
-void RenderingManager::CreateInstance(const std::string& applicationName)
-{
-    std::vector Layers = {
-        "VK_LAYER_KHRONOS_validation"
-    };
-
-    std::vector Extensions = {
-        VK_KHR_SURFACE_EXTENSION_NAME,
-#if defined (_WIN32)
-        "VK_KHR_win32_surface",
-#endif
-#if defined (__APPLE__)
-        "VK_MVK_macos_surface",
-#endif
-#if defined (__linux__)
-        "VK_KHR_xcb_surface",
-#endif
-        VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-    };
-
-    ASSERT(
-        m_instanceVersion.RawVersion == VK_MAKE_API_VERSION(m_instanceVersion.Variant, m_instanceVersion.Major,
-            m_instanceVersion.Minor, m_instanceVersion.Patch));
-
-    VkApplicationInfo AppInfo = {
-        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-        .pNext = nullptr,
-        .pApplicationName = applicationName.c_str(),
-        .applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0),
-        .pEngineName = Engine::s_engineName.c_str(),
-        .engineVersion = VK_MAKE_API_VERSION(0, 1, 0, 0),
-        .apiVersion = m_instanceVersion.RawVersion
-    };
-
-    VkInstanceCreateInfo createInfo = {
-        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0, // reserved for future use. Must be zero
-        .pApplicationInfo = &AppInfo,
-        .enabledLayerCount = static_cast<glm::u32>(Layers.size()),
-        .ppEnabledLayerNames = Layers.data(),
-        .enabledExtensionCount = static_cast<glm::u32>(Extensions.size()),
-        .ppEnabledExtensionNames = Extensions.data()
-    };
-
-    VkResult res = vkCreateInstance(&createInfo, nullptr, &m_instance);
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to create Vulkan instance");
-        return;
+        return *m_queue;
     }
 
-    spdlog::info("Created Vulkan instance");
-}
-
-void RenderingManager::CreateSurface(const Window& window)
-{
-    VkResult result = glfwCreateWindowSurface(m_instance, window.GLFWWindow(), nullptr, &m_surface);
-    if (result != VK_SUCCESS)
+    glm::u32 RenderingManager::GetQueueFamily() const
     {
-        spdlog::error("Failed to create Vulkan window surface");
+        return m_logicalDevice->GetDeviceQueueFamily();
     }
-    else
+
+    VkDevice RenderingManager::GetDevice() const
     {
-        spdlog::info("Created Vulkan window surface");
+        return m_logicalDevice->GetDevice();
     }
-}
 
-void RenderingManager::CreateSwapchain()
-{
-    m_swapchain = std::make_unique<Swapchain>(m_logicalDevice->GetDevice(), m_deviceManager->Selected(),
-                                              m_logicalDevice->GetDeviceQueueFamily(), m_surface, m_window);
-}
+    const PhysicalDevice& RenderingManager::GetPhysicalDevice() const
+    {
+        return m_deviceManager->Selected();
+    }
 
-void RenderingManager::CreateQueue()
-{
-    m_queue = std::make_unique<VulkanQueue>(*this, m_engine, m_logicalDevice->GetDevice(), m_swapchain->GetSwapchain(),
-                                            m_logicalDevice->GetDeviceQueueFamily(), 0);
-}
+    BufferManager& RenderingManager::GetBufferManager() const
+    {
+        return *m_bufferManager;
+    }
 
-Swapchain& RenderingManager::GetSwapchain() const
-{
-    return *m_swapchain;
-}
+    TextureManager& RenderingManager::GetTextureManager() const
+    {
+        return *m_textureManager;
+    }
 
-RenderingSync& RenderingManager::GetRenderingSync() const
-{
-    return *m_renderingSync;
-}
+    const VulkanImage& RenderingManager::GetDepthImage(glm::u32 imageIndex) const
+    {
+        ASSERT(imageIndex < m_depthImages.size());
+        return m_depthImages[imageIndex];
+    }
 
-VkInstance RenderingManager::GetInstance() const
-{
-    return m_instance;
-}
+    void RenderingManager::GetInstanceVersion()
+    {
+        VkResult res = vkEnumerateInstanceVersion(&m_instanceVersion.RawVersion);
+        if (res != VK_SUCCESS)
+        {
+            spdlog::error("Failed to get vulkan instance version");
+        }
 
-Renderer& RenderingManager::GetRenderer() const
-{
-    return *m_renderer;
-}
+        m_instanceVersion.Variant = VK_API_VERSION_VARIANT(m_instanceVersion.RawVersion);
+        m_instanceVersion.Major = VK_API_VERSION_MAJOR(m_instanceVersion.RawVersion);
+        m_instanceVersion.Minor = VK_API_VERSION_MINOR(m_instanceVersion.RawVersion);
+        m_instanceVersion.Patch = VK_API_VERSION_PATCH(m_instanceVersion.RawVersion);
 
-ImGuiRenderer& RenderingManager::GetImGuiRenderer() const
-{
-    return *m_imGuiRenderer;
-}
+        spdlog::info("Vulkan loader supports version {}.{}.{}.{}", m_instanceVersion.Variant, m_instanceVersion.Major,
+                     m_instanceVersion.Minor, m_instanceVersion.Patch);
+    }
 
-VulkanAllocator& RenderingManager::GetAllocatorWrapper() const
-{
-    return *m_allocator;
-}
+    void RenderingManager::CreateDepthResources()
+    {
+        m_depthImages.resize(m_swapchain->GetNumImages());
 
-DescriptorCreator& RenderingManager::GetDescriptorCreator() const
-{
-    return *m_descriptorCreator;
-}
+        VkFormat depthFormat = m_deviceManager->Selected().DepthFormat;
 
-void RenderingManager::OnWindowResize()
-{
-    m_queue->WaitIdle();
-    vkDeviceWaitIdle(GetDevice());
+        for (int i = 0; i < m_depthImages.size(); i++)
+        {
+            VkImageUsageFlagBits usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            VkMemoryPropertyFlagBits propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+            m_textureManager->CreateImage(m_depthImages[i], m_window.GetDimensions(), usage, propertyFlags, depthFormat);
 
-    m_queue.reset();
-    m_swapchain.reset();
+            m_textureManager->TransitionImageLayout(m_depthImages[i].Image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+                                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-    m_deviceManager->UpdateSurfaceCapabilities();
+            m_depthImages[i].ImageView = m_textureManager->CreateImageView(m_depthImages[i].Image, depthFormat,
+                                                                           VK_IMAGE_ASPECT_DEPTH_BIT);
+        }
 
-    CreateSwapchain();
-    if (!m_swapchain || m_swapchain->IsValid()) spdlog::error("Failed to recreate swapchain {}", static_cast<const void*>(m_swapchain.get()));
-    CreateQueue();
+        spdlog::info("Created {} depth images", m_depthImages.size());
+    }
 
-    FreeDepthResources();
-    CreateDepthResources();
+    void RenderingManager::FreeDepthResources()
+    {
+        for (const auto& depthTexture : m_depthImages)
+        {
+            m_textureManager->DestroyImage(depthTexture);
+        }
+        m_depthImages.clear();
+    }
 
-    m_renderer->RecreateCommandBuffers();
+    void RenderingManager::CreateInstance(const std::string& applicationName)
+    {
+        std::vector Layers = {
+            "VK_LAYER_KHRONOS_validation"
+        };
 
-    m_imGuiRenderer->SetDisplaySize(m_window.GetDimensions());
+        std::vector Extensions = {
+            VK_KHR_SURFACE_EXTENSION_NAME,
+    #if defined (_WIN32)
+            "VK_KHR_win32_surface",
+    #endif
+    #if defined (__APPLE__)
+            "VK_MVK_macos_surface",
+    #endif
+    #if defined (__linux__)
+            "VK_KHR_xcb_surface",
+    #endif
+            VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+        };
+
+        ASSERT(
+            m_instanceVersion.RawVersion == VK_MAKE_API_VERSION(m_instanceVersion.Variant, m_instanceVersion.Major,
+                m_instanceVersion.Minor, m_instanceVersion.Patch));
+
+        VkApplicationInfo AppInfo = {
+            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+            .pNext = nullptr,
+            .pApplicationName = applicationName.c_str(),
+            .applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0),
+            .pEngineName = Engine::s_engineName.c_str(),
+            .engineVersion = VK_MAKE_API_VERSION(0, 1, 0, 0),
+            .apiVersion = m_instanceVersion.RawVersion
+        };
+
+        VkInstanceCreateInfo createInfo = {
+            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0, // reserved for future use. Must be zero
+            .pApplicationInfo = &AppInfo,
+            .enabledLayerCount = static_cast<glm::u32>(Layers.size()),
+            .ppEnabledLayerNames = Layers.data(),
+            .enabledExtensionCount = static_cast<glm::u32>(Extensions.size()),
+            .ppEnabledExtensionNames = Extensions.data()
+        };
+
+        VkResult res = vkCreateInstance(&createInfo, nullptr, &m_instance);
+        if (res != VK_SUCCESS)
+        {
+            spdlog::error("Failed to create Vulkan instance");
+            return;
+        }
+
+        spdlog::info("Created Vulkan instance");
+    }
+
+    void RenderingManager::CreateSurface(const Window& window)
+    {
+        VkResult result = glfwCreateWindowSurface(m_instance, window.GLFWWindow(), nullptr, &m_surface);
+        if (result != VK_SUCCESS)
+        {
+            spdlog::error("Failed to create Vulkan window surface");
+        }
+        else
+        {
+            spdlog::info("Created Vulkan window surface");
+        }
+    }
+
+    void RenderingManager::CreateSwapchain()
+    {
+        m_swapchain = std::make_unique<Swapchain>(m_logicalDevice->GetDevice(), m_deviceManager->Selected(),
+                                                  m_logicalDevice->GetDeviceQueueFamily(), m_surface, m_window);
+    }
+
+    void RenderingManager::CreateQueue()
+    {
+        m_queue = std::make_unique<VulkanQueue>(*this, m_engine, m_logicalDevice->GetDevice(), m_swapchain->GetSwapchain(),
+                                                m_logicalDevice->GetDeviceQueueFamily(), 0);
+    }
+
+    Swapchain& RenderingManager::GetSwapchain() const
+    {
+        return *m_swapchain;
+    }
+
+    RenderingSync& RenderingManager::GetRenderingSync() const
+    {
+        return *m_renderingSync;
+    }
+
+    VkInstance RenderingManager::GetInstance() const
+    {
+        return m_instance;
+    }
+
+    Renderer& RenderingManager::GetRenderer() const
+    {
+        return *m_renderer;
+    }
+
+    ImGuiRenderer& RenderingManager::GetImGuiRenderer() const
+    {
+        return *m_imGuiRenderer;
+    }
+
+    VulkanAllocator& RenderingManager::GetAllocatorWrapper() const
+    {
+        return *m_allocator;
+    }
+
+    DescriptorCreator& RenderingManager::GetDescriptorCreator() const
+    {
+        return *m_descriptorCreator;
+    }
+
+    void RenderingManager::OnWindowResize()
+    {
+        m_queue->WaitIdle();
+        vkDeviceWaitIdle(GetDevice());
+
+        m_queue.reset();
+        m_swapchain.reset();
+
+        m_deviceManager->UpdateSurfaceCapabilities();
+
+        CreateSwapchain();
+        if (!m_swapchain || m_swapchain->IsValid()) spdlog::error("Failed to recreate swapchain {}", static_cast<const void*>(m_swapchain.get()));
+        CreateQueue();
+
+        FreeDepthResources();
+        CreateDepthResources();
+
+        m_renderer->RecreateCommandBuffers();
+
+        m_imGuiRenderer->SetDisplaySize(m_window.GetDimensions());
+    }
 }

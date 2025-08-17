@@ -2,31 +2,34 @@
 
 #include "Pipeline.h"
 
-class DescriptorManager;
-class RenderingManager;
-struct GLFWwindow;
-struct VulkanBuffer;
-class DescriptorSet;
-
-class GraphicsPipeline final : public Pipeline
+namespace Spire
 {
-public:
-    GraphicsPipeline(
-        VkDevice device,
-        VkShaderModule vertexShader,
-        VkShaderModule fragmentShader,
-        const DescriptorManager& descriptorManager,
-        VkFormat colorFormat,
-        VkFormat depthFormat,
-        RenderingManager& renderingManager,
-        glm::u32 pushConstantSize
-    );
+    class DescriptorManager;
+    class RenderingManager;
+    struct GLFWwindow;
+    struct VulkanBuffer;
+    class DescriptorSet;
 
-    ~GraphicsPipeline() override;
+    class GraphicsPipeline final : public Pipeline
+    {
+    public:
+        GraphicsPipeline(
+            VkDevice device,
+            VkShaderModule vertexShader,
+            VkShaderModule fragmentShader,
+            const DescriptorManager& descriptorManager,
+            VkFormat colorFormat,
+            VkFormat depthFormat,
+            RenderingManager& renderingManager,
+            glm::u32 pushConstantSize
+        );
 
-public:
-    void CmdSetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport, const VkRect2D* scissor) const;
-    void CmdSetViewportToWindowSize(VkCommandBuffer commandBuffer, glm::uvec2 windowDimensions) const;
+        ~GraphicsPipeline() override;
 
-    void CmdBindTo(VkCommandBuffer commandBuffer) const override;
-};
+    public:
+        void CmdSetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport, const VkRect2D* scissor) const;
+        void CmdSetViewportToWindowSize(VkCommandBuffer commandBuffer, glm::uvec2 windowDimensions) const;
+
+        void CmdBindTo(VkCommandBuffer commandBuffer) const override;
+    };
+}

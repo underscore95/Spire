@@ -5,7 +5,7 @@
 
 class GameCamera;
 
-class GameApplication final : public Application
+class GameApplication final : public Spire::Application
 {
 public:
     GameApplication();
@@ -13,7 +13,7 @@ public:
     ~GameApplication() override;
 
 public:
-    void Start(Engine& engine) override;
+    void Start(Spire::Engine& engine) override;
 
     void Cleanup();
 
@@ -42,13 +42,13 @@ private:
     void SetupGraphicsPipeline();
 
 private:
-    Engine* m_engine = nullptr;
+    Spire::Engine* m_engine = nullptr;
     std::vector<VkCommandBuffer> m_commandBuffers;
     VkShaderModule m_vertexShader = VK_NULL_HANDLE;
     VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
-    std::unique_ptr<GraphicsPipeline> m_graphicsPipeline = nullptr;
-    std::unique_ptr<SceneModels> m_models = nullptr;
-    std::unique_ptr<SceneTextures> m_sceneTextures = nullptr;
-    std::unique_ptr<DescriptorManager> m_descriptorManager = nullptr;
+    std::unique_ptr<Spire::GraphicsPipeline> m_graphicsPipeline = nullptr;
+    std::unique_ptr<Spire::SceneModels> m_models = nullptr;
+    std::unique_ptr<Spire::SceneTextures> m_sceneTextures = nullptr;
+    std::unique_ptr<Spire::DescriptorManager> m_descriptorManager = nullptr;
     std::unique_ptr<GameCamera> m_camera = nullptr;
 };

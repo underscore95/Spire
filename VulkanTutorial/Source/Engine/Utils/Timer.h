@@ -1,16 +1,19 @@
 #pragma once
 #include <chrono>
 
-class Timer {
-public:
-    Timer() = default;
+namespace Spire
+{
+    class Timer {
+    public:
+        Timer() = default;
 
-public:
-    void Start();
+    public:
+        void Start();
 
-    float SecondsSinceStart() const;
+        float SecondsSinceStart() const;
 
-private:
-    std::chrono::high_resolution_clock::time_point m_startTime;
-    bool m_started = false;
-};
+    private:
+        std::chrono::high_resolution_clock::time_point m_startTime;
+        bool m_started = false;
+    };
+}

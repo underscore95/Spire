@@ -4,6 +4,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "GameCamera.h"
 
+using namespace Spire;
+
 GameApplication::GameApplication()
 {
     // don't do anything here!

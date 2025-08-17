@@ -2,21 +2,24 @@
 
 #include <vulkan/vulkan.hpp>
 
-class VulkanDebugCallback
+namespace Spire
 {
-public:
-    explicit VulkanDebugCallback(VkInstance instance);
-    ~VulkanDebugCallback();
+    class VulkanDebugCallback
+    {
+    public:
+        explicit VulkanDebugCallback(VkInstance instance);
+        ~VulkanDebugCallback();
 
-private:
-    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-        VkDebugUtilsMessageTypeFlagsEXT type,
-        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void* pUserData);
+    private:
+        static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
+            VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+            VkDebugUtilsMessageTypeFlagsEXT type,
+            const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+            void* pUserData);
 
-private:
-    VkInstance m_instance;
+    private:
+        VkInstance m_instance;
 
-    VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
-};
+        VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
+    };
+}

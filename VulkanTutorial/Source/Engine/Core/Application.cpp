@@ -1,3 +1,6 @@
 #include "Application.h"
 
-Application::~Application() = default;
+namespace Spire
+{
+    Application::~Application() = default;
+}

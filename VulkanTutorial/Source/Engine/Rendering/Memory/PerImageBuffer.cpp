@@ -5,35 +5,38 @@
 #include "BufferManager.h"
 #include "VulkanBuffer.h"
 
-PerImageBuffer::PerImageBuffer(
-    BufferManager& bufferManager,
-    const std::vector<VulkanBuffer>& buffers)
-    : m_buffers(buffers),
-      m_bufferManager(bufferManager)
+namespace Spire
 {
-    DEBUG_ASSERT(!BufferManager::HasBufferManagerBeenDestroyed());
-}
-
-PerImageBuffer::~PerImageBuffer()
-{
-    DEBUG_ASSERT(!BufferManager::HasBufferManagerBeenDestroyed());
-    for (VulkanBuffer buffer : m_buffers)
+    PerImageBuffer::PerImageBuffer(
+        BufferManager& bufferManager,
+        const std::vector<VulkanBuffer>& buffers)
+        : m_buffers(buffers),
+          m_bufferManager(bufferManager)
     {
-        m_bufferManager.DestroyBuffer(buffer);
+        DEBUG_ASSERT(!BufferManager::HasBufferManagerBeenDestroyed());
     }
-}
 
-void PerImageBuffer::Update(glm::u32 imageIndex, const void* data,  glm::u32 size,glm::u32 offset) const
-{
-    m_bufferManager.UpdateBuffer(m_buffers[imageIndex], data, size, offset);
-}
+    PerImageBuffer::~PerImageBuffer()
+    {
+        DEBUG_ASSERT(!BufferManager::HasBufferManagerBeenDestroyed());
+        for (VulkanBuffer buffer : m_buffers)
+        {
+            m_bufferManager.DestroyBuffer(buffer);
+        }
+    }
 
-const VulkanBuffer& PerImageBuffer::GetBuffer(glm::u32 imageIndex) const
-{
-    return m_buffers[imageIndex];
-}
+    void PerImageBuffer::Update(glm::u32 imageIndex, const void* data,  glm::u32 size,glm::u32 offset) const
+    {
+        m_bufferManager.UpdateBuffer(m_buffers[imageIndex], data, size, offset);
+    }
 
-const std::vector<VulkanBuffer>& PerImageBuffer::GetBuffers() const
-{
-    return m_buffers;
+    const VulkanBuffer& PerImageBuffer::GetBuffer(glm::u32 imageIndex) const
+    {
+        return m_buffers[imageIndex];
+    }
+
+    const std::vector<VulkanBuffer>& PerImageBuffer::GetBuffers() const
+    {
+        return m_buffers;
+    }
 }

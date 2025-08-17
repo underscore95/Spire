@@ -1,5 +1,7 @@
 #include "GameCamera.h"
 
+using namespace Spire;
+
 GameCamera::GameCamera(const Engine& engine)
     : m_engine(engine)
 {

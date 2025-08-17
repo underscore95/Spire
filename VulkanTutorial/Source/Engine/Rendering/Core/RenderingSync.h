@@ -3,23 +3,26 @@
 #include <vulkan/vulkan.hpp>
 #include <glm/glm.hpp>
 
-class RenderingManager;
-
-class RenderingSync
+namespace Spire
 {
-public:
-    explicit RenderingSync(RenderingManager& renderingManager);
-    ~RenderingSync();
+    class RenderingManager;
 
-public:
-    [[nodiscard]] VkSemaphore CreateSemaphore();
+    class RenderingSync
+    {
+    public:
+        explicit RenderingSync(RenderingManager& renderingManager);
+        ~RenderingSync();
 
-    void DestroySemaphore(VkSemaphore semaphore);
+    public:
+        [[nodiscard]] VkSemaphore CreateSemaphore();
 
-    void ImageMemoryBarrier(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout,
-                            VkImageLayout newLayout) const;
+        void DestroySemaphore(VkSemaphore semaphore);
 
-private:
-    RenderingManager& m_renderingManager;
-    glm::u32 m_numAllocatedSemaphores = 0;
-};
+        void ImageMemoryBarrier(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout,
+                                VkImageLayout newLayout) const;
+
+    private:
+        RenderingManager& m_renderingManager;
+        glm::u32 m_numAllocatedSemaphores = 0;
+    };
+}

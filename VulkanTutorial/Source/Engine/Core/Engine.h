@@ -5,46 +5,51 @@
 #include <string>
 
 #include "Engine/Utils/Timer.h"
-class RenderingManager;
-class Window;
-class Application;
 
-class Engine {
-public:
-    explicit Engine(std::unique_ptr<Application> app);
+namespace Spire
+{
+    class RenderingManager;
+    class Window;
+    class Application;
 
-    ~Engine();
+    class Engine
+    {
+    public:
+        explicit Engine(std::unique_ptr<Application> app);
 
-public:
-    [[nodiscard]] const Window &GetWindow() const;
+        ~Engine();
 
-    [[nodiscard]] RenderingManager &GetRenderingManager() const;
+    public:
+        [[nodiscard]] const Window& GetWindow() const;
 
-    [[nodiscard]] float GetDeltaTime() const;
+        [[nodiscard]] RenderingManager& GetRenderingManager() const;
 
-    void OnWindowResize();
+        [[nodiscard]] float GetDeltaTime() const;
 
-private:
-    void Start();
+        void OnWindowResize();
 
-    void Update() const;
+    private:
+        void Start();
 
-    void Render() const;
+        void Update() const;
 
-public:
-    static inline const std::string s_engineName = "VulkanEngine";
+        void Render() const;
 
-private:
-    std::unique_ptr<Application> m_application;
-    bool m_initialized;
-    const std::chrono::time_point<std::chrono::high_resolution_clock> m_beginInitializationTimePoint;
+    public:
+        static inline const std::string s_engineName = "VulkanEngine";
 
-    std::unique_ptr<RenderingManager> m_renderingManager;
+    private:
+        std::unique_ptr<Application> m_application;
+        bool m_initialized;
+        const std::chrono::time_point<std::chrono::high_resolution_clock> m_beginInitializationTimePoint;
 
-    std::unique_ptr<Window> m_window;
+        std::unique_ptr<RenderingManager> m_renderingManager;
 
-    Timer m_deltaTimeTimer;
-    float m_deltaTime = 1.0f / 1000.0f;
+        std::unique_ptr<Window> m_window;
 
-    bool m_isMinimized = false;
-};
+        Timer m_deltaTimeTimer;
+        float m_deltaTime = 1.0f / 1000.0f;
+
+        bool m_isMinimized = false;
+    };
+}

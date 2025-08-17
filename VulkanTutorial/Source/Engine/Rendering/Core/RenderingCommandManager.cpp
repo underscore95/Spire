@@ -3,89 +3,92 @@
 #include <libassert/assert.hpp>
 #include <spdlog/spdlog.h>
 
-RenderingCommandManager::RenderingCommandManager(
-    glm::u32 deviceQueueFamily,
-    VkDevice device) : m_device(device)
+namespace Spire
 {
-    // Create command pool
-    VkCommandPoolCreateInfo cmdPoolCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = deviceQueueFamily
-    };
-
-    VkResult res = vkCreateCommandPool(m_device, &cmdPoolCreateInfo, nullptr, &m_commandPool);
-    if (res != VK_SUCCESS)
+    RenderingCommandManager::RenderingCommandManager(
+        glm::u32 deviceQueueFamily,
+        VkDevice device) : m_device(device)
     {
-        spdlog::error("Failed to create command pool");
+        // Create command pool
+        VkCommandPoolCreateInfo cmdPoolCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            .queueFamilyIndex = deviceQueueFamily
+        };
+
+        VkResult res = vkCreateCommandPool(m_device, &cmdPoolCreateInfo, nullptr, &m_commandPool);
+        if (res != VK_SUCCESS)
+        {
+            spdlog::error("Failed to create command pool");
+        }
+        else
+        {
+            spdlog::info("Command buffer pool created");
+        }
     }
-    else
+
+    RenderingCommandManager::~RenderingCommandManager()
     {
-        spdlog::info("Command buffer pool created");
+        DEBUG_ASSERT(m_allocatedCommandBuffers == 0) ; // Didn't free all command buffers
+        if (m_commandPool)
+        {
+            vkDestroyCommandPool(m_device, m_commandPool, nullptr);
+            spdlog::info("Destroyed command pool");
+        }
     }
-}
 
-RenderingCommandManager::~RenderingCommandManager()
-{
-    DEBUG_ASSERT(m_allocatedCommandBuffers == 0) ; // Didn't free all command buffers
-    if (m_commandPool)
+    void RenderingCommandManager::CreateCommandBuffers(glm::u32 count, VkCommandBuffer* commandBuffers, VkCommandBufferLevel level)
     {
-        vkDestroyCommandPool(m_device, m_commandPool, nullptr);
-        spdlog::info("Destroyed command pool");
+        VkCommandBufferAllocateInfo cmdBufAllocInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .commandPool = m_commandPool,
+            .level = level,
+            .commandBufferCount = count
+        };
+
+        VkResult res = vkAllocateCommandBuffers(m_device, &cmdBufAllocInfo, commandBuffers);
+        if (res != VK_SUCCESS)
+        {
+            spdlog::error("Failed to create {} command buffers", count);
+        }
+        else
+        {
+            m_allocatedCommandBuffers += count;
+        }
     }
-}
 
-void RenderingCommandManager::CreateCommandBuffers(glm::u32 count, VkCommandBuffer* commandBuffers, VkCommandBufferLevel level)
-{
-    VkCommandBufferAllocateInfo cmdBufAllocInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .commandPool = m_commandPool,
-        .level = level,
-        .commandBufferCount = count
-    };
-
-    VkResult res = vkAllocateCommandBuffers(m_device, &cmdBufAllocInfo, commandBuffers);
-    if (res != VK_SUCCESS)
+    void RenderingCommandManager::FreeCommandBuffers(glm::u32 count, const VkCommandBuffer* commandBuffers)
     {
-        spdlog::error("Failed to create {} command buffers", count);
+        vkFreeCommandBuffers(m_device, m_commandPool, count, commandBuffers);
+        DEBUG_ASSERT(m_allocatedCommandBuffers >= count); // Freed too many times (or a create call failed)
+        m_allocatedCommandBuffers -= count;
     }
-    else
+
+    void RenderingCommandManager::BeginCommandBuffer(VkCommandBuffer commandBuffer,
+                                                     VkCommandBufferUsageFlags usageFlags) const
     {
-        m_allocatedCommandBuffers += count;
+        VkCommandBufferBeginInfo beginInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .pNext = nullptr,
+            .flags = usageFlags,
+            .pInheritanceInfo = nullptr
+        };
+
+        VkResult res = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        if (res != VK_SUCCESS)
+        {
+            spdlog::error("Failed to begin command buffer");
+        }
     }
-}
 
-void RenderingCommandManager::FreeCommandBuffers(glm::u32 count, const VkCommandBuffer* commandBuffers)
-{
-    vkFreeCommandBuffers(m_device, m_commandPool, count, commandBuffers);
-    DEBUG_ASSERT(m_allocatedCommandBuffers >= count); // Freed too many times (or a create call failed)
-    m_allocatedCommandBuffers -= count;
-}
-
-void RenderingCommandManager::BeginCommandBuffer(VkCommandBuffer commandBuffer,
-                                                 VkCommandBufferUsageFlags usageFlags) const
-{
-    VkCommandBufferBeginInfo beginInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .pNext = nullptr,
-        .flags = usageFlags,
-        .pInheritanceInfo = nullptr
-    };
-
-    VkResult res = vkBeginCommandBuffer(commandBuffer, &beginInfo);
-    if (res != VK_SUCCESS)
+    void RenderingCommandManager::EndCommandBuffer(VkCommandBuffer commandBuffer) const
     {
-        spdlog::error("Failed to begin command buffer");
-    }
-}
-
-void RenderingCommandManager::EndCommandBuffer(VkCommandBuffer commandBuffer) const
-{
-    VkResult res = vkEndCommandBuffer(commandBuffer);
-    if (res != VK_SUCCESS)
-    {
-        spdlog::error("Failed to end command buffer");
+        VkResult res = vkEndCommandBuffer(commandBuffer);
+        if (res != VK_SUCCESS)
+        {
+            spdlog::error("Failed to end command buffer");
+        }
     }
 }

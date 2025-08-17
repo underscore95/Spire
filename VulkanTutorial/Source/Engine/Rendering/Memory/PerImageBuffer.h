@@ -3,27 +3,30 @@
 #include <glm/glm.hpp>
 #include "Engine/Utils/MacroDisableCopy.h"
 
-struct VulkanBuffer;
-
-class PerImageBuffer
+namespace Spire
 {
-    friend class BufferManager;
+    struct VulkanBuffer;
 
-private:
-    explicit PerImageBuffer(BufferManager& bufferManager, const std::vector<VulkanBuffer>& buffers);
+    class PerImageBuffer
+    {
+        friend class BufferManager;
 
-public:
-    ~PerImageBuffer();
+    private:
+        explicit PerImageBuffer(BufferManager& bufferManager, const std::vector<VulkanBuffer>& buffers);
 
-    DISABLE_COPY_AND_MOVE(PerImageBuffer);
+    public:
+        ~PerImageBuffer();
 
-public:
-    void Update(glm::u32 imageIndex, const void* data, glm::u32 size, glm::u32 offset = 0) const;
+        DISABLE_COPY_AND_MOVE(PerImageBuffer);
 
-    const VulkanBuffer& GetBuffer(glm::u32 imageIndex) const;
-    const std::vector<VulkanBuffer>& GetBuffers() const;
+    public:
+        void Update(glm::u32 imageIndex, const void* data, glm::u32 size, glm::u32 offset = 0) const;
 
-private:
-    std::vector<VulkanBuffer> m_buffers;
-    BufferManager& m_bufferManager;
-};
+        const VulkanBuffer& GetBuffer(glm::u32 imageIndex) const;
+        const std::vector<VulkanBuffer>& GetBuffers() const;
+
+    private:
+        std::vector<VulkanBuffer> m_buffers;
+        BufferManager& m_bufferManager;
+    };
+}

@@ -3,45 +3,49 @@
 #include <vector>
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan_core.h>
-class PerImageBuffer;
-struct VulkanBuffer;
-class RenderingManager;
 
-class BufferManager
+namespace Spire
 {
-    friend class TextureManager;
+    class PerImageBuffer;
+    struct VulkanBuffer;
+    class RenderingManager;
 
-public:
-    explicit BufferManager(RenderingManager& renderingManager);
+    class BufferManager
+    {
+        friend class TextureManager;
 
-    ~BufferManager();
+    public:
+        explicit BufferManager(RenderingManager& renderingManager);
 
-    // Create an index buffer, indexTypeSize determines type of indices, either sizeof(std::uint32_t) or sizeof(std::uint16_t) or sizeof(std::uint8_t)
-    VulkanBuffer CreateIndexBuffer(glm::u32 indexTypeSize, const void* indices, glm::u32 numIndices);
+        ~BufferManager();
 
-    VulkanBuffer CreateStorageBuffer(const void* elements, glm::u32 size, glm::u32 elementSize,
-                                     bool isTransferSource = false);
+        // Create an index buffer, indexTypeSize determines type of indices, either sizeof(std::uint32_t) or sizeof(std::uint16_t) or sizeof(std::uint8_t)
+        VulkanBuffer CreateIndexBuffer(glm::u32 indexTypeSize, const void* indices, glm::u32 numIndices);
 
-    void DestroyBuffer(const VulkanBuffer& buffer);
+        VulkanBuffer CreateStorageBuffer(const void* elements, glm::u32 size, glm::u32 elementSize,
+                                         bool isTransferSource = false);
 
-    std::unique_ptr<PerImageBuffer> CreateUniformBuffers(size_t bufferSize, bool isTransferDest = false);
+        void DestroyBuffer(const VulkanBuffer& buffer);
 
-    void UpdateBuffer(const VulkanBuffer& buffer, const void* data, glm::u32 size, glm::u32 offset = 0) const;
+        std::unique_ptr<PerImageBuffer> CreateUniformBuffers(size_t bufferSize, bool isTransferDest = false);
 
-public:
-    static bool HasBufferManagerBeenDestroyed();
+        void UpdateBuffer(const VulkanBuffer& buffer, const void* data, glm::u32 size, glm::u32 offset = 0) const;
 
-private:
-    void CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const;
+    public:
+        static bool HasBufferManagerBeenDestroyed();
 
-    VulkanBuffer CreateBufferWithData(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-                                      const void* data, glm::u32 elementSize);
+    private:
+        void CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const;
 
-    VulkanBuffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+        VulkanBuffer CreateBufferWithData(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+                                          const void* data, glm::u32 elementSize);
 
-private:
-    const glm::u32 INVALID_MEMORY_TYPE_INDEX = -1; // overflow
-    RenderingManager& m_renderingManager;
-    VkCommandBuffer m_copyCommandBuffer;
-    glm::u32 m_numAllocatedBuffers = 0;
-};
+        VulkanBuffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+
+    private:
+        const glm::u32 INVALID_MEMORY_TYPE_INDEX = -1; // overflow
+        RenderingManager& m_renderingManager;
+        VkCommandBuffer m_copyCommandBuffer;
+        glm::u32 m_numAllocatedBuffers = 0;
+    };
+}

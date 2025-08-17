@@ -33,6 +33,7 @@
 #include "Rendering/Renderers/ImGuiRenderer.h"
 #include "Engine/Rendering/Core/RenderingDeviceManager.h"
 #include "Rendering/Scene/SceneTextures.h"
+#include "Rendering/Memory/PerImageBuffer.h"
 
 #include "Engine/Resources/ImageLoader.h"
 #include "Engine/Resources/Model.h"

@@ -3,5 +3,5 @@
 #include "Game/GameApplication.h"
 
 int main() {
-    Engine engine(std::make_unique<GameApplication>());
+    Spire::Engine engine(std::make_unique<GameApplication>());
 }

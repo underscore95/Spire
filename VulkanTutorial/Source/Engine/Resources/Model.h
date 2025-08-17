@@ -3,5 +3,8 @@
 #include <memory>
 #include <vector>
 
-struct Mesh;
-typedef std::vector<std::unique_ptr<Mesh>> Model;
+namespace Spire
+{
+    struct Mesh;
+    typedef std::vector<std::unique_ptr<Mesh>> Model;
+}

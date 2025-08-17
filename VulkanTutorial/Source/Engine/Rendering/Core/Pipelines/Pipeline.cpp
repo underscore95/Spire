@@ -6,87 +6,90 @@
 
 #include "Engine/Rendering/Descriptors/DescriptorManager.h"
 
-Pipeline::Pipeline(
-    VkDevice device,
-    const DescriptorManager& descriptorManager,
-    RenderingManager& renderingManager,
-    glm::u32 pushConstantSize
-) :
-    m_device(device),
-    m_renderingManager(renderingManager),
-    m_pushConstantSize(pushConstantSize),
-    m_descriptorSetLayouts(descriptorManager.GetRawLayouts())
+namespace Spire
 {
-    CreatePipelineLayout();
-}
-
-Pipeline::~Pipeline()
-{
-    vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
-    DEBUG_ASSERT(m_pipeline == VK_NULL_HANDLE); // child class should destroy it and set the handle to VK_NULL_HANDLE
-}
-
-void Pipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size,
-                                   glm::u32 offset) const
-{
-    DEBUG_ASSERT(data != nullptr);
-    DEBUG_ASSERT(size + offset <= m_pushConstantSize);
-    DEBUG_ASSERT(size > 0);
-
-    vkCmdPushConstants(
-        commandBuffer,
-        m_pipelineLayout,
-        VK_SHADER_STAGE_ALL,
-        offset,
-        size,
-        data
-    );
-}
-
-VkPipelineLayout Pipeline::GetLayout() const
-{
-    return m_pipelineLayout;
-}
-
-std::array<VkPipelineShaderStageCreateInfo, 2> Pipeline::CreateVertFragShaderInfo(VkShaderModule vertexShader,
-    VkShaderModule fragmentShader) const
-{
-    return {
-        CreateShaderInfo(vertexShader, VK_SHADER_STAGE_VERTEX_BIT),
-        CreateShaderInfo(fragmentShader, VK_SHADER_STAGE_FRAGMENT_BIT)
-    };
-}
-
-VkPipelineShaderStageCreateInfo Pipeline::CreateShaderInfo(VkShaderModule shader, VkShaderStageFlagBits stage,
-                                                           const char* entryPoint) const
-{
-    return {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = stage,
-        .module = shader,
-        .pName = entryPoint
-    };
-}
-
-void Pipeline::CreatePipelineLayout()
-{
-    VkPushConstantRange pushConstantRange = {
-        .stageFlags = VK_SHADER_STAGE_ALL,
-        .offset = 0,
-        .size = m_pushConstantSize
-    };
-
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = static_cast<glm::u32>(m_descriptorSetLayouts.size()),
-        .pSetLayouts = m_descriptorSetLayouts.data(),
-        .pushConstantRangeCount = 1,
-        .pPushConstantRanges = &pushConstantRange
-    };
-
-    VkResult res = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
-    if (res != VK_SUCCESS)
+    Pipeline::Pipeline(
+        VkDevice device,
+        const DescriptorManager& descriptorManager,
+        RenderingManager& renderingManager,
+        glm::u32 pushConstantSize
+    ) :
+        m_device(device),
+        m_renderingManager(renderingManager),
+        m_pushConstantSize(pushConstantSize),
+        m_descriptorSetLayouts(descriptorManager.GetRawLayouts())
     {
-        spdlog::error("Failed to create vulkan pipeline layout");
+        CreatePipelineLayout();
+    }
+
+    Pipeline::~Pipeline()
+    {
+        vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
+        DEBUG_ASSERT(m_pipeline == VK_NULL_HANDLE); // child class should destroy it and set the handle to VK_NULL_HANDLE
+    }
+
+    void Pipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size,
+                                       glm::u32 offset) const
+    {
+        DEBUG_ASSERT(data != nullptr);
+        DEBUG_ASSERT(size + offset <= m_pushConstantSize);
+        DEBUG_ASSERT(size > 0);
+
+        vkCmdPushConstants(
+            commandBuffer,
+            m_pipelineLayout,
+            VK_SHADER_STAGE_ALL,
+            offset,
+            size,
+            data
+        );
+    }
+
+    VkPipelineLayout Pipeline::GetLayout() const
+    {
+        return m_pipelineLayout;
+    }
+
+    std::array<VkPipelineShaderStageCreateInfo, 2> Pipeline::CreateVertFragShaderInfo(VkShaderModule vertexShader,
+        VkShaderModule fragmentShader) const
+    {
+        return {
+            CreateShaderInfo(vertexShader, VK_SHADER_STAGE_VERTEX_BIT),
+            CreateShaderInfo(fragmentShader, VK_SHADER_STAGE_FRAGMENT_BIT)
+        };
+    }
+
+    VkPipelineShaderStageCreateInfo Pipeline::CreateShaderInfo(VkShaderModule shader, VkShaderStageFlagBits stage,
+                                                               const char* entryPoint) const
+    {
+        return {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = stage,
+            .module = shader,
+            .pName = entryPoint
+        };
+    }
+
+    void Pipeline::CreatePipelineLayout()
+    {
+        VkPushConstantRange pushConstantRange = {
+            .stageFlags = VK_SHADER_STAGE_ALL,
+            .offset = 0,
+            .size = m_pushConstantSize
+        };
+
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo = {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .setLayoutCount = static_cast<glm::u32>(m_descriptorSetLayouts.size()),
+            .pSetLayouts = m_descriptorSetLayouts.data(),
+            .pushConstantRangeCount = 1,
+            .pPushConstantRanges = &pushConstantRange
+        };
+
+        VkResult res = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
+        if (res != VK_SUCCESS)
+        {
+            spdlog::error("Failed to create vulkan pipeline layout");
+        }
     }
 }

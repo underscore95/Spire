@@ -5,30 +5,33 @@
 #include "DescriptorSetLayoutList.h"
 #include "DescriptorSet.h"
 
-struct Descriptor;
-class RenderingManager;
-
-class DescriptorPool
+namespace Spire
 {
-public:
-    explicit DescriptorPool(
-        RenderingManager& renderingManager
-    );
-    ~DescriptorPool();
+    struct Descriptor;
+    class RenderingManager;
 
-public:
-    // represents a single descriptor set
-    struct Allocation
+    class DescriptorPool
     {
-        glm::u32 NumDescriptors;
-        Descriptor* Descriptors;
+    public:
+        explicit DescriptorPool(
+            RenderingManager& renderingManager
+        );
+        ~DescriptorPool();
+
+    public:
+        // represents a single descriptor set
+        struct Allocation
+        {
+            glm::u32 NumDescriptors;
+            Descriptor* Descriptors;
+        };
+
+        std::vector<DescriptorSet> Allocate(const DescriptorSetLayoutList& descriptorsLists);
+        void Free(const std::vector<DescriptorSet>& descriptorSets);
+
+    private:
+        glm::u32 m_numAllocatedSets = 0;
+        RenderingManager& m_renderingManager;
+        VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
     };
-
-    std::vector<DescriptorSet> Allocate(const DescriptorSetLayoutList& descriptorsLists);
-    void Free(const std::vector<DescriptorSet>& descriptorSets);
-
-private:
-    glm::u32 m_numAllocatedSets = 0;
-    RenderingManager& m_renderingManager;
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-};
+}

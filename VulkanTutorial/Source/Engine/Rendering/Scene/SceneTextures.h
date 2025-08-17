@@ -4,23 +4,26 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-struct VulkanImage;
-class RenderingManager;
-struct PipelineResourceInfo;
-struct Descriptor;
-
-class SceneTextures
+namespace Spire
 {
-public:
-    SceneTextures(RenderingManager& renderingManager, const std::vector<std::string>& textureFileNames);
-    ~SceneTextures();
+    struct VulkanImage;
+    class RenderingManager;
+    struct PipelineResourceInfo;
+    struct Descriptor;
 
-public:
-    [[nodiscard]] Descriptor GetDescriptor(glm::u32 binding) const;
+    class SceneTextures
+    {
+    public:
+        SceneTextures(RenderingManager& renderingManager, const std::vector<std::string>& textureFileNames);
+        ~SceneTextures();
 
-    glm::u32 NumLoadedTextures() const;
+    public:
+        [[nodiscard]] Descriptor GetDescriptor(glm::u32 binding) const;
 
-private:
-    RenderingManager& m_renderingManager;
-    std::vector<VulkanImage> m_loadedTextures;
-};
+        glm::u32 NumLoadedTextures() const;
+
+    private:
+        RenderingManager& m_renderingManager;
+        std::vector<VulkanImage> m_loadedTextures;
+    };
+}
