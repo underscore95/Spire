@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include "GameCamera.h"
+#include "../Assets/Shaders/ShaderBindings.h"
 
 using namespace Spire;
 
@@ -36,7 +37,7 @@ void GameApplication::Start(Engine& engine)
     std::vector<std::string> imagesToLoad = CreateModels();
 
     // Images
-    while (imagesToLoad.size()<2) imagesToLoad.push_back("test.png"); // shader forces 2 images to be bound so hack
+    while (imagesToLoad.size() < 2) imagesToLoad.push_back("test.png"); // shader forces 2 images to be bound so hack
     m_sceneImages = std::make_unique<SceneImages>(rm, imagesToLoad);
 
     // Descriptors
@@ -206,22 +207,27 @@ void GameApplication::SetupDescriptors()
 {
     DescriptorSetLayoutList layouts(m_engine->GetRenderingManager().GetSwapchain().GetNumImages());
     {
+        // Constant set
+        ASSERT(layouts.Size() == SPIRE_SHADER_BINDINGS_CONSTANT_SET);
+
         DescriptorSetLayout layout;
 
         // ModelVertex buffer
-        layout.push_back(m_models->GetDescriptor(0));
+        layout.push_back(m_models->GetDescriptor(SPIRE_SHADER_BINDINGS_VERTEX_SSBO_BINDING));
 
         // Images
-        layout.push_back(m_sceneImages->GetDescriptor(2));
+        layout.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
 
         layouts.Push(layout);
     }
 
     {
+        ASSERT(layouts.Size() == SPIRE_SHADER_BINDINGS_PER_FRAME_SET);
+        // Per frame set
         PerImageDescriptorSetLayout layout;
 
         // Camera
-        layout.push_back(m_camera->GetDescriptor(3));
+        layout.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
 
         layouts.Push(layout);
     }

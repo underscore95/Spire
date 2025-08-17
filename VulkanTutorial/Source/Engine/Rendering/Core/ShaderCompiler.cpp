@@ -26,31 +26,7 @@ namespace Spire
         }
     };
 
-    static void PrintShaderSource(const char* text)
-    {
-        int line = 1;
-
-        printf("\n(%3i) ", line);
-
-        while (text && *text++)
-        {
-            if (*text == '\n')
-            {
-                printf("\n(%3i) ", ++line);
-            }
-            else if (*text == '\r')
-            {
-                // nothing to do
-            }
-            else
-            {
-                printf("%c", *text);
-            }
-        }
-
-        printf("\n");
-    }
-
+    static std::mutex s_loggingMutex;
 
     static bool CompileShader(const VkDevice& device, glslang_stage_t stage,
                               const char* pShaderCode,
@@ -134,7 +110,8 @@ namespace Spire
             1, 1, // max_mesh_work_group_size_y_nv, z_nv
             32, 1, 1, // max_task_work_group_size_x_nv, y_nv, z_nv
             4, // max_mesh_view_count_nv
-            256, 256, 128, // max_mesh_output_vertices_ext, max_mesh_output_primitives_ext, max_mesh_work_group_size_x_ext
+            256, 256, 128,
+            // max_mesh_output_vertices_ext, max_mesh_output_primitives_ext, max_mesh_work_group_size_x_ext
             1, 1, // max_mesh_work_group_size_y_ext, z_ext
             128, 1, 1, // max_task_work_group_size_x_ext, y_ext, z_ext
             4, // max_mesh_view_count_ext
@@ -173,22 +150,23 @@ namespace Spire
 
         glslang_shader_t* shader = glslang_shader_create(&input);
 
-        ASSERT(shader);
         if (!glslang_shader_preprocess(shader, &input))
         {
-            fprintf(stderr, "GLSL preprocessing failed\n");
-            fprintf(stderr, "\n%s", glslang_shader_get_info_log(shader));
-            fprintf(stderr, "\n%s", glslang_shader_get_info_debug_log(shader));
-            PrintShaderSource(input.code);
+            std::unique_lock lock(s_loggingMutex);
+            spdlog::error("GLSL preprocessing failed\n{}\n{}\n{}",
+                          glslang_shader_get_info_log(shader),
+                          glslang_shader_get_info_debug_log(shader),
+                          input.code);
             return false;
         }
 
         if (!glslang_shader_parse(shader, &input))
         {
-            fprintf(stderr, "GLSL parsing failed\n");
-            fprintf(stderr, "\n%s", glslang_shader_get_info_log(shader));
-            fprintf(stderr, "\n%s", glslang_shader_get_info_debug_log(shader));
-            PrintShaderSource(glslang_shader_get_preprocessed_code(shader));
+            std::unique_lock lock(s_loggingMutex);
+            spdlog::error("GLSL parsing failed\n{}\n{}\n{}",
+                          glslang_shader_get_info_log(shader),
+                          glslang_shader_get_info_debug_log(shader),
+                          glslang_shader_get_preprocessed_code(shader));
             return false;
         }
 
@@ -197,9 +175,10 @@ namespace Spire
 
         if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT))
         {
-            fprintf(stderr, "GLSL linking failed\n");
-            fprintf(stderr, "\n%s", glslang_program_get_info_log(program));
-            fprintf(stderr, "\n%s", glslang_program_get_info_debug_log(program));
+            std::unique_lock lock(s_loggingMutex);
+            spdlog::error("GLSL linking failed\n{}\n{}",
+                          glslang_program_get_info_log(program),
+                          glslang_program_get_info_debug_log(program));
             return false;
         }
 
@@ -211,7 +190,8 @@ namespace Spire
 
         if (messagesSPIRV)
         {
-            fprintf(stderr, "SPIR-V message: '%s'", messagesSPIRV);
+            std::unique_lock lock(s_loggingMutex);
+            spdlog::error("SPIR-V message: {}", messagesSPIRV);
         }
 
         VkShaderModuleCreateInfo shaderCreateInfo = {
@@ -223,6 +203,7 @@ namespace Spire
         VkResult res = vkCreateShaderModule(device, &shaderCreateInfo, nullptr, &ShaderModule.ShaderModule);
         if (res != VK_SUCCESS)
         {
+            std::unique_lock lock(s_loggingMutex);
             spdlog::error("Failed to create shader module");
         }
 
@@ -268,6 +249,7 @@ namespace Spire
             return GLSLANG_STAGE_TESSEVALUATION;
         }
 
+        std::unique_lock lock(s_loggingMutex);
         spdlog::error("Unknown shader stage in '{}'\n", pFilename);
 
         return GLSLANG_STAGE_VERTEX;
@@ -288,6 +270,7 @@ namespace Spire
         // Get shader source
         if (!FileIO::ReadFile(filePath.c_str(), parsed.FullSource))
         {
+            std::unique_lock lock(s_loggingMutex);
             spdlog::error("Failed to read file {} when creating shader from text", filePath);
             return {};
         }
@@ -300,6 +283,7 @@ namespace Spire
             size_t quoteStart = parsed.FullSource.find('"', pos);
             if (quoteStart == std::string::npos)
             {
+                std::unique_lock lock(s_loggingMutex);
                 spdlog::error("Invalid #include in shader (missing opening quote)");
                 return {};
             }
@@ -307,6 +291,7 @@ namespace Spire
             size_t quoteEnd = parsed.FullSource.find('"', quoteStart + 1);
             if (quoteEnd == std::string::npos)
             {
+                std::unique_lock lock(s_loggingMutex);
                 spdlog::error("Invalid #include in shader (missing closing quote)");
                 return {};
             }
@@ -325,6 +310,7 @@ namespace Spire
             // Check for recursive includes
             if (!parsed.FilePaths.insert(actualPath).second)
             {
+                std::unique_lock lock(s_loggingMutex);
                 spdlog::error("Recursively including {}", actualPath);
                 return {};
             }
@@ -333,9 +319,12 @@ namespace Spire
             std::string includedSource;
             if (!FileIO::ReadFile(actualPath.c_str(), includedSource))
             {
+                std::unique_lock lock(s_loggingMutex);
                 spdlog::error("Failed to read file {} when creating shader from text", actualPath);
                 return {};
             }
+            includedSource += "\n";
+            // If an included source doesn't end with a new line and a preprocessor command is on the next line it will break, this fixes it
 
             // Replace the #include line with the included source
             size_t includeLineEnd = parsed.FullSource.find('\n', quoteEnd);
@@ -393,6 +382,7 @@ namespace Spire
         ParsedShader parsed = ParseShader(fileName);
         if (!parsed.Success)
         {
+            std::unique_lock lock(s_loggingMutex);
             spdlog::error("Error when parsing shader {}", fileName);
             return VK_NULL_HANDLE;
         }
@@ -415,7 +405,9 @@ namespace Spire
         VkShaderModule shader = (m_alwaysCompileFromSource || compileFromText)
                                     ? CreateShaderModuleFromSource(fileName, parsed.FullSource)
                                     : CreateShaderModuleFromBinaryFile(compiledShader.string());
-        spdlog::info("{} shader '{}'", shader == VK_NULL_HANDLE ? "Failed to compile" : "Successfully compiled", fileName);
+        std::unique_lock lock(s_loggingMutex);
+        spdlog::info("{} shader '{}'", shader == VK_NULL_HANDLE ? "Failed to compile" : "Successfully compiled",
+                     fileName);
         return shader;
     }
 
@@ -436,6 +428,7 @@ namespace Spire
 
         if (res != VK_SUCCESS)
         {
+            std::unique_lock lock(s_loggingMutex);
             spdlog::error("Failed to create shader module (from binary) {}", fileName);
         }
 
@@ -462,11 +455,6 @@ namespace Spire
             std::string binaryFilename = std::string(fileName.c_str()) + ".spv";
             FileIO::WriteBinaryFile(binaryFilename.c_str(), shaderModule.SPIRV.data(),
                                     static_cast<int>(shaderModule.SPIRV.size()) * sizeof(uint32_t));
-            //spdlog::info("Compiled shader from {}", shaderSource);
-        }
-        else
-        {
-            spdlog::error("Failed to compile {} into a shader", shaderSource);
         }
 
         return ret;

@@ -85,6 +85,7 @@ add_executable(VulkanTutorial
         Source/Game/GameCamera.h
         Source/Game/RenderInfo.h
         Source/Engine/Core/Application.cpp
+        Assets/Shaders/ShaderBindings.h
 )
 
 target_include_directories(VulkanTutorial PUBLIC "Source")
