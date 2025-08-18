@@ -3,9 +3,15 @@
 #include <spdlog/spdlog.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include "GameCamera.h"
+#include "ObjectRenderer.h"
 #include "../Assets/Shaders/ShaderInfo.h"
 
 using namespace Spire;
+
+struct ModelData
+{
+    glm::mat4x4 ModelMatrix;
+};
 
 GameApplication::GameApplication()
 {
@@ -33,8 +39,37 @@ void GameApplication::Start(Engine& engine)
     DEBUG_ASSERT(m_fragmentShader != VK_NULL_HANDLE);
     spdlog::info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
-    // Shader data
+    // Models
     std::vector<std::string> imagesToLoad = CreateModels();
+
+    m_cubeRenderer = std::make_unique<ObjectRenderer>(*m_models, rm, 0, sizeof(ModelData), NUM_MODELS);
+    glm::u32 i = std::ceil(std::cbrt(static_cast<double>(NUM_MODELS)));
+    std::vector<ModelData> datas;
+    datas.resize(NUM_MODELS);
+    glm::u32 index = 0;
+    for (glm::u32 x = 0; x < i; x++)
+    {
+        for (glm::u32 y = 0; y < i; y++)
+        {
+            for (glm::u32 z = 0; z < i; z++)
+            {
+                if (index >= NUM_MODELS) break;
+                float scale = 0.1f;
+                float d = 5 * scale;
+                datas[index] = {
+                    .ModelMatrix = glm::scale(
+                        glm::translate(
+                            glm::identity<glm::mat4>(), {x * d, y * d, z * d}),
+                        glm::vec3{1, 1, 1} * scale)
+                };
+                index++;
+            }
+        }
+    }
+    for (glm::u32 j = 0; j < rm.GetSwapchain().GetNumImages(); j++)
+    {
+        m_cubeRenderer->SetModelDatas(j, 0, NUM_MODELS, datas.data());
+    }
 
     // Images
     ASSERT(imagesToLoad.size() == SPIRE_SHADER_TEXTURE_COUNT);
@@ -177,7 +212,8 @@ void GameApplication::RecordCommandBuffers() const
         m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine->GetWindow().GetDimensions());
 
         m_models->CmdBindIndexBuffer(commandBuffer);
-        m_models->CmdRenderModels(commandBuffer, *m_graphicsPipeline, 0);
+        //   m_models->CmdRenderModels(commandBuffer, *m_graphicsPipeline, 0, 1);
+        m_cubeRenderer->CmdRender(commandBuffer, *m_graphicsPipeline, NUM_MODELS, false);
 
         vkCmdEndRendering(commandBuffer);
 
@@ -228,6 +264,9 @@ void GameApplication::SetupDescriptors()
 
         // Camera
         layout.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
+
+        // Model data
+        layout.push_back(m_cubeRenderer->GetDescriptor());
 
         layouts.Push(layout);
     }

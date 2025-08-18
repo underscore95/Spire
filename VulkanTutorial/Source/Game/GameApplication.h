@@ -3,6 +3,7 @@
 #include "Engine/EngineIncludes.h"
 #include "RenderInfo.h"
 
+class ObjectRenderer;
 class GameCamera;
 
 class GameApplication final : public Spire::Application
@@ -51,4 +52,5 @@ private:
     std::unique_ptr<Spire::SceneImages> m_sceneImages = nullptr;
     std::unique_ptr<Spire::DescriptorManager> m_descriptorManager = nullptr;
     std::unique_ptr<GameCamera> m_camera = nullptr;
+    std::unique_ptr<ObjectRenderer> m_cubeRenderer;
 };
