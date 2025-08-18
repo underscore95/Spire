@@ -1,7 +1,7 @@
 #version 460
 
 #include "PushConstants.glsl"
-#include "ShaderBindings.h"
+#include "ShaderInfo.h"
 
 struct VertexData
 {

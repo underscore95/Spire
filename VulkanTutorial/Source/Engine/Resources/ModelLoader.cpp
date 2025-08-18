@@ -42,14 +42,12 @@ namespace Spire
 
     static std::unique_ptr<Mesh> ConvertMesh(const aiMesh* aiMesh, const aiScene* aiScene,
                                              std::vector<std::string>& texturePaths,
-                                             std::string_view absoluteModelDirectoryPath)
+                                             std::string absoluteModelDirectoryPath)
     {
         DEBUG_ASSERT(aiMesh->mTextureCoords[0] != nullptr);
-        // not starts or ends in \ or /
-        if (absoluteModelDirectoryPath.size()) // might be empty if its directly in assets dir
+        if (!absoluteModelDirectoryPath.empty())
         {
-            DEBUG_ASSERT(absoluteModelDirectoryPath.back() != "\\"[0] || absoluteModelDirectoryPath.back() != "/"[0]);
-            DEBUG_ASSERT(absoluteModelDirectoryPath.front() == "\\"[0] || absoluteModelDirectoryPath.front() == "/"[0]);
+            if (absoluteModelDirectoryPath.back() != '/') absoluteModelDirectoryPath.push_back('/');
         }
 
         auto mesh = std::make_unique<Mesh>();
@@ -59,18 +57,6 @@ namespace Spire
         {
             const aiFace& face = aiMesh->mFaces[faceIndex];
             DEBUG_ASSERT(face.mNumIndices == 3);
-
-            // for (glm::u32 indexIndex = 0; indexIndex < face.mNumIndices; indexIndex++)
-            // {
-            //     const glm::u32 index = face.mIndices[indexIndex];
-            //
-            //     ModelVertex vert;
-            //
-            //     vert.Pos = {aiMesh->mVertices[index].x, aiMesh->mVertices[index].y, aiMesh->mVertices[index].z};
-            //     vert.Tex = {aiMesh->mTextureCoords[0][index].x, aiMesh->mTextureCoords[0][index].y};
-            //
-            //     mesh->Vertices.push_back(vert);
-            // }
 
             for (glm::u32 indexIndex = 0; indexIndex < face.mNumIndices; indexIndex++)
             {
@@ -165,7 +151,8 @@ namespace Spire
                 continue;
             }
 
-            if (settings.IgnoreNonTriangleMeshes && (scene->mMeshes[i]->mPrimitiveTypes & aiPrimitiveType_TRIANGLE) == 0)
+            if (settings.IgnoreNonTriangleMeshes && (scene->mMeshes[i]->mPrimitiveTypes & aiPrimitiveType_TRIANGLE) ==
+                0)
             {
                 spdlog::warn(
                     "Ignoring mesh {} of model {} because it contained non triangles (triangulation of polygons enabled: {})",
@@ -175,7 +162,8 @@ namespace Spire
 
             if (material->GetTextureCount(aiTextureType_DIFFUSE) != 1)
             {
-                spdlog::error("Failed to correctly import model {} because mesh {} has {} diffuse textures", fileName, i,
+                spdlog::error("Failed to correctly import model {} because mesh {} has {} diffuse textures", fileName,
+                              i,
                               material->GetTextureCount(aiTextureType_DIFFUSE));
                 continue;
             }

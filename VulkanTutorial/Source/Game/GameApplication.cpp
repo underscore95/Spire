@@ -3,7 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include "GameCamera.h"
-#include "../Assets/Shaders/ShaderBindings.h"
+#include "../Assets/Shaders/ShaderInfo.h"
 
 using namespace Spire;
 
@@ -37,7 +37,7 @@ void GameApplication::Start(Engine& engine)
     std::vector<std::string> imagesToLoad = CreateModels();
 
     // Images
-    while (imagesToLoad.size() < 2) imagesToLoad.push_back("test.png"); // shader forces 2 images to be bound so hack
+    ASSERT(imagesToLoad.size() == SPIRE_SHADER_TEXTURE_COUNT);
     m_sceneImages = std::make_unique<SceneImages>(rm, imagesToLoad);
 
     // Descriptors
