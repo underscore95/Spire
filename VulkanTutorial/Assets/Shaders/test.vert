@@ -18,7 +18,7 @@ struct ModelData
 	mat4 ModelMatrix;
 };
 
-layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_SHADER_BINDINGS_MODEL_DATA_UBO_BINDING) readonly uniform ModelDataBuffer { ModelData modelData[NUM_MODELS]; } modelDataBuffer;
+layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_SHADER_BINDINGS_MODEL_DATA_SSBO_BINDING) readonly buffer ModelDataBuffer { ModelData modelData[]; } modelDataBuffer;
 
 layout (location = 0) out vec2 texCoord;
 

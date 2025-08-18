@@ -24,7 +24,21 @@ namespace Spire
             1,
             sizeof(VulkanBuffer),
             buffer.GetBuffers().data(),
-            stages);
+            stages
+        );
+    }
+
+    PerImageDescriptor DescriptorCreator::CreatePerImageStorageBuffer(glm::u32 binding, const PerImageBuffer& buffer,
+                                                                      VkShaderStageFlags stages) const
+    {
+        return CreatePerImageDescriptor(
+            binding,
+            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            1,
+            sizeof(VulkanBuffer),
+            buffer.GetBuffers().data(),
+            stages
+        );
     }
 
     PerImageDescriptor DescriptorCreator::CreatePerImageDescriptor(

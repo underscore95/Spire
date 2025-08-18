@@ -8,6 +8,8 @@
 
 using namespace Spire;
 
+constexpr glm::u32 NUM_MODELS = 10000;
+
 struct ModelData
 {
     glm::mat4x4 ModelMatrix;
@@ -54,7 +56,7 @@ void GameApplication::Start(Engine& engine)
             for (glm::u32 z = 0; z < i; z++)
             {
                 if (index >= NUM_MODELS) break;
-                float scale = 0.1f;
+                float scale = 1;// 0.1f;
                 float d = 5 * scale;
                 datas[index] = {
                     .ModelMatrix = glm::scale(

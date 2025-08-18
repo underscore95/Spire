@@ -73,6 +73,22 @@ namespace Spire
         return std::unique_ptr<PerImageBuffer>(new PerImageBuffer(*this, buffers));
     }
 
+    std::unique_ptr<PerImageBuffer> BufferManager::CreateStorageBuffers(
+        size_t bufferSize,
+        size_t numElements,
+        const void* data
+    )
+    {
+        std::vector<VulkanBuffer> buffers;
+        buffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
+        for (int i = 0; i < buffers.size(); ++i)
+        {
+            buffers[i] = CreateStorageBuffer(data, bufferSize, bufferSize / numElements);
+        }
+
+        return std::unique_ptr<PerImageBuffer>(new PerImageBuffer(*this, buffers));
+    }
+
     void BufferManager::UpdateBuffer(const VulkanBuffer& buffer, const void* data, glm::u32 size, glm::u32 offset) const
     {
         void* pMem = nullptr;
@@ -115,23 +131,26 @@ namespace Spire
                                                      VkMemoryPropertyFlags properties, const void* data,
                                                      glm::u32 elementSize)
     {
-        // create the staging buffer
-        VkBufferUsageFlags stagingUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        VkMemoryPropertyFlags stagingProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        VulkanBuffer stagingBuffer = CreateBuffer(size, stagingUsage, stagingProperties);
-
-        // copy vertices into staging buffer
-        UpdateBuffer(stagingBuffer, data, size);
-
         // create the final buffer
         VulkanBuffer buffer = CreateBuffer(size, usage, properties);
 
-        // copy the staging buffer to the final buffer
-        CopyBuffer(buffer.Buffer, stagingBuffer.Buffer, size);
+        if (data)
+        {
+            // create the staging buffer
+            VkBufferUsageFlags stagingUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            VkMemoryPropertyFlags stagingProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            VulkanBuffer stagingBuffer = CreateBuffer(size, stagingUsage, stagingProperties);
 
-        // release the resources of the staging buffer
-        DestroyBuffer(stagingBuffer);
+            // copy vertices into staging buffer
+            UpdateBuffer(stagingBuffer, data, size);
+
+            // copy the staging buffer to the final buffer
+            CopyBuffer(buffer.Buffer, stagingBuffer.Buffer, size);
+
+            // release the resources of the staging buffer
+            DestroyBuffer(stagingBuffer);
+        }
 
         // size / element size / count
         DEBUG_ASSERT(elementSize > 0);
@@ -143,7 +162,8 @@ namespace Spire
         return buffer;
     }
 
-    VulkanBuffer BufferManager::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+    VulkanBuffer BufferManager::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+                                             VkMemoryPropertyFlags properties)
     {
         VulkanBuffer buffer;
 

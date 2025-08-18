@@ -14,7 +14,7 @@ ObjectRenderer::ObjectRenderer(
     m_modelDataSize(modelDataSize),
     m_maxInstances(maxInstances)
 {
-    m_modelDataBuffer = m_renderingManager.GetBufferManager().CreateUniformBuffers(maxInstances * modelDataSize);
+    m_modelDataBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffers(maxInstances * modelDataSize, maxInstances, nullptr);
 }
 
 ObjectRenderer::~ObjectRenderer() = default;
@@ -40,8 +40,8 @@ void ObjectRenderer::CmdRender(VkCommandBuffer commandBuffer, const Spire::Graph
 
 Spire::PerImageDescriptor ObjectRenderer::GetDescriptor() const
 {
-    return m_renderingManager.GetDescriptorCreator().CreatePerImageUniformBuffer(
-        SPIRE_SHADER_BINDINGS_MODEL_DATA_UBO_BINDING,
+    return m_renderingManager.GetDescriptorCreator().CreatePerImageStorageBuffer(
+        SPIRE_SHADER_BINDINGS_MODEL_DATA_SSBO_BINDING,
         *m_modelDataBuffer,
         VK_SHADER_STAGE_VERTEX_BIT
     );

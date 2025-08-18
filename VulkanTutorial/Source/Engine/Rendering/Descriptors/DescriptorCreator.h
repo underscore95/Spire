@@ -22,6 +22,12 @@ namespace Spire
             VkShaderStageFlags stages = VK_SHADER_STAGE_ALL
         ) const;
 
+        PerImageDescriptor CreatePerImageStorageBuffer(
+            glm::u32 binding,
+            const PerImageBuffer& buffer,
+            VkShaderStageFlags stages = VK_SHADER_STAGE_ALL
+        ) const;
+
         // Resources should be laid out like this
         // assuming 2 swapchain images and buffers A1A2A3 for image 1 and B1B2B3 for image 2
         // numResourcesPerImage would be 3 and resources would be A1A2A3B1B2B3
