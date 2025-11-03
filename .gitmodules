@@ -1,0 +1,12 @@
+[submodule "Spire/Libs/imgui"]
+	path = Spire/Libs/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "Spire/Libs/imgui/imgui"]
+	path = Spire/Libs/imgui/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "Spire/Libs/glslang"]
+	path = Spire/Libs/glslang
+	url = https://github.com/KhronosGroup/glslang
+[submodule "Spire/libs/stb/stb"]
+	path = Spire/libs/stb/stb
+	url = https://github.com/nothings/stb

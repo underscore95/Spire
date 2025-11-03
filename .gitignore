@@ -32,9 +32,9 @@
 *.app
 
 # CLion
-/.idea/
-/cmake-build-debug/
-/cmake-build-debug-visual-studio/
+Spire/.idea/
+Spire/cmake-build-debug/
+Spire/cmake-build-debug-visual-studio/
 
 # SPIRV Shaders
 *.spv
