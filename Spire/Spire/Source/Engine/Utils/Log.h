@@ -18,11 +18,4 @@ namespace Spire {
     void error(const std::string& fmt, Args&&... args) {
         std::cerr << "[ERROR] " << std::vformat(fmt, std::make_format_args(args...)) << '\n';
     }
-
-    template<typename... Args>
-    void debug(const std::string& fmt, Args&&... args) {
-#ifdef DEBUG
-        std::cout << "[DEBUG] " << std::vformat(fmt, std::make_format_args(args...)) << '\n';
-#endif
-    }
 }

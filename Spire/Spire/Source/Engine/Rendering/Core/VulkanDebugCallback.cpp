@@ -85,10 +85,14 @@ namespace Spire {
         // Log
         switch (severity) {
             case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-                info(message);
+                if constexpr (LOG_VERBOSE) {
+                    info(message);
+                }
                 break;
             case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-                info(message);
+                if constexpr (LOG_INFO) {
+                    info(message);
+                }
                 break;
             case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
                 warn(message);
