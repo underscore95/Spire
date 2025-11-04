@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 3.31)
 
-project(.)
+project(Spire)
 
-if(MSVC)
-    add_compile_options(/utf-8)
-endif()
+set(SPIRE_VERSION "1.1.0")
+add_compile_definitions(SPIRE_VERSION="${SPIRE_VERSION}")
 
 set(LIBS_DIRECTORY ${CMAKE_SOURCE_DIR}/Libs)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

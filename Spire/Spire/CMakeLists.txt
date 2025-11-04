@@ -81,6 +81,8 @@ add_library(Spire STATIC
         Source/Engine/Core/Application.cpp
         ../Game/Assets/Shaders/ShaderInfo.h
         Source/Engine/Utils/Log.h
+        Source/Engine/Utils/Version.cpp
+        Source/Engine/Utils/Version.h
 )
 
 target_include_directories(Spire PUBLIC "Source")

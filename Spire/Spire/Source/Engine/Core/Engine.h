@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Engine/Utils/Timer.h"
+#include "Utils/Version.h"
 
 namespace Spire
 {
@@ -51,5 +52,7 @@ namespace Spire
         float m_deltaTime = 1.0f / 1000.0f;
 
         bool m_isMinimized = false;
+
+        Version m_version;
     };
 }
