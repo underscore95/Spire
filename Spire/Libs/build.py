@@ -1,10 +1,12 @@
 import os
 import subprocess
 import shutil
+import time
 
+start_time = time.time()
 os.environ["PATH"] += r";C:\Program Files\CMake\bin"
 
-libs = ["assimp", "glfw", "glm", "glslang", "imgui", "spdlog"]
+libs = ["assimp", "glfw", "glm", "glslang", "imgui"]
 build_root = os.path.abspath("build")
 cmake_generator = "Visual Studio 17 2022"
 
@@ -28,3 +30,7 @@ for lib in libs:
                 shutil.copy(os.path.join(root, file), build_root)
 
 print("All libraries built and copied to:", build_root)
+
+end_time = time.time()
+elapsed = end_time - start_time
+print(f"Total build time: {elapsed:.2f} seconds")
