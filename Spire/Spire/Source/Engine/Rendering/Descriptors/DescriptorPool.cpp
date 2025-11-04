@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include "Descriptor.h"
 #include "DescriptorSet.h"
 #include "DescriptorSetLayoutList.h"
@@ -43,11 +43,11 @@ namespace Spire
         VkResult res = vkCreateDescriptorPool(renderingManager.GetDevice(), &poolInfo, nullptr, &m_descriptorPool);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create descriptor pool");
+            error("Failed to create descriptor pool");
         }
         else
         {
-            spdlog::info("Created descriptor pool");
+            info("Created descriptor pool");
         }
     }
 
@@ -100,7 +100,7 @@ namespace Spire
             layouts.push_back(layout);
             if (res != VK_SUCCESS)
             {
-                spdlog::error("Failed to create descriptor set layout");
+                error("Failed to create descriptor set layout");
             }
         }
 
@@ -120,7 +120,7 @@ namespace Spire
 
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to allocate descriptor sets");
+            error("Failed to allocate descriptor sets");
         }
         else m_numAllocatedSets += descriptorsLists.Size();
 
@@ -165,7 +165,7 @@ namespace Spire
 
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to free descriptor sets");
+            error("Failed to free descriptor sets");
         }
         else m_numAllocatedSets -= descriptorSets.size();
     }

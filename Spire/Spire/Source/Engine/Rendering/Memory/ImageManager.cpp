@@ -1,6 +1,6 @@
 #include "ImageManager.h"
 
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include "BufferManager.h"
 #include "Engine/Rendering/Core/RenderingCommandManager.h"
 #include "Engine/Rendering/RenderingManager.h"
@@ -31,7 +31,7 @@ namespace Spire
     {
         // Load image
         VulkanImage images = {};
-        LoadedImage loadedImage = ImageLoader::LoadImage(filename);
+        LoadedImage loadedImage = ImageLoader::LoadImageFromFile(filename);
         if (!loadedImage.IsValid())
         {
             return images;
@@ -55,7 +55,7 @@ namespace Spire
 
         images.Sampler = CreateImageSampler(minFilter, maxFilter, addressMode);
 
-        spdlog::info("Created vulkan image from '{}'", filename);
+        info("Created vulkan image from '{}'", filename);
         return images;
     }
 
@@ -114,7 +114,7 @@ namespace Spire
 
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create vulkan image");
+            error("Failed to create vulkan image");
         }else
         {
             m_numAllocatedImages++;
@@ -142,7 +142,7 @@ namespace Spire
         case VK_FORMAT_R32G32B32A32_SFLOAT:
             return 4 * sizeof(float);
         default:
-            spdlog::error("Unknown image format {}", static_cast<int>(format));
+            error("Unknown image format {}", static_cast<int>(format));
             assert(false);
         }
 
@@ -258,7 +258,7 @@ namespace Spire
         VkResult res = vkCreateImageView(m_renderingManager.GetDevice(), &viewInfo, nullptr, &imageView);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create image view");
+            error("Failed to create image view");
         }
         return imageView;
     }
@@ -291,7 +291,7 @@ namespace Spire
         VkResult res = vkCreateSampler(m_renderingManager.GetDevice(), &samplerInfo, nullptr, &sampler);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create image sampler");
+            error("Failed to create image sampler");
         }
         return sampler;
     }

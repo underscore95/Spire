@@ -4,7 +4,7 @@
 #include <assimp/postprocess.h>
 #include <glm/glm.hpp>
 #include <filesystem>
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include "Mesh.h"
 
 namespace Spire
@@ -98,7 +98,7 @@ namespace Spire
         }
         else
         {
-            spdlog::warn("Path '{}' does not start with ASSETS_DIRECTORY '{}'", path, ASSETS_DIRECTORY);
+            warn("Path '{}' does not start with ASSETS_DIRECTORY '{}'", path, ASSETS_DIRECTORY);
         }
 
         std::filesystem::path fsPath(path);
@@ -131,7 +131,7 @@ namespace Spire
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            spdlog::error("Failed to load model {} due to error '{}'", fileName, importer.GetErrorString());
+            error("Failed to load model {} due to error '{}'", fileName, importer.GetErrorString());
             return {};
         }
 
@@ -145,7 +145,7 @@ namespace Spire
             // checks
             if (!scene->mMeshes[i]->HasTextureCoords(0))
             {
-                spdlog::error(
+                error(
                     "Failed to correctly import model {} (mesh {}) because it didn't contain texture coords in channel 0",
                     fileName, i);
                 continue;
@@ -154,7 +154,7 @@ namespace Spire
             if (settings.IgnoreNonTriangleMeshes && (scene->mMeshes[i]->mPrimitiveTypes & aiPrimitiveType_TRIANGLE) ==
                 0)
             {
-                spdlog::warn(
+                warn(
                     "Ignoring mesh {} of model {} because it contained non triangles (triangulation of polygons enabled: {})",
                     i, fileName, settings.TriangulateFaces);
                 continue;
@@ -162,7 +162,7 @@ namespace Spire
 
             if (material->GetTextureCount(aiTextureType_DIFFUSE) != 1)
             {
-                spdlog::error("Failed to correctly import model {} because mesh {} has {} diffuse textures", fileName,
+                error("Failed to correctly import model {} because mesh {} has {} diffuse textures", fileName,
                               i,
                               material->GetTextureCount(aiTextureType_DIFFUSE));
                 continue;

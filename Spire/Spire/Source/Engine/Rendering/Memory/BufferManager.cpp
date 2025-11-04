@@ -1,5 +1,5 @@
 #include "BufferManager.h"
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include "Engine/Rendering/Core/RenderingCommandManager.h"
 #include "Engine/Rendering/Core/RenderingDeviceManager.h"
 #include "Engine/Rendering/RenderingManager.h"
@@ -95,7 +95,7 @@ namespace Spire
         VkResult res = vmaMapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation, &pMem);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to update buffer memory with size {} bytes", size);
+            error("Failed to update buffer memory with size {} bytes", size);
             return;
         }
         memcpy(static_cast<char*>(pMem) + offset, data, size);
@@ -191,7 +191,7 @@ namespace Spire
 
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Error creating vulkan buffer of size {}", size);
+            error("Error creating vulkan buffer of size {}", size);
         }
         else
         {

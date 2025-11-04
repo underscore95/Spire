@@ -1,8 +1,8 @@
 #include "ImGuiRenderer.h"
-#include "imgui/imgui.h"
-#include "imgui/backends/imgui_impl_glfw.h"
-#include "imgui/backends/imgui_impl_vulkan.h"
-#include <spdlog/spdlog.h>
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_vulkan.h"
+#include "Utils/Log.h"
 
 #include "Renderer.h"
 #include "Engine/Rendering/Core/RenderingCommandManager.h"
@@ -21,7 +21,7 @@ namespace Spire {
         CreateDescriptorPool();
         InitImGUI();
 
-        spdlog::info("Initialized ImGui renderer");
+        info("Initialized ImGui renderer");
     }
 
     ImGuiRenderer::~ImGuiRenderer() {
@@ -32,7 +32,7 @@ namespace Spire {
         vkDestroyDescriptorPool(m_renderingManager.GetDevice(), m_descriptorPool, nullptr);
         m_renderingManager.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
 
-        spdlog::info("Shut down ImGui renderer");
+        info("Shut down ImGui renderer");
     }
 
     void ImGuiRenderer::SetDisplaySize(glm::uvec2 displaySize) const {
@@ -82,7 +82,7 @@ namespace Spire {
 
         VkResult res = vkCreateDescriptorPool(m_renderingManager.GetDevice(), &poolCreateInfo, nullptr, &m_descriptorPool);
         if (res != VK_SUCCESS) {
-            spdlog::error("Failed to create descriptor pool for imgui");
+            error("Failed to create descriptor pool for imgui");
         }
     }
 
@@ -139,6 +139,6 @@ namespace Spire {
     void ImGuiRenderer::CheckVkResult(VkResult res) {
         if (res == VK_SUCCESS) return;
 
-        spdlog::error("ImGui Vulkan function finished with code {}", static_cast<int>(res));
+        error("ImGui Vulkan function finished with code {}", static_cast<int>(res));
     }
 }

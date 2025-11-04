@@ -1,5 +1,5 @@
 #include "Engine/Rendering/Memory/VulkanAllocator.h"
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 
 namespace Spire
 {
@@ -18,18 +18,18 @@ namespace Spire
 
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Error creating vulkan memory allocator");
+            error("Error creating vulkan memory allocator");
         }
         else
         {
-            spdlog::info("Created vulkan memory allocator");
+            info("Created vulkan memory allocator");
         }
     }
 
     VulkanAllocator::~VulkanAllocator()
     {
         vmaDestroyAllocator(m_allocator);
-        spdlog::info("Destroyed vulkan memory allocator");
+        info("Destroyed vulkan memory allocator");
     }
 
     VmaAllocator VulkanAllocator::GetAllocator() const

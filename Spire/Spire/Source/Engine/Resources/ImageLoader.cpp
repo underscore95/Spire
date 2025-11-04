@@ -1,14 +1,15 @@
 #include "ImageLoader.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 
 namespace Spire
 {
     int ImageLoader::s_numLoadedImages = 0;
 
-    LoadedImage ImageLoader::LoadImage(const char *filename, ImageLoadSettings settings) {
+    LoadedImage ImageLoader::LoadImageFromFile(const char *filename, ImageLoadSettings settings) {
         LoadedImage loadedImage = {};
 
         stbi_set_flip_vertically_on_load(settings.FlipVerticallyOnLoad);
@@ -19,7 +20,7 @@ namespace Spire
         if (loadedImage.Data) {
             s_numLoadedImages++;
         } else {
-            spdlog::error("Error loading texture from {}", filename);
+            error("Error loading texture from {}", filename);
         }
 
         return loadedImage;

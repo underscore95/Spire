@@ -6,7 +6,7 @@
 #include "Engine/Rendering/Core/RenderingDeviceManager.h"
 #include <glm/glm.hpp>
 
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 
 namespace Spire
 {
@@ -17,18 +17,18 @@ namespace Spire
     )
         : m_surface(surface)
     {
-        spdlog::info("Initializing RenderingDeviceManager...");
+        info("Initializing RenderingDeviceManager...");
         glm::u32 numDevices = 0;
 
         // Get number of physical devices
         VkResult res = vkEnumeratePhysicalDevices(instance, &numDevices, nullptr);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to enumerate vulkan physical devices");
+            error("Failed to enumerate vulkan physical devices");
             return;
         }
 
-        if (logDeviceInfo) spdlog::info("Found {} physical devices", numDevices);
+        if (logDeviceInfo) info("Found {} physical devices", numDevices);
 
         m_devices.resize(numDevices);
 
@@ -39,7 +39,7 @@ namespace Spire
         res = vkEnumeratePhysicalDevices(instance, &numDevices, physicalDevices.data());
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to enumerate vulkan physical devices ({} known physical devices)", numDevices);
+            error("Failed to enumerate vulkan physical devices ({} known physical devices)", numDevices);
             return;
         }
 
@@ -112,7 +112,7 @@ namespace Spire
 
                 if (res != VK_SUCCESS)
                 {
-                    spdlog::error("Failed to get device surface support for device {} (named {}) and queue {}", i,
+                    error("Failed to get device surface support for device {} (named {}) and queue {}", i,
                                   m_devices[i].DeviceProperties.deviceName, q);
                 }
             }
@@ -122,7 +122,7 @@ namespace Spire
             res = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &numSurfaceFormats, nullptr);
             if (res != VK_SUCCESS)
             {
-                spdlog::error(
+                error(
                     "Failed to get number surface formats for device {} (named {})",
                     i,
                     m_devices[i].DeviceProperties.deviceName
@@ -130,7 +130,7 @@ namespace Spire
             }
             if (numSurfaceFormats <= 0)
             {
-                spdlog::error(""
+                error(""
                               "Device {} (named {}) cannot be used because it supports {} (less than 1) surface formats. Device Info:\n{}",
                               i,
                               m_devices[i].DeviceProperties.deviceName,
@@ -145,7 +145,7 @@ namespace Spire
                                                        m_devices[i].SurfaceFormats.data());
             if (res != VK_SUCCESS)
             {
-                spdlog::error(
+                error(
                     "Failed to get surface formats for device {} (named {}) ({} found)",
                     i,
                     m_devices[i].DeviceProperties.deviceName,
@@ -172,7 +172,7 @@ namespace Spire
             res = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &numSurfacePresentModes, nullptr);
             if (res != VK_SUCCESS)
             {
-                spdlog::error(
+                error(
                     "Failed to get number surface present modes for device {} (named {})",
                     i,
                     m_devices[i].DeviceProperties.deviceName
@@ -180,7 +180,7 @@ namespace Spire
             }
             if (numSurfacePresentModes <= 0)
             {
-                spdlog::error(
+                error(
                     "Device {} (named {}) cannot be used because it supports {} (less than 1) surface present modes. Device Info:\n{}",
                     i,
                     m_devices[i].DeviceProperties.deviceName,
@@ -195,7 +195,7 @@ namespace Spire
                                                             m_devices[i].PresentModes.data());
             if (res != VK_SUCCESS)
             {
-                spdlog::error(
+                error(
                     "Failed to get surface present modes for device {} (named {}), found {}",
                     i,
                     m_devices[i].DeviceProperties.deviceName,
@@ -223,18 +223,18 @@ namespace Spire
             logMessage += std::format("\n    Depth Format {}", static_cast<int>(m_devices[i].DepthFormat));
 
             if (i + 1 < numDevices) logMessage += "\n";
-            if (logDeviceInfo) spdlog::info(logMessage);
+            if (logDeviceInfo) info(logMessage);
 
             vkGetPhysicalDeviceFeatures(m_devices[i].PhysicalDeviceHandle, &m_devices[i].Features);
         }
 
         m_initialized = true;
-        spdlog::info("Initialized RenderingDeviceManager!");
+        info("Initialized RenderingDeviceManager!");
     }
 
     RenderingDeviceManager::~RenderingDeviceManager()
     {
-        spdlog::info("Destroyed RenderingDeviceManager");
+        info("Destroyed RenderingDeviceManager");
     }
 
     // ReSharper disable once CppDFAConstantFunctionResult
@@ -258,7 +258,7 @@ namespace Spire
                 if (isRequiredQueueType && isRequestedPresentSupport)
                 {
                     m_deviceIndex = i;
-                    spdlog::info(
+                    info(
                         "Selected GFX device {} ({}) and queue family {}",
                         m_deviceIndex,
                         m_devices[i].DeviceProperties.deviceName,
@@ -269,7 +269,7 @@ namespace Spire
             }
         }
 
-        spdlog::info("Required queue type {} and supports present {} not found\n", requiredQueueType, supportsPresent);
+        info("Required queue type {} and supports present {} not found\n", requiredQueueType, supportsPresent);
 
         return 0;
     }
@@ -307,7 +307,7 @@ namespace Spire
 
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to get device capabilities");
+            error("Failed to get device capabilities");
         }
     }
 
@@ -347,7 +347,7 @@ namespace Spire
             }
         }
 
-        spdlog::error("Failed to find supported format!");
+        error("Failed to find supported format!");
         return candidateFormat;
     }
 
@@ -359,7 +359,7 @@ namespace Spire
         VkResult res = vkEnumerateDeviceExtensionProperties(device, nullptr, &numExtensions, nullptr);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to get extension count for device");
+            error("Failed to get extension count for device");
             return out;
         }
         out.resize(numExtensions);
@@ -367,7 +367,7 @@ namespace Spire
         res = vkEnumerateDeviceExtensionProperties(device, nullptr, &numExtensions, out.data());
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to get extensions (count: {}) for device", numExtensions);
+            error("Failed to get extensions (count: {}) for device", numExtensions);
         }
         return out;
     }

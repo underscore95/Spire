@@ -88,9 +88,11 @@ add_executable(Spire
         Assets/Shaders/ShaderInfo.h
         Source/Game/ObjectRenderer.cpp
         Source/Game/ObjectRenderer.h
+        Source/Engine/Utils/Log.h
 )
 
 target_include_directories(Spire PUBLIC "Source")
+target_include_directories(Spire PUBLIC "Source/Engine")
 
 function(add_lib_subdirectory lib_name)
     add_subdirectory(
@@ -105,37 +107,56 @@ add_compile_options(/WX- /wd4392)
 find_package(Vulkan REQUIRED)
 target_link_libraries(Spire PRIVATE Vulkan::Vulkan)
 
+# Assimp
+target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/assimp/include)
+target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/build/assimp/include)
+target_link_libraries(Spire PRIVATE ${LIBS_DIRECTORY}/build/assimp-vc143-mt.lib)
+
+# GLFW
+target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/glfw/include)
+target_link_libraries(Spire PRIVATE ${LIBS_DIRECTORY}/build/glfw3.lib)
+
+# GLM
+target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/glm/include)
+target_link_libraries(Spire PRIVATE ${LIBS_DIRECTORY}/build/glm.lib)
+
+# GLSLang
+target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/glslang)
+target_link_libraries(Spire PRIVATE
+        ${LIBS_DIRECTORY}/build/glslang.lib
+        ${LIBS_DIRECTORY}/build/glslang-default-resource-limits.lib
+        ${LIBS_DIRECTORY}/build/SPIRV.lib
+        ${LIBS_DIRECTORY}/build/SPIRV-Tools.lib
+        ${LIBS_DIRECTORY}/build/SPIRV-Tools-diff.lib
+        ${LIBS_DIRECTORY}/build/SPIRV-Tools-link.lib
+        ${LIBS_DIRECTORY}/build/SPIRV-Tools-lint.lib
+        ${LIBS_DIRECTORY}/build/SPIRV-Tools-opt.lib
+        ${LIBS_DIRECTORY}/build/SPIRV-Tools-shared.lib
+)
+
+# ImGui
+target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/imgui/imgui/)
+target_link_libraries(Spire PRIVATE ${LIBS_DIRECTORY}/build/imgui.lib)
+
 # Vulkan Memory Allocator
-add_lib_subdirectory(vulkan-memory-allocator)
-target_link_libraries(Spire PRIVATE GPUOpen::VulkanMemoryAllocator)
-
-# assimp
-add_lib_subdirectory(assimp)
-target_link_libraries(Spire PRIVATE assimp::assimp)
-
-# glfw3
-add_lib_subdirectory(glfw)
-target_link_libraries(Spire PRIVATE glfw)
-
-# glm
-add_lib_subdirectory(glm)
-target_link_libraries(Spire PRIVATE glm::glm-header-only)
-
-# spdlog
-add_lib_subdirectory(spdlog)
-target_link_libraries(Spire PRIVATE spdlog::spdlog)
-
-# imgui
-add_lib_subdirectory(imgui)
-target_link_libraries(Spire PRIVATE imgui)
-
-# glslang
-add_lib_subdirectory(glslang)
-target_link_libraries(Spire PRIVATE glslang::glslang)
+target_include_directories(Spire PRIVATE
+        ${LIBS_DIRECTORY}/vulkan-memory-allocator/include
+)
 
 # stb
-add_lib_subdirectory(stb)
-include_stb_to_target(Spire)
+target_include_directories(Spire PRIVATE
+        ${LIBS_DIRECTORY}/stb/stb
+)
+
+# Copy the dlls
+file(GLOB LIB_FILES "${LIBS_DIRECTORY}/build/*.*")
+
+add_custom_command(TARGET Spire POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:Spire>
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${LIB_FILES}
+        $<TARGET_FILE_DIR:Spire>
+)
 
 # Assets directory
 setup_assets_directory(Spire Assets)

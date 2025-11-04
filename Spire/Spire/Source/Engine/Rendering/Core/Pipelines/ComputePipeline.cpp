@@ -1,6 +1,6 @@
 #include "ComputePipeline.h"
 
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 
 namespace Spire
 {
@@ -26,11 +26,11 @@ namespace Spire
         VkResult res = vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create compute pipeline layout");
+            error("Failed to create compute pipeline layout");
         }
         else
         {
-            spdlog::info("Compute pipeline created");
+            info("Compute pipeline created");
         }
     }
 

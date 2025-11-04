@@ -38,3 +38,6 @@ Spire/cmake-build-debug-visual-studio/
 
 # SPIRV Shaders
 *.spv
+
+# Build
+Spire/Libs/build

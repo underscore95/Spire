@@ -1,5 +1,5 @@
 #include "GameApplication.h"
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include "GameCamera.h"
 #include "ObjectRenderer.h"
@@ -32,13 +32,13 @@ void GameApplication::Start(Engine& engine)
     Timer shaderCompileTimer;
     shaderCompileTimer.Start();
     ShaderCompiler compiler(rm.GetDevice());
-    spdlog::info("Created shader compiler");
+    info("Created shader compiler");
     compiler.CreateShaderModuleAsync(&m_vertexShader, std::format("{}/Shaders/test.vert", ASSETS_DIRECTORY));
     compiler.CreateShaderModuleAsync(&m_fragmentShader, std::format("{}/Shaders/test.frag", ASSETS_DIRECTORY));
     compiler.Await();
     assert(m_vertexShader != VK_NULL_HANDLE);
     assert(m_fragmentShader != VK_NULL_HANDLE);
-    spdlog::info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
+    info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
     // Models
     std::vector<std::string> imagesToLoad = CreateModels();
@@ -99,7 +99,7 @@ void GameApplication::Cleanup()
 
     rm.GetQueue().WaitIdle();
     rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
-    spdlog::info("Freed command buffers");
+    info("Freed command buffers");
 
     m_models.reset();
     m_camera.reset();
@@ -112,7 +112,7 @@ void GameApplication::Cleanup()
 
     vkDestroyShaderModule(rm.GetDevice(), m_vertexShader, nullptr);
     vkDestroyShaderModule(rm.GetDevice(), m_fragmentShader, nullptr);
-    spdlog::info("Destroyed shaders");
+    info("Destroyed shaders");
 }
 
 void GameApplication::Update()
@@ -221,7 +221,7 @@ void GameApplication::RecordCommandBuffers() const
         rm.GetCommandManager().EndCommandBuffer(commandBuffer);
     }
 
-    spdlog::info("Command buffers recorded");
+    info("Command buffers recorded");
 }
 
 std::vector<std::string> GameApplication::CreateModels()

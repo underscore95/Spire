@@ -3,7 +3,7 @@
 #include <unordered_set>
 #include <glm/glm.hpp>
 #include <vector>
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include <glslang/Include/glslang_c_interface.h>
 #include "Engine/Utils/FileIO.h"
 #include <filesystem>
@@ -153,7 +153,7 @@ namespace Spire
         if (!glslang_shader_preprocess(shader, &input))
         {
             std::unique_lock lock(s_loggingMutex);
-            spdlog::error("GLSL preprocessing failed\n{}\n{}\n{}",
+            error("GLSL preprocessing failed\n{}\n{}\n{}",
                           glslang_shader_get_info_log(shader),
                           glslang_shader_get_info_debug_log(shader),
                           input.code);
@@ -163,7 +163,7 @@ namespace Spire
         if (!glslang_shader_parse(shader, &input))
         {
             std::unique_lock lock(s_loggingMutex);
-            spdlog::error("GLSL parsing failed\n{}\n{}\n{}",
+            error("GLSL parsing failed\n{}\n{}\n{}",
                           glslang_shader_get_info_log(shader),
                           glslang_shader_get_info_debug_log(shader),
                           glslang_shader_get_preprocessed_code(shader));
@@ -176,7 +176,7 @@ namespace Spire
         if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT))
         {
             std::unique_lock lock(s_loggingMutex);
-            spdlog::error("GLSL linking failed\n{}\n{}",
+            error("GLSL linking failed\n{}\n{}",
                           glslang_program_get_info_log(program),
                           glslang_program_get_info_debug_log(program));
             return false;
@@ -191,7 +191,7 @@ namespace Spire
         if (messagesSPIRV)
         {
             std::unique_lock lock(s_loggingMutex);
-            spdlog::error("SPIR-V message: {}", messagesSPIRV);
+            error("SPIR-V message: {}", messagesSPIRV);
         }
 
         VkShaderModuleCreateInfo shaderCreateInfo = {
@@ -204,7 +204,7 @@ namespace Spire
         if (res != VK_SUCCESS)
         {
             std::unique_lock lock(s_loggingMutex);
-            spdlog::error("Failed to create shader module");
+            error("Failed to create shader module");
         }
 
         glslang_program_delete(program);
@@ -250,7 +250,7 @@ namespace Spire
         }
 
         std::unique_lock lock(s_loggingMutex);
-        spdlog::error("Unknown shader stage in '{}'\n", pFilename);
+        error("Unknown shader stage in '{}'\n", pFilename);
 
         return GLSLANG_STAGE_VERTEX;
     }
@@ -271,7 +271,7 @@ namespace Spire
         if (!FileIO::ReadFile(filePath.c_str(), parsed.FullSource))
         {
             std::unique_lock lock(s_loggingMutex);
-            spdlog::error("Failed to read file {} when creating shader from text", filePath);
+            error("Failed to read file {} when creating shader from text", filePath);
             return {};
         }
 
@@ -284,7 +284,7 @@ namespace Spire
             if (quoteStart == std::string::npos)
             {
                 std::unique_lock lock(s_loggingMutex);
-                spdlog::error("Invalid #include in shader (missing opening quote)");
+                error("Invalid #include in shader (missing opening quote)");
                 return {};
             }
 
@@ -292,7 +292,7 @@ namespace Spire
             if (quoteEnd == std::string::npos)
             {
                 std::unique_lock lock(s_loggingMutex);
-                spdlog::error("Invalid #include in shader (missing closing quote)");
+                error("Invalid #include in shader (missing closing quote)");
                 return {};
             }
 
@@ -311,7 +311,7 @@ namespace Spire
             if (!parsed.FilePaths.insert(actualPath).second)
             {
                 std::unique_lock lock(s_loggingMutex);
-                spdlog::error("Recursively including {}", actualPath);
+                error("Recursively including {}", actualPath);
                 return {};
             }
 
@@ -320,7 +320,7 @@ namespace Spire
             if (!FileIO::ReadFile(actualPath.c_str(), includedSource))
             {
                 std::unique_lock lock(s_loggingMutex);
-                spdlog::error("Failed to read file {} when creating shader from text", actualPath);
+                error("Failed to read file {} when creating shader from text", actualPath);
                 return {};
             }
             includedSource += "\n";
@@ -383,7 +383,7 @@ namespace Spire
         if (!parsed.Success)
         {
             std::unique_lock lock(s_loggingMutex);
-            spdlog::error("Error when parsing shader {}", fileName);
+            error("Error when parsing shader {}", fileName);
             return VK_NULL_HANDLE;
         }
 
@@ -406,7 +406,7 @@ namespace Spire
                                     ? CreateShaderModuleFromSource(fileName, parsed.FullSource)
                                     : CreateShaderModuleFromBinaryFile(compiledShader.string());
         std::unique_lock lock(s_loggingMutex);
-        spdlog::info("{} shader '{}'", shader == VK_NULL_HANDLE ? "Failed to compile" : "Successfully compiled",
+        info("{} shader '{}'", shader == VK_NULL_HANDLE ? "Failed to compile" : "Successfully compiled",
                      fileName);
         return shader;
     }
@@ -429,7 +429,7 @@ namespace Spire
         if (res != VK_SUCCESS)
         {
             std::unique_lock lock(s_loggingMutex);
-            spdlog::error("Failed to create shader module (from binary) {}", fileName);
+            error("Failed to create shader module (from binary) {}", fileName);
         }
 
         free(pShaderCode);

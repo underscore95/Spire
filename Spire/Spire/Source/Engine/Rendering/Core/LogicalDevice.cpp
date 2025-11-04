@@ -1,5 +1,5 @@
 #include "LogicalDevice.h"
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include "RenderingDeviceManager.h"
 
 namespace Spire
@@ -32,19 +32,19 @@ namespace Spire
                 VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
         else if (dynamicRenderingSupport == DynamicRenderingSupport::NONE)
         {
-            spdlog::error("Dynamic rendering is not supported.");
+            error("Dynamic rendering is not supported.");
             return;
         }
 
         if (deviceManager.Selected().Features.geometryShader == VK_FALSE)
         {
-            spdlog::error("The Geometry Shader is not supported!");
+            error("The Geometry Shader is not supported!");
             return;
         }
 
         if (deviceManager.Selected().Features.tessellationShader == VK_FALSE)
         {
-            spdlog::error("The Tessellation Shader is not supported!");
+            error("The Tessellation Shader is not supported!");
             return;
         }
 
@@ -78,11 +78,11 @@ namespace Spire
         );
         if (result != VK_SUCCESS)
         {
-            spdlog::error("Failed to create logical device");
+            error("Failed to create logical device");
         }
         else
         {
-            spdlog::info("Created logical device");
+            info("Created logical device");
         }
     }
 
@@ -91,7 +91,7 @@ namespace Spire
         if (m_device)
         {
             vkDestroyDevice(m_device, nullptr);
-            spdlog::info("Destroyed logical device");
+            info("Destroyed logical device");
         }
     }
 
@@ -121,7 +121,7 @@ namespace Spire
         if (instanceVersionGreaterThanOrEqualTo_0_1_3_0)
         {
             if (!dynamicRenderingExtension)
-                spdlog::warn(
+                warn(
                     "Vulkan instance is >= 0.1.3.0 but didn't have the dynamic rendering extension, this probably isn't an issue unless your vulkan imploded and this warning popped up.");
             return DynamicRenderingSupport::SUPPORTED;
         }

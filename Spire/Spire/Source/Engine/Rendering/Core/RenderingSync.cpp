@@ -1,6 +1,6 @@
 #include "RenderingSync.h"
 
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 
 #include "Engine/Rendering/RenderingManager.h"
 
@@ -28,7 +28,7 @@ namespace Spire
         VkResult res = vkCreateSemaphore(m_renderingManager.GetDevice(), &createInfo, nullptr, &semaphore);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create semaphore");
+            error("Failed to create semaphore");
         }
         assert(semaphore != VK_NULL_HANDLE);
 
@@ -212,7 +212,7 @@ namespace Spire
         }
         else
         {
-            spdlog::error("Unknown barrier case\n");
+            error("Unknown barrier case\n");
             assert(false);
         }
 

@@ -1,7 +1,8 @@
 #include "FileIO.h"
 
+#include <cassert>
 #include <fstream>
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include <sys/stat.h>
 
 namespace Spire
@@ -15,18 +16,18 @@ namespace Spire
         {
             char buf[256] = {};
             strerror_s(buf, sizeof(buf), err);
-            spdlog::error("Error opening '{}': {}", pFilename, buf);
+            error("Error opening '{}': {}", pFilename, buf);
             return nullptr;
         }
 
         struct stat stat_buf;
-        int error = stat(pFilename, &stat_buf);
+        int errCode = stat(pFilename, &stat_buf);
 
-        if (error)
+        if (errCode)
         {
             char buf[256] = {};
             strerror_s(buf, sizeof(buf), err);
-            spdlog::error("Error getting file stats: {}", buf);
+            error("Error getting file stats: {}", buf);
             return nullptr;
         }
 
@@ -41,7 +42,7 @@ namespace Spire
         {
             char buf[256] = {};
             strerror_s(buf, sizeof(buf), err);
-            spdlog::error("Read file error file: {}", buf);
+            error("Read file error file: {}", buf);
             return nullptr;
         }
 
@@ -58,7 +59,7 @@ namespace Spire
 
         if (!f)
         {
-            spdlog::error("Error opening '{}'", pFilename);
+            error("Error opening '{}'", pFilename);
             return;
         }
 
@@ -66,7 +67,7 @@ namespace Spire
 
         if (bytes_written != size)
         {
-            spdlog::error("Error write file: {}", err);
+            error("Error write file: {}", err);
             return;
         }
 
@@ -94,7 +95,7 @@ namespace Spire
         }
         else
         {
-            spdlog::error("Failed to read text file {}", pFileName);
+            error("Failed to read text file {}", pFileName);
         }
 
         return ret;

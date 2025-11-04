@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 
 #include "Engine/Rendering/Descriptors/DescriptorManager.h"
 
@@ -89,7 +89,7 @@ namespace Spire
         VkResult res = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create vulkan pipeline layout");
+            error("Failed to create vulkan pipeline layout");
         }
     }
 }

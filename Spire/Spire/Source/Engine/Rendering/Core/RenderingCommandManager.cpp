@@ -1,7 +1,7 @@
 #include "RenderingCommandManager.h"
 
 
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 
 namespace Spire
 {
@@ -20,11 +20,11 @@ namespace Spire
         VkResult res = vkCreateCommandPool(m_device, &cmdPoolCreateInfo, nullptr, &m_commandPool);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create command pool");
+            error("Failed to create command pool");
         }
         else
         {
-            spdlog::info("Command buffer pool created");
+            info("Command buffer pool created");
         }
     }
 
@@ -34,7 +34,7 @@ namespace Spire
         if (m_commandPool)
         {
             vkDestroyCommandPool(m_device, m_commandPool, nullptr);
-            spdlog::info("Destroyed command pool");
+            info("Destroyed command pool");
         }
     }
 
@@ -51,7 +51,7 @@ namespace Spire
         VkResult res = vkAllocateCommandBuffers(m_device, &cmdBufAllocInfo, commandBuffers);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create {} command buffers", count);
+            error("Failed to create {} command buffers", count);
         }
         else
         {
@@ -79,7 +79,7 @@ namespace Spire
         VkResult res = vkBeginCommandBuffer(commandBuffer, &beginInfo);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to begin command buffer");
+            error("Failed to begin command buffer");
         }
     }
 
@@ -88,7 +88,7 @@ namespace Spire
         VkResult res = vkEndCommandBuffer(commandBuffer);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to end command buffer");
+            error("Failed to end command buffer");
         }
     }
 }

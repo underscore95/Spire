@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.31)
 
 file(GLOB IMGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/imgui/*.cpp"

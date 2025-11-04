@@ -20,7 +20,7 @@ namespace Spire
     public:
         ImageLoader() = delete;
 
-        static LoadedImage LoadImage(const char *filename, ImageLoadSettings = {});
+        static LoadedImage LoadImageFromFile(const char *filename, ImageLoadSettings = {});
 
         static void UnloadImage(const LoadedImage &image);
 

@@ -1,7 +1,7 @@
 #include "Window.h"
 #include <imgui.h>
 #include <GLFW/glfw3.h>
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 
 #include "Engine/Core/Engine.h"
 
@@ -69,7 +69,7 @@ namespace Spire
     {
         if (!s_initialized)
         {
-            spdlog::error("Failed to create window because Window::Init wasn't called.");
+            error("Failed to create window because Window::Init wasn't called.");
             return nullptr;
         }
 
@@ -122,23 +122,23 @@ namespace Spire
     {
         if (s_initialized)
         {
-            spdlog::error("Window failed to initialize: already initialized");
+            error("Window failed to initialize: already initialized");
             return false;
         }
 
         if (!glfwInit())
         {
-            spdlog::error("Window failed to initialize: glfwInit failed");
+            error("Window failed to initialize: glfwInit failed");
             return false;
         }
 
         if (!glfwVulkanSupported())
         {
-            spdlog::error("Window failed to initialize: GLFW doesn't support Vulkan");
+            error("Window failed to initialize: GLFW doesn't support Vulkan");
             return false;
         }
 
-        spdlog::info("Initialized window!");
+        info("Initialized window!");
         s_initialized = true;
         return true;
     }
@@ -147,13 +147,13 @@ namespace Spire
     {
         if (!s_initialized)
         {
-            spdlog::error("Window failed to shutdown: not initialized");
+            error("Window failed to shutdown: not initialized");
             return;
         }
 
         glfwTerminate();
         s_initialized = false;
-        spdlog::info("Shut down window");
+        info("Shut down window");
     }
 
     bool Window::IsValid() const

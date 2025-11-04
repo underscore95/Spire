@@ -4,7 +4,7 @@
 #include <vector>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include "Core/RenderingCommandManager.h"
 #include "Core/RenderingDeviceManager.h"
 #include "Core/VulkanQueue.h"
@@ -32,7 +32,7 @@ namespace Spire
         : m_engine(engine),
           m_window(window)
     {
-        spdlog::info("Initializing RenderingManager...");
+        info("Initializing RenderingManager...");
 
         m_renderingSync = std::make_unique<RenderingSync>(*this);
 
@@ -69,12 +69,12 @@ namespace Spire
         m_renderer = std::make_unique<Renderer>(*this, window);
         m_imGuiRenderer = std::make_unique<ImGuiRenderer>(*this, window);
 
-        spdlog::info("Initialized RenderingManager!");
+        info("Initialized RenderingManager!");
     }
 
     RenderingManager::~RenderingManager()
     {
-        spdlog::info("Destroying RenderingManager...");
+        info("Destroying RenderingManager...");
 
         m_imGuiRenderer.reset();
         m_renderer.reset();
@@ -98,7 +98,7 @@ namespace Spire
         if (m_surface)
         {
             vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
-            spdlog::info("Destroyed Vulkan surface instance");
+            info("Destroyed Vulkan surface instance");
         }
 
         m_descriptorCreator.reset();
@@ -108,10 +108,10 @@ namespace Spire
         if (m_instance)
         {
             vkDestroyInstance(m_instance, nullptr);
-            spdlog::info("Destroyed Vulkan instance");
+            info("Destroyed Vulkan instance");
         }
 
-        spdlog::info("Destroyed RenderingManager!");
+        info("Destroyed RenderingManager!");
     }
 
     bool RenderingManager::IsValid() const
@@ -169,7 +169,7 @@ namespace Spire
         VkResult res = vkEnumerateInstanceVersion(&m_instanceVersion.RawVersion);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to get vulkan instance version");
+            error("Failed to get vulkan instance version");
         }
 
         m_instanceVersion.Variant = VK_API_VERSION_VARIANT(m_instanceVersion.RawVersion);
@@ -177,7 +177,7 @@ namespace Spire
         m_instanceVersion.Minor = VK_API_VERSION_MINOR(m_instanceVersion.RawVersion);
         m_instanceVersion.Patch = VK_API_VERSION_PATCH(m_instanceVersion.RawVersion);
 
-        spdlog::info("Vulkan loader supports version {}.{}.{}.{}", m_instanceVersion.Variant, m_instanceVersion.Major,
+        info("Vulkan loader supports version {}.{}.{}.{}", m_instanceVersion.Variant, m_instanceVersion.Major,
                      m_instanceVersion.Minor, m_instanceVersion.Patch);
     }
 
@@ -200,7 +200,7 @@ namespace Spire
                                                                            VK_IMAGE_ASPECT_DEPTH_BIT);
         }
 
-        spdlog::info("Created {} depth images", m_depthImages.size());
+        info("Created {} depth images", m_depthImages.size());
     }
 
     void RenderingManager::FreeDepthResources()
@@ -260,11 +260,11 @@ namespace Spire
         VkResult res = vkCreateInstance(&createInfo, nullptr, &m_instance);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create Vulkan instance");
+            error("Failed to create Vulkan instance");
             return;
         }
 
-        spdlog::info("Created Vulkan instance");
+        info("Created Vulkan instance");
     }
 
     void RenderingManager::CreateSurface(const Window& window)
@@ -272,11 +272,11 @@ namespace Spire
         VkResult result = glfwCreateWindowSurface(m_instance, window.GLFWWindow(), nullptr, &m_surface);
         if (result != VK_SUCCESS)
         {
-            spdlog::error("Failed to create Vulkan window surface");
+            error("Failed to create Vulkan window surface");
         }
         else
         {
-            spdlog::info("Created Vulkan window surface");
+            info("Created Vulkan window surface");
         }
     }
 
@@ -338,7 +338,7 @@ namespace Spire
         m_deviceManager->UpdateSurfaceCapabilities();
 
         CreateSwapchain();
-        if (!m_swapchain || m_swapchain->IsValid()) spdlog::error("Failed to recreate swapchain {}", static_cast<const void*>(m_swapchain.get()));
+        if (!m_swapchain || m_swapchain->IsValid()) error("Failed to recreate swapchain {}", static_cast<const void*>(m_swapchain.get()));
         CreateQueue();
 
         FreeDepthResources();

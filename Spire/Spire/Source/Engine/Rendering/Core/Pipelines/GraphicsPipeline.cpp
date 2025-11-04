@@ -1,6 +1,6 @@
 #include "GraphicsPipeline.h"
 #include <glm/glm.hpp>
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include "Engine/Rendering/Memory/BufferManager.h"
 #include "../RenderingCommandManager.h"
 
@@ -124,11 +124,11 @@ namespace Spire
         VkResult res = vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create graphics pipeline layout");
+            error("Failed to create graphics pipeline layout");
         }
         else
         {
-            spdlog::info("Graphics pipeline created");
+            info("Graphics pipeline created");
         }
     }
 

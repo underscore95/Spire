@@ -7,7 +7,7 @@
 #include "Swapchain.h"
 
 
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 
 #include "RenderingDeviceManager.h"
 #include "Engine/Window/Window.h"
@@ -29,7 +29,7 @@ namespace Spire
 
         if (s_numSwapchainImages != -1 && s_numSwapchainImages != numImages)
         {
-            spdlog::error("Swapchain was created with a new number of swapchain images! New: {} Old: {} New Device: {}",
+            error("Swapchain was created with a new number of swapchain images! New: {} Old: {} New Device: {}",
                           numImages, s_numSwapchainImages, physicalDevice.DeviceProperties.deviceName);
             return;
         }
@@ -62,11 +62,11 @@ namespace Spire
         VkResult res = vkCreateSwapchainKHR(m_device, &swapChainCreateInfo, nullptr, &m_swapChain);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create Vulkan swapchain");
+            error("Failed to create Vulkan swapchain");
         }
         else
         {
-            spdlog::info("Created Vulkan swapchain");
+            info("Created Vulkan swapchain");
             assert(m_swapChain);
         }
 
@@ -75,11 +75,11 @@ namespace Spire
         res = vkGetSwapchainImagesKHR(m_device, m_swapChain, &numSwapChainImages, nullptr);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to get number of swapchain images");
+            error("Failed to get number of swapchain images");
         }
         assert(numImages == numSwapChainImages);
 
-        spdlog::info("Number of swapchain images {}", numSwapChainImages);
+        info("Number of swapchain images {}", numSwapChainImages);
 
         m_images.resize(numSwapChainImages);
         m_imageViews.resize(numSwapChainImages);
@@ -87,7 +87,7 @@ namespace Spire
         res = vkGetSwapchainImagesKHR(m_device, m_swapChain, &numSwapChainImages, m_images.data());
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to get swapchain images ({} known)", numSwapChainImages);
+            error("Failed to get swapchain images ({} known)", numSwapChainImages);
         }
 
         for (glm::u32 i = 0; i < numSwapChainImages; i++)
@@ -116,7 +116,7 @@ namespace Spire
         if (m_swapChain)
         {
             vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
-            spdlog::info("Destroyed swapchain");
+            info("Destroyed swapchain");
         }
     }
 
@@ -228,7 +228,7 @@ namespace Spire
         VkResult res = vkCreateImageView(device, &viewInfo, nullptr, &imageView);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to create image view");
+            error("Failed to create image view");
         }
         return imageView;
     }

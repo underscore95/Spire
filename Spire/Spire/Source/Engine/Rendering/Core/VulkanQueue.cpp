@@ -1,5 +1,5 @@
 #include "VulkanQueue.h"
-#include <spdlog/spdlog.h>
+#include "Utils/Log.h"
 #include <glm/glm.hpp>
 #include "Engine/Rendering/RenderingManager.h"
 #include "RenderingSync.h"
@@ -37,7 +37,7 @@ namespace Spire
             m_renderCompleteSemaphore.push_back(m_renderingManager.GetRenderingSync().CreateSemaphore());
         }
 
-        spdlog::info("VulkanQueue initialized");
+        info("VulkanQueue initialized");
     }
 
     VulkanQueue::~VulkanQueue()
@@ -55,7 +55,7 @@ namespace Spire
             vkDestroyFence(m_device, fence, nullptr);
         }
 
-        spdlog::info("VulkanQueue shutdown");
+        info("VulkanQueue shutdown");
     }
 
     glm::u32 VulkanQueue::AcquireNextImage() const
@@ -80,7 +80,7 @@ namespace Spire
         }
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to acquire next free image");
+            error("Failed to acquire next free image");
             return INVALID_IMAGE_INDEX;
         }
 
@@ -104,7 +104,7 @@ namespace Spire
         VkResult res = vkQueueSubmit(m_queue, 1, &submitInfo, nullptr);
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to submit commands to queue sync");
+            error("Failed to submit commands to queue sync");
         }
     }
 
@@ -133,7 +133,7 @@ namespace Spire
         // todo fence might be better on present
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to submit commands to queue async");
+            error("Failed to submit commands to queue async");
         }
     }
 
@@ -158,7 +158,7 @@ namespace Spire
         }
         if (res != VK_SUCCESS)
         {
-            spdlog::error("Failed to present swapchain image");
+            error("Failed to present swapchain image");
         }
     }
 
@@ -167,7 +167,7 @@ namespace Spire
         VkResult res = vkQueueWaitIdle(m_queue);
         if (res != VK_SUCCESS)
         {
-            spdlog::info("Failed to wait until queue is idle");
+            info("Failed to wait until queue is idle");
         }
     }
 
