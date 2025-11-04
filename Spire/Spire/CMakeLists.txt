@@ -1,7 +1,6 @@
 include(../CMake/Utils/Assets.cmake)
 
-add_executable(Spire
-        Source/Main.cpp
+add_library(Spire STATIC
         Source/Engine/Window/Window.cpp
         Source/Engine/Window/Window.h
         Source/Engine/Core/Engine.cpp
@@ -113,7 +112,7 @@ endif()
 
 # Vulkan
 find_package(Vulkan REQUIRED)
-target_link_libraries(Spire PRIVATE Vulkan::Vulkan)
+target_link_libraries(Spire PUBLIC Vulkan::Vulkan)
 
 # Assimp
 target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/assimp/include)
@@ -143,11 +142,11 @@ target_link_libraries(Spire PRIVATE
 )
 
 # ImGui
-target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/imgui/imgui/)
-target_link_libraries(Spire PRIVATE ${BUILD_MODE_DIR}/imgui.lib)
+target_include_directories(Spire PUBLIC ${LIBS_DIRECTORY}/imgui/imgui/)
+target_link_libraries(Spire PUBLIC ${BUILD_MODE_DIR}/imgui.lib)
 
 # Vulkan Memory Allocator
-target_include_directories(Spire PRIVATE
+target_include_directories(Spire PUBLIC
         ${LIBS_DIRECTORY}/vulkan-memory-allocator/include
 )
 

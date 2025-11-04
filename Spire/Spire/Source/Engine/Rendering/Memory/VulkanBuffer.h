@@ -2,10 +2,8 @@
 
 #include <vk_mem_alloc.h>
 
-namespace Spire
-{
-    struct VulkanBuffer
-    {
+namespace Spire {
+    struct VulkanBuffer {
     public:
         VkBuffer Buffer = VK_NULL_HANDLE;
         VmaAllocation Allocation = nullptr;

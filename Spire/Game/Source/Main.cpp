@@ -1,5 +1,5 @@
-#include <memory>
-#include "Engine/Core/Engine.h"
+
+#include "Core/Engine.h"
 #include "Game/GameApplication.h"
 
 int main() {
