@@ -103,40 +103,48 @@ endfunction()
 
 add_compile_options(/WX- /wd4392)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(BUILD_MODE_DIR "${LIBS_DIRECTORY}/build-release")
+    set(DEBUG_SUFFIX "")
+else()
+    set(BUILD_MODE_DIR "${LIBS_DIRECTORY}/build-debug")
+    set(DEBUG_SUFFIX "d")
+endif()
+
 # Vulkan
 find_package(Vulkan REQUIRED)
 target_link_libraries(Spire PRIVATE Vulkan::Vulkan)
 
 # Assimp
 target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/assimp/include)
-target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/build/assimp/include)
-target_link_libraries(Spire PRIVATE ${LIBS_DIRECTORY}/build/assimp-vc143-mt.lib)
+target_include_directories(Spire PRIVATE ${BUILD_MODE_DIR}/assimp/include)
+target_link_libraries(Spire PRIVATE "${BUILD_MODE_DIR}/assimp-vc143-mt${DEBUG_SUFFIX}.lib")
 
 # GLFW
 target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/glfw/include)
-target_link_libraries(Spire PRIVATE ${LIBS_DIRECTORY}/build/glfw3.lib)
+target_link_libraries(Spire PRIVATE ${BUILD_MODE_DIR}/glfw3.lib)
 
 # GLM
 target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/glm/include)
-target_link_libraries(Spire PRIVATE ${LIBS_DIRECTORY}/build/glm.lib)
+target_link_libraries(Spire PRIVATE ${BUILD_MODE_DIR}/glm.lib)
 
 # GLSLang
 target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/glslang)
 target_link_libraries(Spire PRIVATE
-        ${LIBS_DIRECTORY}/build/glslang.lib
-        ${LIBS_DIRECTORY}/build/glslang-default-resource-limits.lib
-        ${LIBS_DIRECTORY}/build/SPIRV.lib
-        ${LIBS_DIRECTORY}/build/SPIRV-Tools.lib
-        ${LIBS_DIRECTORY}/build/SPIRV-Tools-diff.lib
-        ${LIBS_DIRECTORY}/build/SPIRV-Tools-link.lib
-        ${LIBS_DIRECTORY}/build/SPIRV-Tools-lint.lib
-        ${LIBS_DIRECTORY}/build/SPIRV-Tools-opt.lib
-        ${LIBS_DIRECTORY}/build/SPIRV-Tools-shared.lib
+        ${BUILD_MODE_DIR}/glslang${DEBUG_SUFFIX}.lib
+        ${BUILD_MODE_DIR}/glslang-default-resource-limits${DEBUG_SUFFIX}.lib
+        ${BUILD_MODE_DIR}/SPIRV${DEBUG_SUFFIX}.lib
+        ${BUILD_MODE_DIR}/SPIRV-Tools${DEBUG_SUFFIX}.lib
+        ${BUILD_MODE_DIR}/SPIRV-Tools-diff${DEBUG_SUFFIX}.lib
+        ${BUILD_MODE_DIR}/SPIRV-Tools-link${DEBUG_SUFFIX}.lib
+        ${BUILD_MODE_DIR}/SPIRV-Tools-lint${DEBUG_SUFFIX}.lib
+        ${BUILD_MODE_DIR}/SPIRV-Tools-opt${DEBUG_SUFFIX}.lib
+        ${BUILD_MODE_DIR}/SPIRV-Tools-shared${DEBUG_SUFFIX}.lib
 )
 
 # ImGui
 target_include_directories(Spire PRIVATE ${LIBS_DIRECTORY}/imgui/imgui/)
-target_link_libraries(Spire PRIVATE ${LIBS_DIRECTORY}/build/imgui.lib)
+target_link_libraries(Spire PRIVATE ${BUILD_MODE_DIR}/imgui.lib)
 
 # Vulkan Memory Allocator
 target_include_directories(Spire PRIVATE
@@ -149,7 +157,7 @@ target_include_directories(Spire PRIVATE
 )
 
 # Copy the dlls
-file(GLOB LIB_FILES "${LIBS_DIRECTORY}/build/*.*")
+file(GLOB LIB_FILES "${BUILD_MODE_DIR}/*.*")
 
 add_custom_command(TARGET Spire POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:Spire>

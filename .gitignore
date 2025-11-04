@@ -40,4 +40,5 @@ Spire/cmake-build-debug-visual-studio/
 *.spv
 
 # Build
-Spire/Libs/build
+Spire/Libs/build-release
+Spire/Libs/build-debug
