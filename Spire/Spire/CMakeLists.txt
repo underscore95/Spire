@@ -149,11 +149,11 @@ target_include_directories(Spire PRIVATE
 )
 
 # Copy the dlls
-file(GLOB LIB_FILES "${BUILD_MODE_DIR}/*.*")
+file(GLOB LIB_FILES CONFIGURE_DEPENDS "${BUILD_MODE_DIR}/*.dll")
 
 add_custom_command(TARGET Spire POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:Spire>
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${LIB_FILES}
-        $<TARGET_FILE_DIR:Spire>
+        ${CMAKE_BINARY_DIR}/bin
 )
