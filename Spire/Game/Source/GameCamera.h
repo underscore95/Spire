@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderInfo.h"
+#include "Rendering/RenderInfo.h"
 #include "Engine/EngineIncludes.h"
 
 struct CameraInfo

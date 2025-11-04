@@ -14,7 +14,9 @@ namespace Spire
     class SceneImages
     {
     public:
-        SceneImages(RenderingManager& renderingManager, const std::vector<std::string>& imageFileNames);
+        SceneImages(RenderingManager& renderingManager,
+             const std::string& assetsDirectory,
+             const std::vector<std::string>& imageFileNames);
         ~SceneImages();
 
     public:

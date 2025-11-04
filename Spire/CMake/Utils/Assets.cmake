@@ -1,4 +1,13 @@
 
+# Defines ASSETS_DIRECTORY macro
+# In debug mode, this is an absolute path to the asset directory in the project
+# In release mode, the project assets are copied into a directory in this structure:
+# bin/
+# - Game.exe
+# - Assets/
+# - - player.png
+# and ASSETS_DIRECTORY would be a relative path to the assets directory from the default working directory
+
 function(setup_assets_directory TARGET_NAME ASSETS_DIRECTORY_NAME)
     # Macro
     if (CMAKE_BUILD_TYPE STREQUAL "Release")

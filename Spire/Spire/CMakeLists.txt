@@ -6,8 +6,6 @@ add_library(Spire STATIC
         Source/Engine/Core/Engine.cpp
         Source/Engine/Core/Engine.h
         Source/Engine/Core/Application.h
-        Source/Game/GameApplication.cpp
-        Source/Game/GameApplication.h
         Source/Engine/EngineIncludes.h
         Source/Engine/Rendering/RenderingManager.cpp
         Source/Engine/Rendering/RenderingManager.h
@@ -80,13 +78,8 @@ add_library(Spire STATIC
         Source/Engine/Rendering/Memory/PerImageBuffer.cpp
         Source/Engine/Rendering/Memory/PerImageBuffer.h
         Source/Engine/Utils/MacroDisableCopy.h
-        Source/Game/GameCamera.cpp
-        Source/Game/GameCamera.h
-        Source/Game/RenderInfo.h
         Source/Engine/Core/Application.cpp
-        Assets/Shaders/ShaderInfo.h
-        Source/Game/ObjectRenderer.cpp
-        Source/Game/ObjectRenderer.h
+        ../Game/Assets/Shaders/ShaderInfo.h
         Source/Engine/Utils/Log.h
 )
 
@@ -164,6 +157,3 @@ add_custom_command(TARGET Spire POST_BUILD
         ${LIB_FILES}
         $<TARGET_FILE_DIR:Spire>
 )
-
-# Assets directory
-setup_assets_directory(Spire Assets)

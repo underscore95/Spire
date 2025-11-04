@@ -2,28 +2,25 @@
 #include "Utils/Log.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include "GameCamera.h"
-#include "ObjectRenderer.h"
+#include "Rendering/ObjectRenderer.h"
 #include "../Assets/Shaders/ShaderInfo.h"
 
 using namespace Spire;
 
 constexpr glm::u32 NUM_MODELS = 10000;
 
-struct ModelData
-{
+struct ModelData {
     glm::mat4x4 ModelMatrix;
 };
 
-GameApplication::GameApplication()
-{
+GameApplication::GameApplication() {
     // don't do anything here!
 }
 
-void GameApplication::Start(Engine& engine)
-{
+void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
 
-    auto& rm = m_engine->GetRenderingManager();
+    auto &rm = m_engine->GetRenderingManager();
 
     // Camera
     m_camera = std::make_unique<GameCamera>(*m_engine);
@@ -43,19 +40,16 @@ void GameApplication::Start(Engine& engine)
     // Models
     std::vector<std::string> imagesToLoad = CreateModels();
 
-    m_cubeRenderer = std::make_unique<ObjectRenderer>(*m_models, rm, 0, sizeof(ModelData), NUM_MODELS);
+    m_cubeRenderer = std::make_unique<ObjectRenderer>(*m_models, rm, 0, static_cast<glm::u32>(sizeof(ModelData)), NUM_MODELS);
     glm::u32 i = std::ceil(std::cbrt(static_cast<double>(NUM_MODELS)));
     std::vector<ModelData> datas;
     datas.resize(NUM_MODELS);
     glm::u32 index = 0;
-    for (glm::u32 x = 0; x < i; x++)
-    {
-        for (glm::u32 y = 0; y < i; y++)
-        {
-            for (glm::u32 z = 0; z < i; z++)
-            {
+    for (glm::u32 x = 0; x < i; x++) {
+        for (glm::u32 y = 0; y < i; y++) {
+            for (glm::u32 z = 0; z < i; z++) {
                 if (index >= NUM_MODELS) break;
-                float scale = 1;// 0.1f;
+                float scale = 1; // 0.1f;
                 float d = 5 * scale;
                 datas[index] = {
                     .ModelMatrix = glm::scale(
@@ -67,14 +61,13 @@ void GameApplication::Start(Engine& engine)
             }
         }
     }
-    for (glm::u32 j = 0; j < rm.GetSwapchain().GetNumImages(); j++)
-    {
+    for (glm::u32 j = 0; j < rm.GetSwapchain().GetNumImages(); j++) {
         m_cubeRenderer->SetModelDatas(j, 0, NUM_MODELS, datas.data());
     }
 
     // Images
     assert(imagesToLoad.size() == SPIRE_SHADER_TEXTURE_COUNT);
-    m_sceneImages = std::make_unique<SceneImages>(rm, imagesToLoad);
+    m_sceneImages = std::make_unique<SceneImages>(rm,ASSETS_DIRECTORY, imagesToLoad);
 
     // Descriptors
     SetupDescriptors();
@@ -88,14 +81,12 @@ void GameApplication::Start(Engine& engine)
     RecordCommandBuffers();
 }
 
-GameApplication::~GameApplication()
-{
+GameApplication::~GameApplication() {
     Cleanup();
 }
 
-void GameApplication::Cleanup()
-{
-    auto& rm = m_engine->GetRenderingManager();
+void GameApplication::Cleanup() {
+    auto &rm = m_engine->GetRenderingManager();
 
     rm.GetQueue().WaitIdle();
     rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
@@ -115,14 +106,12 @@ void GameApplication::Cleanup()
     info("Destroyed shaders");
 }
 
-void GameApplication::Update()
-{
+void GameApplication::Update() {
     m_camera->Update();
 }
 
-void GameApplication::Render()
-{
-    auto& rm = m_engine->GetRenderingManager();
+void GameApplication::Render() {
+    auto &rm = m_engine->GetRenderingManager();
 
     glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
     if (imageIndex == rm.GetQueue().INVALID_IMAGE_INDEX) return;
@@ -146,9 +135,8 @@ void GameApplication::Render()
     rm.GetQueue().Present(imageIndex);
 }
 
-void GameApplication::RenderUi() const
-{
-    ImGuiIO& io = ImGui::GetIO();
+void GameApplication::RenderUi() const {
+    ImGuiIO &io = ImGui::GetIO();
 
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -164,24 +152,20 @@ void GameApplication::RenderUi() const
     ImGui::Render();
 }
 
-bool GameApplication::ShouldClose() const
-{
+bool GameApplication::ShouldClose() const {
     return m_engine->GetWindow().ShouldClose();
 }
 
-const char* GameApplication::GetApplicationName() const
-{
+const char *GameApplication::GetApplicationName() const {
     return "MyApp";
 }
 
-void GameApplication::OnWindowResize() const
-{
+void GameApplication::OnWindowResize() const {
     RecordCommandBuffers();
 }
 
-void GameApplication::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const
-{
-    auto& rm = m_engine->GetRenderingManager();
+void GameApplication::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const {
+    auto &rm = m_engine->GetRenderingManager();
 
     VkClearValue clearColor = {
         .color = {0.0f, 0.0f, 0.0f, 1.0f},
@@ -194,12 +178,10 @@ void GameApplication::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 ima
     rm.GetRenderer().BeginDynamicRendering(commandBuffer, imageIndex, &clearColor, &clearDepthValue);
 }
 
-void GameApplication::RecordCommandBuffers() const
-{
-    auto& rm = m_engine->GetRenderingManager();
+void GameApplication::RecordCommandBuffers() const {
+    auto &rm = m_engine->GetRenderingManager();
 
-    for (int i = 0; i < m_commandBuffers.size(); ++i)
-    {
+    for (int i = 0; i < m_commandBuffers.size(); ++i) {
         VkCommandBuffer commandBuffer = m_commandBuffers[i];
         VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
         rm.GetCommandManager().BeginCommandBuffer(commandBuffer, flags);
@@ -224,13 +206,12 @@ void GameApplication::RecordCommandBuffers() const
     info("Command buffers recorded");
 }
 
-std::vector<std::string> GameApplication::CreateModels()
-{
+std::vector<std::string> GameApplication::CreateModels() {
     std::vector<std::string> imagesToLoad;
     std::vector<Model> models;
 
     auto fileName = std::format("{}/Cube.obj", ASSETS_DIRECTORY);
-    models.push_back(ModelLoader::LoadModel(fileName.c_str(), imagesToLoad));
+    models.push_back(ModelLoader::LoadModel(ASSETS_DIRECTORY, fileName.c_str(), imagesToLoad));
 
     m_models = std::make_unique<SceneModels>(
         m_engine->GetRenderingManager(),
@@ -240,10 +221,8 @@ std::vector<std::string> GameApplication::CreateModels()
     return imagesToLoad;
 }
 
-void GameApplication::SetupDescriptors()
-{
-    DescriptorSetLayoutList layouts(m_engine->GetRenderingManager().GetSwapchain().GetNumImages());
-    {
+void GameApplication::SetupDescriptors() {
+    DescriptorSetLayoutList layouts(m_engine->GetRenderingManager().GetSwapchain().GetNumImages()); {
         // Constant set
         assert(layouts.Size() == SPIRE_SHADER_BINDINGS_CONSTANT_SET);
 
@@ -256,9 +235,7 @@ void GameApplication::SetupDescriptors()
         layout.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
 
         layouts.Push(layout);
-    }
-
-    {
+    } {
         assert(layouts.Size() == SPIRE_SHADER_BINDINGS_PER_FRAME_SET);
         // Per frame set
         PerImageDescriptorSetLayout layout;
@@ -276,9 +253,8 @@ void GameApplication::SetupDescriptors()
     m_descriptorManager = std::make_unique<DescriptorManager>(m_engine->GetRenderingManager(), layouts);
 }
 
-void GameApplication::SetupGraphicsPipeline()
-{
-    auto& rm = m_engine->GetRenderingManager();
+void GameApplication::SetupGraphicsPipeline() {
+    auto &rm = m_engine->GetRenderingManager();
 
     m_graphicsPipeline = std::make_unique<GraphicsPipeline>(
         rm.GetDevice(),

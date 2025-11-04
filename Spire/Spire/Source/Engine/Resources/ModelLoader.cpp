@@ -7,19 +7,15 @@
 #include "Utils/Log.h"
 #include "Mesh.h"
 
-namespace Spire
-{
-    std::string GetPathRelativeToFile(const std::string& path, std::string_view pathToFile)
-    {
-        if (std::filesystem::path(path).is_absolute())
-        {
+namespace Spire {
+    std::string GetPathRelativeToFile(const std::string &path, std::string_view pathToFile) {
+        if (std::filesystem::path(path).is_absolute()) {
             return path;
         }
 
         std::filesystem::path pathToFilePath(pathToFile);
         // make path absolute
-        if (!pathToFilePath.is_absolute())
-        {
+        if (!pathToFilePath.is_absolute()) {
             pathToFilePath = std::filesystem::absolute(pathToFilePath);
         }
         // remove file name from path
@@ -29,44 +25,37 @@ namespace Spire
         return pathToFilePath.string();
     }
 
-    template <typename T>
-    static glm::u32 GetIndexOfElementAddIfMissing(std::vector<T>& vec, T& val)
-    {
-        for (glm::u32 i = 0; i < vec.size(); i++)
-        {
+    template<typename T>
+    static glm::u32 GetIndexOfElementAddIfMissing(std::vector<T> &vec, T &val) {
+        for (glm::u32 i = 0; i < vec.size(); i++) {
             if (vec[i] == val) return i;
         }
         vec.push_back(val);
         return vec.size() - 1;
     }
 
-    static std::unique_ptr<Mesh> ConvertMesh(const aiMesh* aiMesh, const aiScene* aiScene,
-                                             std::vector<std::string>& texturePaths,
-                                             std::string absoluteModelDirectoryPath)
-    {
+    static std::unique_ptr<Mesh> ConvertMesh(const aiMesh *aiMesh, const aiScene *aiScene,
+                                             std::vector<std::string> &texturePaths,
+                                             std::string absoluteModelDirectoryPath) {
         assert(aiMesh->mTextureCoords[0] != nullptr);
-        if (!absoluteModelDirectoryPath.empty())
-        {
+        if (!absoluteModelDirectoryPath.empty()) {
             if (absoluteModelDirectoryPath.back() != '/') absoluteModelDirectoryPath.push_back('/');
         }
 
         auto mesh = std::make_unique<Mesh>();
 
         // indices
-        for (glm::u32 faceIndex = 0; faceIndex < aiMesh->mNumFaces; faceIndex++)
-        {
-            const aiFace& face = aiMesh->mFaces[faceIndex];
+        for (glm::u32 faceIndex = 0; faceIndex < aiMesh->mNumFaces; faceIndex++) {
+            const aiFace &face = aiMesh->mFaces[faceIndex];
             assert(face.mNumIndices == 3);
 
-            for (glm::u32 indexIndex = 0; indexIndex < face.mNumIndices; indexIndex++)
-            {
+            for (glm::u32 indexIndex = 0; indexIndex < face.mNumIndices; indexIndex++) {
                 mesh->Indices.push_back(face.mIndices[indexIndex]);
             }
         }
 
         // vertices
-        for (glm::u32 vertexIndex = 0; vertexIndex < aiMesh->mNumVertices; vertexIndex++)
-        {
+        for (glm::u32 vertexIndex = 0; vertexIndex < aiMesh->mNumVertices; vertexIndex++) {
             ModelVertex vert = {};
             vert.Pos = {
                 aiMesh->mVertices[vertexIndex].x, aiMesh->mVertices[vertexIndex].y, aiMesh->mVertices[vertexIndex].z
@@ -88,17 +77,14 @@ namespace Spire
         return std::move(mesh);
     }
 
-    static std::string GetFilePathRelativeToAssetsDirectoryNoFileName(std::string_view absoluteFileName)
-    {
+    static std::string GetFilePathRelativeToAssetsDirectoryNoFileName(std::string_view assetsDirectory, std::string_view absoluteFileName) {
         std::string path(absoluteFileName);
 
-        if (path.rfind(ASSETS_DIRECTORY, 0) == 0) // starts with
+        if (path.rfind(assetsDirectory, 0) == 0) // starts with
         {
-            path.erase(0, strlen(ASSETS_DIRECTORY));
-        }
-        else
-        {
-            warn("Path '{}' does not start with ASSETS_DIRECTORY '{}'", path, ASSETS_DIRECTORY);
+            path.erase(0, assetsDirectory.size());
+        } else {
+            warn("Path '{}' does not start with assetsDirectory '{}'", path, assetsDirectory);
         }
 
         std::filesystem::path fsPath(path);
@@ -115,9 +101,8 @@ namespace Spire
         return result;
     }
 
-    Model ModelLoader::LoadModel(const char* fileName, std::vector<std::string>& imagePaths,
-                                 const ModelLoadingSettings& settings)
-    {
+    Model ModelLoader::LoadModel(std::string_view assetsDirectory, const char *fileName, std::vector<std::string> &imagePaths,
+                                 const ModelLoadingSettings &settings) {
         assert(settings.IgnoreNonTriangleMeshes); // Don't support not doing this rn
         // flags
         glm::u32 flags = 0;
@@ -127,10 +112,9 @@ namespace Spire
 
         // import
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(fileName, flags);
+        const aiScene *scene = importer.ReadFile(fileName, flags);
 
-        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-        {
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             error("Failed to load model {} due to error '{}'", fileName, importer.GetErrorString());
             return {};
         }
@@ -138,13 +122,11 @@ namespace Spire
         // convert assimp scene into a model
         Model model;
         model.reserve(scene->mNumMeshes);
-        for (glm::u32 i = 0; i < scene->mNumMeshes; i++)
-        {
+        for (glm::u32 i = 0; i < scene->mNumMeshes; i++) {
             const auto material = scene->mMaterials[scene->mMeshes[i]->mMaterialIndex];
 
             // checks
-            if (!scene->mMeshes[i]->HasTextureCoords(0))
-            {
+            if (!scene->mMeshes[i]->HasTextureCoords(0)) {
                 error(
                     "Failed to correctly import model {} (mesh {}) because it didn't contain texture coords in channel 0",
                     fileName, i);
@@ -152,25 +134,23 @@ namespace Spire
             }
 
             if (settings.IgnoreNonTriangleMeshes && (scene->mMeshes[i]->mPrimitiveTypes & aiPrimitiveType_TRIANGLE) ==
-                0)
-            {
+                0) {
                 warn(
                     "Ignoring mesh {} of model {} because it contained non triangles (triangulation of polygons enabled: {})",
                     i, fileName, settings.TriangulateFaces);
                 continue;
             }
 
-            if (material->GetTextureCount(aiTextureType_DIFFUSE) != 1)
-            {
+            if (material->GetTextureCount(aiTextureType_DIFFUSE) != 1) {
                 error("Failed to correctly import model {} because mesh {} has {} diffuse textures", fileName,
-                              i,
-                              material->GetTextureCount(aiTextureType_DIFFUSE));
+                      i,
+                      material->GetTextureCount(aiTextureType_DIFFUSE));
                 continue;
             }
 
             // convert
             model.push_back(ConvertMesh(scene->mMeshes[i], scene, imagePaths,
-                                        GetFilePathRelativeToAssetsDirectoryNoFileName(fileName)));
+                                        GetFilePathRelativeToAssetsDirectoryNoFileName(assetsDirectory, fileName)));
         }
 
         importer.FreeScene();
