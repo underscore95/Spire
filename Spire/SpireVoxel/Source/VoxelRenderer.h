@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EngineIncludes.h"
+#include "Chunk/Chunk.h"
 
 namespace SpireVoxel {
     class ObjectRenderer;
@@ -43,6 +44,7 @@ namespace SpireVoxel {
         std::unique_ptr<Spire::SceneImages> m_sceneImages;
         std::unique_ptr<Spire::DescriptorManager> m_descriptorManager;
         std::unique_ptr<GameCamera> m_camera;
-        std::unique_ptr<ObjectRenderer> m_cubeRenderer;
+        std::unique_ptr<ObjectRenderer> m_chunkRenderer;
+        Chunk m_chunk;
     };
 } // SpireVoxel

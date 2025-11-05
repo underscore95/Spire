@@ -6,11 +6,11 @@
 
 using namespace Spire;
 
-constexpr glm::u32 NUM_MODELS = 10000;
-
 struct ModelData {
-    glm::mat4x4 ModelMatrix;
+    glm::mat4x4 ModelMatrix = glm::identity<glm::mat4x4>();
 };
+
+constexpr glm::u32 NUM_CHUNKS = 1;
 
 namespace SpireVoxel {
     VoxelRenderer::VoxelRenderer(Spire::Engine &engine)
@@ -33,31 +33,14 @@ namespace SpireVoxel {
         info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
         // Models
+        m_chunk.SetVoxel({0, 0, 0}, 1);
+        m_chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
         std::vector<std::string> imagesToLoad = CreateModels();
 
-        m_cubeRenderer = std::make_unique<ObjectRenderer>(*m_models, rm, 0, static_cast<glm::u32>(sizeof(ModelData)), NUM_MODELS);
-        glm::u32 i = std::ceil(std::cbrt(static_cast<double>(NUM_MODELS)));
-        std::vector<ModelData> datas;
-        datas.resize(NUM_MODELS);
-        glm::u32 index = 0;
-        for (glm::u32 x = 0; x < i; x++) {
-            for (glm::u32 y = 0; y < i; y++) {
-                for (glm::u32 z = 0; z < i; z++) {
-                    if (index >= NUM_MODELS) break;
-                    float scale = 1; // 0.1f;
-                    float d = 5 * scale;
-                    datas[index] = {
-                        .ModelMatrix = glm::scale(
-                            glm::translate(
-                                glm::identity<glm::mat4>(), {x * d, y * d, z * d}),
-                            glm::vec3{1, 1, 1} * scale)
-                    };
-                    index++;
-                }
-            }
-        }
+        m_chunkRenderer = std::make_unique<ObjectRenderer>(*m_models, rm, 0, static_cast<glm::u32>(sizeof(ModelData)), NUM_CHUNKS);
+        std::vector<ModelData> datas(1);
         for (glm::u32 j = 0; j < rm.GetSwapchain().GetNumImages(); j++) {
-            m_cubeRenderer->SetModelDatas(j, 0, NUM_MODELS, datas.data());
+            m_chunkRenderer->SetModelDatas(j, 0, NUM_CHUNKS, datas.data());
         }
 
         // Images
@@ -130,7 +113,7 @@ namespace SpireVoxel {
 
             m_models->CmdBindIndexBuffer(commandBuffer);
             //   m_models->CmdRenderModels(commandBuffer, *m_graphicsPipeline, 0, 1);
-            m_cubeRenderer->CmdRender(commandBuffer, *m_graphicsPipeline, NUM_MODELS, false);
+            m_chunkRenderer->CmdRender(commandBuffer, *m_graphicsPipeline, NUM_CHUNKS, false);
 
             vkCmdEndRendering(commandBuffer);
 
@@ -147,10 +130,9 @@ namespace SpireVoxel {
         auto fileName = std::format("{}/Cube.obj", ASSETS_DIRECTORY);
         models.push_back(ModelLoader::LoadModel(ASSETS_DIRECTORY, fileName.c_str(), imagesToLoad));
 
-        m_models = std::make_unique<SceneModels>(
-            m_engine.GetRenderingManager(),
-            models
-        );
+        std::vector<Model> v;
+        v.push_back(m_chunk.GenerateModel());
+        m_models = std::make_unique<SceneModels>(m_engine.GetRenderingManager(), v);
 
         return imagesToLoad;
     }
@@ -178,7 +160,7 @@ namespace SpireVoxel {
             layout.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
 
             // Model data
-            layout.push_back(m_cubeRenderer->GetDescriptor());
+            layout.push_back(m_chunkRenderer->GetDescriptor());
 
             layouts.Push(layout);
         }
