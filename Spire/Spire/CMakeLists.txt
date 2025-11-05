@@ -79,7 +79,6 @@ add_library(Spire STATIC
         Source/Engine/Rendering/Memory/PerImageBuffer.h
         Source/Engine/Utils/MacroDisableCopy.h
         Source/Engine/Core/Application.cpp
-        ../Game/Assets/Shaders/ShaderInfo.h
         Source/Engine/Utils/Log.h
         Source/Engine/Utils/Version.cpp
         Source/Engine/Utils/Version.h

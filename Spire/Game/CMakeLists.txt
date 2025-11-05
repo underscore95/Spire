@@ -8,6 +8,7 @@ add_executable(Game
         Source/Rendering/ObjectRenderer.cpp
         Source/Rendering/ObjectRenderer.h
         Source/Rendering/RenderInfo.h
+        ../Game/Assets/Shaders/ShaderInfo.h
 )
 
 target_include_directories(Game PRIVATE "Source/")
