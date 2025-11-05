@@ -1,6 +1,6 @@
 
 add_executable(Game
-    Source/Main.cpp
+        Source/Main.cpp
         Source/GameApplication.cpp
         Source/GameApplication.h
         Source/GameCamera.cpp
