@@ -1,0 +1,26 @@
+#pragma once
+
+#include "pch.h"
+
+namespace Spire
+{
+    class RenderingCommandManager {
+    public:
+        RenderingCommandManager(glm::u32 deviceQueueFamily, VkDevice device);
+
+        ~RenderingCommandManager();
+
+    public:
+        void CreateCommandBuffers(glm::u32 count, VkCommandBuffer *commandBuffers, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+
+        void FreeCommandBuffers(glm::u32 count, const VkCommandBuffer *commandBuffers);
+
+        void BeginCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferUsageFlags usageFlags) const;
+        void EndCommandBuffer(VkCommandBuffer commandBuffer) const;
+
+    private:
+        VkCommandPool m_commandPool = VK_NULL_HANDLE;
+        VkDevice m_device = VK_NULL_HANDLE;
+        glm::u32 m_allocatedCommandBuffers = 0;
+    };
+}
