@@ -28,59 +28,54 @@ namespace SpireVoxel {
             glm::vec3 p = SPIRE_VOXEL_INDEX_TO_POSITION(glm::vec3, i);
             uint32_t start = static_cast<uint32_t>(mesh.Vertices.size());
 
-            mesh.Vertices.push_back(Spire::ModelVertex{p + glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)});
-            mesh.Vertices.push_back(Spire::ModelVertex{p + glm::vec3(1, 0, 0), glm::vec3(1, 0, 0)});
-            mesh.Vertices.push_back(Spire::ModelVertex{p + glm::vec3(1, 1, 0), glm::vec3(1, 1, 0)});
-            mesh.Vertices.push_back(Spire::ModelVertex{p + glm::vec3(0, 1, 0), glm::vec3(0, 1, 0)});
+            // Front (Z+)
+            mesh.Vertices.push_back({p + glm::vec3(0, 0, 1), glm::vec2(0, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(1, 0, 1), glm::vec2(1, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(1, 1, 1), glm::vec2(1, 1)});
+            mesh.Vertices.push_back({p + glm::vec3(0, 1, 1), glm::vec2(0, 1)});
 
-            mesh.Vertices.push_back(Spire::ModelVertex{p + glm::vec3(0, 0, 1), glm::vec3(0, 0, 1)});
-            mesh.Vertices.push_back(Spire::ModelVertex{p + glm::vec3(1, 0, 1), glm::vec3(1, 0, 1)});
-            mesh.Vertices.push_back(Spire::ModelVertex{p + glm::vec3(1, 1, 1), glm::vec3(1, 1, 1)});
-            mesh.Vertices.push_back(Spire::ModelVertex{p + glm::vec3(0, 1, 1), glm::vec3(0, 1, 1)});
+            // Back (Z-)
+            mesh.Vertices.push_back({p + glm::vec3(1, 0, 0), glm::vec2(0, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(0, 0, 0), glm::vec2(1, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(0, 1, 0), glm::vec2(1, 1)});
+            mesh.Vertices.push_back({p + glm::vec3(1, 1, 0), glm::vec2(0, 1)});
 
-            mesh.Indices.push_back(start + 0);
-            mesh.Indices.push_back(start + 1);
-            mesh.Indices.push_back(start + 2);
-            mesh.Indices.push_back(start + 2);
-            mesh.Indices.push_back(start + 3);
-            mesh.Indices.push_back(start + 0);
+            // Left (X-)
+            mesh.Vertices.push_back({p + glm::vec3(0, 0, 0), glm::vec2(0, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(0, 0, 1), glm::vec2(1, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(0, 1, 1), glm::vec2(1, 1)});
+            mesh.Vertices.push_back({p + glm::vec3(0, 1, 0), glm::vec2(0, 1)});
 
-            mesh.Indices.push_back(start + 4);
-            mesh.Indices.push_back(start + 5);
-            mesh.Indices.push_back(start + 6);
-            mesh.Indices.push_back(start + 6);
-            mesh.Indices.push_back(start + 7);
-            mesh.Indices.push_back(start + 4);
+            // Right (X+)
+            mesh.Vertices.push_back({p + glm::vec3(1, 0, 1), glm::vec2(0, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(1, 0, 0), glm::vec2(1, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(1, 1, 0), glm::vec2(1, 1)});
+            mesh.Vertices.push_back({p + glm::vec3(1, 1, 1), glm::vec2(0, 1)});
 
-            mesh.Indices.push_back(start + 0);
-            mesh.Indices.push_back(start + 4);
-            mesh.Indices.push_back(start + 7);
-            mesh.Indices.push_back(start + 7);
-            mesh.Indices.push_back(start + 3);
-            mesh.Indices.push_back(start + 0);
+            // Top (Y+)
+            mesh.Vertices.push_back({p + glm::vec3(0, 1, 1), glm::vec2(0, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(1, 1, 1), glm::vec2(1, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(1, 1, 0), glm::vec2(1, 1)});
+            mesh.Vertices.push_back({p + glm::vec3(0, 1, 0), glm::vec2(0, 1)});
 
-            mesh.Indices.push_back(start + 1);
-            mesh.Indices.push_back(start + 5);
-            mesh.Indices.push_back(start + 6);
-            mesh.Indices.push_back(start + 6);
-            mesh.Indices.push_back(start + 2);
-            mesh.Indices.push_back(start + 1);
+            // Bottom (Y-)
+            mesh.Vertices.push_back({p + glm::vec3(0, 0, 0), glm::vec2(0, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(1, 0, 0), glm::vec2(1, 0)});
+            mesh.Vertices.push_back({p + glm::vec3(1, 0, 1), glm::vec2(1, 1)});
+            mesh.Vertices.push_back({p + glm::vec3(0, 0, 1), glm::vec2(0, 1)});
 
-            mesh.Indices.push_back(start + 3);
-            mesh.Indices.push_back(start + 2);
-            mesh.Indices.push_back(start + 6);
-            mesh.Indices.push_back(start + 6);
-            mesh.Indices.push_back(start + 7);
-            mesh.Indices.push_back(start + 3);
-
-            mesh.Indices.push_back(start + 0);
-            mesh.Indices.push_back(start + 1);
-            mesh.Indices.push_back(start + 5);
-            mesh.Indices.push_back(start + 5);
-            mesh.Indices.push_back(start + 4);
-            mesh.Indices.push_back(start + 0);
+            // Indices for all faces
+            for (int f = 0; f < 6; f++) {
+                uint32_t s = start + f * 4;
+                mesh.Indices.push_back(s + 0);
+                mesh.Indices.push_back(s + 1);
+                mesh.Indices.push_back(s + 2);
+                mesh.Indices.push_back(s + 2);
+                mesh.Indices.push_back(s + 3);
+                mesh.Indices.push_back(s + 0);
+            }
         }
-
+        
         return std::move(model);
     }
 } // SpireVoxel
