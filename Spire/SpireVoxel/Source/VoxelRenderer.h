@@ -25,9 +25,6 @@ namespace SpireVoxel {
 
         void RecordCommandBuffers() const;
 
-        // returns paths to images to load
-        std::vector<std::string> CreateModels();
-
         void SetupDescriptors();
 
         void SetupGraphicsPipeline();
@@ -40,11 +37,9 @@ namespace SpireVoxel {
         VkShaderModule m_vertexShader = VK_NULL_HANDLE;
         VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
         std::unique_ptr<Spire::GraphicsPipeline> m_graphicsPipeline;
-        std::unique_ptr<Spire::SceneModels> m_models;
         std::unique_ptr<Spire::SceneImages> m_sceneImages;
         std::unique_ptr<Spire::DescriptorManager> m_descriptorManager;
         std::unique_ptr<GameCamera> m_camera;
-        std::unique_ptr<ObjectRenderer> m_chunkRenderer;
-        Chunk m_chunk;
+       std::unique_ptr< Chunk> m_chunk;
     };
 } // SpireVoxel

@@ -22,7 +22,25 @@
         (index) % SPIRE_VOXEL_CHUNK_SIZE \
         )
 
-#define SPIRE_VOXEL_POSITION_TO_INDEX(pos) \
-    ((pos.x) * SPIRE_VOXEL_CHUNK_AREA + (pos.y) * SPIRE_VOXEL_CHUNK_SIZE + (pos.z))
+#define SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(x, y, z) \
+    (x * SPIRE_VOXEL_CHUNK_AREA + y * SPIRE_VOXEL_CHUNK_SIZE + z)
+
+#define SPIRE_VOXEL_POSITION_TO_INDEX(pos) SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(pos.x, pos.y, pos.z)
+
+
+// vertex
+#ifdef __cplusplus
+namespace SpireVoxel {
+#endif
+struct VertexData {
+    float x;
+    float y;
+    float z;
+    float u;
+    float v;
+};
+#ifdef __cplusplus
+}
+#endif
 
 #endif

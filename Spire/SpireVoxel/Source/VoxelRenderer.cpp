@@ -1,7 +1,6 @@
 #include "VoxelRenderer.h"
 
 #include "Rendering/GameCamera.h"
-#include "Rendering/ObjectRenderer.h"
 #include "../Assets/Shaders/ShaderInfo.h"
 
 using namespace Spire;
@@ -32,18 +31,14 @@ namespace SpireVoxel {
         assert(m_fragmentShader != VK_NULL_HANDLE);
         info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
-        // Models
-        m_chunk.SetVoxel({0, 0, 0}, 1);
-        m_chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
-        std::vector<std::string> imagesToLoad = CreateModels();
-
-        m_chunkRenderer = std::make_unique<ObjectRenderer>(*m_models, rm, 0, static_cast<glm::u32>(sizeof(ModelData)), NUM_CHUNKS);
-        std::vector<ModelData> datas(1);
-        for (glm::u32 j = 0; j < rm.GetSwapchain().GetNumImages(); j++) {
-            m_chunkRenderer->SetModelDatas(j, 0, NUM_CHUNKS, datas.data());
-        }
+        // Chunk
+        m_chunk=std::make_unique<Chunk>(m_engine.GetRenderingManager());
+        m_chunk->SetVoxel({0, 0, 0}, 1);
+        m_chunk->SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
 
         // Images
+        std::vector<std::string> imagesToLoad = {"test2.png"};
+
         assert(imagesToLoad.size() == SPIRE_SHADER_TEXTURE_COUNT);
         m_sceneImages = std::make_unique<SceneImages>(rm,ASSETS_DIRECTORY, imagesToLoad);
 
@@ -111,9 +106,8 @@ namespace SpireVoxel {
 
             m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine.GetWindow().GetDimensions());
 
-            m_models->CmdBindIndexBuffer(commandBuffer);
-            //   m_models->CmdRenderModels(commandBuffer, *m_graphicsPipeline, 0, 1);
-            m_chunkRenderer->CmdRender(commandBuffer, *m_graphicsPipeline, NUM_CHUNKS, false);
+            m_chunk->CmdBindIndexBuffer(commandBuffer);
+            m_chunk->CmdRender(commandBuffer);
 
             vkCmdEndRendering(commandBuffer);
 
@@ -121,20 +115,6 @@ namespace SpireVoxel {
         }
 
         info("Command buffers recorded");
-    }
-
-    std::vector<std::string> VoxelRenderer::CreateModels() {
-        std::vector<std::string> imagesToLoad;
-        std::vector<Model> models;
-
-        auto fileName = std::format("{}/Cube.obj", ASSETS_DIRECTORY);
-        models.push_back(ModelLoader::LoadModel(ASSETS_DIRECTORY, fileName.c_str(), imagesToLoad));
-
-        std::vector<Model> v;
-        v.push_back(m_chunk.GenerateModel());
-        m_models = std::make_unique<SceneModels>(m_engine.GetRenderingManager(), v);
-
-        return imagesToLoad;
     }
 
     void VoxelRenderer::SetupDescriptors() {
@@ -145,7 +125,7 @@ namespace SpireVoxel {
             DescriptorSetLayout layout;
 
             // ModelVertex buffer
-            layout.push_back(m_models->GetDescriptor(SPIRE_SHADER_BINDINGS_VERTEX_SSBO_BINDING));
+            layout.push_back(m_chunk->GetDescriptor(SPIRE_SHADER_BINDINGS_VERTEX_SSBO_BINDING));
 
             // Images
             layout.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
@@ -158,9 +138,6 @@ namespace SpireVoxel {
 
             // Camera
             layout.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
-
-            // Model data
-            layout.push_back(m_chunkRenderer->GetDescriptor());
 
             layouts.Push(layout);
         }
@@ -191,7 +168,7 @@ namespace SpireVoxel {
         rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
         info("Freed command buffers");
 
-        m_models.reset();
+        m_chunk.reset();
         m_camera.reset();
 
         m_sceneImages.reset();
