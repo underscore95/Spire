@@ -1,9 +1,6 @@
 #pragma once
 
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_vulkan.h"
+#include "pch.h"
 
 #include "Core/Engine.h"
 #include "Core/Application.h"

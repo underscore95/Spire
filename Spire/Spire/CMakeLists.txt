@@ -82,7 +82,10 @@ add_library(Spire STATIC
         Source/Utils/Log.h
         Source/Utils/Version.cpp
         Source/Utils/Version.h
+        Source/pch.h
 )
+
+target_precompile_headers(Spire PUBLIC "Source/pch.h")
 
 target_include_directories(Spire PUBLIC "Source")
 

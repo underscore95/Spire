@@ -1,6 +1,5 @@
 #include "VulkanDebugCallback.h"
 
-#include <glm/fwd.hpp>
 #include "Utils/Log.h"
 
 #include "VulkanUtils.h"

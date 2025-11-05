@@ -1,8 +1,4 @@
 #include "DescriptorPool.h"
-#include <glm/glm.hpp>
-#include <unordered_map>
-#include <unordered_set>
-
 #include "Utils/Log.h"
 #include "Descriptor.h"
 #include "DescriptorSet.h"

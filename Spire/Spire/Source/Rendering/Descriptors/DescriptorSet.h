@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include "pch.h"
 #include "Descriptor.h"
 
 namespace Spire

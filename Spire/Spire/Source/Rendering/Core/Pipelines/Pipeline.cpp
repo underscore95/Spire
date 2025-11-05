@@ -1,36 +1,29 @@
 #include "Pipeline.h"
 
-#include <array>
-
 #include "Utils/Log.h"
 
 #include "Rendering/Descriptors/DescriptorManager.h"
 
-namespace Spire
-{
+namespace Spire {
     Pipeline::Pipeline(
         VkDevice device,
-        const DescriptorManager& descriptorManager,
-        RenderingManager& renderingManager,
+        const DescriptorManager &descriptorManager,
+        RenderingManager &renderingManager,
         glm::u32 pushConstantSize
-    ) :
-        m_device(device),
+    ) : m_device(device),
         m_renderingManager(renderingManager),
         m_pushConstantSize(pushConstantSize),
-        m_descriptorSetLayouts(descriptorManager.GetRawLayouts())
-    {
+        m_descriptorSetLayouts(descriptorManager.GetRawLayouts()) {
         CreatePipelineLayout();
     }
 
-    Pipeline::~Pipeline()
-    {
+    Pipeline::~Pipeline() {
         vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
         assert(m_pipeline == VK_NULL_HANDLE); // child class should destroy it and set the handle to VK_NULL_HANDLE
     }
 
-    void Pipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size,
-                                       glm::u32 offset) const
-    {
+    void Pipeline::CmdSetPushConstants(VkCommandBuffer commandBuffer, const void *data, glm::u32 size,
+                                       glm::u32 offset) const {
         assert(data != nullptr);
         assert(size + offset <= m_pushConstantSize);
         assert(size > 0);
@@ -45,14 +38,12 @@ namespace Spire
         );
     }
 
-    VkPipelineLayout Pipeline::GetLayout() const
-    {
+    VkPipelineLayout Pipeline::GetLayout() const {
         return m_pipelineLayout;
     }
 
     std::array<VkPipelineShaderStageCreateInfo, 2> Pipeline::CreateVertFragShaderInfo(VkShaderModule vertexShader,
-        VkShaderModule fragmentShader) const
-    {
+                                                                                      VkShaderModule fragmentShader) const {
         return {
             CreateShaderInfo(vertexShader, VK_SHADER_STAGE_VERTEX_BIT),
             CreateShaderInfo(fragmentShader, VK_SHADER_STAGE_FRAGMENT_BIT)
@@ -60,8 +51,7 @@ namespace Spire
     }
 
     VkPipelineShaderStageCreateInfo Pipeline::CreateShaderInfo(VkShaderModule shader, VkShaderStageFlagBits stage,
-                                                               const char* entryPoint) const
-    {
+                                                               const char *entryPoint) const {
         return {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
             .stage = stage,
@@ -70,8 +60,7 @@ namespace Spire
         };
     }
 
-    void Pipeline::CreatePipelineLayout()
-    {
+    void Pipeline::CreatePipelineLayout() {
         VkPushConstantRange pushConstantRange = {
             .stageFlags = VK_SHADER_STAGE_ALL,
             .offset = 0,
@@ -87,8 +76,7 @@ namespace Spire
         };
 
         VkResult res = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to create vulkan pipeline layout");
         }
     }

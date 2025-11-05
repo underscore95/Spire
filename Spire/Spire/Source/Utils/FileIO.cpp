@@ -1,9 +1,5 @@
 #include "FileIO.h"
-
-#include <cassert>
-#include <fstream>
 #include "Utils/Log.h"
-#include <sys/stat.h>
 
 namespace Spire
 {

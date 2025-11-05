@@ -1,8 +1,6 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <vulkan/vulkan.h>
+#include "pch.h"
 #include "DescriptorSetLayoutList.h"
 
 namespace Spire

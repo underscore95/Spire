@@ -1,25 +1,18 @@
 #include "ShaderCompiler.h"
-#include <fstream>
-#include <unordered_set>
-#include <glm/glm.hpp>
-#include <vector>
+#include "pch.h"
 #include "Utils/Log.h"
 #include <glslang/Include/glslang_c_interface.h>
 #include "Utils/FileIO.h"
-#include <filesystem>
 
 // https://github.com/KhronosGroup/glslang
 // https://github.com/emeiri/ogldev/blob/VULKAN_13/Vulkan/VulkanCore/Source/shader.cpp
 
-namespace Spire
-{
-    struct CompiledShader
-    {
+namespace Spire {
+    struct CompiledShader {
         std::vector<glm::u32> SPIRV;
         VkShaderModule ShaderModule = nullptr;
 
-        void Initialize(glslang_program_t* program)
-        {
+        void Initialize(glslang_program_t *program) {
             size_t program_size = glslang_program_SPIRV_get_size(program);
             SPIRV.resize(program_size);
             glslang_program_SPIRV_get(program, SPIRV.data());
@@ -28,10 +21,9 @@ namespace Spire
 
     static std::mutex s_loggingMutex;
 
-    static bool CompileShader(const VkDevice& device, glslang_stage_t stage,
-                              const char* pShaderCode,
-                              CompiledShader& ShaderModule)
-    {
+    static bool CompileShader(const VkDevice &device, glslang_stage_t stage,
+                              const char *pShaderCode,
+                              CompiledShader &ShaderModule) {
 #pragma region defaultResource
         // https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/%2B/HEAD/glslang/ResourceLimits/ResourceLimits.cpp
         constexpr glslang_resource_t defaultResource = {
@@ -148,37 +140,34 @@ namespace Spire
             .resource = &defaultResource
         };
 
-        glslang_shader_t* shader = glslang_shader_create(&input);
+        glslang_shader_t *shader = glslang_shader_create(&input);
 
-        if (!glslang_shader_preprocess(shader, &input))
-        {
+        if (!glslang_shader_preprocess(shader, &input)) {
             std::unique_lock lock(s_loggingMutex);
             error("GLSL preprocessing failed\n{}\n{}\n{}",
-                          glslang_shader_get_info_log(shader),
-                          glslang_shader_get_info_debug_log(shader),
-                          input.code);
+                  glslang_shader_get_info_log(shader),
+                  glslang_shader_get_info_debug_log(shader),
+                  input.code);
             return false;
         }
 
-        if (!glslang_shader_parse(shader, &input))
-        {
+        if (!glslang_shader_parse(shader, &input)) {
             std::unique_lock lock(s_loggingMutex);
             error("GLSL parsing failed\n{}\n{}\n{}",
-                          glslang_shader_get_info_log(shader),
-                          glslang_shader_get_info_debug_log(shader),
-                          glslang_shader_get_preprocessed_code(shader));
+                  glslang_shader_get_info_log(shader),
+                  glslang_shader_get_info_debug_log(shader),
+                  glslang_shader_get_preprocessed_code(shader));
             return false;
         }
 
-        glslang_program_t* program = glslang_program_create();
+        glslang_program_t *program = glslang_program_create();
         glslang_program_add_shader(program, shader);
 
-        if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT))
-        {
+        if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT)) {
             std::unique_lock lock(s_loggingMutex);
             error("GLSL linking failed\n{}\n{}",
-                          glslang_program_get_info_log(program),
-                          glslang_program_get_info_debug_log(program));
+                  glslang_program_get_info_log(program),
+                  glslang_program_get_info_debug_log(program));
             return false;
         }
 
@@ -186,10 +175,9 @@ namespace Spire
 
         ShaderModule.Initialize(program);
 
-        const char* messagesSPIRV = glslang_program_SPIRV_get_messages(program);
+        const char *messagesSPIRV = glslang_program_SPIRV_get_messages(program);
 
-        if (messagesSPIRV)
-        {
+        if (messagesSPIRV) {
             std::unique_lock lock(s_loggingMutex);
             error("SPIR-V message: {}", messagesSPIRV);
         }
@@ -197,12 +185,11 @@ namespace Spire
         VkShaderModuleCreateInfo shaderCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .codeSize = ShaderModule.SPIRV.size() * sizeof(uint32_t),
-            .pCode = static_cast<const uint32_t*>(ShaderModule.SPIRV.data())
+            .pCode = static_cast<const uint32_t *>(ShaderModule.SPIRV.data())
         };
 
         VkResult res = vkCreateShaderModule(device, &shaderCreateInfo, nullptr, &ShaderModule.ShaderModule);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             std::unique_lock lock(s_loggingMutex);
             error("Failed to create shader module");
         }
@@ -215,37 +202,30 @@ namespace Spire
         return ret;
     }
 
-    static glslang_stage_t ShaderStageFromFilename(const char* pFilename)
-    {
+    static glslang_stage_t ShaderStageFromFilename(const char *pFilename) {
         std::string s(pFilename);
 
-        if (s.ends_with(".vert"))
-        {
+        if (s.ends_with(".vert")) {
             return GLSLANG_STAGE_VERTEX;
         }
 
-        if (s.ends_with(".frag"))
-        {
+        if (s.ends_with(".frag")) {
             return GLSLANG_STAGE_FRAGMENT;
         }
 
-        if (s.ends_with(".geom"))
-        {
+        if (s.ends_with(".geom")) {
             return GLSLANG_STAGE_GEOMETRY;
         }
 
-        if (s.ends_with(".comp"))
-        {
+        if (s.ends_with(".comp")) {
             return GLSLANG_STAGE_COMPUTE;
         }
 
-        if (s.ends_with(".tesc"))
-        {
+        if (s.ends_with(".tesc")) {
             return GLSLANG_STAGE_TESSCONTROL;
         }
 
-        if (s.ends_with(".tese"))
-        {
+        if (s.ends_with(".tese")) {
             return GLSLANG_STAGE_TESSEVALUATION;
         }
 
@@ -255,21 +235,18 @@ namespace Spire
         return GLSLANG_STAGE_VERTEX;
     }
 
-    struct ParsedShader
-    {
+    struct ParsedShader {
         std::string FullSource;
         std::unordered_set<std::string> FilePaths; // includes root
         bool Success = false;
     };
 
-    static ParsedShader ParseShader(const std::string& filePath)
-    {
+    static ParsedShader ParseShader(const std::string &filePath) {
         ParsedShader parsed = {};
         parsed.FilePaths.insert(filePath);
 
         // Get shader source
-        if (!FileIO::ReadFile(filePath.c_str(), parsed.FullSource))
-        {
+        if (!FileIO::ReadFile(filePath.c_str(), parsed.FullSource)) {
             std::unique_lock lock(s_loggingMutex);
             error("Failed to read file {} when creating shader from text", filePath);
             return {};
@@ -277,20 +254,17 @@ namespace Spire
 
         // Find and replace #includes
         size_t pos = 0;
-        while ((pos = parsed.FullSource.find("\n#include ", pos)) != std::string::npos)
-        {
+        while ((pos = parsed.FullSource.find("\n#include ", pos)) != std::string::npos) {
             // Get the path
             size_t quoteStart = parsed.FullSource.find('"', pos);
-            if (quoteStart == std::string::npos)
-            {
+            if (quoteStart == std::string::npos) {
                 std::unique_lock lock(s_loggingMutex);
                 error("Invalid #include in shader (missing opening quote)");
                 return {};
             }
 
             size_t quoteEnd = parsed.FullSource.find('"', quoteStart + 1);
-            if (quoteEnd == std::string::npos)
-            {
+            if (quoteEnd == std::string::npos) {
                 std::unique_lock lock(s_loggingMutex);
                 error("Invalid #include in shader (missing closing quote)");
                 return {};
@@ -308,8 +282,7 @@ namespace Spire
             actualPath += includedPath;
 
             // Check for recursive includes
-            if (!parsed.FilePaths.insert(actualPath).second)
-            {
+            if (!parsed.FilePaths.insert(actualPath).second) {
                 std::unique_lock lock(s_loggingMutex);
                 error("Recursively including {}", actualPath);
                 return {};
@@ -317,8 +290,7 @@ namespace Spire
 
             // Get the included source
             std::string includedSource;
-            if (!FileIO::ReadFile(actualPath.c_str(), includedSource))
-            {
+            if (!FileIO::ReadFile(actualPath.c_str(), includedSource)) {
                 std::unique_lock lock(s_loggingMutex);
                 error("Failed to read file {} when creating shader from text", actualPath);
                 return {};
@@ -343,22 +315,18 @@ namespace Spire
     ShaderCompiler::ShaderCompiler(VkDevice device,
                                    bool alwaysCompileFromSource)
         : m_device(device),
-          m_alwaysCompileFromSource(alwaysCompileFromSource)
-    {
+          m_alwaysCompileFromSource(alwaysCompileFromSource) {
         glslang_initialize_process();
     }
 
-    ShaderCompiler::~ShaderCompiler()
-    {
+    ShaderCompiler::~ShaderCompiler() {
         Await();
         glslang_finalize_process();
     }
 
-    void ShaderCompiler::CreateShaderModuleAsync(VkShaderModule* out, const std::string& fileName)
-    {
+    void ShaderCompiler::CreateShaderModuleAsync(VkShaderModule *out, const std::string &fileName) {
         ++m_currentTasks;
-        std::thread([this, out, fileName]
-        {
+        std::thread([this, out, fileName] {
             VkShaderModule result = CreateShaderModule(fileName);
             if (out) *out = result;
 
@@ -367,21 +335,18 @@ namespace Spire
         }).detach();
     }
 
-    void ShaderCompiler::Await()
-    {
+    void ShaderCompiler::Await() {
         std::unique_lock lock(m_waitForTasksMutex);
         m_waitForTasksCompleteCv.wait(lock, [&] { return m_currentTasks == 0; });
     }
 
-    VkShaderModule ShaderCompiler::CreateShaderModule(const std::string& fileName) const
-    {
+    VkShaderModule ShaderCompiler::CreateShaderModule(const std::string &fileName) const {
         std::filesystem::path compiledShader = fileName;
         compiledShader += ".spv";
 
         // Parse
         ParsedShader parsed = ParseShader(fileName);
-        if (!parsed.Success)
-        {
+        if (!parsed.Success) {
             std::unique_lock lock(s_loggingMutex);
             error("Error when parsing shader {}", fileName);
             return VK_NULL_HANDLE;
@@ -389,12 +354,10 @@ namespace Spire
 
         // Compiling from binary or source?
         bool compileFromText = true;
-        if (std::filesystem::exists(compiledShader))
-        {
+        if (std::filesystem::exists(compiledShader)) {
             compileFromText = false;
 
-            for (auto& includedFile : parsed.FilePaths)
-            {
+            for (auto &includedFile : parsed.FilePaths) {
                 auto srcTime = std::filesystem::last_write_time(includedFile);
                 auto binTime = std::filesystem::last_write_time(compiledShader);
                 compileFromText = srcTime >= binTime;
@@ -407,27 +370,25 @@ namespace Spire
                                     : CreateShaderModuleFromBinaryFile(compiledShader.string());
         std::unique_lock lock(s_loggingMutex);
         info("{} shader '{}'", shader == VK_NULL_HANDLE ? "Failed to compile" : "Successfully compiled",
-                     fileName);
+             fileName);
         return shader;
     }
 
-    VkShaderModule ShaderCompiler::CreateShaderModuleFromBinaryFile(const std::string& fileName) const
-    {
+    VkShaderModule ShaderCompiler::CreateShaderModuleFromBinaryFile(const std::string &fileName) const {
         int codeSize = 0;
-        char* pShaderCode = FileIO::ReadBinaryFile(fileName.c_str(), codeSize);
+        char *pShaderCode = FileIO::ReadBinaryFile(fileName.c_str(), codeSize);
         assert(pShaderCode);
 
         VkShaderModuleCreateInfo shaderCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .codeSize = static_cast<size_t>(codeSize),
-            .pCode = reinterpret_cast<const uint32_t*>(pShaderCode)
+            .pCode = reinterpret_cast<const uint32_t *>(pShaderCode)
         };
 
         VkShaderModule shaderModule;
         VkResult res = vkCreateShaderModule(m_device, &shaderCreateInfo, nullptr, &shaderModule);
 
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             std::unique_lock lock(s_loggingMutex);
             error("Failed to create shader module (from binary) {}", fileName);
         }
@@ -438,9 +399,8 @@ namespace Spire
     }
 
     // ReSharper disable once CppDFAConstantFunctionResult
-    VkShaderModule ShaderCompiler::CreateShaderModuleFromSource(const std::string& fileName,
-                                                                const std::string& shaderSource) const
-    {
+    VkShaderModule ShaderCompiler::CreateShaderModuleFromSource(const std::string &fileName,
+                                                                const std::string &shaderSource) const {
         CompiledShader shaderModule;
 
         glslang_stage_t shaderStage = ShaderStageFromFilename(fileName.c_str());
@@ -449,8 +409,7 @@ namespace Spire
 
         bool success = CompileShader(m_device, shaderStage, shaderSource.c_str(), shaderModule);
 
-        if (success)
-        {
+        if (success) {
             ret = shaderModule.ShaderModule;
             std::string binaryFilename = std::string(fileName.c_str()) + ".spv";
             FileIO::WriteBinaryFile(binaryFilename.c_str(), shaderModule.SPIRV.data(),

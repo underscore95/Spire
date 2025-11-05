@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
+#include "pch.h"
 
 namespace Spire {
     class VulkanDebugCallback {

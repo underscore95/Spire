@@ -1,7 +1,5 @@
 #include "Version.h"
 
-#include <array>
-
 namespace Spire {
     Version::Version(unsigned int major,
                      unsigned int minor,

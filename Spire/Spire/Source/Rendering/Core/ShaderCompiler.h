@@ -1,9 +1,6 @@
 #pragma once
 
-#include <atomic>
-#include <condition_variable>
-#include <vulkan/vulkan.h>
-#include <string>
+#include "pch.h"
 
 namespace Spire
 {

@@ -1,10 +1,6 @@
 #pragma once
 
-#include <string>
-#include <vulkan/vulkan.h>
-#include <memory>
-#include <vector>
-#include <glm/fwd.hpp>
+#include "pch.h"
 
 #include "Core/VulkanVersion.h"
 

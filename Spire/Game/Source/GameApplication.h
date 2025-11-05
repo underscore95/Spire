@@ -1,7 +1,6 @@
 #pragma once
 
 #include "EngineIncludes.h"
-#include "Rendering/RenderInfo.h"
 
 class ObjectRenderer;
 class GameCamera;

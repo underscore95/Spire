@@ -1,5 +1,5 @@
 #include "Timer.h"
-#include <cassert>
+#include "pch.h"
 
 namespace Spire
 {

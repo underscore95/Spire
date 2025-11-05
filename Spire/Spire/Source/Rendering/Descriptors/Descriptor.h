@@ -1,8 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <vulkan/vulkan_core.h>
-#include <vector>
+#include "pch.h"
 
 namespace Spire
 {

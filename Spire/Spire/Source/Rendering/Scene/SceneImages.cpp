@@ -1,7 +1,5 @@
 #include "Rendering/Scene/SceneImages.h"
 
-#include <format>
-#include <vulkan/vulkan_core.h>
 #include "Rendering/RenderingManager.h"
 #include "Rendering/Descriptors/Descriptor.h"
 #include "Rendering/Memory/ImageManager.h"

@@ -1,8 +1,6 @@
 #include "DescriptorCreator.h"
 #include "Rendering/Memory/VulkanBuffer.h"
 #include "Rendering/Memory/VulkanImage.h"
-
-
 #include "Rendering/Memory/PerImageBuffer.h"
 
 namespace Spire

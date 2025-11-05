@@ -1,5 +1,5 @@
 #include "GraphicsPipeline.h"
-#include <glm/glm.hpp>
+#include "pch.h"
 #include "Utils/Log.h"
 #include "Rendering/Memory/BufferManager.h"
 #include "../RenderingCommandManager.h"

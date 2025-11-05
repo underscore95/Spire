@@ -1,7 +1,5 @@
 #include "PerImageBuffer.h"
 
-
-
 #include "BufferManager.h"
 #include "VulkanBuffer.h"
 

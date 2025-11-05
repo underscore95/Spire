@@ -1,9 +1,8 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include "pch.h"
 
-namespace Spire
-{
+namespace Spire {
     class Window;
 
     class Camera {

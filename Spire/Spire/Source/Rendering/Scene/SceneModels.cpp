@@ -1,7 +1,7 @@
 #include "SceneModels.h"
 
 #include "Rendering/Memory/BufferManager.h"
-#include "../Core/Pipelines/GraphicsPipeline.h"
+#include "Rendering/Core/Pipelines/GraphicsPipeline.h"
 #include "PushConstants.h"
 #include "Rendering/Renderers/Renderer.h"
 #include "Rendering/RenderingManager.h"

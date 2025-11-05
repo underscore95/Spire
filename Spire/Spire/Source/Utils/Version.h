@@ -1,6 +1,6 @@
 #pragma once
-#include <optional>
-#include <string>
+
+#include "pch.h"
 
 namespace Spire {
     class Version {

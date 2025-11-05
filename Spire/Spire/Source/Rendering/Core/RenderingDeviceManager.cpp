@@ -4,7 +4,6 @@
 // ReSharper disable CppDFAConstantConditions
 
 #include "Rendering/Core/RenderingDeviceManager.h"
-#include <glm/glm.hpp>
 
 #include "Utils/Log.h"
 

@@ -1,6 +1,5 @@
 #include "DescriptorSetLayoutList.h"
 
-
 namespace Spire
 {
     DescriptorSetLayoutList::DescriptorSetLayoutList(glm::u32 numSwapchainImages)

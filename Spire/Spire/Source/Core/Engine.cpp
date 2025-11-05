@@ -1,6 +1,5 @@
 #include "Engine.h"
 
-#include <memory>
 #include "Utils/Log.h"
 
 #include "Application.h"

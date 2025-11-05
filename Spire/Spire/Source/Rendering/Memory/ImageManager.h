@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
-#include <glm/fwd.hpp>
+#include "pch.h"
 
 namespace Spire
 {

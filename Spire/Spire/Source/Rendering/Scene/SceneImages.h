@@ -1,8 +1,6 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <glm/glm.hpp>
+#include "pch.h"
 
 namespace Spire
 {

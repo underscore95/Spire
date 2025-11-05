@@ -1,9 +1,6 @@
 #pragma once
 
-#include <string>
-#include <memory>
-#include <unordered_set>
-#include <glm/glm.hpp>
+#include "pch.h"
 
 struct GLFWwindow;
 

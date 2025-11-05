@@ -1,9 +1,5 @@
 #include "ImGuiRenderer.h"
-#include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_vulkan.h"
 #include "Utils/Log.h"
-
 #include "Renderer.h"
 #include "Rendering/Core/RenderingCommandManager.h"
 #include "Rendering/Core/RenderingDeviceManager.h"

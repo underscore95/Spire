@@ -1,8 +1,6 @@
 #include "Window.h"
-#include <imgui.h>
 #include <GLFW/glfw3.h>
 #include "Utils/Log.h"
-
 #include "Core/Engine.h"
 
 namespace Spire

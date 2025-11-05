@@ -1,6 +1,5 @@
 #include "GameApplication.h"
 #include "Utils/Log.h"
-#include <glm/gtc/matrix_transform.hpp>
 #include "GameCamera.h"
 #include "Rendering/ObjectRenderer.h"
 #include "../Assets/Shaders/ShaderInfo.h"

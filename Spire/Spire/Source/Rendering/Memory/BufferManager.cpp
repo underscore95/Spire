@@ -5,24 +5,19 @@
 #include "Rendering/RenderingManager.h"
 #include "Rendering/Core/Swapchain.h"
 #include "Rendering/Core/VulkanQueue.h"
-
-
 #include "PerImageBuffer.h"
 #include "Rendering/Memory/VulkanBuffer.h"
 #include "VulkanAllocator.h"
 
-namespace Spire
-{
+namespace Spire {
     bool s_isDestroyed = false;
 
-    BufferManager::BufferManager(RenderingManager& renderingManager)
-        : m_renderingManager(renderingManager)
-    {
+    BufferManager::BufferManager(RenderingManager &renderingManager)
+        : m_renderingManager(renderingManager) {
         m_renderingManager.GetCommandManager().CreateCommandBuffers(1, &m_copyCommandBuffer);
     }
 
-    BufferManager::~BufferManager()
-    {
+    BufferManager::~BufferManager() {
         assert(!s_isDestroyed);
         s_isDestroyed = true;
 
@@ -31,16 +26,14 @@ namespace Spire
         m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_copyCommandBuffer);
     }
 
-    VulkanBuffer BufferManager::CreateIndexBuffer(glm::u32 indexTypeSize, const void* indices, glm::u32 numIndices)
-    {
+    VulkanBuffer BufferManager::CreateIndexBuffer(glm::u32 indexTypeSize, const void *indices, glm::u32 numIndices) {
         VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
         VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
         return CreateBufferWithData(indexTypeSize * numIndices, usage, memoryProperties, indices, indexTypeSize);
     }
 
-    VulkanBuffer BufferManager::CreateStorageBuffer(const void* elements, glm::u32 size, glm::u32 elementSize,
-                                                    bool isTransferSource)
-    {
+    VulkanBuffer BufferManager::CreateStorageBuffer(const void *elements, glm::u32 size, glm::u32 elementSize,
+                                                    bool isTransferSource) {
         VkBufferUsageFlags usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         if (isTransferSource) usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -48,25 +41,22 @@ namespace Spire
         return CreateBufferWithData(size, usage, memoryProperties, elements, elementSize);
     }
 
-    void BufferManager::DestroyBuffer(const VulkanBuffer& buffer)
-    {
+    void BufferManager::DestroyBuffer(const VulkanBuffer &buffer) {
         assert(m_numAllocatedBuffers > 0);
         vmaDestroyBuffer(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Buffer, buffer.Allocation);
         m_numAllocatedBuffers--;
     }
 
-    std::unique_ptr<PerImageBuffer> BufferManager::CreateUniformBuffers(size_t bufferSize, bool isTransferDest)
-    {
+    std::unique_ptr<PerImageBuffer> BufferManager::CreateUniformBuffers(size_t bufferSize, bool isTransferDest) {
         std::vector<VulkanBuffer> buffers;
         buffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
 
         VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
         if (isTransferDest) usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+                                                 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-        for (int i = 0; i < buffers.size(); ++i)
-        {
+        for (int i = 0; i < buffers.size(); ++i) {
             buffers[i] = CreateBuffer(bufferSize, usage, memoryProperties);
         }
 
@@ -76,39 +66,33 @@ namespace Spire
     std::unique_ptr<PerImageBuffer> BufferManager::CreateStorageBuffers(
         size_t bufferSize,
         size_t numElements,
-        const void* data
-    )
-    {
+        const void *data
+    ) {
         std::vector<VulkanBuffer> buffers;
         buffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
-        for (int i = 0; i < buffers.size(); ++i)
-        {
+        for (int i = 0; i < buffers.size(); ++i) {
             buffers[i] = CreateStorageBuffer(data, bufferSize, bufferSize / numElements);
         }
 
         return std::unique_ptr<PerImageBuffer>(new PerImageBuffer(*this, buffers));
     }
 
-    void BufferManager::UpdateBuffer(const VulkanBuffer& buffer, const void* data, glm::u32 size, glm::u32 offset) const
-    {
-        void* pMem = nullptr;
+    void BufferManager::UpdateBuffer(const VulkanBuffer &buffer, const void *data, glm::u32 size, glm::u32 offset) const {
+        void *pMem = nullptr;
         VkResult res = vmaMapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation, &pMem);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to update buffer memory with size {} bytes", size);
             return;
         }
-        memcpy(static_cast<char*>(pMem) + offset, data, size);
+        memcpy(static_cast<char *>(pMem) + offset, data, size);
         vmaUnmapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation);
     }
 
-    bool BufferManager::HasBufferManagerBeenDestroyed()
-    {
+    bool BufferManager::HasBufferManagerBeenDestroyed() {
         return s_isDestroyed;
     }
 
-    void BufferManager::CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const
-    {
+    void BufferManager::CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const {
         m_renderingManager.GetCommandManager().BeginCommandBuffer(m_copyCommandBuffer,
                                                                   VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
@@ -128,18 +112,16 @@ namespace Spire
     }
 
     VulkanBuffer BufferManager::CreateBufferWithData(VkDeviceSize size, VkBufferUsageFlags usage,
-                                                     VkMemoryPropertyFlags properties, const void* data,
-                                                     glm::u32 elementSize)
-    {
+                                                     VkMemoryPropertyFlags properties, const void *data,
+                                                     glm::u32 elementSize) {
         // create the final buffer
         VulkanBuffer buffer = CreateBuffer(size, usage, properties);
 
-        if (data)
-        {
+        if (data) {
             // create the staging buffer
             VkBufferUsageFlags stagingUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
             VkMemoryPropertyFlags stagingProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+                                                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
             VulkanBuffer stagingBuffer = CreateBuffer(size, stagingUsage, stagingProperties);
 
             // copy vertices into staging buffer
@@ -163,8 +145,7 @@ namespace Spire
     }
 
     VulkanBuffer BufferManager::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-                                             VkMemoryPropertyFlags properties)
-    {
+                                             VkMemoryPropertyFlags properties) {
         VulkanBuffer buffer;
 
         VkBufferCreateInfo vbCreateInfo = {
@@ -189,12 +170,9 @@ namespace Spire
             nullptr
         );
 
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Error creating vulkan buffer of size {}", size);
-        }
-        else
-        {
+        } else {
             m_numAllocatedBuffers++;
         }
 

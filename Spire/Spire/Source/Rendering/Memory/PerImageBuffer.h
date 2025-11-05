@@ -1,6 +1,5 @@
 #pragma once
-#include <vector>
-#include <glm/glm.hpp>
+#include "pch.h"
 #include "Utils/MacroDisableCopy.h"
 
 namespace Spire {

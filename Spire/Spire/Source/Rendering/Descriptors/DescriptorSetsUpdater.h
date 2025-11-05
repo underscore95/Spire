@@ -1,21 +1,17 @@
 #pragma once
-#include <vector>
-#include <glm/glm.hpp>
-
+#include "pch.h"
 #include "DescriptorSet.h"
 
-namespace Spire
-{
-    union DescriptorInfo
-    {
+namespace Spire {
+    union DescriptorInfo {
         VkDescriptorBufferInfo BufferInfo;
         VkDescriptorImageInfo ImageInfo;
     };
 
-    class DescriptorSetsUpdater
-    {
+    class DescriptorSetsUpdater {
     public:
-        DescriptorSetsUpdater(VkDevice device, glm::u32 numDescriptorSets, const DescriptorSet* descriptorSets);
+        DescriptorSetsUpdater(VkDevice device, glm::u32 numDescriptorSets, const DescriptorSet *descriptorSets);
+
         ~DescriptorSetsUpdater();
 
         void Update();
