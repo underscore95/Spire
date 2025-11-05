@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 
 project(Spire)
 
-set(SPIRE_VERSION "1.2.0")
+set(SPIRE_VERSION "1.3.0")
 add_compile_definitions(SPIRE_VERSION="${SPIRE_VERSION}")
 
 set(LIBS_DIRECTORY ${CMAKE_SOURCE_DIR}/Libs)
@@ -13,4 +13,5 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
 add_subdirectory(Spire)
+add_subdirectory(SpireVoxel)
 add_subdirectory(Game)
