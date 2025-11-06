@@ -28,7 +28,7 @@ namespace SpireVoxel {
     }
 
     void Chunk::CmdBindIndexBuffer(VkCommandBuffer commandBuffer) const {
-        if (m_numIndices == 0) return;
+        if (m_numIndices == VOXEL_TYPE_AIR) return;
 
         static_assert(sizeof(MESH_INDEX_TYPE) == sizeof(glm::u32)); // update index type below if changed!
         vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);

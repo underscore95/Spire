@@ -4,6 +4,8 @@
 #include "../../Assets/Shaders/ShaderInfo.h"
 
 namespace SpireVoxel {
+    static constexpr int VOXEL_TYPE_AIR = 0;
+
     class Chunk {
     public:
         explicit Chunk(Spire::RenderingManager &renderingManager);
@@ -25,6 +27,7 @@ namespace SpireVoxel {
 
     private:
         void RegenerateMesh();
+
         void FreeBuffersIfAllocated();
 
     private:
