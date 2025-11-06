@@ -25,4 +25,7 @@ void main()
 	gl_Position = cameraBuffer.ViewProjectionMatrix * vec4(pos, 1.0);
 
 	texCoord = vec2(vtx.u, vtx.v);
+	texCoord.x *= 0.5;
+
+	if (vtx.VoxelType == 2) texCoord.x += 0.5;
 }

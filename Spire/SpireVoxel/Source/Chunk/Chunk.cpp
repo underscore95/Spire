@@ -64,40 +64,40 @@ namespace SpireVoxel {
             uint32_t start = static_cast<uint32_t>(vertices.size());
 
             // Front (Z+)
-            vertices.push_back({p.x + 0, p.y + 0, p.z + 1, 0, 0});
-            vertices.push_back({p.x + 1, p.y + 0, p.z + 1, 1, 0});
-            vertices.push_back({p.x + 1, p.y + 1, p.z + 1, 1, 1});
-            vertices.push_back({p.x + 0, p.y + 1, p.z + 1, 0, 1});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 0, p.z + 1, 0, 0});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 0, p.z + 1, 1, 0});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 1, p.z + 1, 1, 1});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 1, p.z + 1, 0, 1});
 
             // Back (Z-)
-            vertices.push_back({p.x + 1, p.y + 0, p.z + 0, 0, 0});
-            vertices.push_back({p.x + 0, p.y + 0, p.z + 0, 1, 0});
-            vertices.push_back({p.x + 0, p.y + 1, p.z + 0, 1, 1});
-            vertices.push_back({p.x + 1, p.y + 1, p.z + 0, 0, 1});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 0, p.z + 0, 0, 0});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 0, p.z + 0, 1, 0});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 1, p.z + 0, 1, 1});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 1, p.z + 0, 0, 1});
 
             // Left (X-)
-            vertices.push_back({p.x + 0, p.y + 0, p.z + 0, 0, 0});
-            vertices.push_back({p.x + 0, p.y + 0, p.z + 1, 1, 0});
-            vertices.push_back({p.x + 0, p.y + 1, p.z + 1, 1, 1});
-            vertices.push_back({p.x + 0, p.y + 1, p.z + 0, 0, 1});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 0, p.z + 0, 0, 0});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 0, p.z + 1, 1, 0});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 1, p.z + 1, 1, 1});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 1, p.z + 0, 0, 1});
 
             // Right (X+)
-            vertices.push_back({p.x + 1, p.y + 0, p.z + 1, 0, 0});
-            vertices.push_back({p.x + 1, p.y + 0, p.z + 0, 1, 0});
-            vertices.push_back({p.x + 1, p.y + 1, p.z + 0, 1, 1});
-            vertices.push_back({p.x + 1, p.y + 1, p.z + 1, 0, 1});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 0, p.z + 1, 0, 0});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 0, p.z + 0, 1, 0});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 1, p.z + 0, 1, 1});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 1, p.z + 1, 0, 1});
 
             // Top (Y+)
-            vertices.push_back({p.x + 0, p.y + 1, p.z + 1, 0, 0});
-            vertices.push_back({p.x + 1, p.y + 1, p.z + 1, 1, 0});
-            vertices.push_back({p.x + 1, p.y + 1, p.z + 0, 1, 1});
-            vertices.push_back({p.x + 0, p.y + 1, p.z + 0, 0, 1});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 1, p.z + 1, 0, 0});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 1, p.z + 1, 1, 0});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 1, p.z + 0, 1, 1});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 1, p.z + 0, 0, 1});
 
             // Bottom (Y-)
-            vertices.push_back({p.x + 0, p.y + 0, p.z + 0, 0, 0});
-            vertices.push_back({p.x + 1, p.y + 0, p.z + 0, 1, 0});
-            vertices.push_back({p.x + 1, p.y + 0, p.z + 1, 1, 1});
-            vertices.push_back({p.x + 0, p.y + 0, p.z + 1, 0, 1});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 0, p.z + 0, 0, 0});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 0, p.z + 0, 1, 0});
+            vertices.push_back({m_voxelData[i], p.x + 1, p.y + 0, p.z + 1, 1, 1});
+            vertices.push_back({m_voxelData[i], p.x + 0, p.y + 0, p.z + 1, 0, 1});
 
             // Indices
             for (int f = 0; f < 6; f++) {

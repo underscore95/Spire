@@ -32,13 +32,15 @@
 #ifdef __cplusplus
 namespace SpireVoxel {
 #endif
-struct VertexData {
-    float x;
-    float y;
-    float z;
-    float u;
-    float v;
-};
+    struct VertexData {
+        int VoxelType;
+        float x;
+        float y;
+        float z;
+        float u;
+        float v;
+    };
+
 #ifdef __cplusplus
 }
 #endif

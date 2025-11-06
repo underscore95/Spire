@@ -37,7 +37,7 @@ namespace SpireVoxel {
         m_chunk->SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
 
         // Images
-        std::vector<std::string> imagesToLoad = {"test2.png"};
+        std::vector<std::string> imagesToLoad = {"test.png"};
 
         assert(imagesToLoad.size() == SPIRE_SHADER_TEXTURE_COUNT);
         m_sceneImages = std::make_unique<SceneImages>(rm,ASSETS_DIRECTORY, imagesToLoad);

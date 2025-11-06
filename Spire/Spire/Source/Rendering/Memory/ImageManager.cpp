@@ -49,8 +49,8 @@ namespace Spire
         images.ImageView = CreateImageView(images.Image, format, aspectFlags);
 
         // Create sampler
-        VkFilter minFilter = VK_FILTER_LINEAR;
-        VkFilter maxFilter = VK_FILTER_LINEAR;
+        VkFilter minFilter = VK_FILTER_NEAREST;
+        VkFilter maxFilter = VK_FILTER_NEAREST;
         VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
         images.Sampler = CreateImageSampler(minFilter, maxFilter, addressMode);
