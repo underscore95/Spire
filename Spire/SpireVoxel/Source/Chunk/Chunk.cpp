@@ -1,8 +1,10 @@
 #include "Chunk.h"
 
 namespace SpireVoxel {
-    Chunk::Chunk(Spire::RenderingManager &renderingManager)
-        : m_renderingManager(renderingManager) {
+    Chunk::Chunk(Spire::RenderingManager &renderingManager,
+                 glm::ivec3 chunkPosition)
+        : m_renderingManager(renderingManager),
+          m_chunkPosition(chunkPosition) {
         RegenerateMesh();
     }
 
@@ -60,7 +62,7 @@ namespace SpireVoxel {
         for (size_t i = 0; i < m_voxelData.size(); i++) {
             if (m_voxelData[i] == 0) continue;
 
-            glm::vec3 p = SPIRE_VOXEL_INDEX_TO_POSITION(glm::vec3, i);
+            glm::vec3 p = SPIRE_VOXEL_INDEX_TO_POSITION(glm::vec3, i) + glm::vec3(m_chunkPosition * SPIRE_VOXEL_CHUNK_SIZE);
             uint32_t start = static_cast<uint32_t>(vertices.size());
 
             // Front (Z+)

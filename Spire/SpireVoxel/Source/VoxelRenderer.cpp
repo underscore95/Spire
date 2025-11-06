@@ -32,7 +32,7 @@ namespace SpireVoxel {
         info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
         // Chunk
-        m_chunk=std::make_unique<Chunk>(m_engine.GetRenderingManager());
+        m_chunk=std::make_unique<Chunk>(m_engine.GetRenderingManager(), glm::ivec3{0,0,0});
         m_chunk->SetVoxel({0, 0, 0}, 1);
         m_chunk->SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
 

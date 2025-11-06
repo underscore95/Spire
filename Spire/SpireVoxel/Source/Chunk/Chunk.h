@@ -8,7 +8,8 @@ namespace SpireVoxel {
 
     class Chunk {
     public:
-        explicit Chunk(Spire::RenderingManager &renderingManager);
+        explicit Chunk(Spire::RenderingManager &renderingManager, glm::ivec3 chunkPosition);
+        DISABLE_COPY(Chunk);
 
         ~Chunk();
 
@@ -32,6 +33,8 @@ namespace SpireVoxel {
 
     private:
         Spire::RenderingManager &m_renderingManager;
+
+        glm::ivec3 m_chunkPosition;
 
         std::array<std::int32_t, SPIRE_VOXEL_CHUNK_VOLUME> m_voxelData{};
 
