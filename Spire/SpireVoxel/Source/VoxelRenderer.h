@@ -23,13 +23,15 @@ namespace SpireVoxel {
     private:
         void BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const;
 
-        void RecordCommandBuffers() const;
+        void CreateAndRecordCommandBuffers();
 
         void SetupDescriptors();
 
         void SetupGraphicsPipeline();
 
         void Cleanup();
+
+        void PrepareForRendering();
 
     private:
         Spire::Engine &m_engine;

@@ -31,27 +31,19 @@ namespace SpireVoxel {
         assert(m_fragmentShader != VK_NULL_HANDLE);
         info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
-        // Chunk
-        m_chunk=std::make_unique<Chunk>(m_engine.GetRenderingManager(), glm::ivec3{0,0,0});
-        m_chunk->SetVoxel({0, 0, 0}, 1);
-        m_chunk->SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
-
         // Images
         std::vector<std::string> imagesToLoad = {"test.png"};
 
         assert(imagesToLoad.size() == SPIRE_SHADER_TEXTURE_COUNT);
         m_sceneImages = std::make_unique<SceneImages>(rm,ASSETS_DIRECTORY, imagesToLoad);
 
-        // Descriptors
-        SetupDescriptors();
+        // Chunk
+        m_chunk = std::make_unique<Chunk>(m_engine.GetRenderingManager(), glm::ivec3{0, 0, 0});
+        m_chunk->SetVoxel({0, 0, 0}, 1);
+        m_chunk->SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
 
-        // Pipeline
-        SetupGraphicsPipeline();
-
-        // Command buffers
-        m_commandBuffers.resize(rm.GetSwapchain().GetNumImages());
-        rm.GetCommandManager().CreateCommandBuffers(rm.GetSwapchain().GetNumImages(), m_commandBuffers.data());
-        RecordCommandBuffers();
+        // Descriptors, pipeline, command buffers
+        PrepareForRendering();
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -73,7 +65,7 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::OnWindowResize() {
-        RecordCommandBuffers();
+        PrepareForRendering();
     }
 
     void VoxelRenderer::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const {
@@ -90,8 +82,17 @@ namespace SpireVoxel {
         rm.GetRenderer().BeginDynamicRendering(commandBuffer, imageIndex, &clearColor, &clearDepthValue);
     }
 
-    void VoxelRenderer::RecordCommandBuffers() const {
+    void VoxelRenderer::CreateAndRecordCommandBuffers() {
         auto &rm = m_engine.GetRenderingManager();
+
+        // free any existing command buffers
+        if (!m_commandBuffers.empty()) {
+            rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
+            m_commandBuffers.clear();
+        }
+
+        m_commandBuffers.resize(rm.GetSwapchain().GetNumImages());
+        rm.GetCommandManager().CreateCommandBuffers(rm.GetSwapchain().GetNumImages(), m_commandBuffers.data());
 
         for (int i = 0; i < m_commandBuffers.size(); ++i) {
             VkCommandBuffer commandBuffer = m_commandBuffers[i];
@@ -106,8 +107,10 @@ namespace SpireVoxel {
 
             m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine.GetWindow().GetDimensions());
 
-            m_chunk->CmdBindIndexBuffer(commandBuffer);
-            m_chunk->CmdRender(commandBuffer);
+            if (m_chunk) {
+                m_chunk->CmdBindIndexBuffer(commandBuffer);
+                m_chunk->CmdRender(commandBuffer);
+            }
 
             vkCmdEndRendering(commandBuffer);
 
@@ -124,8 +127,8 @@ namespace SpireVoxel {
 
             DescriptorSetLayout layout;
 
-            // ModelVertex buffer
-            layout.push_back(m_chunk->GetDescriptor(SPIRE_SHADER_BINDINGS_VERTEX_SSBO_BINDING));
+            // Chunks
+            if (m_chunk) layout.push_back(m_chunk->GetDescriptor(SPIRE_SHADER_BINDINGS_VERTEX_SSBO_BINDING));
 
             // Images
             layout.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
@@ -180,5 +183,11 @@ namespace SpireVoxel {
         vkDestroyShaderModule(rm.GetDevice(), m_vertexShader, nullptr);
         vkDestroyShaderModule(rm.GetDevice(), m_fragmentShader, nullptr);
         info("Destroyed shaders");
+    }
+
+    void VoxelRenderer::PrepareForRendering() {
+        SetupDescriptors();
+        SetupGraphicsPipeline();
+        CreateAndRecordCommandBuffers();
     }
 } // SpireVoxel
