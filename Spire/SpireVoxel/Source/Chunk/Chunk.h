@@ -9,10 +9,16 @@ namespace SpireVoxel {
     class Chunk {
     public:
         explicit Chunk(Spire::RenderingManager &renderingManager, glm::ivec3 chunkPosition);
-        DISABLE_COPY(Chunk);
 
         ~Chunk();
 
+        DISABLE_COPY(Chunk);
+
+        Chunk(Chunk&& other) noexcept;
+
+        Chunk& operator=(Chunk&& other) noexcept;
+
+    public:
         void SetVoxel(glm::vec3 pos, std::int32_t type);
 
         void SetVoxelRect(glm::vec3 pos, glm::vec3 rectDimensions, std::int32_t type);
@@ -24,7 +30,7 @@ namespace SpireVoxel {
         void CmdRender(VkCommandBuffer commandBuffer
         ) const;
 
-        [[nodiscard]] Spire::Descriptor GetDescriptor(glm::u32 binding) const;
+        [[nodiscard]] std::optional<Spire::Descriptor> GetDescriptor(glm::u32 binding);
 
     private:
         void RegenerateMesh();
@@ -40,6 +46,6 @@ namespace SpireVoxel {
 
         Spire::VulkanBuffer m_vertexStorageBuffer;
         Spire::VulkanBuffer m_indexBuffer;
-        size_t m_numIndices;
+        size_t m_numIndices = 0;
     };
 } // SpireVoxel

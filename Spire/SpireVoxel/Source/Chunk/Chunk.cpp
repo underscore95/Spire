@@ -12,6 +12,34 @@ namespace SpireVoxel {
         FreeBuffersIfAllocated();
     }
 
+    Chunk::Chunk(Chunk &&other)
+        noexcept : m_renderingManager(other.m_renderingManager),
+                   m_chunkPosition(other.m_chunkPosition) {
+        m_numIndices = other.m_numIndices;
+        m_indexBuffer = other.m_indexBuffer;
+        m_vertexStorageBuffer = other.m_vertexStorageBuffer;
+        m_voxelData = other.m_voxelData;
+
+        other.m_indexBuffer = {};
+        other.m_vertexStorageBuffer = {};
+    }
+
+    Chunk &Chunk::operator=(Chunk &&other) noexcept {
+        FreeBuffersIfAllocated();
+
+        assert(& m_renderingManager == &other.m_renderingManager);
+        m_chunkPosition = other.m_chunkPosition;
+        m_numIndices = other.m_numIndices;
+        m_indexBuffer = other.m_indexBuffer;
+        m_vertexStorageBuffer = other.m_vertexStorageBuffer;
+        m_voxelData = other.m_voxelData;
+
+        other.m_indexBuffer = {};
+        other.m_vertexStorageBuffer = {};
+
+        return *this;
+    }
+
     void Chunk::SetVoxel(glm::vec3 pos, std::int32_t type) {
         m_voxelData[SPIRE_VOXEL_POSITION_TO_INDEX(pos)] = type;
         RegenerateMesh();
@@ -26,6 +54,7 @@ namespace SpireVoxel {
                 }
             }
         }
+
         RegenerateMesh();
     }
 
@@ -42,19 +71,25 @@ namespace SpireVoxel {
         vkCmdDrawIndexed(commandBuffer, m_numIndices, 1, 0, 0, 0);
     }
 
-    Spire::Descriptor Chunk::GetDescriptor(glm::u32 binding) const {
+    std::optional<Spire::Descriptor> Chunk::GetDescriptor(glm::u32 binding) {
+        if (m_vertexStorageBuffer.Buffer == VK_NULL_HANDLE) {
+            RegenerateMesh();
+        }
+
+        if (m_numIndices == 0) return {};
+
         return {
-            .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .Binding = binding,
-            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-            .NumResources = 1,
-            .ResourcePtrs = &m_vertexStorageBuffer
+            {
+                .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .Binding = binding,
+                .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+                .NumResources = 1,
+                .ResourcePtrs = &m_vertexStorageBuffer
+            }
         };
     }
 
     void Chunk::RegenerateMesh() {
-        FreeBuffersIfAllocated();
-
         // generate vertices & indices
         std::vector<VertexData> vertices;
         std::vector<MESH_INDEX_TYPE> indices;
@@ -116,17 +151,22 @@ namespace SpireVoxel {
         m_numIndices = indices.size();
         if (m_numIndices == 0) return;
 
-        // create buffers
         size_t vertexBufferSize = vertices.size() * sizeof(VertexData);
 
-        // create buffer for vertices
-        m_vertexStorageBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(
-            vertices.data(), vertexBufferSize, sizeof(VertexData));
+        // Create buffers if they aren't allocated or if they don't have enough space
+        // if we already have enough space we can simply reuse the buffer
+        if (m_indexBuffer.Count < m_numIndices || m_vertexStorageBuffer.Size < vertexBufferSize) {
+            FreeBuffersIfAllocated();
 
-        // create index buffer
-        m_indexBuffer = m_renderingManager.GetBufferManager().CreateIndexBuffer(
-            sizeof(MESH_INDEX_TYPE), indices.data(), indices.size()
-        );
+            // create buffer for vertices
+            m_vertexStorageBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(
+                vertices.data(), vertexBufferSize, sizeof(VertexData));
+
+            // create index buffer
+            m_indexBuffer = m_renderingManager.GetBufferManager().CreateIndexBuffer(
+                sizeof(MESH_INDEX_TYPE), indices.data(), indices.size()
+            );
+        }
     }
 
     void Chunk::FreeBuffersIfAllocated() {

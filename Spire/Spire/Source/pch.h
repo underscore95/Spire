@@ -18,6 +18,7 @@
 #include <iostream>
 #include <chrono>
 #include <optional>
+#include <functional>
 
 // vulkan
 #include <vulkan/vulkan_core.h>

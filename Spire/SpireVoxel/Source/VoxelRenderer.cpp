@@ -2,6 +2,7 @@
 
 #include "Rendering/GameCamera.h"
 #include "../Assets/Shaders/ShaderInfo.h"
+#include "Chunk/VoxelWorld.h"
 
 using namespace Spire;
 
@@ -21,7 +22,7 @@ namespace SpireVoxel {
 
         // Shaders
         Timer shaderCompileTimer;
-        shaderCompileTimer.Start();
+        shaderCompileTimer.Restart();
         ShaderCompiler compiler(rm.GetDevice());
         info("Created shader compiler");
         compiler.CreateShaderModuleAsync(&m_vertexShader, std::format("{}/Shaders/test.vert", ASSETS_DIRECTORY));
@@ -37,13 +38,19 @@ namespace SpireVoxel {
         assert(imagesToLoad.size() == SPIRE_SHADER_TEXTURE_COUNT);
         m_sceneImages = std::make_unique<SceneImages>(rm,ASSETS_DIRECTORY, imagesToLoad);
 
-        // Chunk
-        m_chunk = std::make_unique<Chunk>(m_engine.GetRenderingManager(), glm::ivec3{0, 0, 0});
-        m_chunk->SetVoxel({0, 0, 0}, 1);
-        m_chunk->SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
+        // World
+        m_world = std::make_unique<VoxelWorld>(rm);
+        m_world->GetOnChunkLoadOrUnloadSubscribers().AddCallback([this]() { PrepareForRendering(); });
+
+        Chunk &chunk = m_world->LoadChunk({0, 0, 0});
 
         // Descriptors, pipeline, command buffers
         PrepareForRendering();
+
+        // Update world
+        chunk.SetVoxel({0, 0, 0}, 1);
+        chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
+        PrepareForRendering(); // todo figure out a way to not require recreating the whole pipeline whenever a chunk mesh is regenerated
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -107,10 +114,7 @@ namespace SpireVoxel {
 
             m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine.GetWindow().GetDimensions());
 
-            if (m_chunk) {
-                m_chunk->CmdBindIndexBuffer(commandBuffer);
-                m_chunk->CmdRender(commandBuffer);
-            }
+            m_world->CmdRender(commandBuffer);
 
             vkCmdEndRendering(commandBuffer);
 
@@ -128,7 +132,7 @@ namespace SpireVoxel {
             DescriptorSetLayout layout;
 
             // Chunks
-            if (m_chunk) layout.push_back(m_chunk->GetDescriptor(SPIRE_SHADER_BINDINGS_VERTEX_SSBO_BINDING));
+            m_world->PushDescriptors(layout, SPIRE_SHADER_BINDINGS_VERTEX_SSBO_BINDING);
 
             // Images
             layout.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
@@ -171,7 +175,7 @@ namespace SpireVoxel {
         rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
         info("Freed command buffers");
 
-        m_chunk.reset();
+        m_world.reset();
         m_camera.reset();
 
         m_sceneImages.reset();
@@ -186,6 +190,7 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::PrepareForRendering() {
+        // Takes 1.6ms on my PC
         SetupDescriptors();
         SetupGraphicsPipeline();
         CreateAndRecordCommandBuffers();

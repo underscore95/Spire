@@ -105,7 +105,7 @@ namespace Spire {
              count());
 
         while (!m_application->ShouldClose()) {
-            m_deltaTimeTimer.Start();
+            m_deltaTimeTimer.Restart();
             Update();
             Render();
             m_deltaTime = m_deltaTimeTimer.SecondsSinceStart();

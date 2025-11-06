@@ -4,6 +4,10 @@
 #include "Chunk/Chunk.h"
 
 namespace SpireVoxel {
+    class VoxelWorld;
+}
+
+namespace SpireVoxel {
     class ObjectRenderer;
     class GameCamera;
 
@@ -42,6 +46,6 @@ namespace SpireVoxel {
         std::unique_ptr<Spire::SceneImages> m_sceneImages;
         std::unique_ptr<Spire::DescriptorManager> m_descriptorManager;
         std::unique_ptr<GameCamera> m_camera;
-        std::unique_ptr<Chunk> m_chunk;
+        std::unique_ptr<VoxelWorld> m_world;
     };
 } // SpireVoxel

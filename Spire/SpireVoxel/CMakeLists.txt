@@ -7,6 +7,8 @@ add_library(SpireVoxel STATIC
         Source/Rendering/RenderInfo.h
         Source/Chunk/Chunk.cpp
         Source/Chunk/Chunk.h
+        Source/Chunk/VoxelWorld.cpp
+        Source/Chunk/VoxelWorld.h
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

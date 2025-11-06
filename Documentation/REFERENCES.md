@@ -26,3 +26,7 @@ https://github.com/underscore95/Chimp/blob/main/Chimp/ChimpFramework/Source/impl
 https://github.com/underscore95/Chimp/blob/main/Chimp/ChimpFramework/Source/impl/utils/FilePath.cpp#L4
 
 Compute Pipeline Example: https://chatgpt.com/share/68a1d82f-e914-8003-9f14-4d7280b8c1bf
+
+Delegates: https://github.com/Abertay-University-SDI/assessment-project-jack183190/blob/assessment-project/Game/Shared/Source/Events/LocalDelegateSubscriber.h
+
+Hashing.h https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
