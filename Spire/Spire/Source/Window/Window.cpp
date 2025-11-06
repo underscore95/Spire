@@ -112,8 +112,7 @@ namespace Spire
     float Window::GetAspectRatio() const
     {
         const glm::vec2 size = GetDimensions();
-        assert(size.y != 0.0f);
-        return size.x / size.y;
+        return size.y == 0.0f ? 0 : size.x / size.y;
     }
 
     bool Window::Init()
