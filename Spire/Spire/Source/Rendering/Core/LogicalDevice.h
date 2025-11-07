@@ -4,32 +4,34 @@
 
 #include "VulkanVersion.h"
 
-namespace Spire
-{
+namespace Spire {
     class RenderingDeviceManager;
 
-    class LogicalDevice
-    {
+    class LogicalDevice {
     public:
         LogicalDevice(
-            RenderingDeviceManager& deviceManager,
+            RenderingDeviceManager &deviceManager,
             VulkanVersion vulkanVersion
         );
+
         ~LogicalDevice();
 
     public:
         [[nodiscard]] bool IsValid() const;
+
         [[nodiscard]] VkDevice GetDevice() const;
+
         [[nodiscard]] glm::u32 GetDeviceQueueFamily() const;
 
     private:
-        enum class DynamicRenderingSupport
-        {
+        enum class DynamicRenderingSupport {
             NONE, EXTENSION_REQUIRED, SUPPORTED
         };
 
-        [[nodiscard]] DynamicRenderingSupport GetDynamicRenderingSupport(const RenderingDeviceManager& deviceManager,
-                                                                         const VulkanVersion& vulkanVersion) const;
+        [[nodiscard]] static DynamicRenderingSupport GetDynamicRenderingSupport(const RenderingDeviceManager &deviceManager,
+                                                                                const VulkanVersion &vulkanVersion);
+
+        static bool SupportsDescriptorIndexing(const RenderingDeviceManager &deviceManager);
 
     private:
         const glm::u32 INVALID_DEVICE_QUEUE_FAMILY = -1; // underflow

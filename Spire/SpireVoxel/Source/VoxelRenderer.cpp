@@ -55,14 +55,7 @@ namespace SpireVoxel {
 
         auto t = chunk.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
         assert(t);
-        // //        m_descriptorManager->
-        //                 VkWriteDescriptorSet write = {
-        //                     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        //                     .pNext = nullptr,
-        //                     .dstSet = m_descriptorManager->G
-        //                 };
-        //                vkUpdateDescriptorSets(rm.GetDevice(), 1, &write, 0, nullptr);
-        m_descriptorManager->WriteDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, *t);
+        m_descriptorManager->WriteDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, *t); // can't do this while a command buffer is pending
         CreateAndRecordCommandBuffers();
     }
 

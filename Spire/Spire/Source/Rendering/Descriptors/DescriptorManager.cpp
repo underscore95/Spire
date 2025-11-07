@@ -5,6 +5,8 @@
 #include "Rendering/Core/Swapchain.h"
 #include "Rendering/Memory/VulkanBuffer.h"
 #include "Rendering/Memory/VulkanImage.h"
+#include "Utils/Log.h"
+#include "Utils/Timer.h"
 
 namespace Spire {
     DescriptorManager::DescriptorManager(

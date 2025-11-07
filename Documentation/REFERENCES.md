@@ -30,3 +30,9 @@ Compute Pipeline Example: https://chatgpt.com/share/68a1d82f-e914-8003-9f14-4d72
 Delegates: https://github.com/Abertay-University-SDI/assessment-project-jack183190/blob/assessment-project/Game/Shared/Source/Events/LocalDelegateSubscriber.h
 
 Hashing.h https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
+
+Descriptor Indexing:
+- https://wickedengine.net/2021/04/bindless-descriptors/
+- 
+
+Chunk Stories: https://github.com/Hugobros3/chunkstories (Could be used for feasability demo, voxel game engine written in kotlin with vulkan and opengl backends, I *think* it is rasterization)
