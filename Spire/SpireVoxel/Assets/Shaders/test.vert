@@ -1,4 +1,5 @@
 #version 460
+#extension GL_EXT_nonuniform_qualifier : require
 
 #include "PushConstants.glsl"
 #include "ShaderInfo.h"
@@ -20,7 +21,7 @@ layout (location = 0) out vec2 texCoord;
 
 void main()
 {
-	VertexData vtx = in_Vertices[0].data[gl_VertexIndex];
+	VertexData vtx = in_Vertices[gl_InstanceIndex].data[gl_VertexIndex];
 
 	vec3 pos = vec3(vtx.x, vtx.y, vtx.z);
 

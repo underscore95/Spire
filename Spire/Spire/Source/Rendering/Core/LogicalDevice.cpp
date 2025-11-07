@@ -21,7 +21,8 @@ namespace Spire {
 
         std::vector deviceExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-            VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
+            VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME,
+
         };
 
         DynamicRenderingSupport dynamicRenderingSupport = GetDynamicRenderingSupport(deviceManager, vulkanVersion);

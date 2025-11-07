@@ -43,6 +43,7 @@ namespace SpireVoxel {
         // m_world->GetOnChunkLoadOrUnloadSubscribers().AddCallback([this]() { PrepareForRendering(); });
 
         Chunk &chunk = m_world->LoadChunk({0, 0, 0});
+        Chunk &chunk2 = m_world->LoadChunk({1, 0, 0});
 
         // Descriptors, pipeline, command buffers
         //  PrepareForRendering();
@@ -52,6 +53,7 @@ namespace SpireVoxel {
       //  PrepareForRendering();
 
         chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
+        chunk2.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 1);
 
         // auto t = chunk.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
         // assert(t);

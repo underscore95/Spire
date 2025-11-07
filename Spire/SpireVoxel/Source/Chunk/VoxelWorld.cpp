@@ -39,10 +39,7 @@ namespace SpireVoxel {
     }
 
     void VoxelWorld::CmdRender(VkCommandBuffer commandBuffer) {
-        for (auto &[_,chunk] : m_chunks) {
-            chunk.CmdBindIndexBuffer(commandBuffer);
-            chunk.CmdRender(commandBuffer);
-        }
+        vkCmdDraw(commandBuffer, 36 * 28, m_chunks.size(), 0, 0);
     }
 
     void VoxelWorld::PushDescriptors(Spire::DescriptorSetLayout &layout, glm::u32 binding) {
