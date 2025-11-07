@@ -84,7 +84,10 @@ namespace SpireVoxel {
                 .Binding = binding,
                 .Stages = VK_SHADER_STAGE_VERTEX_BIT,
                 .NumResources = 1,
-                .ResourcePtrs = &m_vertexStorageBuffer
+                .ResourcePtrs = &m_vertexStorageBuffer,
+#ifndef NDEBUG
+                .DebugName = "ChunkDescriptor (Vertex Data)",
+#endif
             }
         };
     }

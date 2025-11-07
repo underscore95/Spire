@@ -50,7 +50,8 @@ namespace SpireVoxel {
         // Update world
         chunk.SetVoxel({0, 0, 0}, 1);
         chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
-        PrepareForRendering(); // todo figure out a way to not require recreating the whole pipeline whenever a chunk mesh is regenerated
+
+        PrepareForRendering();
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -111,6 +112,7 @@ namespace SpireVoxel {
             m_graphicsPipeline->CmdBindTo(commandBuffer);
             m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 0, 0);
             m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 1, 1);
+            m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 4, 4);
 
             m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine.GetWindow().GetDimensions());
 
@@ -131,9 +133,6 @@ namespace SpireVoxel {
 
             DescriptorSetLayout layout;
 
-            // Chunks
-            m_world->PushDescriptors(layout, SPIRE_SHADER_BINDINGS_VERTEX_SSBO_BINDING);
-
             // Images
             layout.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
 
@@ -145,6 +144,15 @@ namespace SpireVoxel {
 
             // Camera
             layout.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
+
+            layouts.Push(layout);
+        } {
+            // Constant set for chunks
+            assert(layouts.Size() == SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET);
+            DescriptorSetLayout layout;
+
+            // Chunks
+            m_world->PushDescriptors(layout, SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
 
             layouts.Push(layout);
         }

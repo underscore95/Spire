@@ -37,6 +37,7 @@ namespace Spire
                                     VkPipelineLayout pipelineLayout, glm::u32 setIndex,
                                     glm::u32 shaderSetIndex) const
     {
+        assert(setIndex == shaderSetIndex); // this assert can be removed, i'm just curious why shader set index and set index would be different?
         glm::u32 offset = m_layouts.IsSetPerImage(setIndex) ? currentSwapchainImage : 0;
         m_descriptorSets[setIndex + offset].CmdBind(commandBuffer, pipelineLayout, shaderSetIndex);
     }

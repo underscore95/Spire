@@ -20,6 +20,10 @@ namespace Spire
             const VulkanBuffer* Buffers;
             const VulkanImage* Images;
         } ResourcePtrs;
+
+#ifndef NDEBUG
+    std::string DebugName;
+#endif
     };
 
     struct PerImageDescriptor

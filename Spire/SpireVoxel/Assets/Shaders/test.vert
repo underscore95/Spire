@@ -3,7 +3,7 @@
 #include "PushConstants.glsl"
 #include "ShaderInfo.h"
 
-layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_SHADER_BINDINGS_VERTEX_SSBO_BINDING) readonly buffer Vertices { VertexData data[]; } in_Vertices;
+layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING) readonly buffer Vertices { VertexData data[]; } in_Vertices;
 
 layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING) readonly uniform CameraBuffer { mat4 ViewProjectionMatrix; } cameraBuffer;
 
