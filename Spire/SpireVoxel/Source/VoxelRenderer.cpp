@@ -40,18 +40,30 @@ namespace SpireVoxel {
 
         // World
         m_world = std::make_unique<VoxelWorld>(rm);
-        m_world->GetOnChunkLoadOrUnloadSubscribers().AddCallback([this]() { PrepareForRendering(); });
+        // m_world->GetOnChunkLoadOrUnloadSubscribers().AddCallback([this]() { PrepareForRendering(); });
 
         Chunk &chunk = m_world->LoadChunk({0, 0, 0});
 
         // Descriptors, pipeline, command buffers
-        PrepareForRendering();
+        //  PrepareForRendering();
 
         // Update world
         chunk.SetVoxel({0, 0, 0}, 1);
+        PrepareForRendering();
+
         chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
 
-        PrepareForRendering();
+        auto t = chunk.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
+        assert(t);
+        // //        m_descriptorManager->
+        //                 VkWriteDescriptorSet write = {
+        //                     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        //                     .pNext = nullptr,
+        //                     .dstSet = m_descriptorManager->G
+        //                 };
+        //                vkUpdateDescriptorSets(rm.GetDevice(), 1, &write, 0, nullptr);
+        m_descriptorManager->WriteDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, *t);
+        CreateAndRecordCommandBuffers();
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -91,6 +103,8 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::CreateAndRecordCommandBuffers() {
+        Timer timer;
+
         auto &rm = m_engine.GetRenderingManager();
 
         // free any existing command buffers
@@ -123,7 +137,7 @@ namespace SpireVoxel {
             rm.GetCommandManager().EndCommandBuffer(commandBuffer);
         }
 
-        info("Command buffers recorded");
+        info("Command buffers recorded in {} ms", timer.MillisSinceStart()); // 0.1 to 0.8 ms
     }
 
     void VoxelRenderer::SetupDescriptors() {
