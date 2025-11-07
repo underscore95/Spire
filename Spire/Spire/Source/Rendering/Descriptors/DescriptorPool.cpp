@@ -5,12 +5,10 @@
 #include "DescriptorSetLayoutList.h"
 #include "Rendering/RenderingManager.h"
 
-namespace Spire
-{
+namespace Spire {
     DescriptorPool::DescriptorPool(
-        RenderingManager& renderingManager)
-        : m_renderingManager(renderingManager)
-    {
+        RenderingManager &renderingManager)
+        : m_renderingManager(renderingManager) {
         // Generate pool sizes
         std::vector<VkDescriptorPoolSize> sizes;
 
@@ -37,39 +35,32 @@ namespace Spire
         };
 
         VkResult res = vkCreateDescriptorPool(renderingManager.GetDevice(), &poolInfo, nullptr, &m_descriptorPool);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to create descriptor pool");
-        }
-        else
-        {
+        } else {
             info("Created descriptor pool");
         }
     }
 
-    DescriptorPool::~DescriptorPool()
-    {
+    DescriptorPool::~DescriptorPool() {
         assert(m_numAllocatedSets == 0);
 
         vkDestroyDescriptorPool(m_renderingManager.GetDevice(), m_descriptorPool, nullptr);
     }
 
     std::vector<DescriptorSet> DescriptorPool::Allocate(
-        const DescriptorSetLayoutList& descriptorsLists
-    )
-    {
+        const DescriptorSetLayoutList &descriptorsLists
+    ) {
         // Generate layouts
         std::vector<VkDescriptorSetLayout> layouts;
         layouts.reserve(descriptorsLists.Size());
 
-        for (const auto& descriptors : descriptorsLists.GetDescriptorSets())
-        {
+        for (const auto &descriptors : descriptorsLists.GetDescriptorSets()) {
             std::unordered_set<glm::u32> usedBindings;
             std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
             layoutBindings.reserve(descriptors.size());
 
-            for (const auto& descriptor : descriptors)
-            {
+            for (const auto &descriptor : descriptors) {
                 // check bindings are unique
                 assert(!usedBindings.contains(descriptor.Binding));
                 usedBindings.insert(descriptor.Binding);
@@ -78,7 +69,7 @@ namespace Spire
                 layoutBindings.push_back({
                     .binding = descriptor.Binding,
                     .descriptorType = descriptor.ResourceType,
-                    .descriptorCount = descriptor.NumResources,
+                    .descriptorCount = static_cast<glm::u32>(descriptor.Resources.size()),
                     .stageFlags = descriptor.Stages,
                 });
             }
@@ -94,8 +85,7 @@ namespace Spire
             VkDescriptorSetLayout layout = VK_NULL_HANDLE;
             VkResult res = vkCreateDescriptorSetLayout(m_renderingManager.GetDevice(), &layoutInfo, nullptr, &layout);
             layouts.push_back(layout);
-            if (res != VK_SUCCESS)
-            {
+            if (res != VK_SUCCESS) {
                 error("Failed to create descriptor set layout");
             }
         }
@@ -114,17 +104,14 @@ namespace Spire
 
         VkResult res = vkAllocateDescriptorSets(m_renderingManager.GetDevice(), &allocInfo, rawDescriptorSets.data());
 
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to allocate descriptor sets");
-        }
-        else m_numAllocatedSets += descriptorsLists.Size();
+        } else m_numAllocatedSets += descriptorsLists.Size();
 
         // Convert to our wrapper
         std::vector<DescriptorSet> descriptorSets;
         descriptorSets.reserve(rawDescriptorSets.size());
-        for (int i = 0; i < rawDescriptorSets.size(); i++)
-        {
+        for (int i = 0; i < rawDescriptorSets.size(); i++) {
             descriptorSets.push_back(DescriptorSet{
                 .Descriptors = descriptorsLists.GetSet(i),
                 .Layout = layouts[i],
@@ -134,16 +121,14 @@ namespace Spire
         return descriptorSets;
     }
 
-    void DescriptorPool::Free(const std::vector<DescriptorSet>& descriptorSets)
-    {
+    void DescriptorPool::Free(const std::vector<DescriptorSet> &descriptorSets) {
         assert(m_numAllocatedSets >= descriptorSets.size());
         assert(!descriptorSets.empty());
 
         // Convert from our wrapper to vulkan handles
         std::vector<VkDescriptorSet> vulkanDescriptorSets;
         vulkanDescriptorSets.resize(descriptorSets.size());
-        for (glm::u32 i = 0; i < descriptorSets.size(); i++)
-        {
+        for (glm::u32 i = 0; i < descriptorSets.size(); i++) {
             vulkanDescriptorSets[i] = descriptorSets[i].Handle;
         }
 
@@ -154,15 +139,12 @@ namespace Spire
             vulkanDescriptorSets.size(),
             vulkanDescriptorSets.data()
         );
-        for (int i = 0; i < descriptorSets.size(); i++)
-        {
+        for (int i = 0; i < descriptorSets.size(); i++) {
             vkDestroyDescriptorSetLayout(m_renderingManager.GetDevice(), descriptorSets[i].Layout, nullptr);
         }
 
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to free descriptor sets");
-        }
-        else m_numAllocatedSets -= descriptorSets.size();
+        } else m_numAllocatedSets -= descriptorSets.size();
     }
 }

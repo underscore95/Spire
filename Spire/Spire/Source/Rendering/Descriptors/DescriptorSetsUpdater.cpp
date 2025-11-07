@@ -25,7 +25,7 @@ namespace Spire
             for (const Descriptor& descriptor : descriptorSet.Descriptors)
             {
                 totalWriteDescriptorsRequired++;
-                totalDescriptorCount += descriptor.NumResources;
+                totalDescriptorCount += descriptor.Resources.size();
             }
         }
         m_writeDescriptorSets.reserve(totalWriteDescriptorsRequired);
@@ -37,22 +37,21 @@ namespace Spire
             const DescriptorSet& descriptorSet = descriptorSets[i];
             for (const Descriptor& descriptor : descriptorSet.Descriptors)
             {
-                assert(descriptor.ResourcePtrs.Raw != nullptr);
-                assert(descriptor.NumResources >= 1);
+                assert(!descriptor.Resources.empty());
 
                 VkWriteDescriptorSet writeDescriptorSet = {
                     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                     .dstSet = descriptorSet.Handle,
                     .dstBinding = descriptor.Binding,
                     .dstArrayElement = 0,
-                    .descriptorCount = descriptor.NumResources,
+                    .descriptorCount =static_cast<glm::u32>(descriptor.Resources.size()),
                     .descriptorType = descriptor.ResourceType,
                 };
 
                 // Descriptor infos
                 glm::u32 firstDescriptorInfoIndex = m_descriptorInfos.size();
 
-                for (glm::u32 resourceIndex = 0; resourceIndex < descriptor.NumResources; resourceIndex++)
+                for (glm::u32 resourceIndex = 0; resourceIndex < descriptor.Resources.size(); resourceIndex++)
                 {
                     DescriptorInfo descriptorInfo = {};
 
@@ -60,7 +59,7 @@ namespace Spire
                     if (IsBuffer(descriptor.ResourceType))
                     {
                         descriptorInfo.BufferInfo = {
-                            .buffer = descriptor.ResourcePtrs.Buffers[resourceIndex].Buffer,
+                            .buffer = descriptor.Resources[resourceIndex].Buffer->Buffer,
                             .offset = 0,
                             .range = VK_WHOLE_SIZE
                         };
@@ -69,7 +68,7 @@ namespace Spire
                     // Images
                     else if (IsImageSampler(descriptor.ResourceType))
                     {
-                        const VulkanImage& texture = descriptor.ResourcePtrs.Images[resourceIndex];
+                        const VulkanImage& texture = *descriptor.Resources[resourceIndex].Image;
                         descriptorInfo.ImageInfo = {
                             .sampler = texture.Sampler,
                             .imageView = texture.ImageView,

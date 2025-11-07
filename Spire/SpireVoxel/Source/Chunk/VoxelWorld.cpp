@@ -39,20 +39,28 @@ namespace SpireVoxel {
     }
 
     void VoxelWorld::CmdRender(VkCommandBuffer commandBuffer) {
-        for (auto &[_,chunk] : m_chunks) {
-            chunk.CmdBindIndexBuffer(commandBuffer);
-            chunk.CmdRender(commandBuffer);
-        }
+        vkCmdDraw(commandBuffer, 36 * 28, m_chunks.size(), 0, 0);
     }
 
     void VoxelWorld::PushDescriptors(Spire::DescriptorSetLayout &layout, glm::u32 binding) {
-        layout.reserve(layout.size() + m_chunks.size());
-        for (auto &[_,chunk] : m_chunks) {
-            std::optional<Spire::Descriptor> descriptor = chunk.GetDescriptor(binding);
-            if (descriptor) {
-                layout.push_back(descriptor.value());
-            }
+        std::vector<Spire::Descriptor::ResourcePtr> chunkVertexBufferPtrs;
+        chunkVertexBufferPtrs.reserve(m_chunks.size());
+        for (const auto &pair : m_chunks) {
+            if (!pair.second.HasMesh()) continue;
+            chunkVertexBufferPtrs.push_back({&pair.second.GetVertexBuffer()});
         }
+
+        Spire::Descriptor descriptor = {
+            .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .Binding = binding,
+            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+            .Resources = chunkVertexBufferPtrs,
+#ifndef NDEBUG
+            .DebugName = std::format("ChunkDescriptor ({} Vertex Datas)", chunkVertexBufferPtrs.size()),
+#endif
+        };
+
+        layout.push_back(descriptor);
     }
 
     std::size_t VoxelWorld::NumLoadedChunks() const {

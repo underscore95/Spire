@@ -5,6 +5,8 @@
 #include "Rendering/Core/Swapchain.h"
 #include "Rendering/Memory/VulkanBuffer.h"
 #include "Rendering/Memory/VulkanImage.h"
+#include "Utils/Log.h"
+#include "Utils/Timer.h"
 
 namespace Spire {
     DescriptorManager::DescriptorManager(
@@ -43,7 +45,7 @@ namespace Spire {
     void DescriptorManager::WriteDescriptor(glm::u32 setIndex, const Descriptor &descriptor) {
         VkDescriptorBufferInfo bufferInfo = {};
 
-        assert(descriptor.NumResources == 1); // won't work probably if not 1
+        assert(descriptor.Resources.size() == 1); // won't work probably if not 1
         assert(m_descriptorSets.size() > setIndex);
         const auto &set = m_descriptorSets[setIndex];
 
@@ -64,9 +66,9 @@ namespace Spire {
         assert(m_updater->IsSupportedResourceType(descriptor.ResourceType));
         if (m_updater->IsBuffer(descriptor.ResourceType)) {
             bufferInfo = {
-                descriptor.ResourcePtrs.Buffers->Buffer,
+                descriptor.Resources[0].Buffer->Buffer,
                 0,
-                descriptor.ResourcePtrs.Buffers->Size
+                descriptor.Resources[0].Buffer->Size,
             };
             write.pBufferInfo = &bufferInfo;
         } else if (m_updater->IsImageSampler(descriptor.ResourceType)) {

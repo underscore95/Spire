@@ -43,27 +43,23 @@ namespace SpireVoxel {
         // m_world->GetOnChunkLoadOrUnloadSubscribers().AddCallback([this]() { PrepareForRendering(); });
 
         Chunk &chunk = m_world->LoadChunk({0, 0, 0});
+        Chunk &chunk2 = m_world->LoadChunk({1, 0, 0});
 
         // Descriptors, pipeline, command buffers
         //  PrepareForRendering();
 
         // Update world
         chunk.SetVoxel({0, 0, 0}, 1);
-        PrepareForRendering();
+      //  PrepareForRendering();
 
         chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
+        chunk2.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 1);
 
-        auto t = chunk.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
-        assert(t);
-        // //        m_descriptorManager->
-        //                 VkWriteDescriptorSet write = {
-        //                     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        //                     .pNext = nullptr,
-        //                     .dstSet = m_descriptorManager->G
-        //                 };
-        //                vkUpdateDescriptorSets(rm.GetDevice(), 1, &write, 0, nullptr);
-        m_descriptorManager->WriteDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, *t);
-        CreateAndRecordCommandBuffers();
+        // auto t = chunk.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
+        // assert(t);
+        // m_descriptorManager->WriteDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, *t); // can't do this while a command buffer is pending
+        // CreateAndRecordCommandBuffers();
+        PrepareForRendering();
     }
 
     VoxelRenderer::~VoxelRenderer() {

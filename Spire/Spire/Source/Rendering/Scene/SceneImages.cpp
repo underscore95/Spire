@@ -23,13 +23,19 @@ namespace Spire {
     }
 
     Descriptor SceneImages::GetDescriptor(glm::u32 binding) const {
-        return {
+        Descriptor descriptor= {
             .ResourceType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .Binding = binding,
             .Stages = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .NumResources = static_cast<glm::u32>(m_loadedImages.size()),
-            .ResourcePtrs = m_loadedImages.data(),
+            .Resources={}
         };
+
+        descriptor.Resources.reserve(m_loadedImages.size());
+        for (const auto& image : m_loadedImages) {
+            descriptor.Resources.push_back({&image});
+        }
+
+        return descriptor;
     }
 
     glm::u32 SceneImages::NumLoadedImages() const {
