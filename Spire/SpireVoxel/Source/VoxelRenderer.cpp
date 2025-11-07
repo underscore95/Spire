@@ -49,14 +49,15 @@ namespace SpireVoxel {
 
         // Update world
         chunk.SetVoxel({0, 0, 0}, 1);
-        PrepareForRendering();
+      //  PrepareForRendering();
 
         chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
 
-        auto t = chunk.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
-        assert(t);
-        m_descriptorManager->WriteDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, *t); // can't do this while a command buffer is pending
-        CreateAndRecordCommandBuffers();
+        // auto t = chunk.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
+        // assert(t);
+        // m_descriptorManager->WriteDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, *t); // can't do this while a command buffer is pending
+        // CreateAndRecordCommandBuffers();
+        PrepareForRendering();
     }
 
     VoxelRenderer::~VoxelRenderer() {

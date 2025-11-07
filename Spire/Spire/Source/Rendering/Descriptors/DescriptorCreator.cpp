@@ -3,19 +3,16 @@
 #include "Rendering/Memory/VulkanImage.h"
 #include "Rendering/Memory/PerImageBuffer.h"
 
-namespace Spire
-{
+namespace Spire {
     DescriptorCreator::DescriptorCreator(glm::u32 numSwapchainImages)
-        : m_numSwapchainImages(numSwapchainImages)
-    {
+        : m_numSwapchainImages(numSwapchainImages) {
     }
 
     PerImageDescriptor DescriptorCreator::CreatePerImageUniformBuffer(
         glm::u32 binding,
-        const PerImageBuffer& buffer,
+        const PerImageBuffer &buffer,
         VkShaderStageFlags stages
-    ) const
-    {
+    ) const {
         return CreatePerImageDescriptor(
             binding,
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -26,9 +23,8 @@ namespace Spire
         );
     }
 
-    PerImageDescriptor DescriptorCreator::CreatePerImageStorageBuffer(glm::u32 binding, const PerImageBuffer& buffer,
-                                                                      VkShaderStageFlags stages) const
-    {
+    PerImageDescriptor DescriptorCreator::CreatePerImageStorageBuffer(glm::u32 binding, const PerImageBuffer &buffer,
+                                                                      VkShaderStageFlags stages) const {
         return CreatePerImageDescriptor(
             binding,
             VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -44,22 +40,25 @@ namespace Spire
         VkDescriptorType resourceType,
         glm::u32 numResourcesPerImage,
         glm::u32 resourceSize,
-        const void* resources,
+        const void *resources,
         VkShaderStageFlags stages
-    ) const
-    {
+    ) const {
         assert(resources != nullptr);
 
         PerImageDescriptor perImageDescriptor;
-        for (glm::u32 i = 0; i < m_numSwapchainImages; i++)
-        {
+        for (glm::u32 i = 0; i < m_numSwapchainImages; i++) {
             perImageDescriptor.Descriptors.push_back(Descriptor{
                 .ResourceType = resourceType,
                 .Binding = binding,
                 .Stages = stages,
-                .NumResources = numResourcesPerImage,
-                .ResourcePtrs = static_cast<const char*>(resources) + (resourceSize * i * numResourcesPerImage),
+                .Resources = {}
             });
+
+            perImageDescriptor.Descriptors.back().Resources.reserve(numResourcesPerImage);
+            const char *resourcesInThisImage = static_cast<const char *>(resources) + (resourceSize * i * numResourcesPerImage);
+            for (const char *resourcePtr = resourcesInThisImage; resourcePtr < resourcesInThisImage + resourceSize * numResourcesPerImage; resourcePtr += resourceSize) {
+                perImageDescriptor.Descriptors.back().Resources.push_back({resourcePtr});
+            }
         }
 
         return perImageDescriptor;

@@ -33,6 +33,7 @@ Hashing.h https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-valu
 
 Descriptor Indexing:
 - https://wickedengine.net/2021/04/bindless-descriptors/
-- 
+- https://chunkstories.xyz/blog/a-note-on-descriptor-indexing/
+- https://gist.github.com/DethRaid/0171f3cfcce51950ee4ef96c64f59617
 
 Chunk Stories: https://github.com/Hugobros3/chunkstories (Could be used for feasability demo, voxel game engine written in kotlin with vulkan and opengl backends, I *think* it is rasterization)

@@ -71,25 +71,12 @@ namespace SpireVoxel {
         vkCmdDrawIndexed(commandBuffer, m_numIndices, 1, 0, 0, 0);
     }
 
-    std::optional<Spire::Descriptor> Chunk::GetDescriptor(glm::u32 binding) {
-        if (m_vertexStorageBuffer.Buffer == VK_NULL_HANDLE) {
-            RegenerateMesh();
-        }
+    const Spire::VulkanBuffer &Chunk::GetVertexBuffer() const {
+        return m_vertexStorageBuffer;
+    }
 
-        if (m_numIndices == 0) return {};
-
-        return {
-            {
-                .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                .Binding = binding,
-                .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-                .NumResources = 1,
-                .ResourcePtrs = &m_vertexStorageBuffer,
-#ifndef NDEBUG
-                .DebugName = "ChunkDescriptor (Vertex Data)",
-#endif
-            }
-        };
+    bool Chunk::HasMesh() const {
+        return m_vertexStorageBuffer.Buffer != VK_NULL_HANDLE;
     }
 
     void Chunk::RegenerateMesh() {

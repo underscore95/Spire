@@ -14,9 +14,9 @@ namespace SpireVoxel {
 
         DISABLE_COPY(Chunk);
 
-        Chunk(Chunk&& other) noexcept;
+        Chunk(Chunk &&other) noexcept;
 
-        Chunk& operator=(Chunk&& other) noexcept;
+        Chunk &operator=(Chunk &&other) noexcept;
 
     public:
         void SetVoxel(glm::vec3 pos, std::int32_t type);
@@ -27,10 +27,11 @@ namespace SpireVoxel {
             VkCommandBuffer commandBuffer
         ) const;
 
-        void CmdRender(VkCommandBuffer commandBuffer
-        ) const;
+        void CmdRender(VkCommandBuffer commandBuffer) const;
 
-        [[nodiscard]] std::optional<Spire::Descriptor> GetDescriptor(glm::u32 binding);
+        [[nodiscard]] const Spire::VulkanBuffer& GetVertexBuffer() const;
+
+        [[nodiscard]] bool HasMesh() const;
 
     private:
         void RegenerateMesh();
