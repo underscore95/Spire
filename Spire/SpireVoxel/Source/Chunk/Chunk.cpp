@@ -60,6 +60,10 @@ namespace SpireVoxel {
         return m_vertexStorageBuffer.Buffer != VK_NULL_HANDLE;
     }
 
+    ChunkData Chunk::GetChunkData() const {
+        return {m_vertexStorageBuffer.Count};
+    }
+
     void Chunk::RegenerateMesh() {
         // generate vertices & indices
         std::vector<VertexData> vertices;

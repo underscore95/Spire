@@ -5,30 +5,35 @@
 #include "ShaderInfo.h"
 
 layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING) readonly buffer Vertices {
-	VertexData data[];
+    VertexData data[];
 } in_Vertices[];
 
 layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING) readonly uniform CameraBuffer { mat4 ViewProjectionMatrix; } cameraBuffer;
 
-struct ModelData
-{
-	mat4 ModelMatrix;
-};
-
-//layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_SHADER_BINDINGS_MODEL_DATA_SSBO_BINDING) readonly buffer ModelDataBuffer { ModelData modelData[]; } modelDataBuffer;
+layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING) readonly buffer ChunkDataBuffer {
+    ChunkData chunkDatas[];
+} chunkDataBuffer;
 
 layout (location = 0) out vec2 texCoord;
+layout (location = 1) flat out int shouldDiscard;
 
 void main()
 {
-	VertexData vtx = in_Vertices[gl_InstanceIndex].data[gl_VertexIndex];
+    if (gl_VertexIndex >= chunkDataBuffer.chunkDatas[gl_InstanceIndex].NumVertices) {
+        shouldDiscard = 1;
+        return;
+    }
 
-	vec3 pos = vec3(vtx.x, vtx.y, vtx.z);
+    VertexData vtx = in_Vertices[gl_InstanceIndex].data[gl_VertexIndex];
 
-	gl_Position = cameraBuffer.ViewProjectionMatrix * vec4(pos, 1.0);
+    vec3 pos = vec3(vtx.x, vtx.y, vtx.z);
 
-	texCoord = vec2(vtx.u, vtx.v);
-	texCoord.x *= 0.5;
+    gl_Position = cameraBuffer.ViewProjectionMatrix * vec4(pos, 1.0);
 
-	if (vtx.VoxelType == 2) texCoord.x += 0.5;
+    texCoord = vec2(vtx.u, vtx.v);
+    texCoord.x *= 0.5;
+
+    if (vtx.VoxelType == 2) texCoord.x += 0.5;
+
+    shouldDiscard = 0;
 }

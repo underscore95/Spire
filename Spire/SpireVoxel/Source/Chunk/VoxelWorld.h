@@ -5,25 +5,33 @@
 namespace SpireVoxel {
     class VoxelWorld {
     public:
-        VoxelWorld(Spire::RenderingManager& renderingManager);
+        explicit VoxelWorld(Spire::RenderingManager &renderingManager);
+
+        ~VoxelWorld();
 
     public:
-        Chunk& LoadChunk(glm::ivec3 chunkPosition);
-        void LoadChunks(const std::vector<glm::ivec3>& chunkPositions);
+        Chunk &LoadChunk(glm::ivec3 chunkPosition);
+
+        void LoadChunks(const std::vector<glm::ivec3> &chunkPositions);
 
         void UnloadChunk(glm::ivec3 chunkPosition);
 
-        DelegateSubscribers<> &GetOnChunkLoadOrUnloadSubscribers();
+        DelegateSubscribers<> &GetOnPipelineRecreationRequiredSubscribers();
 
         void CmdRender(VkCommandBuffer commandBuffer);
 
-        void PushDescriptors(Spire::DescriptorSetLayout &layout, glm::u32 binding);
+        void PushDescriptors(Spire::DescriptorSetLayout &constantDataLayout, Spire::DescriptorSetLayout &chunkVertexBuffersLayout);
 
-        std::size_t NumLoadedChunks() const;
+        [[nodiscard]] std::size_t NumLoadedChunks() const;
+
+        void CreateChunkDatasBuffer();
+    private:
+        void FreeChunkDatasBuffer();
 
     private:
-        Spire::RenderingManager& m_renderingManager;
-        std::unordered_map<glm::ivec3, Chunk> m_chunks;
-        Delegate<> m_onChunkLoadOrUnloadDelegate;
+        Spire::RenderingManager &m_renderingManager;
+        std::unordered_map<glm::ivec3, Chunk> m_chunks; // https://en.cppreference.com/w/cpp/container/unordered_map.html - always iterates in the same order if the map hasnt been changed
+        Delegate<> m_onPipelineRecreationRequiredDelegate;
+        Spire::VulkanBuffer m_chunkDatasBuffer;
     };
 } // SpireVoxel

@@ -27,6 +27,8 @@ namespace SpireVoxel {
 
         [[nodiscard]] bool HasMesh() const;
 
+        ChunkData GetChunkData() const;
+
     private:
         void RegenerateMesh();
 

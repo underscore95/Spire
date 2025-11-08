@@ -6,10 +6,6 @@
 
 using namespace Spire;
 
-struct ModelData {
-    glm::mat4x4 ModelMatrix = glm::identity<glm::mat4x4>();
-};
-
 constexpr glm::u32 NUM_CHUNKS = 1;
 
 namespace SpireVoxel {
@@ -50,15 +46,16 @@ namespace SpireVoxel {
 
         // Update world
         chunk.SetVoxel({0, 0, 0}, 1);
-      //  PrepareForRendering();
+        //  PrepareForRendering();
 
         chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
-        chunk2.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 1);
+        chunk2.SetVoxelRect({2, 2, 2}, {1, 2, 2}, 1);
 
         // auto t = chunk.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
         // assert(t);
         // m_descriptorManager->WriteDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, *t); // can't do this while a command buffer is pending
         // CreateAndRecordCommandBuffers();
+        m_world->CreateChunkDatasBuffer();
         PrepareForRendering();
     }
 
@@ -137,35 +134,27 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::SetupDescriptors() {
-        DescriptorSetLayoutList layouts(m_engine.GetRenderingManager().GetSwapchain().GetNumImages()); {
-            // Constant set
-            assert(layouts.Size() == SPIRE_SHADER_BINDINGS_CONSTANT_SET);
+        DescriptorSetLayoutList layouts(m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
 
-            DescriptorSetLayout layout;
+        DescriptorSetLayout constantSet;
+        PerImageDescriptorSetLayout perFrameSet;
+        DescriptorSetLayout chunkSet;
 
-            // Images
-            layout.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
+        // Images
+        constantSet.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
 
-            layouts.Push(layout);
-        } {
-            assert(layouts.Size() == SPIRE_SHADER_BINDINGS_PER_FRAME_SET);
-            // Per frame set
-            PerImageDescriptorSetLayout layout;
+        // Camera
+        perFrameSet.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
 
-            // Camera
-            layout.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
+        // Chunks
+        m_world->PushDescriptors(constantSet, chunkSet);
 
-            layouts.Push(layout);
-        } {
-            // Constant set for chunks
-            assert(layouts.Size() == SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET);
-            DescriptorSetLayout layout;
-
-            // Chunks
-            m_world->PushDescriptors(layout, SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
-
-            layouts.Push(layout);
-        }
+        assert(layouts.Size() == SPIRE_SHADER_BINDINGS_CONSTANT_SET);
+        layouts.Push(constantSet);
+        assert(layouts.Size() == SPIRE_SHADER_BINDINGS_PER_FRAME_SET);
+        layouts.Push(perFrameSet);
+        assert(layouts.Size() == SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET);
+        layouts.Push(chunkSet);
 
         // Create descriptor manager
         m_descriptorManager = std::make_unique<DescriptorManager>(m_engine.GetRenderingManager(), layouts);
