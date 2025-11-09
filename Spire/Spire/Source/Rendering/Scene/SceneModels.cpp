@@ -68,8 +68,7 @@ namespace Spire
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = binding,
             .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-            .NumResources = 1,
-            .ResourcePtrs = &m_vertexStorageBuffer
+            .Resources = {{.Buffer = &m_vertexStorageBuffer}}
         };
     }
 

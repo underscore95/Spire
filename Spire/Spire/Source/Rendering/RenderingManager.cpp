@@ -338,7 +338,7 @@ namespace Spire
         m_deviceManager->UpdateSurfaceCapabilities();
 
         CreateSwapchain();
-        if (!m_swapchain || m_swapchain->IsValid()) error("Failed to recreate swapchain {}", static_cast<const void*>(m_swapchain.get()));
+        if (!m_swapchain || !m_swapchain->IsValid()) error("Failed to recreate swapchain {}", static_cast<const void*>(m_swapchain.get()));
         CreateQueue();
 
         FreeDepthResources();

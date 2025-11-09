@@ -12,25 +12,22 @@
 #include "RenderingDeviceManager.h"
 #include "Window/Window.h"
 
-namespace Spire
-{
+namespace Spire {
     static glm::u32 s_numSwapchainImages = -1;
 
     Swapchain::Swapchain(
         VkDevice device,
-        const PhysicalDevice& physicalDevice,
+        const PhysicalDevice &physicalDevice,
         glm::u32 deviceQueueFamily,
         VkSurfaceKHR surface,
-        const Window&)
-        : m_device(device)
-    {
+        const Window &)
+        : m_device(device) {
         // Create swapchain
         glm::u32 numImages = ChooseNumImages(physicalDevice.SurfaceCapabilities);
 
-        if (s_numSwapchainImages != -1 && s_numSwapchainImages != numImages)
-        {
+        if (s_numSwapchainImages != -1 && s_numSwapchainImages != numImages) {
             error("Swapchain was created with a new number of swapchain images! New: {} Old: {} New Device: {}",
-                          numImages, s_numSwapchainImages, physicalDevice.DeviceProperties.deviceName);
+                  numImages, s_numSwapchainImages, physicalDevice.DeviceProperties.deviceName);
             return;
         }
         s_numSwapchainImages = numImages;
@@ -60,12 +57,9 @@ namespace Spire
         };
 
         VkResult res = vkCreateSwapchainKHR(m_device, &swapChainCreateInfo, nullptr, &m_swapChain);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to create Vulkan swapchain");
-        }
-        else
-        {
+        } else {
             info("Created Vulkan swapchain");
             assert(m_swapChain);
         }
@@ -73,8 +67,7 @@ namespace Spire
         // Create swapchain images
         glm::u32 numSwapChainImages = 0;
         res = vkGetSwapchainImagesKHR(m_device, m_swapChain, &numSwapChainImages, nullptr);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to get number of swapchain images");
         }
         assert(numImages == numSwapChainImages);
@@ -85,13 +78,11 @@ namespace Spire
         m_imageViews.resize(numSwapChainImages);
 
         res = vkGetSwapchainImagesKHR(m_device, m_swapChain, &numSwapChainImages, m_images.data());
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to get swapchain images ({} known)", numSwapChainImages);
         }
 
-        for (glm::u32 i = 0; i < numSwapChainImages; i++)
-        {
+        for (glm::u32 i = 0; i < numSwapChainImages; i++) {
             int mipLevels = 1;
             int layerCount = 1;
             m_imageViews[i] = CreateImageView(
@@ -106,58 +97,46 @@ namespace Spire
         }
     }
 
-    Swapchain::~Swapchain()
-    {
-        for (auto& m_imageView : m_imageViews)
-        {
+    Swapchain::~Swapchain() {
+        for (auto &m_imageView : m_imageViews) {
             vkDestroyImageView(m_device, m_imageView, nullptr);
         }
 
-        if (m_swapChain)
-        {
+        if (m_swapChain) {
             vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
             info("Destroyed swapchain");
         }
     }
 
-    glm::u32 Swapchain::GetNumImages() const
-    {
+    glm::u32 Swapchain::GetNumImages() const {
         return m_images.size();
     }
 
-    const VkImage& Swapchain::GetImage(glm::u32 index) const
-    {
+    const VkImage &Swapchain::GetImage(glm::u32 index) const {
         assert(index < m_images.size());
         return m_images[index];
     }
 
-    VkImageView Swapchain::GetImageView(glm::u32 index) const
-    {
+    VkImageView Swapchain::GetImageView(glm::u32 index) const {
         assert(index < m_imageViews.size());
         return m_imageViews[index];
     }
 
-    VkSurfaceFormatKHR Swapchain::GetSurfaceFormat() const
-    {
+    VkSurfaceFormatKHR Swapchain::GetSurfaceFormat() const {
         return m_swapChainSurfaceFormat;
     }
 
-    VkSwapchainKHR Swapchain::GetSwapchain() const
-    {
+    VkSwapchainKHR Swapchain::GetSwapchain() const {
         return m_swapChain;
     }
 
-    bool Swapchain::IsValid() const
-    {
-        return m_swapChain && !m_images.empty() && !m_imageViews.empty();
+    bool Swapchain::IsValid() const {
+        return m_swapChain != VK_NULL_HANDLE && !m_images.empty() && !m_imageViews.empty();
     }
 
-    VkPresentModeKHR Swapchain::ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes) const
-    {
-        for (const auto& presentMode : presentModes)
-        {
-            if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-            {
+    VkPresentModeKHR Swapchain::ChoosePresentMode(const std::vector<VkPresentModeKHR> &presentModes) const {
+        for (const auto &presentMode : presentModes) {
+            if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
                 return presentMode;
             }
         }
@@ -165,17 +144,13 @@ namespace Spire
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    glm::u32 Swapchain::ChooseNumImages(const VkSurfaceCapabilitiesKHR& capabilities) const
-    {
+    glm::u32 Swapchain::ChooseNumImages(const VkSurfaceCapabilitiesKHR &capabilities) const {
         glm::u32 requestedNumImages = capabilities.minImageCount + 1;
         glm::u32 finalNumImages = 0;
 
-        if ((capabilities.maxImageCount > 0) && (requestedNumImages > capabilities.maxImageCount))
-        {
+        if ((capabilities.maxImageCount > 0) && (requestedNumImages > capabilities.maxImageCount)) {
             finalNumImages = capabilities.maxImageCount;
-        }
-        else
-        {
+        } else {
             finalNumImages = requestedNumImages;
         }
 
@@ -183,13 +158,10 @@ namespace Spire
     }
 
     VkSurfaceFormatKHR Swapchain::ChooseSurfaceFormatAndColorSpace(
-        const std::vector<VkSurfaceFormatKHR>& surfaceFormats) const
-    {
-        for (const auto& surfaceFormat : surfaceFormats)
-        {
+        const std::vector<VkSurfaceFormatKHR> &surfaceFormats) const {
+        for (const auto &surfaceFormat : surfaceFormats) {
             if ((surfaceFormat.format == VK_FORMAT_B8G8R8A8_SRGB) &&
-                (surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR))
-            {
+                (surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)) {
                 return surfaceFormat;
             }
         }
@@ -198,9 +170,7 @@ namespace Spire
     }
 
     VkImageView Swapchain::CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
-                                           VkImageViewType viewType, glm::u32 layerCount, glm::u32 mipLevels) const
-
-    {
+                                           VkImageViewType viewType, glm::u32 layerCount, glm::u32 mipLevels) const {
         VkImageViewCreateInfo viewInfo =
         {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -226,8 +196,7 @@ namespace Spire
 
         VkImageView imageView;
         VkResult res = vkCreateImageView(device, &viewInfo, nullptr, &imageView);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to create image view");
         }
         return imageView;

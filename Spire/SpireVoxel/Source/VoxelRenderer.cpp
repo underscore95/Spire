@@ -1,16 +1,12 @@
 #include "VoxelRenderer.h"
 
 #include "Rendering/GameCamera.h"
-#include "Rendering/ObjectRenderer.h"
 #include "../Assets/Shaders/ShaderInfo.h"
+#include "Chunk/VoxelWorld.h"
 
 using namespace Spire;
 
-constexpr glm::u32 NUM_MODELS = 10000;
-
-struct ModelData {
-    glm::mat4x4 ModelMatrix;
-};
+constexpr glm::u32 NUM_CHUNKS = 1;
 
 namespace SpireVoxel {
     VoxelRenderer::VoxelRenderer(Spire::Engine &engine)
@@ -22,7 +18,7 @@ namespace SpireVoxel {
 
         // Shaders
         Timer shaderCompileTimer;
-        shaderCompileTimer.Start();
+        shaderCompileTimer.Restart();
         ShaderCompiler compiler(rm.GetDevice());
         info("Created shader compiler");
         compiler.CreateShaderModuleAsync(&m_vertexShader, std::format("{}/Shaders/test.vert", ASSETS_DIRECTORY));
@@ -32,48 +28,49 @@ namespace SpireVoxel {
         assert(m_fragmentShader != VK_NULL_HANDLE);
         info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
-        // Models
-        std::vector<std::string> imagesToLoad = CreateModels();
-
-        m_cubeRenderer = std::make_unique<ObjectRenderer>(*m_models, rm, 0, static_cast<glm::u32>(sizeof(ModelData)), NUM_MODELS);
-        glm::u32 i = std::ceil(std::cbrt(static_cast<double>(NUM_MODELS)));
-        std::vector<ModelData> datas;
-        datas.resize(NUM_MODELS);
-        glm::u32 index = 0;
-        for (glm::u32 x = 0; x < i; x++) {
-            for (glm::u32 y = 0; y < i; y++) {
-                for (glm::u32 z = 0; z < i; z++) {
-                    if (index >= NUM_MODELS) break;
-                    float scale = 1; // 0.1f;
-                    float d = 5 * scale;
-                    datas[index] = {
-                        .ModelMatrix = glm::scale(
-                            glm::translate(
-                                glm::identity<glm::mat4>(), {x * d, y * d, z * d}),
-                            glm::vec3{1, 1, 1} * scale)
-                    };
-                    index++;
-                }
-            }
-        }
-        for (glm::u32 j = 0; j < rm.GetSwapchain().GetNumImages(); j++) {
-            m_cubeRenderer->SetModelDatas(j, 0, NUM_MODELS, datas.data());
-        }
-
         // Images
+        std::vector<std::string> imagesToLoad = {"test.png"};
+
         assert(imagesToLoad.size() == SPIRE_SHADER_TEXTURE_COUNT);
         m_sceneImages = std::make_unique<SceneImages>(rm,ASSETS_DIRECTORY, imagesToLoad);
 
-        // Descriptors
-        SetupDescriptors();
+        // World
+        m_world = std::make_unique<VoxelWorld>(rm);
+        m_world->GetOnWorldEditSubscribers().AddCallback([this](VoxelWorld::WorldEditRequiredChanges changes) {
+            if (changes.RecreatePipeline) {
+                // Takes 1.6ms on my PC
+                SetupDescriptors();
+                SetupGraphicsPipeline();
+                CreateAndRecordCommandBuffers();
+            } else if (changes.RecreateOnlyCommandBuffers) {
+                CreateAndRecordCommandBuffers();
+            } else
+                assert(false);
+        });
 
-        // Pipeline
-        SetupGraphicsPipeline();
+        // load 3x1x3 chunks around 0,0,0
+        m_world->LoadChunks({
+            {-1, 0, -1},
+            {-1, 0, 0},
+            {-1, 0, 1},
+            {0, 0, -1},
+            {0, 0, 0},
+            {0, 0, 1},
+            {1, 0, -1},
+            {1, 0, 0},
+            {1, 0, 1},
+        });
 
-        // Command buffers
-        m_commandBuffers.resize(rm.GetSwapchain().GetNumImages());
-        rm.GetCommandManager().CreateCommandBuffers(rm.GetSwapchain().GetNumImages(), m_commandBuffers.data());
-        RecordCommandBuffers();
+        Chunk *chunk = m_world->GetLoadedChunk({0, 0, 0});
+        assert(chunk);
+        Chunk *chunk2 = m_world->GetLoadedChunk({1, 0, 0});
+        assert(chunk2);
+
+        // Update world
+        chunk->SetVoxel({0, 0, 0}, 1);
+
+        chunk->SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
+        chunk2->SetVoxelRect({2, 2, 2}, {1, 2, 2}, 1);
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -95,7 +92,9 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::OnWindowResize() {
-        RecordCommandBuffers();
+        SetupDescriptors();
+        SetupGraphicsPipeline();
+        CreateAndRecordCommandBuffers();
     }
 
     void VoxelRenderer::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const {
@@ -112,8 +111,19 @@ namespace SpireVoxel {
         rm.GetRenderer().BeginDynamicRendering(commandBuffer, imageIndex, &clearColor, &clearDepthValue);
     }
 
-    void VoxelRenderer::RecordCommandBuffers() const {
+    void VoxelRenderer::CreateAndRecordCommandBuffers() {
+        Timer timer;
+
         auto &rm = m_engine.GetRenderingManager();
+
+        // free any existing command buffers
+        if (!m_commandBuffers.empty()) {
+            rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
+            m_commandBuffers.clear();
+        }
+
+        m_commandBuffers.resize(rm.GetSwapchain().GetNumImages());
+        rm.GetCommandManager().CreateCommandBuffers(rm.GetSwapchain().GetNumImages(), m_commandBuffers.data());
 
         for (int i = 0; i < m_commandBuffers.size(); ++i) {
             VkCommandBuffer commandBuffer = m_commandBuffers[i];
@@ -125,63 +135,42 @@ namespace SpireVoxel {
             m_graphicsPipeline->CmdBindTo(commandBuffer);
             m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 0, 0);
             m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 1, 1);
+            m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 4, 4);
 
             m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine.GetWindow().GetDimensions());
 
-            m_models->CmdBindIndexBuffer(commandBuffer);
-            //   m_models->CmdRenderModels(commandBuffer, *m_graphicsPipeline, 0, 1);
-            m_cubeRenderer->CmdRender(commandBuffer, *m_graphicsPipeline, NUM_MODELS, false);
+            m_world->CmdRender(commandBuffer);
 
             vkCmdEndRendering(commandBuffer);
 
             rm.GetCommandManager().EndCommandBuffer(commandBuffer);
         }
 
-        info("Command buffers recorded");
-    }
-
-    std::vector<std::string> VoxelRenderer::CreateModels() {
-        std::vector<std::string> imagesToLoad;
-        std::vector<Model> models;
-
-        auto fileName = std::format("{}/Cube.obj", ASSETS_DIRECTORY);
-        models.push_back(ModelLoader::LoadModel(ASSETS_DIRECTORY, fileName.c_str(), imagesToLoad));
-
-        m_models = std::make_unique<SceneModels>(
-            m_engine.GetRenderingManager(),
-            models
-        );
-
-        return imagesToLoad;
+        info("Command buffers recorded in {} ms", timer.MillisSinceStart()); // 0.1 to 0.8 ms
     }
 
     void VoxelRenderer::SetupDescriptors() {
-        DescriptorSetLayoutList layouts(m_engine.GetRenderingManager().GetSwapchain().GetNumImages()); {
-            // Constant set
-            assert(layouts.Size() == SPIRE_SHADER_BINDINGS_CONSTANT_SET);
+        DescriptorSetLayoutList layouts(m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
 
-            DescriptorSetLayout layout;
+        DescriptorSetLayout constantSet;
+        PerImageDescriptorSetLayout perFrameSet;
+        DescriptorSetLayout chunkSet;
 
-            // ModelVertex buffer
-            layout.push_back(m_models->GetDescriptor(SPIRE_SHADER_BINDINGS_VERTEX_SSBO_BINDING));
+        // Images
+        constantSet.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
 
-            // Images
-            layout.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
+        // Camera
+        perFrameSet.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
 
-            layouts.Push(layout);
-        } {
-            assert(layouts.Size() == SPIRE_SHADER_BINDINGS_PER_FRAME_SET);
-            // Per frame set
-            PerImageDescriptorSetLayout layout;
+        // Chunks
+        m_world->PushDescriptors(constantSet, chunkSet);
 
-            // Camera
-            layout.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
-
-            // Model data
-            layout.push_back(m_cubeRenderer->GetDescriptor());
-
-            layouts.Push(layout);
-        }
+        assert(layouts.Size() == SPIRE_SHADER_BINDINGS_CONSTANT_SET);
+        layouts.Push(constantSet);
+        assert(layouts.Size() == SPIRE_SHADER_BINDINGS_PER_FRAME_SET);
+        layouts.Push(perFrameSet);
+        assert(layouts.Size() == SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET);
+        layouts.Push(chunkSet);
 
         // Create descriptor manager
         m_descriptorManager = std::make_unique<DescriptorManager>(m_engine.GetRenderingManager(), layouts);
@@ -209,7 +198,7 @@ namespace SpireVoxel {
         rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
         info("Freed command buffers");
 
-        m_models.reset();
+        m_world.reset();
         m_camera.reset();
 
         m_sceneImages.reset();

@@ -16,12 +16,11 @@ namespace Spire {
 
         void Update();
 
-    private:
-        bool IsBuffer(VkDescriptorType resourceType) const;
+        [[nodiscard]] bool IsBuffer(VkDescriptorType resourceType) const;
 
-        bool IsImageSampler(VkDescriptorType resourceType) const;
+        [[nodiscard]] bool IsImageSampler(VkDescriptorType resourceType) const;
 
-        bool IsSupportedResourceType(VkDescriptorType resourceType) const;
+        [[nodiscard]] bool IsSupportedResourceType(VkDescriptorType resourceType) const;
 
     private:
         VkDevice m_device;
