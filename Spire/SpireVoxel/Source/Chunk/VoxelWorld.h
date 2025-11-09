@@ -20,6 +20,8 @@ namespace SpireVoxel {
 
         void LoadChunks(const std::vector<glm::ivec3> &chunkPositions);
 
+        [[nodiscard]] Chunk* GetLoadedChunk(glm::ivec3 chunkPosition) ;
+
         DelegateSubscribers<WorldEditRequiredChanges> &GetOnWorldEditSubscribers();
 
         void CmdRender(VkCommandBuffer commandBuffer);
@@ -42,5 +44,6 @@ namespace SpireVoxel {
         Delegate<WorldEditRequiredChanges> m_onWorldEditedDelegate;
         Spire::VulkanBuffer m_chunkDatasBuffer; // todo one per frame?
         Spire::VulkanBuffer m_dummyVertexBuffer; // used when no loaded chunks have a mesh so we can still push a descriptor for vertex buffer
+        Spire::VulkanBuffer m_dummyChunkDataBuffer; // used when no loaded chunks have a mesh so we can still push a descriptor for chunk data buffer
     };
 } // SpireVoxel

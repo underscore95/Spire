@@ -48,14 +48,29 @@ namespace SpireVoxel {
                 assert(false);
         });
 
-        Chunk &chunk = m_world->LoadChunk({0, 0, 0});
-        Chunk &chunk2 = m_world->LoadChunk({1, 0, 0});
+        // load 3x1x3 chunks around 0,0,0
+        m_world->LoadChunks({
+            {-1, 0, -1},
+            {-1, 0, 0},
+            {-1, 0, 1},
+            {0, 0, -1},
+            {0, 0, 0},
+            {0, 0, 1},
+            {1, 0, -1},
+            {1, 0, 0},
+            {1, 0, 1},
+        });
+
+        Chunk *chunk = m_world->GetLoadedChunk({0, 0, 0});
+        assert(chunk);
+        Chunk *chunk2 = m_world->GetLoadedChunk({1, 0, 0});
+        assert(chunk2);
 
         // Update world
-        chunk.SetVoxel({0, 0, 0}, 1);
+        chunk->SetVoxel({0, 0, 0}, 1);
 
-        chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
-        chunk2.SetVoxelRect({2, 2, 2}, {1, 2, 2}, 1);
+        chunk->SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
+        chunk2->SetVoxelRect({2, 2, 2}, {1, 2, 2}, 1);
     }
 
     VoxelRenderer::~VoxelRenderer() {
