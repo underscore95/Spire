@@ -3,21 +3,25 @@
 namespace SpireVoxel {
     VoxelWorld::VoxelWorld(Spire::RenderingManager &renderingManager)
         : m_renderingManager(renderingManager),
-          m_onPipelineRecreationRequiredDelegate() {
+          m_onWorldEditedDelegate() {
+        CreateOrUpdateChunkDatasBuffer();
 
+        VertexData dummy = {};
+        m_dummyVertexBuffer = renderingManager.GetBufferManager().CreateStorageBuffer(&dummy, sizeof(dummy), sizeof(dummy));
     }
 
     VoxelWorld::~VoxelWorld() {
         FreeChunkDatasBuffer();
+        m_renderingManager.GetBufferManager().DestroyBuffer(m_dummyVertexBuffer);
     }
 
     Chunk &VoxelWorld::LoadChunk(glm::ivec3 chunkPosition) {
         auto it = m_chunks.find(chunkPosition);
         if (it != m_chunks.end()) return it->second;
 
-        m_chunks.try_emplace(chunkPosition, m_renderingManager, chunkPosition);
-        CreateChunkDatasBuffer();
-        m_onPipelineRecreationRequiredDelegate.Broadcast();
+        m_chunks.try_emplace(chunkPosition, m_renderingManager, chunkPosition, *this);
+        CreateOrUpdateChunkDatasBuffer();
+        m_onWorldEditedDelegate.Broadcast({true, false});
         return m_chunks.find(chunkPosition)->second;
     }
 
@@ -26,29 +30,23 @@ namespace SpireVoxel {
 
         for (auto chunkPosition : chunkPositions) {
             if (m_chunks.contains(chunkPosition)) continue;
-            m_chunks.try_emplace(chunkPosition, m_renderingManager, chunkPosition);
+            m_chunks.try_emplace(chunkPosition, m_renderingManager, chunkPosition, *this);
             loadedAnyChunks = true;
         }
 
-        if (loadedAnyChunks) {  CreateChunkDatasBuffer();
-            m_onPipelineRecreationRequiredDelegate.Broadcast();
+        if (loadedAnyChunks) {
+            CreateOrUpdateChunkDatasBuffer();
+            m_onWorldEditedDelegate.Broadcast({true, false});
         }
     }
 
-    void VoxelWorld::UnloadChunk(glm::ivec3 chunkPosition) {
-        m_chunks.erase(chunkPosition);
-        m_onPipelineRecreationRequiredDelegate.Broadcast();
-        // todo handle chunk data
-        // todo handle chunk data when changing voxels
-    }
-
-    DelegateSubscribers<> &VoxelWorld::GetOnPipelineRecreationRequiredSubscribers() {
-        return m_onPipelineRecreationRequiredDelegate;
+    DelegateSubscribers<VoxelWorld::WorldEditRequiredChanges> &VoxelWorld::GetOnWorldEditSubscribers() {
+        return m_onWorldEditedDelegate;
     }
 
     void VoxelWorld::CmdRender(VkCommandBuffer commandBuffer) {
         glm::u32 numVerticesToRender = 0;
-        for (auto&[_,chunk] : m_chunks) {
+        for (auto &[_,chunk] : m_chunks) {
             numVerticesToRender = std::max(numVerticesToRender, chunk.GetChunkData().NumVertices);
         }
 
@@ -63,13 +61,18 @@ namespace SpireVoxel {
             chunkVertexBufferPtrs.push_back({&pair.second.GetVertexBuffer()});
         }
 
+        bool useDummyVertexBuffer = chunkVertexBufferPtrs.empty();
+        if (useDummyVertexBuffer) {
+            chunkVertexBufferPtrs.push_back({.Buffer = &m_dummyVertexBuffer});
+        }
+
         Spire::Descriptor descriptor = {
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING,
             .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-            .Resources = chunkVertexBufferPtrs,
+            .Resources = chunkVertexBufferPtrs, // todo combine everything into a single buffer?
 #ifndef NDEBUG
-            .DebugName = std::format("ChunkDescriptor ({} Vertex Datas)", chunkVertexBufferPtrs.size()),
+            .DebugName = useDummyVertexBuffer ? "Dummy Chunk Vertex Datas" : std::format("Chunk Vertex Datas ({} chunks)", chunkVertexBufferPtrs.size()),
 #endif
         };
         chunkVertexBuffersLayout.push_back(descriptor);
@@ -90,9 +93,7 @@ namespace SpireVoxel {
         return m_chunks.size();
     }
 
-    void VoxelWorld::CreateChunkDatasBuffer() {
-        if (m_chunks.empty()) return;
-
+    void VoxelWorld::CreateOrUpdateChunkDatasBuffer() {
         // get chunk datas
         std::vector<ChunkData> chunkDatas;
         chunkDatas.reserve(m_chunks.size());
@@ -100,13 +101,33 @@ namespace SpireVoxel {
             chunkDatas.push_back(chunk.GetChunkData());
         }
 
-        const glm::u32 requiredBufferSize = sizeof(chunkDatas[0]) * chunkDatas.size();
-        if (m_chunkDatasBuffer.Count >= m_chunks.size()) {
-            // reuse buffer
-            m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer, chunkDatas.data(), requiredBufferSize, 0);
-        } else {
-            FreeChunkDatasBuffer();
-            m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(chunkDatas.data(), requiredBufferSize, sizeof(chunkDatas[0]));
+        if (!m_chunks.empty()) {
+            const glm::u32 requiredBufferSize = sizeof(chunkDatas[0]) * chunkDatas.size();
+            if (m_chunkDatasBuffer.Count >= m_chunks.size()) {
+                // reuse buffer
+                m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer, chunkDatas.data(), requiredBufferSize, 0);
+            } else {
+                FreeChunkDatasBuffer();
+                m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(chunkDatas.data(), requiredBufferSize, sizeof(chunkDatas[0]));
+            }
+        } else if (m_chunkDatasBuffer.Buffer != VK_NULL_HANDLE) {
+            // create a dummy buffer
+            ChunkData tmp = {};
+            m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(&tmp, sizeof(tmp), sizeof(tmp));
+        }
+    }
+
+    void VoxelWorld::OnChunkEdited(Chunk &chunk, glm::u32 oldVertexCount) {
+        ChunkData data = chunk.GetChunkData();
+        if (data.NumVertices != oldVertexCount) {
+            glm::u32 index = 0;
+            for (auto &[_,c] : m_chunks) {
+                if (&c == &chunk) break;
+                index++;
+            }
+
+            m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer, &data, sizeof(data), index * sizeof(data));
+            m_onWorldEditedDelegate.Broadcast(oldVertexCount != 0 ? WorldEditRequiredChanges{false, true} : WorldEditRequiredChanges{true, false});
         }
     }
 

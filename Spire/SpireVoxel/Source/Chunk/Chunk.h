@@ -4,11 +4,15 @@
 #include "../../Assets/Shaders/ShaderInfo.h"
 
 namespace SpireVoxel {
+    class VoxelWorld;
+}
+
+namespace SpireVoxel {
     static constexpr int VOXEL_TYPE_AIR = 0;
 
     class Chunk {
     public:
-        explicit Chunk(Spire::RenderingManager &renderingManager, glm::ivec3 chunkPosition);
+        explicit Chunk(Spire::RenderingManager &renderingManager, glm::ivec3 chunkPosition, VoxelWorld& world);
 
         ~Chunk();
 
@@ -27,9 +31,10 @@ namespace SpireVoxel {
 
         [[nodiscard]] bool HasMesh() const;
 
-        ChunkData GetChunkData() const;
+        [[nodiscard]] ChunkData GetChunkData() const;
 
     private:
+        void OnChunkEdited();
         void RegenerateMesh();
 
         void FreeBuffersIfAllocated();
@@ -41,6 +46,8 @@ namespace SpireVoxel {
 
         std::array<std::int32_t, SPIRE_VOXEL_CHUNK_VOLUME> m_voxelData{};
 
-        Spire::VulkanBuffer m_vertexStorageBuffer;
+        Spire::VulkanBuffer m_vertexStorageBuffer; // todo keep old buffers around until in flight frames are done with them, but in a way where we don't need 3 meshes all the time
+
+        VoxelWorld& m_world;
     };
 } // SpireVoxel

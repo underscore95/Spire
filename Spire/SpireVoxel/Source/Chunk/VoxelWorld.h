@@ -5,6 +5,12 @@
 namespace SpireVoxel {
     class VoxelWorld {
     public:
+        struct WorldEditRequiredChanges {
+            bool RecreatePipeline;
+            bool RecreateOnlyCommandBuffers;
+        };
+
+    public:
         explicit VoxelWorld(Spire::RenderingManager &renderingManager);
 
         ~VoxelWorld();
@@ -14,9 +20,7 @@ namespace SpireVoxel {
 
         void LoadChunks(const std::vector<glm::ivec3> &chunkPositions);
 
-        void UnloadChunk(glm::ivec3 chunkPosition);
-
-        DelegateSubscribers<> &GetOnPipelineRecreationRequiredSubscribers();
+        DelegateSubscribers<WorldEditRequiredChanges> &GetOnWorldEditSubscribers();
 
         void CmdRender(VkCommandBuffer commandBuffer);
 
@@ -24,14 +28,19 @@ namespace SpireVoxel {
 
         [[nodiscard]] std::size_t NumLoadedChunks() const;
 
-        void CreateChunkDatasBuffer();
+        void CreateOrUpdateChunkDatasBuffer();
+
+        void OnChunkEdited(Chunk &chunk, glm::u32 oldVertexCount);
+
     private:
         void FreeChunkDatasBuffer();
 
     private:
         Spire::RenderingManager &m_renderingManager;
-        std::unordered_map<glm::ivec3, Chunk> m_chunks; // https://en.cppreference.com/w/cpp/container/unordered_map.html - always iterates in the same order if the map hasnt been changed
-        Delegate<> m_onPipelineRecreationRequiredDelegate;
-        Spire::VulkanBuffer m_chunkDatasBuffer;
+        std::unordered_map<glm::ivec3, Chunk> m_chunks;
+        // https://en.cppreference.com/w/cpp/container/unordered_map.html - always iterates in the same order if the map hasnt been changed
+        Delegate<WorldEditRequiredChanges> m_onWorldEditedDelegate;
+        Spire::VulkanBuffer m_chunkDatasBuffer; // todo one per frame?
+        Spire::VulkanBuffer m_dummyVertexBuffer; // used when no loaded chunks have a mesh so we can still push a descriptor for vertex buffer
     };
 } // SpireVoxel

@@ -36,27 +36,26 @@ namespace SpireVoxel {
 
         // World
         m_world = std::make_unique<VoxelWorld>(rm);
-        // m_world->GetOnChunkLoadOrUnloadSubscribers().AddCallback([this]() { PrepareForRendering(); });
+        m_world->GetOnWorldEditSubscribers().AddCallback([this](VoxelWorld::WorldEditRequiredChanges changes) {
+            if (changes.RecreatePipeline) {
+                // Takes 1.6ms on my PC
+                SetupDescriptors();
+                SetupGraphicsPipeline();
+                CreateAndRecordCommandBuffers();
+            } else if (changes.RecreateOnlyCommandBuffers) {
+                CreateAndRecordCommandBuffers();
+            } else
+                assert(false);
+        });
 
         Chunk &chunk = m_world->LoadChunk({0, 0, 0});
         Chunk &chunk2 = m_world->LoadChunk({1, 0, 0});
 
-        // Descriptors, pipeline, command buffers
-        //  PrepareForRendering();
-
         // Update world
         chunk.SetVoxel({0, 0, 0}, 1);
-        //  PrepareForRendering();
 
         chunk.SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
         chunk2.SetVoxelRect({2, 2, 2}, {1, 2, 2}, 1);
-
-        // auto t = chunk.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING);
-        // assert(t);
-        // m_descriptorManager->WriteDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, *t); // can't do this while a command buffer is pending
-        // CreateAndRecordCommandBuffers();
-        m_world->CreateChunkDatasBuffer();
-        PrepareForRendering();
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -78,7 +77,9 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::OnWindowResize() {
-        PrepareForRendering();
+        SetupDescriptors();
+        SetupGraphicsPipeline();
+        CreateAndRecordCommandBuffers();
     }
 
     void VoxelRenderer::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const {
@@ -194,12 +195,5 @@ namespace SpireVoxel {
         vkDestroyShaderModule(rm.GetDevice(), m_vertexShader, nullptr);
         vkDestroyShaderModule(rm.GetDevice(), m_fragmentShader, nullptr);
         info("Destroyed shaders");
-    }
-
-    void VoxelRenderer::PrepareForRendering() {
-        // Takes 1.6ms on my PC
-        SetupDescriptors();
-        SetupGraphicsPipeline();
-        CreateAndRecordCommandBuffers();
     }
 } // SpireVoxel

@@ -35,8 +35,6 @@ namespace SpireVoxel {
 
         void Cleanup();
 
-        void PrepareForRendering();
-
     private:
         Spire::Engine &m_engine;
         std::vector<VkCommandBuffer> m_commandBuffers;

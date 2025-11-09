@@ -1,11 +1,15 @@
 #include "Chunk.h"
 
+#include "VoxelWorld.h"
+
 namespace SpireVoxel {
     Chunk::Chunk(Spire::RenderingManager &renderingManager,
-                 glm::ivec3 chunkPosition)
+                 glm::ivec3 chunkPosition,
+                 VoxelWorld &world)
         : m_renderingManager(renderingManager),
-          m_chunkPosition(chunkPosition) {
-        RegenerateMesh();
+          m_chunkPosition(chunkPosition),
+          m_world(world) {
+        OnChunkEdited();
     }
 
     Chunk::~Chunk() {
@@ -14,7 +18,8 @@ namespace SpireVoxel {
 
     Chunk::Chunk(Chunk &&other)
         noexcept : m_renderingManager(other.m_renderingManager),
-                   m_chunkPosition(other.m_chunkPosition) {
+                   m_chunkPosition(other.m_chunkPosition),
+                   m_world(other.m_world) {
         m_vertexStorageBuffer = other.m_vertexStorageBuffer;
         m_voxelData = other.m_voxelData;
 
@@ -36,7 +41,7 @@ namespace SpireVoxel {
 
     void Chunk::SetVoxel(glm::vec3 pos, std::int32_t type) {
         m_voxelData[SPIRE_VOXEL_POSITION_TO_INDEX(pos)] = type;
-        RegenerateMesh();
+        OnChunkEdited();
     }
 
     void Chunk::SetVoxelRect(glm::vec3 pos, glm::vec3 rectDimensions, std::int32_t type) {
@@ -49,7 +54,7 @@ namespace SpireVoxel {
             }
         }
 
-        RegenerateMesh();
+        OnChunkEdited();
     }
 
     const Spire::VulkanBuffer &Chunk::GetVertexBuffer() const {
@@ -62,6 +67,12 @@ namespace SpireVoxel {
 
     ChunkData Chunk::GetChunkData() const {
         return {m_vertexStorageBuffer.Count};
+    }
+
+    void Chunk::OnChunkEdited() {
+        glm::u32 previousNumVertices = m_vertexStorageBuffer.Count;
+        RegenerateMesh(); // todo if it was just changing type and we can reuse mesh, don't regenerate it
+        m_world.OnChunkEdited(*this, previousNumVertices);
     }
 
     void Chunk::RegenerateMesh() {
