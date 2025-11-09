@@ -48,7 +48,6 @@ namespace SpireVoxel {
         for (size_t x = 0; x < rectDimensions.x; ++x) {
             for (size_t y = 0; y < rectDimensions.y; ++y) {
                 for (size_t z = 0; z < rectDimensions.z; ++z) {
-                    // todo: optimise, surely we don't need a memory write for every single voxel?
                     m_voxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(pos.x + x, pos.y + y, pos.z + z)] = type;
                 }
             }
@@ -71,7 +70,7 @@ namespace SpireVoxel {
 
     void Chunk::OnChunkEdited() {
         glm::u32 previousNumVertices = m_vertexStorageBuffer.Count;
-        RegenerateMesh(); // todo if it was just changing type and we can reuse mesh, don't regenerate it
+        RegenerateMesh();
         m_world.OnChunkEdited(*this, previousNumVertices);
     }
 

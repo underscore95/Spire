@@ -46,7 +46,7 @@ namespace SpireVoxel {
 
         std::array<std::int32_t, SPIRE_VOXEL_CHUNK_VOLUME> m_voxelData{};
 
-        Spire::VulkanBuffer m_vertexStorageBuffer; // todo keep old buffers around until in flight frames are done with them, but in a way where we don't need 3 meshes all the time
+        Spire::VulkanBuffer m_vertexStorageBuffer;
 
         VoxelWorld& m_world;
     };

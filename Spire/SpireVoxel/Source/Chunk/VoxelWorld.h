@@ -42,7 +42,7 @@ namespace SpireVoxel {
         std::unordered_map<glm::ivec3, Chunk> m_chunks;
         // https://en.cppreference.com/w/cpp/container/unordered_map.html - always iterates in the same order if the map hasnt been changed
         Delegate<WorldEditRequiredChanges> m_onWorldEditedDelegate;
-        Spire::VulkanBuffer m_chunkDatasBuffer; // todo one per frame?
+        Spire::VulkanBuffer m_chunkDatasBuffer;
         Spire::VulkanBuffer m_dummyVertexBuffer; // used when no loaded chunks have a mesh so we can still push a descriptor for vertex buffer
         Spire::VulkanBuffer m_dummyChunkDataBuffer; // used when no loaded chunks have a mesh so we can still push a descriptor for chunk data buffer
     };

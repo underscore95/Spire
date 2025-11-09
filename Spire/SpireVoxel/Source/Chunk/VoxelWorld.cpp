@@ -83,7 +83,7 @@ namespace SpireVoxel {
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING,
             .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-            .Resources = chunkVertexBufferPtrs, // todo combine everything into a single buffer?
+            .Resources = chunkVertexBufferPtrs,
 #ifndef NDEBUG
             .DebugName = useDummyVertexBuffer ? "Dummy Chunk Vertex Datas" : std::format("Chunk Vertex Datas ({} chunks)", chunkVertexBufferPtrs.size()),
 #endif
