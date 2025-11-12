@@ -57,7 +57,8 @@ namespace SpireVoxel {
 namespace SpireVoxel {
 #endif
     struct ChunkData {
-       SPIRE_UINT32_TYPE NumVertices;
+        SPIRE_UINT32_TYPE NumVertices;
+        SPIRE_UINT32_TYPE FirstVertex;
     };
 
 #ifdef __cplusplus
