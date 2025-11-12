@@ -44,7 +44,7 @@ namespace SpireVoxel {
         m_allocationsPendingFree.push_back({start, m_numSwapchainImages + 1});
     }
 
-    Spire::Descriptor BufferAllocator::GetDescriptor(glm::u32 binding, const std::string& debugName) {
+    Spire::Descriptor BufferAllocator::GetDescriptor(glm::u32 binding, const std::string &debugName) {
         return {
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = binding,
@@ -58,13 +58,16 @@ namespace SpireVoxel {
 
     void BufferAllocator::Update() {
         for (size_t i = 0; i < m_allocationsPendingFree.size(); i++) {
-            m_allocationsPendingFree[i].FramesUntilFreed--;
-            if (m_allocationsPendingFree[i].FramesUntilFreed > 0) continue;
+            if (m_allocationsPendingFree[i].FramesUntilFreed > 0) {
+                m_allocationsPendingFree[i].FramesUntilFreed--;
+            } else {
+                Spire::info("Freeing allocation {}", m_allocationsPendingFree[i].AllocationStart);
 
-            // free it
-            m_allocations.erase(m_allocationsPendingFree[i].AllocationStart);
-            m_allocationsPendingFree[i] = m_allocationsPendingFree.back();
-            m_allocationsPendingFree.pop_back();
+                // free it
+                m_allocations.erase(m_allocationsPendingFree[i].AllocationStart);
+                m_allocationsPendingFree[i] = m_allocationsPendingFree.back();
+                m_allocationsPendingFree.pop_back();
+            }
         }
     }
 

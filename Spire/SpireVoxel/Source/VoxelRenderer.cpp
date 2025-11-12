@@ -62,8 +62,8 @@ namespace SpireVoxel {
         });
 
         //m_world->LoadChunk({0,0,0});
-        //Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
-        //assert(chunk1);
+        Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
+        assert(chunk1);
         //chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
         //m_world->OnChunkEdited(*chunk1);
 
@@ -72,6 +72,9 @@ namespace SpireVoxel {
             chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
             m_world->OnChunkEdited(chunk);
         }
+
+        chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 0;
+        m_world->OnChunkEdited(*chunk1);
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -79,8 +82,21 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::Update() {
+        static int i = 0;
+        i++;
+        m_oldDescriptors.Update();
+        m_oldPipelines.Update();
+        m_oldCommandBuffers.Update();
         m_world->Update();
         m_camera->Update();
+
+        if (i == 10000) {
+            Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
+            assert(chunk1);
+            chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
+            m_world->OnChunkEdited(*chunk1);
+            info("Using allocation at {}",chunk1->Allocation.Start);
+        }
     }
 
     VkCommandBuffer VoxelRenderer::Render(glm::u32 imageIndex) {
@@ -90,7 +106,7 @@ namespace SpireVoxel {
 
         m_camera->Render(renderInfo);
 
-        return m_commandBuffers[imageIndex];
+        return (*m_commandBuffers)[imageIndex];
     }
 
     void VoxelRenderer::OnWindowResize() {
@@ -119,16 +135,14 @@ namespace SpireVoxel {
         auto &rm = m_engine.GetRenderingManager();
 
         // free any existing command buffers
-        if (!m_commandBuffers.empty()) {
-            rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
-            m_commandBuffers.clear();
+        if (m_commandBuffers) {
+            m_oldCommandBuffers.Push(std::move(m_commandBuffers), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
         }
 
-        m_commandBuffers.resize(rm.GetSwapchain().GetNumImages());
-        rm.GetCommandManager().CreateCommandBuffers(rm.GetSwapchain().GetNumImages(), m_commandBuffers.data());
+        m_commandBuffers = std::make_unique<CommandBufferVector>(m_engine.GetRenderingManager(), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
 
-        for (int i = 0; i < m_commandBuffers.size(); ++i) {
-            VkCommandBuffer commandBuffer = m_commandBuffers[i];
+        for (int i = 0; i < m_commandBuffers->Size(); ++i) {
+            VkCommandBuffer commandBuffer = (*m_commandBuffers)[i];
             VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
             rm.GetCommandManager().BeginCommandBuffer(commandBuffer, flags);
 
@@ -152,6 +166,10 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::SetupDescriptors() {
+        if (m_descriptorManager) {
+            m_oldDescriptors.Push(std::move(m_descriptorManager), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
+        }
+
         DescriptorSetLayoutList layouts(m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
 
         DescriptorSetLayout constantSet;
@@ -179,6 +197,10 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::SetupGraphicsPipeline() {
+        if (m_graphicsPipeline) {
+            m_oldPipelines.Push(std::move(m_graphicsPipeline), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
+        }
+
         auto &rm = m_engine.GetRenderingManager();
 
         m_graphicsPipeline = std::make_unique<GraphicsPipeline>(
@@ -197,8 +219,7 @@ namespace SpireVoxel {
         auto &rm = m_engine.GetRenderingManager();
 
         rm.GetQueue().WaitIdle();
-        rm.GetCommandManager().FreeCommandBuffers(m_commandBuffers.size(), m_commandBuffers.data());
-        info("Freed command buffers");
+        m_commandBuffers.reset();
 
         m_world.reset();
         m_camera.reset();

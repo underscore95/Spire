@@ -86,6 +86,9 @@ add_library(Spire STATIC
         Source/Utils/Delegates/Delegate.h
         Source/Utils/Delegates/DelegateSubscriber.h
         Source/Utils/Hashing.h
+        Source/Utils/FrameDeleter.h
+        Source/Utils/CommandBufferVector.cpp
+        Source/Utils/CommandBufferVector.h
 )
 
 target_precompile_headers(Spire PUBLIC "Source/pch.h")

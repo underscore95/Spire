@@ -56,7 +56,6 @@ namespace SpireVoxel {
             numVerticesToRender = std::max(numVerticesToRender, chunk.NumVertices);
         }
 
-        Spire::info("Rendering with {} vertices", numVerticesToRender);
         vkCmdDraw(commandBuffer, numVerticesToRender, m_chunks.size(), 0, 0);
     }
 
@@ -107,19 +106,24 @@ namespace SpireVoxel {
                 m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(chunkDatas.data(), requiredBufferSize, sizeof(chunkDatas[0]));
             }
         }
-
-        Spire::info("chunk data size {}", chunkDatas.size());
     }
 
     void VoxelWorld::OnChunkEdited(Chunk &chunk) {
-        // todo: what to do if now 0 allocation size/vertices?
         std::vector<VertexData> vertexData = chunk.GenerateMesh();
 
         BufferAllocator::Allocation oldAllocation = chunk.Allocation;
-        chunk.Allocation = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
+        if (!vertexData.empty()) {
+            chunk.Allocation = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
 
-        // write the mesh into the vertex buffer
-        m_chunkVertexBufferAllocator.Write(chunk.Allocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
+            // write the mesh into the vertex buffer
+            m_chunkVertexBufferAllocator.Write(chunk.Allocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
+        } else {
+            chunk.Allocation = {};
+        }
+
+        if (oldAllocation.Size > 0) {
+            m_chunkVertexBufferAllocator.FreeAllocation(oldAllocation.Start);
+        }
 
         // write the chunk data
         chunk.NumVertices = vertexData.size();

@@ -2,6 +2,8 @@
 
 #include "EngineIncludes.h"
 #include "Chunk/Chunk.h"
+#include "Utils/CommandBufferVector.h"
+#include "Utils/FrameDeleter.h"
 
 namespace SpireVoxel {
     class VoxelWorld;
@@ -37,13 +39,16 @@ namespace SpireVoxel {
 
     private:
         Spire::Engine &m_engine;
-        std::vector<VkCommandBuffer> m_commandBuffers;
         VkShaderModule m_vertexShader = VK_NULL_HANDLE;
         VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
-        std::unique_ptr<Spire::GraphicsPipeline> m_graphicsPipeline;
         std::unique_ptr<Spire::SceneImages> m_sceneImages;
+        std::unique_ptr<Spire::GraphicsPipeline> m_graphicsPipeline;
+        std::unique_ptr<Spire::CommandBufferVector> m_commandBuffers;
         std::unique_ptr<Spire::DescriptorManager> m_descriptorManager;
         std::unique_ptr<GameCamera> m_camera;
         std::unique_ptr<VoxelWorld> m_world;
+        Spire::FrameDeleter<std::unique_ptr<Spire::GraphicsPipeline> > m_oldPipelines;
+        Spire::FrameDeleter<std::unique_ptr<Spire::DescriptorManager> > m_oldDescriptors;
+        Spire::FrameDeleter<std::unique_ptr<Spire::CommandBufferVector> > m_oldCommandBuffers;
     };
 } // SpireVoxel
