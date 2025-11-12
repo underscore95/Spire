@@ -20,6 +20,7 @@
 #include <optional>
 #include <functional>
 #include <regex>
+#include <map>
 
 // vulkan
 #include <vulkan/vulkan_core.h>

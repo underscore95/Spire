@@ -24,7 +24,7 @@ void main()
         return;
     }
 
-    VertexData vtx = in_Vertices[gl_InstanceIndex].data[gl_VertexIndex];
+    VertexData vtx = in_Vertices[0].data[chunkDataBuffer.chunkDatas[gl_InstanceIndex].FirstVertex + gl_VertexIndex];
 
     vec3 pos = vec3(vtx.x, vtx.y, vtx.z);
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "BufferAllocator.h"
 #include "Chunk.h"
 #include "Utils/Hashing.h"
 
@@ -20,7 +21,7 @@ namespace SpireVoxel {
 
         void LoadChunks(const std::vector<glm::ivec3> &chunkPositions);
 
-        [[nodiscard]] Chunk* GetLoadedChunk(glm::ivec3 chunkPosition) ;
+        [[nodiscard]] Chunk *GetLoadedChunk(glm::ivec3 chunkPosition);
 
         DelegateSubscribers<WorldEditRequiredChanges> &GetOnWorldEditSubscribers();
 
@@ -32,18 +33,25 @@ namespace SpireVoxel {
 
         void CreateOrUpdateChunkDatasBuffer();
 
-        void OnChunkEdited(Chunk &chunk, glm::u32 oldVertexCount);
+        void OnChunkEdited(Chunk &chunk);
+
+        void Update();
+
+        std::unordered_map<glm::ivec3, Chunk>::iterator begin();
+        std::unordered_map<glm::ivec3, Chunk>::iterator end();
 
     private:
         void FreeChunkDatasBuffer();
 
     private:
+        static constexpr glm::u32 CHUNK_VERTEX_BUFFER_SIZE = 1024 * 64; // 64kb
+
         Spire::RenderingManager &m_renderingManager;
-        std::unordered_map<glm::ivec3, Chunk> m_chunks;
         // https://en.cppreference.com/w/cpp/container/unordered_map.html - always iterates in the same order if the map hasnt been changed
+        std::unordered_map<glm::ivec3, Chunk> m_chunks;
         Delegate<WorldEditRequiredChanges> m_onWorldEditedDelegate;
         Spire::VulkanBuffer m_chunkDatasBuffer;
-        Spire::VulkanBuffer m_dummyVertexBuffer; // used when no loaded chunks have a mesh so we can still push a descriptor for vertex buffer
         Spire::VulkanBuffer m_dummyChunkDataBuffer; // used when no loaded chunks have a mesh so we can still push a descriptor for chunk data buffer
+        BufferAllocator m_chunkVertexBufferAllocator;
     };
 } // SpireVoxel

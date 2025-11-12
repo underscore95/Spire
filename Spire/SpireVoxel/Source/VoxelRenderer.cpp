@@ -61,16 +61,17 @@ namespace SpireVoxel {
             {1, 0, 1},
         });
 
-        Chunk *chunk = m_world->GetLoadedChunk({0, 0, 0});
-        assert(chunk);
-        Chunk *chunk2 = m_world->GetLoadedChunk({1, 0, 0});
-        assert(chunk2);
+        //m_world->LoadChunk({0,0,0});
+        //Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
+        //assert(chunk1);
+        //chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
+        //m_world->OnChunkEdited(*chunk1);
 
         // Update world
-        chunk->SetVoxel({0, 0, 0}, 1);
-
-        chunk->SetVoxelRect({2, 2, 2}, {3, 3, 3}, 2);
-        chunk2->SetVoxelRect({2, 2, 2}, {1, 2, 2}, 1);
+        for (auto &[chunkPos, chunk] : *m_world) {
+            chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
+            m_world->OnChunkEdited(chunk);
+        }
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -78,6 +79,7 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::Update() {
+        m_world->Update();
         m_camera->Update();
     }
 
