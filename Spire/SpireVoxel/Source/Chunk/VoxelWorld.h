@@ -31,7 +31,7 @@ namespace SpireVoxel {
 
         [[nodiscard]] std::size_t NumLoadedChunks() const;
 
-        void CreateOrUpdateChunkDatasBuffer();
+        void UpdateChunkDatasBuffer();
 
         void OnChunkEdited(Chunk &chunk);
 
@@ -41,9 +41,6 @@ namespace SpireVoxel {
         std::unordered_map<glm::ivec3, Chunk>::iterator end();
 
     private:
-        void FreeChunkDatasBuffer();
-
-    private:
         static constexpr glm::u32 CHUNK_VERTEX_BUFFER_SIZE = 1024 * 64; // 64kb
 
         Spire::RenderingManager &m_renderingManager;
@@ -51,7 +48,6 @@ namespace SpireVoxel {
         std::unordered_map<glm::ivec3, Chunk> m_chunks;
         Delegate<WorldEditRequiredChanges> m_onWorldEditedDelegate;
         Spire::VulkanBuffer m_chunkDatasBuffer;
-        Spire::VulkanBuffer m_dummyChunkDataBuffer; // used when no loaded chunks have a mesh so we can still push a descriptor for chunk data buffer
         BufferAllocator m_chunkVertexBufferAllocator;
     };
 } // SpireVoxel

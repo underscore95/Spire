@@ -5,15 +5,13 @@ namespace SpireVoxel {
         : m_renderingManager(renderingManager),
           m_onWorldEditedDelegate(),
           m_chunkVertexBufferAllocator(m_renderingManager, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(), sizeof(VertexData) * 10000) {
-        CreateOrUpdateChunkDatasBuffer();
+        UpdateChunkDatasBuffer();
 
-        ChunkData dummyChunkData = {};
-        m_dummyChunkDataBuffer = renderingManager.GetBufferManager().CreateStorageBuffer(&dummyChunkData, sizeof(dummyChunkData), sizeof(dummyChunkData));
+        m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(nullptr, sizeof(ChunkData) * 4096, sizeof(ChunkData));
     }
 
     VoxelWorld::~VoxelWorld() {
-        FreeChunkDatasBuffer();
-        m_renderingManager.GetBufferManager().DestroyBuffer(m_dummyChunkDataBuffer);
+        m_renderingManager.GetBufferManager().DestroyBuffer(m_chunkDatasBuffer);
     }
 
     Chunk &VoxelWorld::LoadChunk(glm::ivec3 chunkPosition) {
@@ -21,7 +19,7 @@ namespace SpireVoxel {
         if (it != m_chunks.end()) return it->second;
 
         m_chunks.try_emplace(chunkPosition, chunkPosition);
-        CreateOrUpdateChunkDatasBuffer();
+        UpdateChunkDatasBuffer();
         m_onWorldEditedDelegate.Broadcast({true, false});
         return m_chunks.find(chunkPosition)->second;
     }
@@ -36,7 +34,7 @@ namespace SpireVoxel {
         }
 
         if (loadedAnyChunks) {
-            CreateOrUpdateChunkDatasBuffer();
+            UpdateChunkDatasBuffer();
             m_onWorldEditedDelegate.Broadcast({true, false});
         }
     }
@@ -63,13 +61,12 @@ namespace SpireVoxel {
         Spire::Descriptor descriptor = m_chunkVertexBufferAllocator.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING, "World Vertex Buffer");
         chunkVertexBuffersLayout.push_back(descriptor);
 
-        Spire::VulkanBuffer &chunkDataBuffer = m_chunkDatasBuffer.Buffer != VK_NULL_HANDLE ? m_chunkDatasBuffer : m_dummyChunkDataBuffer;
-        assert(chunkDataBuffer.Buffer != VK_NULL_HANDLE);
+        assert(m_chunkDatasBuffer.Buffer != VK_NULL_HANDLE);
         descriptor = {
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING,
             .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-            .Resources = {{.Buffer = &chunkDataBuffer}},
+            .Resources = {{.Buffer = &m_chunkDatasBuffer}},
 #ifndef NDEBUG
             .DebugName = "Chunk Datas",
 #endif
@@ -81,7 +78,7 @@ namespace SpireVoxel {
         return m_chunks.size();
     }
 
-    void VoxelWorld::CreateOrUpdateChunkDatasBuffer() {
+    void VoxelWorld::UpdateChunkDatasBuffer() {
         // get chunk datas
         std::vector<ChunkData> chunkDatas;
         chunkDatas.reserve(m_chunks.size());
@@ -95,16 +92,10 @@ namespace SpireVoxel {
             chunkDatas.push_back(data);
         }
 
-        // create or update buffer
+        // update buffer
         if (!chunkDatas.empty()) {
             const glm::u32 requiredBufferSize = sizeof(chunkDatas[0]) * chunkDatas.size();
-            if (m_chunkDatasBuffer.Count >= chunkDatas.size()) {
-                // reuse buffer
-                m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer, chunkDatas.data(), requiredBufferSize, 0);
-            } else {
-                FreeChunkDatasBuffer();
-                m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(chunkDatas.data(), requiredBufferSize, sizeof(chunkDatas[0]));
-            }
+            m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer, chunkDatas.data(), requiredBufferSize, 0);
         }
     }
 
@@ -130,7 +121,7 @@ namespace SpireVoxel {
 
         WorldEditRequiredChanges changes = {false, false};
         if (oldAllocation.Size == 0) {
-            CreateOrUpdateChunkDatasBuffer();
+            UpdateChunkDatasBuffer();
             changes.RecreatePipeline = true;
         } else {
             glm::u32 chunkIndex = 0;
@@ -163,11 +154,5 @@ namespace SpireVoxel {
 
     std::unordered_map<glm::ivec3, Chunk>::iterator VoxelWorld::end() {
         return m_chunks.end();
-    }
-
-    void VoxelWorld::FreeChunkDatasBuffer() {
-        if (m_chunkDatasBuffer.Buffer != VK_NULL_HANDLE) {
-            m_renderingManager.GetBufferManager().DestroyBuffer(m_chunkDatasBuffer);
-        }
     }
 } // SpireVoxel
