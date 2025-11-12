@@ -39,6 +39,20 @@ namespace SpireVoxel {
         }
     }
 
+    void VoxelWorld::UnloadChunks(const std::vector<glm::ivec3> &chunkPositions) {
+        bool unloadedAnyChunks=false;
+        for (auto chunkPosition : chunkPositions) {
+            if (!m_chunks.contains(chunkPosition)) continue;
+            m_chunks.erase(chunkPosition);
+            unloadedAnyChunks = true;
+        }
+
+        if (unloadedAnyChunks) {
+            UpdateChunkDatasBuffer();
+            m_onWorldEditedDelegate.Broadcast({true, false});
+        }
+    }
+
     Chunk *VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) {
         auto it = m_chunks.find(chunkPosition);
         return it != m_chunks.end() ? &it->second : nullptr;

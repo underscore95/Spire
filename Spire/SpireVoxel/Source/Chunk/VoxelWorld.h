@@ -21,6 +21,8 @@ namespace SpireVoxel {
 
         void LoadChunks(const std::vector<glm::ivec3> &chunkPositions);
 
+        void UnloadChunks(const std::vector<glm::ivec3> &chunkPositions);
+
         [[nodiscard]] Chunk *GetLoadedChunk(glm::ivec3 chunkPosition);
 
         DelegateSubscribers<WorldEditRequiredChanges> &GetOnWorldEditSubscribers();
@@ -38,6 +40,7 @@ namespace SpireVoxel {
         void Update();
 
         std::unordered_map<glm::ivec3, Chunk>::iterator begin();
+
         std::unordered_map<glm::ivec3, Chunk>::iterator end();
 
     private:

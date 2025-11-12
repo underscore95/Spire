@@ -90,12 +90,22 @@ namespace SpireVoxel {
         m_world->Update();
         m_camera->Update();
 
-        if (i == 10000) {
+        if (i == 5000) {
             Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
             assert(chunk1);
             chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
             m_world->OnChunkEdited(*chunk1);
-            info("Using allocation at {}",chunk1->Allocation.Start);
+            info("Using allocation at {}", chunk1->Allocation.Start);
+        }
+
+        if (i == 10000) {
+            m_world->UnloadChunks({{0, 0, 0}});
+        }
+
+        if (i == 15000) {
+            Chunk &chunk1 = m_world->LoadChunk({0, 0, 0});
+            chunk1.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
+            m_world->OnChunkEdited(chunk1);
         }
     }
 
