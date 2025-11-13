@@ -104,14 +104,6 @@ endfunction()
 
 add_compile_options(/WX- /wd4392)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(BUILD_MODE_DIR "${LIBS_DIRECTORY}/build-release")
-    set(DEBUG_SUFFIX "")
-else()
-    set(BUILD_MODE_DIR "${LIBS_DIRECTORY}/build-debug")
-    set(DEBUG_SUFFIX "d")
-endif()
-
 # Vulkan
 find_package(Vulkan REQUIRED)
 target_link_libraries(Spire PUBLIC Vulkan::Vulkan)
@@ -166,3 +158,6 @@ add_custom_command(TARGET Spire POST_BUILD
         ${LIB_FILES}
         ${CMAKE_BINARY_DIR}/bin
 )
+
+# Tests
+add_subdirectory(Tests)

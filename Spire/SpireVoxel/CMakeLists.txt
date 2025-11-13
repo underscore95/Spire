@@ -1,7 +1,7 @@
 
 add_library(SpireVoxel STATIC
-        "Source/VoxelRenderer.cpp"
-        "Source/VoxelRenderer.h"
+        Source/VoxelRenderer.cpp
+        Source/VoxelRenderer.h
         Source/Rendering/GameCamera.cpp
         Source/Rendering/GameCamera.h
         Source/Rendering/RenderInfo.h
@@ -17,3 +17,6 @@ target_include_directories(SpireVoxel PUBLIC "Source/")
 target_link_libraries(SpireVoxel PUBLIC Spire)
 
 setup_assets_directory(SpireVoxel Assets)
+
+# Tests
+add_subdirectory(Tests)

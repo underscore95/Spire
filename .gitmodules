@@ -10,3 +10,6 @@
 [submodule "Spire/libs/stb/stb"]
 	path = Spire/libs/stb/stb
 	url = https://github.com/nothings/stb
+[submodule "Spire/Libs/googletest"]
+	path = Spire/Libs/googletest
+	url = https://github.com/google/googletest

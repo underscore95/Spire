@@ -12,7 +12,6 @@ namespace Spire
         window->KeyCallback(key, scanCode, action, mods);
     }
 
-
     static void GLFW_MouseCallback(GLFWwindow* pWindow, double xPos, double yPos)
     {
         auto window = static_cast<Window*>(glfwGetWindowUserPointer(pWindow));

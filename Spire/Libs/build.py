@@ -6,7 +6,7 @@ import time
 start_time = time.time()
 os.environ["PATH"] += r";C:\Program Files\CMake\bin"
 
-libs = ["assimp", "glfw", "glm", "glslang", "imgui"]
+libs = ["assimp", "glfw", "glm", "glslang", "imgui", "googletest"]
 build_root_release = os.path.abspath("build-release")
 build_root_debug = os.path.abspath("build-debug")
 cmake_generator = "Visual Studio 17 2022"
