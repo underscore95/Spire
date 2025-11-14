@@ -3,6 +3,7 @@
 #include "Rendering/GameCamera.h"
 #include "../Assets/Shaders/ShaderInfo.h"
 #include "Chunk/VoxelWorld.h"
+#include "Serialisation/VoxelSerializer.h"
 
 using namespace Spire;
 
@@ -61,11 +62,11 @@ namespace SpireVoxel {
             {1, 0, 1},
         });
 
-        //m_world->LoadChunk({0,0,0});
+        m_world->LoadChunk({0, 0, 0});
         Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
         assert(chunk1);
-        //chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-        //m_world->OnChunkEdited(*chunk1);
+        chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
+        m_world->OnChunkEdited(*chunk1);
 
         // Update world
         for (auto &[chunkPos, chunk] : *m_world) {
@@ -75,6 +76,8 @@ namespace SpireVoxel {
 
         chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 0;
         m_world->OnChunkEdited(*chunk1);
+
+        VoxelSerializer::Serialize(*m_world, std::filesystem::path("Worlds") / "World1");
     }
 
     VoxelRenderer::~VoxelRenderer() {

@@ -40,7 +40,7 @@ namespace SpireVoxel {
     }
 
     void VoxelWorld::UnloadChunks(const std::vector<glm::ivec3> &chunkPositions) {
-        bool unloadedAnyChunks=false;
+        bool unloadedAnyChunks = false;
         for (auto chunkPosition : chunkPositions) {
             if (!m_chunks.contains(chunkPosition)) continue;
             m_chunks.erase(chunkPosition);
@@ -168,5 +168,19 @@ namespace SpireVoxel {
 
     std::unordered_map<glm::ivec3, Chunk>::iterator VoxelWorld::end() {
         return m_chunks.end();
+    }
+
+    std::uint32_t VoxelWorld::GetNumLoadedChunks() const {
+        return m_chunks.size();
+    }
+
+    void VoxelWorld::UnloadAllChunks() {
+        std::vector<glm::ivec3> loadedChunks;
+        loadedChunks.reserve(GetNumLoadedChunks());
+        for (auto &[chunkPos, _] : m_chunks) {
+            loadedChunks.push_back(chunkPos);
+        }
+
+        UnloadChunks(loadedChunks);
     }
 } // SpireVoxel

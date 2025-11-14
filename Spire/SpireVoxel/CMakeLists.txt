@@ -11,6 +11,8 @@ add_library(SpireVoxel STATIC
         Source/Chunk/VoxelWorld.h
         Source/Chunk/BufferAllocator.cpp
         Source/Chunk/BufferAllocator.h
+        Source/Serialisation/VoxelSerializer.cpp
+        Source/Serialisation/VoxelSerializer.h
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

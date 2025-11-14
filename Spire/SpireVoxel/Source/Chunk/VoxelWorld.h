@@ -43,6 +43,10 @@ namespace SpireVoxel {
 
         std::unordered_map<glm::ivec3, Chunk>::iterator end();
 
+        std::uint32_t GetNumLoadedChunks() const;
+
+        void UnloadAllChunks();
+
     private:
         static constexpr glm::u32 CHUNK_VERTEX_BUFFER_SIZE = 1024 * 64; // 64kb
 
