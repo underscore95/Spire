@@ -2,6 +2,7 @@
 
 #include "Chunk/Chunk.h"
 #include "Chunk/VoxelWorld.h"
+#include "Rendering/VoxelWorldRenderer.h"
 #include "Utils/FileIO.h"
 
 namespace SpireVoxel {
@@ -74,7 +75,7 @@ namespace SpireVoxel {
                 continue;
             }
 
-            world.OnChunkEdited(chunk);
+            world.GetRenderer().NotifyChunkEdited(chunk);
         }
     }
 } // SpireVoxel

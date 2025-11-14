@@ -22,7 +22,7 @@ namespace SpireVoxel {
     public:
         void Update();
 
-        VkCommandBuffer Render(glm::u32 imageIndex);
+        VkCommandBuffer Render(glm::u32 imageIndex) const;
 
         void OnWindowResize();
 

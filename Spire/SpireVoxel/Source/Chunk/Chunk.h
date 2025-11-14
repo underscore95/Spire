@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BufferAllocator.h"
+#include "../Rendering/BufferAllocator.h"
 #include "EngineIncludes.h"
 #include "../../Assets/Shaders/ShaderInfo.h"
 
