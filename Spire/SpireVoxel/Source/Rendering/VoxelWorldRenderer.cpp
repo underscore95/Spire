@@ -8,18 +8,21 @@ namespace SpireVoxel {
         : m_world(world),
           m_renderingManager(renderingManager),
           m_onWorldEditedDelegate(),
-          m_chunkVertexBufferAllocator(m_renderingManager, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(), sizeof(VertexData) * 10000) {
-        UpdateChunkDatasBuffer();
+          m_chunkVertexBufferAllocator(m_renderingManager, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(), sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD) {
+        Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD / 1024 / 1024);
 
-        m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(nullptr, sizeof(ChunkData) * 4096, sizeof(ChunkData));
+        m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr);
+        Spire::info("Allocated {} kb buffer for each swapchain image on GPU to store chunk datas", sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS / 1024);
     }
 
-    VoxelWorldRenderer::~VoxelWorldRenderer() {
-        m_renderingManager.GetBufferManager().DestroyBuffer(m_chunkDatasBuffer);
-    }
+    void VoxelWorldRenderer::Render(glm::u32 swapchainImageIndex) {
+        // if empty we aren't issuing render commands so don't need to update the gpu buffer
+        if (!m_latestCachedChunkData.empty()) {
+            const glm::u32 requiredBufferSize = sizeof(m_latestCachedChunkData[0]) * m_latestCachedChunkData.size();
+            m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer->GetBuffer(swapchainImageIndex), m_latestCachedChunkData.data(), requiredBufferSize, 0);
+        }
 
-    void VoxelWorldRenderer::Update() {
-        m_chunkVertexBufferAllocator.Update();
+        m_chunkVertexBufferAllocator.Render();
     }
 
     DelegateSubscribers<VoxelWorldRenderer::WorldEditRequiredChanges> &VoxelWorldRenderer::GetOnWorldEditSubscribers() {
@@ -35,41 +38,24 @@ namespace SpireVoxel {
         vkCmdDraw(commandBuffer, numVerticesToRender, m_world.GetNumLoadedChunks(), 0, 0);
     }
 
-    void VoxelWorldRenderer::PushDescriptors(Spire::DescriptorSetLayout &constantDataLayout, Spire::DescriptorSetLayout &chunkVertexBuffersLayout) {
-        Spire::Descriptor descriptor = m_chunkVertexBufferAllocator.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING, "World Vertex Buffer");
-        chunkVertexBuffersLayout.push_back(descriptor);
+    void VoxelWorldRenderer::PushDescriptors(Spire::PerImageDescriptorSetLayout &perFrameSet, Spire::DescriptorSetLayout &chunkVertexBuffersLayout) {
+        chunkVertexBuffersLayout.push_back(m_chunkVertexBufferAllocator.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING, "World Vertex Buffer"));
 
-        assert(m_chunkDatasBuffer.Buffer != VK_NULL_HANDLE);
-        descriptor = {
-            .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .Binding = SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING,
-            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
-            .Resources = {{.Buffer = &m_chunkDatasBuffer}},
-#ifndef NDEBUG
-            .DebugName = "Chunk Datas",
-#endif
-        };
-        constantDataLayout.push_back(descriptor);
+        Spire::PerImageDescriptor chunkDatasDescriptor = m_renderingManager.GetDescriptorCreator().CreatePerImageStorageBuffer(
+            SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING,
+            *m_chunkDatasBuffer,
+            VK_SHADER_STAGE_VERTEX_BIT,
+            "Chunk Datas"
+        );
+
+        perFrameSet.push_back(chunkDatasDescriptor);
     }
 
-    void VoxelWorldRenderer::UpdateChunkDatasBuffer() const {
-        // get chunk datas
-        std::vector<ChunkData> chunkDatas;
-        chunkDatas.reserve(m_world.NumLoadedChunks());
-        for (const auto &[_, chunk] : m_world) {
-            ChunkData data = {
-                .NumVertices = chunk.NumVertices,
-                .FirstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData))
-            };
-            if (data.NumVertices == 0 || chunk.Allocation.Size == 0) continue;
+    void VoxelWorldRenderer::UpdateChunkDatasBuffer() {
+        UpdateChunkDataCache();
 
-            chunkDatas.push_back(data);
-        }
-
-        // update buffer
-        if (!chunkDatas.empty()) {
-            const glm::u32 requiredBufferSize = sizeof(chunkDatas[0]) * chunkDatas.size();
-            m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer, chunkDatas.data(), requiredBufferSize, 0);
+        for (size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
+            m_dirtyChunkDataBuffers[i] = true;
         }
     }
 
@@ -109,7 +95,10 @@ namespace SpireVoxel {
                 .NumVertices = static_cast<glm::u32>(vertexData.size()),
                 .FirstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData))
             };
-            m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer, &data, sizeof(data), chunkIndex * sizeof(data));
+            m_latestCachedChunkData[chunkIndex] = data;
+            for (size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
+                m_dirtyChunkDataBuffers[i] = true;
+            }
         }
 
         changes.RecreateOnlyCommandBuffers = true;
@@ -121,5 +110,18 @@ namespace SpireVoxel {
     void VoxelWorldRenderer::NotifyChunkLoadedOrUnloaded() {
         UpdateChunkDatasBuffer();
         m_onWorldEditedDelegate.Broadcast({true, false});
+    }
+
+    void VoxelWorldRenderer::UpdateChunkDataCache() {
+        m_latestCachedChunkData.clear();
+        for (const auto &[_, chunk] : m_world) {
+            ChunkData data = {
+                .NumVertices = chunk.NumVertices,
+                .FirstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData))
+            };
+            if (data.NumVertices == 0 || chunk.Allocation.Size == 0) continue;
+
+            m_latestCachedChunkData.push_back(data);
+        }
     }
 } // SpireVoxel

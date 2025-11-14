@@ -52,10 +52,6 @@ namespace SpireVoxel {
         return m_chunks.size();
     }
 
-    void VoxelWorld::Update() const {
-        m_renderer->Update();
-    }
-
     std::unordered_map<glm::ivec3, Chunk>::iterator VoxelWorld::begin() {
         return m_chunks.begin();
     }

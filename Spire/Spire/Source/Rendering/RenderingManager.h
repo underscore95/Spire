@@ -64,9 +64,6 @@ namespace Spire {
 
         [[nodiscard]] DescriptorCreator &GetDescriptorCreator() const;
 
-        // requires swapchain recreation to take effect
-        void SetMaximumSwapchainImages(glm::u32 maximumSwapchainImages);
-
     private:
         void OnWindowResize();
 

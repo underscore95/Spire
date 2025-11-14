@@ -11,6 +11,8 @@ using namespace Spire;
 constexpr glm::u32 NUM_CHUNKS = 1;
 
 namespace SpireVoxel {
+static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = true;
+
     VoxelRenderer::VoxelRenderer(Spire::Engine &engine)
         : m_engine(engine) {
         auto &rm = m_engine.GetRenderingManager();
@@ -50,35 +52,39 @@ namespace SpireVoxel {
                 assert(false);
         });
 
-        // load 3x1x3 chunks around 0,0,0
-        m_world->LoadChunks({
-            {-1, 0, -1},
-            {-1, 0, 0},
-            {-1, 0, 1},
-            {0, 0, -1},
-            {0, 0, 0},
-            {0, 0, 1},
-            {1, 0, -1},
-            {1, 0, 0},
-            {1, 0, 1},
-        });
+        if (TEST_RUNTIME_VOXEL_MODIFICATION) {
+            // load 3x1x3 chunks around 0,0,0
+            m_world->LoadChunks({
+                {-1, 0, -1},
+                {-1, 0, 0},
+                {-1, 0, 1},
+                {0, 0, -1},
+                {0, 0, 0},
+                {0, 0, 1},
+                {1, 0, -1},
+                {1, 0, 0},
+                {1, 0, 1},
+            });
 
-        m_world->LoadChunk({0, 0, 0});
-        Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
-        assert(chunk1);
-        chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-        m_world->GetRenderer().NotifyChunkEdited(*chunk1);
+            m_world->LoadChunk({0, 0, 0});
+            Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
+            assert(chunk1);
+            chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
+            m_world->GetRenderer().NotifyChunkEdited(*chunk1);
 
-        // Update world
-        for (auto &[chunkPos, chunk] : *m_world) {
-            chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-            m_world->GetRenderer().NotifyChunkEdited(chunk);
+            // Update world
+            for (auto &[chunkPos, chunk] : *m_world) {
+                chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
+                m_world->GetRenderer().NotifyChunkEdited(chunk);
+            }
+
+            chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 0;
+            m_world->GetRenderer().NotifyChunkEdited(*chunk1);
+        } else {
+
         }
 
-        chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 0;
-        m_world->GetRenderer().NotifyChunkEdited(*chunk1);
-
-        VoxelSerializer::Serialize(*m_world, std::filesystem::path("Worlds") / "World1");
+        //VoxelSerializer::Serialize(*m_world, std::filesystem::path("Worlds") / "World1");
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -91,29 +97,33 @@ namespace SpireVoxel {
         m_oldDescriptors.Update();
         m_oldPipelines.Update();
         m_oldCommandBuffers.Update();
-        m_world->Update();
         m_camera->Update();
 
-        if (i == 5000) {
-            Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
-            assert(chunk1);
-            chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
-            m_world->GetRenderer().NotifyChunkEdited(*chunk1);
-            info("Using allocation at {}", chunk1->Allocation.Start);
-        }
+        if (TEST_RUNTIME_VOXEL_MODIFICATION) {
+            if (i == 5000) {
+                Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
+                assert(chunk1);
+                chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
+                m_world->GetRenderer().NotifyChunkEdited(*chunk1);
+                info("Using allocation at {}", chunk1->Allocation.Start);
+            }
 
-        if (i == 10000) {
-            m_world->UnloadChunks({{0, 0, 0}});
-        }
+            if (i == 10000) {
+                m_world->UnloadChunks({{0, 0, 0}});
+            }
 
-        if (i == 15000) {
-            Chunk &chunk1 = m_world->LoadChunk({0, 0, 0});
-            chunk1.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
-            m_world->GetRenderer().NotifyChunkEdited(chunk1);
+            if (i == 15000) {
+                Chunk &chunk1 = m_world->LoadChunk({0, 0, 0});
+                chunk1.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
+                m_world->GetRenderer().NotifyChunkEdited(chunk1);
+            }
         }
     }
 
     VkCommandBuffer VoxelRenderer::Render(glm::u32 imageIndex) const {
+
+        m_world->GetRenderer().Render(imageIndex);
+
         RenderInfo renderInfo = {
             .ImageIndex = imageIndex
         };
@@ -197,7 +207,7 @@ namespace SpireVoxel {
         perFrameSet.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
 
         // Chunks
-        m_world->GetRenderer().PushDescriptors(constantSet, chunkSet);
+        m_world->GetRenderer().PushDescriptors(perFrameSet, chunkSet);
 
         assert(layouts.Size() == SPIRE_SHADER_BINDINGS_CONSTANT_SET);
         layouts.Push(constantSet);

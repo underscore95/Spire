@@ -294,10 +294,6 @@ namespace Spire {
         return *m_descriptorCreator;
     }
 
-    void RenderingManager::SetMaximumSwapchainImages(glm::u32 maximumSwapchainImages) {
-        m_maximumSwapchainImages = maximumSwapchainImages;
-    }
-
     void RenderingManager::OnWindowResize() {
         m_queue->WaitIdle();
         vkDeviceWaitIdle(GetDevice());

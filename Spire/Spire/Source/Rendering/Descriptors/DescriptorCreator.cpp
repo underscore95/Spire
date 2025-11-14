@@ -11,7 +11,8 @@ namespace Spire {
     PerImageDescriptor DescriptorCreator::CreatePerImageUniformBuffer(
         glm::u32 binding,
         const PerImageBuffer &buffer,
-        VkShaderStageFlags stages
+        VkShaderStageFlags stages,
+        const std::string &debugName
     ) const {
         return CreatePerImageDescriptor(
             binding,
@@ -19,19 +20,25 @@ namespace Spire {
             1,
             sizeof(VulkanBuffer),
             buffer.GetBuffers().data(),
-            stages
+            stages,
+            debugName
         );
     }
 
-    PerImageDescriptor DescriptorCreator::CreatePerImageStorageBuffer(glm::u32 binding, const PerImageBuffer &buffer,
-                                                                      VkShaderStageFlags stages) const {
+    PerImageDescriptor DescriptorCreator::CreatePerImageStorageBuffer(
+        glm::u32 binding,
+        const PerImageBuffer &buffer,
+        VkShaderStageFlags stages,
+        const std::string &debugName
+    ) const {
         return CreatePerImageDescriptor(
             binding,
             VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             1,
             sizeof(VulkanBuffer),
             buffer.GetBuffers().data(),
-            stages
+            stages,
+            debugName
         );
     }
 
@@ -41,7 +48,8 @@ namespace Spire {
         glm::u32 numResourcesPerImage,
         glm::u32 resourceSize,
         const void *resources,
-        VkShaderStageFlags stages
+        VkShaderStageFlags stages,
+        const std::string &debugName
     ) const {
         assert(resources != nullptr);
 
@@ -51,7 +59,10 @@ namespace Spire {
                 .ResourceType = resourceType,
                 .Binding = binding,
                 .Stages = stages,
-                .Resources = {}
+                .Resources = {},
+#ifndef NDEBUG
+                .DebugName = std::format("{} [image {}]", debugName, i),
+#endif
             });
 
             perImageDescriptor.Descriptors.back().Resources.reserve(numResourcesPerImage);

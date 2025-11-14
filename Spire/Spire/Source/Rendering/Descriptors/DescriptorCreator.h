@@ -4,28 +4,28 @@
 #include "Descriptor.h"
 #include "Rendering/Memory/PerImageBuffer.h"
 
-namespace Spire
-{
+namespace Spire {
     struct PerImageDescriptor;
     struct VulkanBuffer;
 
     // Helper class to fill out Descriptor and PerImageDescriptor structs, you can manually fill them out if it is easier
-    class DescriptorCreator
-    {
+    class DescriptorCreator {
     public:
         explicit DescriptorCreator(glm::u32 numSwapchainImages);
 
     public:
         PerImageDescriptor CreatePerImageUniformBuffer(
             glm::u32 binding,
-            const PerImageBuffer& buffer,
-            VkShaderStageFlags stages = VK_SHADER_STAGE_ALL
+            const PerImageBuffer &buffer,
+            VkShaderStageFlags stages = VK_SHADER_STAGE_ALL,
+            const std::string &debugName = "PerImageUniformBuffer"
         ) const;
 
         PerImageDescriptor CreatePerImageStorageBuffer(
             glm::u32 binding,
-            const PerImageBuffer& buffer,
-            VkShaderStageFlags stages = VK_SHADER_STAGE_ALL
+            const PerImageBuffer &buffer,
+            VkShaderStageFlags stages = VK_SHADER_STAGE_ALL,
+            const std::string &debugName = "PerImageStorageBuffer"
         ) const;
 
         // Resources should be laid out like this
@@ -40,8 +40,9 @@ namespace Spire
             VkDescriptorType resourceType,
             glm::u32 numResourcesPerImage,
             glm::u32 resourceSize,
-            const void* resources,
-            VkShaderStageFlags stages = VK_SHADER_STAGE_ALL
+            const void *resources,
+            VkShaderStageFlags stages = VK_SHADER_STAGE_ALL,
+            const std::string &debugName = "PerImageResource"
         ) const;
 
     private:

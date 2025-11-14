@@ -56,13 +56,11 @@ namespace SpireVoxel {
         };
     }
 
-    void BufferAllocator::Update() {
+    void BufferAllocator::Render() {
         for (size_t i = 0; i < m_allocationsPendingFree.size(); i++) {
             if (m_allocationsPendingFree[i].FramesUntilFreed > 0) {
                 m_allocationsPendingFree[i].FramesUntilFreed--;
             } else {
-                Spire::info("Freeing allocation {}", m_allocationsPendingFree[i].AllocationStart);
-
                 // free it
                 m_allocations.erase(m_allocationsPendingFree[i].AllocationStart);
                 m_allocationsPendingFree[i] = m_allocationsPendingFree.back();

@@ -31,7 +31,7 @@ namespace SpireVoxel {
 
         Spire::Descriptor GetDescriptor(glm::u32 binding, const std::string &debugName = "Buffer Allocator");
 
-        void Update();
+        void Render();
 
         void Write(Allocation allocation, const void *data, glm::u32 size) const;
 

@@ -24,8 +24,6 @@ namespace SpireVoxel {
 
         [[nodiscard]] std::size_t NumLoadedChunks() const;
 
-        void Update() const;
-
         std::unordered_map<glm::ivec3, Chunk>::iterator begin();
 
         std::unordered_map<glm::ivec3, Chunk>::iterator end();

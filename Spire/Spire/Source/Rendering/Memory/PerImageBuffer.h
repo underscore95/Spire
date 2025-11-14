@@ -6,6 +6,8 @@ namespace Spire {
     struct VulkanBuffer;
     class BufferManager;
 
+    // Internally stores a buffer for each frame
+    // Buffers are automatically destroyed in the destructor
     class PerImageBuffer {
         friend BufferManager;
 
