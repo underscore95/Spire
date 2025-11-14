@@ -27,7 +27,7 @@ namespace Spire {
         friend class Engine;
 
     public:
-        explicit RenderingManager(Engine &engine, const std::string &applicationName, Window &window);
+        explicit RenderingManager(Engine &engine, const std::string &applicationName, Window &window,   glm::u32 maximumSwapchainImages);
 
         ~RenderingManager();
 
@@ -63,6 +63,9 @@ namespace Spire {
         [[nodiscard]] VulkanAllocator &GetAllocatorWrapper() const;
 
         [[nodiscard]] DescriptorCreator &GetDescriptorCreator() const;
+
+        // requires swapchain recreation to take effect
+        void SetMaximumSwapchainImages(glm::u32 maximumSwapchainImages);
 
     private:
         void OnWindowResize();
@@ -101,5 +104,6 @@ namespace Spire {
         std::unique_ptr<Renderer> m_renderer;
         std::unique_ptr<ImGuiRenderer> m_imGuiRenderer;
         std::unique_ptr<DescriptorCreator> m_descriptorCreator;
+        glm::u32 m_maximumSwapchainImages;
     };
 }

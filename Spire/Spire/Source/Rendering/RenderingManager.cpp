@@ -24,14 +24,14 @@
 #include "Memory/VulkanImage.h"
 #include "RenderingManager.h"
 
-namespace Spire
-{
-    RenderingManager::RenderingManager(Engine& engine,
-                                       const std::string& applicationName,
-                                       Window& window)
+namespace Spire {
+    RenderingManager::RenderingManager(Engine &engine,
+                                       const std::string &applicationName,
+                                       Window &window,
+                                       glm::u32 maximumSwapchainImages)
         : m_engine(engine),
-          m_window(window)
-    {
+          m_window(window),
+          m_maximumSwapchainImages(maximumSwapchainImages) {
         info("Initializing RenderingManager...");
 
         m_renderingSync = std::make_unique<RenderingSync>(*this);
@@ -72,8 +72,7 @@ namespace Spire
         info("Initialized RenderingManager!");
     }
 
-    RenderingManager::~RenderingManager()
-    {
+    RenderingManager::~RenderingManager() {
         info("Destroying RenderingManager...");
 
         m_imGuiRenderer.reset();
@@ -95,8 +94,7 @@ namespace Spire
         m_logicalDevice.reset();
         m_deviceManager.reset();
 
-        if (m_surface)
-        {
+        if (m_surface) {
             vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
             info("Destroyed Vulkan surface instance");
         }
@@ -105,8 +103,7 @@ namespace Spire
 
         m_debugCallback.reset();
 
-        if (m_instance)
-        {
+        if (m_instance) {
             vkDestroyInstance(m_instance, nullptr);
             info("Destroyed Vulkan instance");
         }
@@ -114,61 +111,50 @@ namespace Spire
         info("Destroyed RenderingManager!");
     }
 
-    bool RenderingManager::IsValid() const
-    {
+    bool RenderingManager::IsValid() const {
         return m_instance &&
-            m_surface &&
-            m_deviceManager &&
-            m_logicalDevice->IsValid() &&
-            m_swapchain->IsValid();
+               m_surface &&
+               m_deviceManager &&
+               m_logicalDevice->IsValid() &&
+               m_swapchain->IsValid();
     }
 
-    RenderingCommandManager& RenderingManager::GetCommandManager() const
-    {
+    RenderingCommandManager &RenderingManager::GetCommandManager() const {
         return *m_commandManager;
     }
 
-    VulkanQueue& RenderingManager::GetQueue() const
-    {
+    VulkanQueue &RenderingManager::GetQueue() const {
         return *m_queue;
     }
 
-    glm::u32 RenderingManager::GetQueueFamily() const
-    {
+    glm::u32 RenderingManager::GetQueueFamily() const {
         return m_logicalDevice->GetDeviceQueueFamily();
     }
 
-    VkDevice RenderingManager::GetDevice() const
-    {
+    VkDevice RenderingManager::GetDevice() const {
         return m_logicalDevice->GetDevice();
     }
 
-    const PhysicalDevice& RenderingManager::GetPhysicalDevice() const
-    {
+    const PhysicalDevice &RenderingManager::GetPhysicalDevice() const {
         return m_deviceManager->Selected();
     }
 
-    BufferManager& RenderingManager::GetBufferManager() const
-    {
+    BufferManager &RenderingManager::GetBufferManager() const {
         return *m_bufferManager;
     }
 
-    ImageManager& RenderingManager::GetImageManager() const
-    {
+    ImageManager &RenderingManager::GetImageManager() const {
         return *m_imageManager;
     }
 
-    const VulkanImage& RenderingManager::GetDepthImage(glm::u32 imageIndex) const
-    {
+    const VulkanImage &RenderingManager::GetDepthImage(glm::u32 imageIndex) const {
         assert(imageIndex < m_depthImages.size());
         return m_depthImages[imageIndex];
     }
 
-    void RenderingManager::GetInstanceVersion()
-    {
+    void RenderingManager::GetInstanceVersion() {
         VkResult res = vkEnumerateInstanceVersion(&m_instanceVersion.RawVersion);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to get vulkan instance version");
         }
 
@@ -178,57 +164,52 @@ namespace Spire
         m_instanceVersion.Patch = VK_API_VERSION_PATCH(m_instanceVersion.RawVersion);
 
         info("Vulkan loader supports version {}.{}.{}.{}", m_instanceVersion.Variant, m_instanceVersion.Major,
-                     m_instanceVersion.Minor, m_instanceVersion.Patch);
+             m_instanceVersion.Minor, m_instanceVersion.Patch);
     }
 
-    void RenderingManager::CreateDepthResources()
-    {
+    void RenderingManager::CreateDepthResources() {
         m_depthImages.resize(m_swapchain->GetNumImages());
 
         VkFormat depthFormat = m_deviceManager->Selected().DepthFormat;
 
-        for (int i = 0; i < m_depthImages.size(); i++)
-        {
+        for (int i = 0; i < m_depthImages.size(); i++) {
             VkImageUsageFlagBits usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
             VkMemoryPropertyFlagBits propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             m_imageManager->CreateImage(m_depthImages[i], m_window.GetDimensions(), usage, propertyFlags, depthFormat);
 
             m_imageManager->TransitionImageLayout(m_depthImages[i].Image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
-                                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+                                                  VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
             m_depthImages[i].ImageView = m_imageManager->CreateImageView(m_depthImages[i].Image, depthFormat,
-                                                                           VK_IMAGE_ASPECT_DEPTH_BIT);
+                                                                         VK_IMAGE_ASPECT_DEPTH_BIT);
         }
 
         info("Created {} depth images", m_depthImages.size());
     }
 
-    void RenderingManager::FreeDepthResources()
-    {
-        for (const auto& depthImage : m_depthImages)
-        {
+    void RenderingManager::FreeDepthResources() {
+        for (const auto &depthImage : m_depthImages) {
             m_imageManager->DestroyImage(depthImage);
         }
         m_depthImages.clear();
     }
 
-    void RenderingManager::CreateInstance(const std::string& applicationName)
-    {
+    void RenderingManager::CreateInstance(const std::string &applicationName) {
         std::vector Layers = {
             "VK_LAYER_KHRONOS_validation"
         };
 
         std::vector Extensions = {
             VK_KHR_SURFACE_EXTENSION_NAME,
-    #if defined (_WIN32)
+#if defined (_WIN32)
             "VK_KHR_win32_surface",
-    #endif
-    #if defined (__APPLE__)
+#endif
+#if defined (__APPLE__)
             "VK_MVK_macos_surface",
-    #endif
-    #if defined (__linux__)
+#endif
+#if defined (__linux__)
             "VK_KHR_xcb_surface",
-    #endif
+#endif
             VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
         };
 
@@ -258,8 +239,7 @@ namespace Spire
         };
 
         VkResult res = vkCreateInstance(&createInfo, nullptr, &m_instance);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to create Vulkan instance");
             return;
         }
@@ -267,68 +247,58 @@ namespace Spire
         info("Created Vulkan instance");
     }
 
-    void RenderingManager::CreateSurface(const Window& window)
-    {
+    void RenderingManager::CreateSurface(const Window &window) {
         VkResult result = glfwCreateWindowSurface(m_instance, window.GLFWWindow(), nullptr, &m_surface);
-        if (result != VK_SUCCESS)
-        {
+        if (result != VK_SUCCESS) {
             error("Failed to create Vulkan window surface");
-        }
-        else
-        {
+        } else {
             info("Created Vulkan window surface");
         }
     }
 
-    void RenderingManager::CreateSwapchain()
-    {
+    void RenderingManager::CreateSwapchain() {
         m_swapchain = std::make_unique<Swapchain>(m_logicalDevice->GetDevice(), m_deviceManager->Selected(),
-                                                  m_logicalDevice->GetDeviceQueueFamily(), m_surface, m_window);
+                                                  m_logicalDevice->GetDeviceQueueFamily(), m_surface, m_window, m_maximumSwapchainImages);
     }
 
-    void RenderingManager::CreateQueue()
-    {
+    void RenderingManager::CreateQueue() {
         m_queue = std::make_unique<VulkanQueue>(*this, m_engine, m_logicalDevice->GetDevice(), m_swapchain->GetSwapchain(),
                                                 m_logicalDevice->GetDeviceQueueFamily(), 0);
     }
 
-    Swapchain& RenderingManager::GetSwapchain() const
-    {
+    Swapchain &RenderingManager::GetSwapchain() const {
         return *m_swapchain;
     }
 
-    RenderingSync& RenderingManager::GetRenderingSync() const
-    {
+    RenderingSync &RenderingManager::GetRenderingSync() const {
         return *m_renderingSync;
     }
 
-    VkInstance RenderingManager::GetInstance() const
-    {
+    VkInstance RenderingManager::GetInstance() const {
         return m_instance;
     }
 
-    Renderer& RenderingManager::GetRenderer() const
-    {
+    Renderer &RenderingManager::GetRenderer() const {
         return *m_renderer;
     }
 
-    ImGuiRenderer& RenderingManager::GetImGuiRenderer() const
-    {
+    ImGuiRenderer &RenderingManager::GetImGuiRenderer() const {
         return *m_imGuiRenderer;
     }
 
-    VulkanAllocator& RenderingManager::GetAllocatorWrapper() const
-    {
+    VulkanAllocator &RenderingManager::GetAllocatorWrapper() const {
         return *m_allocator;
     }
 
-    DescriptorCreator& RenderingManager::GetDescriptorCreator() const
-    {
+    DescriptorCreator &RenderingManager::GetDescriptorCreator() const {
         return *m_descriptorCreator;
     }
 
-    void RenderingManager::OnWindowResize()
-    {
+    void RenderingManager::SetMaximumSwapchainImages(glm::u32 maximumSwapchainImages) {
+        m_maximumSwapchainImages = maximumSwapchainImages;
+    }
+
+    void RenderingManager::OnWindowResize() {
         m_queue->WaitIdle();
         vkDeviceWaitIdle(GetDevice());
 
@@ -338,7 +308,7 @@ namespace Spire
         m_deviceManager->UpdateSurfaceCapabilities();
 
         CreateSwapchain();
-        if (!m_swapchain || !m_swapchain->IsValid()) error("Failed to recreate swapchain {}", static_cast<const void*>(m_swapchain.get()));
+        if (!m_swapchain || !m_swapchain->IsValid()) error("Failed to recreate swapchain {}", static_cast<const void *>(m_swapchain.get()));
         CreateQueue();
 
         FreeDepthResources();

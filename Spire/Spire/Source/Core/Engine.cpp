@@ -28,7 +28,8 @@ namespace Spire {
         m_renderingManager = std::make_unique<RenderingManager>(
             *this,
             m_application->GetApplicationName(),
-            *m_window
+            *m_window,
+            3 // triple buffering
         );
         if (!m_renderingManager->IsValid()) {
             error("Failed to initialize rendering manager");

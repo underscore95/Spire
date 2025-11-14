@@ -20,10 +20,13 @@ namespace Spire {
         const PhysicalDevice &physicalDevice,
         glm::u32 deviceQueueFamily,
         VkSurfaceKHR surface,
-        const Window &)
+        const Window &,
+        glm::u32 maximumSwapchainImages)
         : m_device(device) {
+        assert(maximumSwapchainImages > 1);
+
         // Create swapchain
-        glm::u32 numImages = ChooseNumImages(physicalDevice.SurfaceCapabilities);
+        glm::u32 numImages = ChooseNumImages(maximumSwapchainImages, physicalDevice.SurfaceCapabilities);
 
         if (s_numSwapchainImages != -1 && s_numSwapchainImages != numImages) {
             error("Swapchain was created with a new number of swapchain images! New: {} Old: {} New Device: {}",
@@ -134,7 +137,7 @@ namespace Spire {
         return m_swapChain != VK_NULL_HANDLE && !m_images.empty() && !m_imageViews.empty();
     }
 
-    VkPresentModeKHR Swapchain::ChoosePresentMode(const std::vector<VkPresentModeKHR> &presentModes) const {
+    VkPresentModeKHR Swapchain::ChoosePresentMode(const std::vector<VkPresentModeKHR> &presentModes) {
         for (const auto &presentMode : presentModes) {
             if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
                 return presentMode;
@@ -144,7 +147,7 @@ namespace Spire {
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    glm::u32 Swapchain::ChooseNumImages(const VkSurfaceCapabilitiesKHR &capabilities) const {
+    glm::u32 Swapchain::ChooseNumImages(glm::u32 maximumSwapchainImages, const VkSurfaceCapabilitiesKHR &capabilities) {
         glm::u32 requestedNumImages = capabilities.minImageCount + 1;
         glm::u32 finalNumImages = 0;
 
@@ -154,11 +157,11 @@ namespace Spire {
             finalNumImages = requestedNumImages;
         }
 
-        return finalNumImages;
+        return std::min(maximumSwapchainImages, finalNumImages);
     }
 
     VkSurfaceFormatKHR Swapchain::ChooseSurfaceFormatAndColorSpace(
-        const std::vector<VkSurfaceFormatKHR> &surfaceFormats) const {
+        const std::vector<VkSurfaceFormatKHR> &surfaceFormats) {
         for (const auto &surfaceFormat : surfaceFormats) {
             if ((surfaceFormat.format == VK_FORMAT_B8G8R8A8_SRGB) &&
                 (surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)) {
@@ -170,7 +173,7 @@ namespace Spire {
     }
 
     VkImageView Swapchain::CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
-                                           VkImageViewType viewType, glm::u32 layerCount, glm::u32 mipLevels) const {
+                                           VkImageViewType viewType, glm::u32 layerCount, glm::u32 mipLevels) {
         VkImageViewCreateInfo viewInfo =
         {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,

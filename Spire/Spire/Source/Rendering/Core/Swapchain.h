@@ -14,7 +14,8 @@ namespace Spire
                   const PhysicalDevice& physicalDevice,
                   glm::u32 deviceQueueFamily,
                   VkSurfaceKHR surface,
-                  const Window& window);
+                  const Window& window,
+                    glm::u32 maximumSwapchainImages);
         ~Swapchain();
 
     public:
@@ -31,11 +32,12 @@ namespace Spire
         [[nodiscard]] bool IsValid() const;
 
     private:
-        VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes) const;
-        glm::u32 ChooseNumImages(const VkSurfaceCapabilitiesKHR& capabilities) const;
-        VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace(const std::vector<VkSurfaceFormatKHR>& surfaceFormats) const;
-        VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
-                                    VkImageViewType viewType, glm::u32 layerCount, glm::u32 mipLevels) const;
+        [[nodiscard]] static VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes);
+        static glm::u32 ChooseNumImages(glm::u32 maximumSwapchainImages, const VkSurfaceCapabilitiesKHR &capabilities) ;
+        static VkSurfaceFormatKHR ChooseSurfaceFormatAndColorSpace(const std::vector<VkSurfaceFormatKHR>& surfaceFormats) ;
+
+        static VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
+                                           VkImageViewType viewType, glm::u32 layerCount, glm::u32 mipLevels);
 
     private:
         VkDevice m_device;
