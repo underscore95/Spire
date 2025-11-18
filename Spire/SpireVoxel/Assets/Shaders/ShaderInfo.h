@@ -92,7 +92,7 @@ namespace SpireVoxel {
     // Get image index to use for a specific face layout and face
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE GetImageIndex(SPIRE_UINT32_TYPE faceLayout, SPIRE_UINT32_TYPE face) {
         if (faceLayout == SPIRE_VOXEL_LAYOUT_ALL_SAME) return 0;
-        if (faceLayout == SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT) return face == SPIRE_VOXEL_FACE_POS_Y ? 0 : 1;
+        if (faceLayout == SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT) return face == SPIRE_VOXEL_FACE_POS_Y ? 1 : 0;
 
 #ifdef __cplusplus
         assert(false); // invalid face layout

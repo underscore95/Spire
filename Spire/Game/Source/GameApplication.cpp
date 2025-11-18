@@ -1,5 +1,7 @@
 #include "GameApplication.h"
 
+#include "Rendering/GameCamera.h"
+
 using namespace Spire;
 
 GameApplication::GameApplication() {
@@ -57,6 +59,22 @@ void GameApplication::RenderUi() const {
     ImGui::Begin(GetApplicationName(), nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+
+    glm::vec3 cameraForward = glm::normalize(m_voxelRenderer->GetCamera().GetCamera().GetForward());
+
+    const char *dir;
+    if (std::abs(cameraForward.x) > std::abs(cameraForward.y) && std::abs(cameraForward.x) > std::abs(cameraForward.z)) {
+        dir = (cameraForward.x > 0) ? "PosX" : "NegX";
+    } else if (std::abs(cameraForward.y) > std::abs(cameraForward.x) && std::abs(cameraForward.y) > std::abs(cameraForward.z)) {
+        dir = (cameraForward.y > 0) ? "PosY" : "NegY";
+    } else {
+        dir = (cameraForward.z > 0) ? "PosZ" : "NegZ";
+    }
+
+    ImGui::Text("Facing: %s (%f, %f, %f)", dir, cameraForward.x, cameraForward.y, cameraForward.z);
+
+    glm::vec3 cameraPos = m_voxelRenderer->GetCamera().GetCamera().GetPosition();
+    ImGui::Text("Position %f, %f, %f", cameraPos.x, cameraPos.y, cameraPos.z);
 
     ImGui::End();
 

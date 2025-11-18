@@ -6,8 +6,7 @@
 
 // https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/camera.h
 
-namespace Spire
-{
+namespace Spire {
     Camera::Camera(const Window &m_window,
                    glm::vec3 position,
                    glm::vec3 up,
@@ -26,7 +25,7 @@ namespace Spire
     }
 
     glm::mat4 Camera::GetViewMatrix() const {
-        return glm::lookAt(m_position, m_position + m_front, m_up);
+        return glm::lookAt(m_position, m_position + m_front,- m_up);
     }
 
     glm::mat4 Camera::GetProjectionMatrix() const {
@@ -41,18 +40,18 @@ namespace Spire
         if (m_window.IsKeyHeld(GLFW_KEY_S))
             m_position -= m_front * velocity;
         if (m_window.IsKeyHeld(GLFW_KEY_A))
-            m_position -= m_right * velocity;
+            m_position += m_left * velocity;
         if (m_window.IsKeyHeld(GLFW_KEY_D))
-            m_position += m_right * velocity;
+            m_position -= m_left * velocity;
         if (m_window.IsKeyHeld(GLFW_KEY_Q))
             m_position -= m_up * velocity;
         if (m_window.IsKeyHeld(GLFW_KEY_E))
             m_position += m_up * velocity;
 
         // Mouse
-        if (m_window.IsMouseButtonHeld(GLFW_MOUSE_BUTTON_RIGHT) ) {
-            m_yawDegrees += m_window.GetMouseDelta().x * m_mouseSensitivity;
-            m_pitchDegrees += m_window.GetMouseDelta().y * m_mouseSensitivity;
+        if (m_window.IsMouseButtonHeld(GLFW_MOUSE_BUTTON_RIGHT)) {
+            m_yawDegrees -= m_window.GetMouseDelta().x * m_mouseSensitivity;
+            m_pitchDegrees -= m_window.GetMouseDelta().y * m_mouseSensitivity;
         }
 
         // make sure that when pitch is out of bounds, screen doesn't get flipped
@@ -74,6 +73,14 @@ namespace Spire
         UpdateCameraVectors();
     }
 
+    glm::vec3 Camera::GetForward() const {
+        return m_front;
+    }
+
+    glm::vec3 Camera::GetPosition() const {
+        return m_position;
+    }
+
     void Camera::UpdateCameraVectors() {
         // calculate the new Front vector
         glm::vec3 front;
@@ -82,8 +89,8 @@ namespace Spire
         front.z = sin(glm::radians(m_yawDegrees)) * cos(glm::radians(m_pitchDegrees));
         m_front = glm::normalize(front);
         // also re-calculate the Right and Up vector
-        m_right = glm::normalize(glm::cross(m_front, m_worldUp));
+        m_left = glm::normalize(glm::cross(m_front, m_worldUp));
         // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-        m_up = glm::normalize(glm::cross(m_right, m_front));
+        m_up = glm::normalize(glm::cross(m_left, m_front));
     }
 }

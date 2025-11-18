@@ -18,6 +18,10 @@ namespace Spire {
 
         void Update(float deltaTime);
 
+        glm::vec3 GetForward() const;
+
+          glm::vec3 GetPosition() const;
+
     private:
         void UpdateCameraVectors();
 
@@ -36,7 +40,7 @@ namespace Spire {
         glm::vec3 m_position;
         glm::vec3 m_front;
         glm::vec3 m_up;
-        glm::vec3 m_right;
+        glm::vec3 m_left;
         glm::vec3 m_worldUp;
 
         float m_yawDegrees;

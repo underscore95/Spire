@@ -137,6 +137,10 @@ namespace SpireVoxel {
         CreateAndRecordCommandBuffers();
     }
 
+    GameCamera &VoxelRenderer::GetCamera() const {
+        return *m_camera;
+    }
+
     void VoxelRenderer::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const {
         auto &rm = m_engine.GetRenderingManager();
 
