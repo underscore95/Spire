@@ -27,7 +27,7 @@ namespace SpireVoxel {
 
         void DestroyImagesForTypes(std::span<RegisteredVoxelType> types);
 
-        void LoadImageIfNotLoaded(RegisteredVoxelType &type) const;
+        void LoadImagesIfNotLoaded(RegisteredVoxelType &type) const;
 
     private:
         Spire::RenderingManager &m_renderingManager;

@@ -100,7 +100,8 @@ namespace SpireVoxel {
         for (RegisteredVoxelType &type : m_voxelTypes) {
             assert(type.FirstImageIndex != UINT32_MAX);
             data[type.GetType().Id] = {
-                .FirstTextureIndex = type.FirstImageIndex
+                .FirstTextureIndex = type.FirstImageIndex,
+                .VoxelFaceLayout = type.GetType().VoxelFaceLayout
             };
         }
 

@@ -36,5 +36,5 @@ void main()
     gl_Position = cameraBuffer.ViewProjectionMatrix * vec4(pos, 1.0);
 
     shouldDiscard = 0;
-    imageIndex = voxelTypesBuffer.voxelTypes[vtx.VoxelType].FirstTextureIndex;
+    imageIndex = voxelTypesBuffer.voxelTypes[vtx.VoxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[vtx.VoxelType].VoxelFaceLayout, vtx.Face);
 }

@@ -266,8 +266,8 @@ namespace SpireVoxel {
         m_voxelImageManager = std::make_unique<VoxelImageManager>(m_engine.GetRenderingManager(), *m_voxelTypeRegistry, SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING);
 
         m_voxelTypeRegistry->RegisterTypes(std::vector<VoxelType>{
-            {1, std::string(ASSETS_DIRECTORY) + "/1.png"},
-            {2, std::string(ASSETS_DIRECTORY) + "/2.png"},
+            {1, {std::string(ASSETS_DIRECTORY) + "/1.png", std::string(ASSETS_DIRECTORY) + "/1_top.png"}, SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT},
+            {2, {std::string(ASSETS_DIRECTORY) + "/2.png"}, SPIRE_VOXEL_LAYOUT_ALL_SAME},
         });
     }
 } // SpireVoxel
