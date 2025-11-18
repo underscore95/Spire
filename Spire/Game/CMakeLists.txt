@@ -7,5 +7,3 @@ add_executable(Game
 
 target_include_directories(Game PRIVATE "Source/")
 target_link_libraries(Game PRIVATE SpireVoxel)
-
-setup_assets_directory(Game Assets)
