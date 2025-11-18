@@ -10,13 +10,13 @@ namespace SpireVoxel {
     public:
         LocalDelegateSubscriber(Delegate<Args...> &delegate, const std::function<void(Args...)> &func)
             : mSubscribers(delegate.GetSubscribers()),
-              m_isValid(mSubscribers.m_isValid) {
+              m_isValid(mSubscribers.GetIsValidPtr()) {
             mCallbackId = mSubscribers.AddCallback(func);
         }
 
         LocalDelegateSubscriber(DelegateSubscribers<Args...> &subscribers, const std::function<void(Args...)> &func)
             : mSubscribers(subscribers),
-              m_isValid(mSubscribers.m_isValid) {
+              m_isValid(mSubscribers.GetIsValidPtr()) {
             mCallbackId = mSubscribers.AddCallback(func);
         }
 

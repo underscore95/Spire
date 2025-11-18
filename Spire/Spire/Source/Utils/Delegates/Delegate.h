@@ -14,7 +14,6 @@ namespace SpireVoxel {
     class DelegateSubscribers {
         using FuncType = std::function<void(Args...)>;
         friend class Delegate<Args...>;
-        friend class DelegateSubscriber<Args...>;
 
     private:
         DelegateSubscribers() = default;
@@ -22,7 +21,7 @@ namespace SpireVoxel {
         DISABLE_COPY(DelegateSubscribers);
 
     public:
-        int AddCallback(const FuncType &func) {
+        [[nodiscard]] int AddCallback(const FuncType &func) {
             int id = mNextCallbackId++;
             mCallbacks[id] = func;
             return id;
@@ -31,6 +30,8 @@ namespace SpireVoxel {
         void RemoveCallback(int id) {
             mCallbacks.erase(id);
         }
+
+        const std::shared_ptr<bool>& GetIsValidPtr() const { return m_isValid; }
 
     private:
         std::unordered_map<int, FuncType> mCallbacks;

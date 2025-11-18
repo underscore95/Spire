@@ -21,6 +21,7 @@
 #include <functional>
 #include <regex>
 #include <map>
+#include <span>
 
 // vulkan
 #include <vulkan/vulkan_core.h>

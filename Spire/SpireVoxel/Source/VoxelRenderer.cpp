@@ -5,13 +5,16 @@
 #include "Chunk/VoxelWorld.h"
 #include "Rendering/VoxelWorldRenderer.h"
 #include "Serialisation/VoxelSerializer.h"
+#include "Types/VoxelImageManager.h"
+#include "Types/VoxelType.h"
+#include "Types/VoxelTypeRegistry.h"
 
 using namespace Spire;
 
 constexpr glm::u32 NUM_CHUNKS = 1;
 
 namespace SpireVoxel {
-static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = true;
+    static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = true;
 
     VoxelRenderer::VoxelRenderer(Spire::Engine &engine)
         : m_engine(engine) {
@@ -32,11 +35,8 @@ static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = true;
         assert(m_fragmentShader != VK_NULL_HANDLE);
         info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
-        // Images
-        std::vector<std::string> imagesToLoad = {"test.png"};
-
-        assert(imagesToLoad.size() == SPIRE_SHADER_TEXTURE_COUNT);
-        m_sceneImages = std::make_unique<SceneImages>(rm,ASSETS_DIRECTORY, imagesToLoad);
+        // Voxel types
+        RegisterVoxelTypes();
 
         // World
         m_world = std::make_unique<VoxelWorld>(rm);
@@ -81,7 +81,6 @@ static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = true;
             chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 0;
             m_world->GetRenderer().NotifyChunkEdited(*chunk1);
         } else {
-
         }
 
         //VoxelSerializer::Serialize(*m_world, std::filesystem::path("Worlds") / "World1");
@@ -121,7 +120,6 @@ static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = true;
     }
 
     VkCommandBuffer VoxelRenderer::Render(glm::u32 imageIndex) const {
-
         m_world->GetRenderer().Render(imageIndex);
 
         RenderInfo renderInfo = {
@@ -201,13 +199,16 @@ static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = true;
         DescriptorSetLayout chunkSet;
 
         // Images
-        constantSet.push_back(m_sceneImages->GetDescriptor(SPIRE_SHADER_BINDINGS_MODEL_IMAGES_BINDING));
+        constantSet.push_back(m_voxelImageManager->GetDescriptor());
 
         // Camera
         perFrameSet.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
 
         // Chunks
         m_world->GetRenderer().PushDescriptors(perFrameSet, chunkSet);
+
+        // Voxel types
+        constantSet.push_back(m_voxelTypeRegistry->GetVoxelTypesBufferDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING));
 
         assert(layouts.Size() == SPIRE_SHADER_BINDINGS_CONSTANT_SET);
         layouts.Push(constantSet);
@@ -248,7 +249,8 @@ static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = true;
         m_world.reset();
         m_camera.reset();
 
-        m_sceneImages.reset();
+        m_voxelImageManager.reset();
+        m_voxelTypeRegistry.reset();
 
         m_graphicsPipeline.reset();
 
@@ -257,5 +259,15 @@ static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = true;
         vkDestroyShaderModule(rm.GetDevice(), m_vertexShader, nullptr);
         vkDestroyShaderModule(rm.GetDevice(), m_fragmentShader, nullptr);
         info("Destroyed shaders");
+    }
+
+    void VoxelRenderer::RegisterVoxelTypes() {
+        m_voxelTypeRegistry = std::make_unique<VoxelTypeRegistry>(m_engine.GetRenderingManager());
+        m_voxelImageManager = std::make_unique<VoxelImageManager>(m_engine.GetRenderingManager(), *m_voxelTypeRegistry, SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING);
+
+        m_voxelTypeRegistry->RegisterTypes(std::vector<VoxelType>{
+            {1, std::string(ASSETS_DIRECTORY) + "/1.png"},
+            {2, std::string(ASSETS_DIRECTORY) + "/2.png"},
+        });
     }
 } // SpireVoxel
