@@ -5,7 +5,14 @@
 #include "Chunk/Chunk.h"
 
 namespace SpireVoxel {
-    VoxelTypeRegistry::VoxelTypeRegistry() : m_onTypesRemovedDelegate(), m_onTypesChangedDelegate() {
+    VoxelTypeRegistry::VoxelTypeRegistry(Spire::RenderingManager &renderingManager)
+        : m_renderingManager(renderingManager),
+          m_onTypesRemovedDelegate(),
+          m_onTypesChangedDelegate() {
+    }
+
+    VoxelTypeRegistry::~VoxelTypeRegistry() {
+        DestroyVoxelTypesBuffer();
     }
 
     void VoxelTypeRegistry::RegisterType(VoxelType type) {
@@ -26,6 +33,8 @@ namespace SpireVoxel {
     }
 
     void VoxelTypeRegistry::RegisterTypes(const std::vector<VoxelType> &types) {
+        assert(m_voxelTypes.empty()); // may work but modifying a second time is untested
+
         std::vector<RegisteredVoxelType> removed;
 
         for (const VoxelType &type : types) {
@@ -41,6 +50,8 @@ namespace SpireVoxel {
 
         m_onTypesRemovedDelegate.Broadcast(std::span{removed});
         m_onTypesChangedDelegate.Broadcast();
+
+        RecreateVoxelTypesBuffer();
     }
 
     std::vector<RegisteredVoxelType>::iterator VoxelTypeRegistry::begin() {
@@ -61,5 +72,46 @@ namespace SpireVoxel {
 
     std::span<RegisteredVoxelType> VoxelTypeRegistry::GetTypes() {
         return std::span{m_voxelTypes};
+    }
+
+    Spire::Descriptor VoxelTypeRegistry::GetVoxelTypesBufferDescriptor(glm::u32 binding) {
+        return Spire::Descriptor{
+            .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .Binding = binding,
+            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+            .Resources = {{.Buffer = &m_voxelTypesBuffer}},
+#ifndef NDEBUG
+            .DebugName = "Voxel Types Buffer"
+#endif
+        };
+    }
+
+    void VoxelTypeRegistry::RecreateVoxelTypesBuffer() {
+        DestroyVoxelTypesBuffer();
+
+        // how big does the buffer need to be
+        glm::u32 numElements = 0;
+        for (RegisteredVoxelType &type : m_voxelTypes) {
+            numElements = std::max(numElements, type.GetType().Id + 1);
+        }
+
+        // prepare data
+        std::vector<GPUVoxelType> data(numElements);
+        for (RegisteredVoxelType &type : m_voxelTypes) {
+            assert(type.FirstImageIndex != UINT32_MAX);
+            data[type.GetType().Id] = {
+                .FirstTextureIndex = type.FirstImageIndex
+            };
+        }
+
+        // create buffer
+        m_voxelTypesBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffer(data.data(), numElements * sizeof(GPUVoxelType), sizeof(GPUVoxelType));
+    }
+
+    void VoxelTypeRegistry::DestroyVoxelTypesBuffer() {
+        if (m_voxelTypesBuffer.Buffer != VK_NULL_HANDLE) {
+            m_renderingManager.GetBufferManager().DestroyBuffer(m_voxelTypesBuffer);
+            m_voxelTypesBuffer.Buffer = VK_NULL_HANDLE;
+        }
     }
 } // SpireVoxel

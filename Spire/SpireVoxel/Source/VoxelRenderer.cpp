@@ -207,6 +207,9 @@ namespace SpireVoxel {
         // Chunks
         m_world->GetRenderer().PushDescriptors(perFrameSet, chunkSet);
 
+        // Voxel types
+        constantSet.push_back(m_voxelTypeRegistry->GetVoxelTypesBufferDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING));
+
         assert(layouts.Size() == SPIRE_SHADER_BINDINGS_CONSTANT_SET);
         layouts.Push(constantSet);
         assert(layouts.Size() == SPIRE_SHADER_BINDINGS_PER_FRAME_SET);
@@ -259,7 +262,7 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::RegisterVoxelTypes() {
-        m_voxelTypeRegistry = std::make_unique<VoxelTypeRegistry>();
+        m_voxelTypeRegistry = std::make_unique<VoxelTypeRegistry>(m_engine.GetRenderingManager());
         m_voxelImageManager = std::make_unique<VoxelImageManager>(m_engine.GetRenderingManager(), *m_voxelTypeRegistry, SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING);
 
         m_voxelTypeRegistry->RegisterTypes(std::vector<VoxelType>{

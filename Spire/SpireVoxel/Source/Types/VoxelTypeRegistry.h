@@ -10,7 +10,9 @@ namespace Spire {
 namespace SpireVoxel {
     class VoxelTypeRegistry {
     public:
-        VoxelTypeRegistry();
+        explicit VoxelTypeRegistry(Spire::RenderingManager &renderingManager);
+
+        ~VoxelTypeRegistry();
 
     public:
         void RegisterType(VoxelType type);
@@ -27,9 +29,18 @@ namespace SpireVoxel {
 
         [[nodiscard]] std::span<RegisteredVoxelType> GetTypes();
 
+        [[nodiscard]] Spire::Descriptor GetVoxelTypesBufferDescriptor(glm::u32 binding);
+
     private:
+        void RecreateVoxelTypesBuffer();
+
+        void DestroyVoxelTypesBuffer();
+
+    private:
+        Spire::RenderingManager &m_renderingManager;
         std::vector<RegisteredVoxelType> m_voxelTypes;
         Delegate<std::span<RegisteredVoxelType> > m_onTypesRemovedDelegate; // removed types
         Delegate<> m_onTypesChangedDelegate;
+        Spire::VulkanBuffer m_voxelTypesBuffer;
     };
 } // SpireVoxel

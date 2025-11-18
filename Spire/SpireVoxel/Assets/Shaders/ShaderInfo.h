@@ -6,6 +6,7 @@
 #define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET 4
 
 #define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING 0
+#define SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING 2
 #define SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING 3
 #define SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING 1
 #define SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING 0
@@ -59,6 +60,18 @@ namespace SpireVoxel {
     struct ChunkData {
         SPIRE_UINT32_TYPE NumVertices;
         SPIRE_UINT32_TYPE FirstVertex;
+    };
+
+#ifdef __cplusplus
+}
+#endif
+
+// voxel type
+#ifdef __cplusplus
+namespace SpireVoxel {
+#endif
+    struct GPUVoxelType {
+        SPIRE_UINT32_TYPE FirstTextureIndex;
     };
 
 #ifdef __cplusplus

@@ -27,6 +27,7 @@ namespace SpireVoxel {
         m_voxelTypeImages.clear();
         for (RegisteredVoxelType &type : m_types) {
             LoadImageIfNotLoaded(type);
+            type.FirstImageIndex = m_voxelTypeImages.size();
             m_voxelTypeImages.push_back({.Image = &type.Image});
         }
 
@@ -45,6 +46,7 @@ namespace SpireVoxel {
         for (RegisteredVoxelType &type : types) {
             m_renderingManager.GetImageManager().DestroyImage(type.Image);
             type.Image = {};
+            type.FirstImageIndex = UINT32_MAX;
         }
         m_descriptor.reset();
     }

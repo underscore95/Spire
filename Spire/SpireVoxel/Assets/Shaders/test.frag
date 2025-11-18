@@ -6,7 +6,7 @@
 
 layout(location = 0) in vec2 uv;
 layout(location = 1) flat in int shouldDiscard;
-layout(location = 2) flat in int textureIndex;
+layout(location = 2) flat in uint imageIndex;
 
 layout(location = 0) out vec4 out_Color;
 
@@ -15,6 +15,6 @@ layout(set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_BI
 void main() {
   if (shouldDiscard != 0) discard;
   else {
-    out_Color = texture(texSampler[textureIndex], uv);
+    out_Color = texture(texSampler[imageIndex], uv);
   }
 }

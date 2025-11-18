@@ -8,6 +8,10 @@ layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VO
     VertexData data[];
 } in_Vertices;
 
+layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING) readonly buffer VoxelTypesBuffer {
+    GPUVoxelType voxelTypes[];
+} voxelTypesBuffer;
+
 layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING) readonly uniform CameraBuffer { mat4 ViewProjectionMatrix; } cameraBuffer;
 
 layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING) readonly buffer ChunkDataBuffer {
@@ -16,7 +20,7 @@ layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_VOXEL_SHADER_
 
 layout (location = 0) out vec2 texCoord;
 layout (location = 1) flat out int shouldDiscard;
-layout (location = 2) flat out int textureIndex;
+layout (location = 2) flat out uint imageIndex;
 
 void main()
 {
@@ -32,5 +36,5 @@ void main()
     gl_Position = cameraBuffer.ViewProjectionMatrix * vec4(pos, 1.0);
 
     shouldDiscard = 0;
-    textureIndex = vtx.VoxelType - 1; // because air is 0
+    imageIndex = voxelTypesBuffer.voxelTypes[vtx.VoxelType].FirstTextureIndex;
 }

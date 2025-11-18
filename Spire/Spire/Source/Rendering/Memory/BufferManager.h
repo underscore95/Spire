@@ -21,6 +21,8 @@ namespace Spire {
         [[nodiscard]] VulkanBuffer CreateStorageBuffer(const void *elements, glm::u32 size, glm::u32 elementSize,
                                                        bool isTransferSource = false);
 
+        [[nodiscard]] VulkanBuffer CreateUniformBuffer(glm::u32 size, glm::u32 elementSize,                                                       bool isTransferSource = false);
+
         void DestroyBuffer(const VulkanBuffer &buffer);
 
         [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateUniformBuffers(size_t bufferSize, bool isTransferDest = false);
