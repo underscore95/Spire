@@ -16,6 +16,7 @@ layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_VOXEL_SHADER_
 
 layout (location = 0) out vec2 texCoord;
 layout (location = 1) flat out int shouldDiscard;
+layout (location = 2) flat out int textureIndex;
 
 void main()
 {
@@ -30,10 +31,6 @@ void main()
 
     gl_Position = cameraBuffer.ViewProjectionMatrix * vec4(pos, 1.0);
 
-    texCoord = vec2(vtx.u, vtx.v);
-    texCoord.x *= 0.5;
-
-    if (vtx.VoxelType == 2) texCoord.x += 0.5;
-
     shouldDiscard = 0;
+    textureIndex = vtx.VoxelType - 1; // because air is 0
 }

@@ -6,6 +6,14 @@
 #include "Utils/FrameDeleter.h"
 
 namespace SpireVoxel {
+    class VoxelImageManager;
+}
+
+namespace SpireVoxel {
+    class VoxelTypeRegistry;
+}
+
+namespace SpireVoxel {
     class VoxelWorld;
 }
 
@@ -22,7 +30,7 @@ namespace SpireVoxel {
     public:
         void Update();
 
-        VkCommandBuffer Render(glm::u32 imageIndex) const;
+        [[nodiscard]] VkCommandBuffer Render(glm::u32 imageIndex) const;
 
         void OnWindowResize();
 
@@ -37,11 +45,14 @@ namespace SpireVoxel {
 
         void Cleanup();
 
+        void RegisterVoxelTypes();
+
     private:
         Spire::Engine &m_engine;
         VkShaderModule m_vertexShader = VK_NULL_HANDLE;
         VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
-        std::unique_ptr<Spire::SceneImages> m_sceneImages;
+        std::unique_ptr<VoxelTypeRegistry> m_voxelTypeRegistry;
+        std::unique_ptr<VoxelImageManager> m_voxelImageManager;
         std::unique_ptr<Spire::GraphicsPipeline> m_graphicsPipeline;
         std::unique_ptr<Spire::CommandBufferVector> m_commandBuffers;
         std::unique_ptr<Spire::DescriptorManager> m_descriptorManager;
