@@ -17,6 +17,8 @@ namespace SpireVoxel {
     }
 
     BufferAllocator::Allocation BufferAllocator::Allocate(glm::u32 requestedSize) {
+m_allocationsMade++;
+
         glm::u32 previousAllocationEnd = 0;
         for (auto &[start, size] : m_allocations) {
             if (start - previousAllocationEnd >= requestedSize) {
@@ -32,7 +34,7 @@ namespace SpireVoxel {
         }
 
         // no space previously, need to allocate at end
-        assert(previousAllocationEnd + requestedSize <= m_buffer.Size);
+        assert(previousAllocationEnd + requestedSize <= m_buffer.Size); // OUT OF MEMORY :(
         m_allocations[previousAllocationEnd] = requestedSize;
         return Allocation{
             .Start = previousAllocationEnd,
@@ -40,8 +42,9 @@ namespace SpireVoxel {
         };
     }
 
-    void BufferAllocator::FreeAllocation(glm::u32 start) {
-        m_allocationsPendingFree.push_back({start, m_numSwapchainImages + 1});
+    void BufferAllocator::ScheduleFreeAllocation(glm::u32 start) {
+        m_pendingFreesMade++;
+        m_allocationsPendingFree.push_back({start, m_numSwapchainImages});
     }
 
     Spire::Descriptor BufferAllocator::GetDescriptor(glm::u32 binding, const std::string &debugName) {
@@ -65,6 +68,7 @@ namespace SpireVoxel {
                 m_allocations.erase(m_allocationsPendingFree[i].AllocationStart);
                 m_allocationsPendingFree[i] = m_allocationsPendingFree.back();
                 m_allocationsPendingFree.pop_back();
+                m_finishedFreesMade++;
             }
         }
     }
@@ -73,5 +77,14 @@ namespace SpireVoxel {
         assert(m_allocations.contains(allocation.Start));
         assert(allocation.Size >= size);
         m_renderingManager.GetBufferManager().UpdateBuffer(m_buffer, data, size, allocation.Start);
+    }
+
+    glm::u64 BufferAllocator::CalculateAllocatedOrPendingMemory() const {
+        glm::u64 allocated = 0;
+        for (auto& alloc : m_allocations) {
+            allocated += alloc.first;
+        }
+
+        return allocated;
     }
 } // SpireVoxel

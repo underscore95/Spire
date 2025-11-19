@@ -126,10 +126,6 @@ namespace Spire
         {
             error("Failed to create graphics pipeline layout");
         }
-        else
-        {
-            info("Graphics pipeline created");
-        }
     }
 
     GraphicsPipeline::~GraphicsPipeline()

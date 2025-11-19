@@ -73,7 +73,7 @@ namespace SpireVoxel {
         }
 
         if (oldAllocation.Size > 0) {
-            m_chunkVertexBufferAllocator.FreeAllocation(oldAllocation.Start);
+            m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
         }
 
         // write the chunk data
@@ -104,7 +104,7 @@ namespace SpireVoxel {
         changes.RecreateOnlyCommandBuffers = true;
 
         m_onWorldEditedDelegate.Broadcast(changes);
-        Spire::info("Regenerated chunk ({}, {}) with {} vertices", chunk.ChunkPosition.x, chunk.ChunkPosition.y, chunk.NumVertices);
+        //Spire::info("Regenerated chunk ({}, {}) with {} vertices", chunk.ChunkPosition.x, chunk.ChunkPosition.y, chunk.NumVertices);
     }
 
     void VoxelWorldRenderer::NotifyChunkLoadedOrUnloaded() {

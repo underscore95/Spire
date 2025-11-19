@@ -37,8 +37,6 @@ namespace Spire {
         VkResult res = vkCreateDescriptorPool(renderingManager.GetDevice(), &poolInfo, nullptr, &m_descriptorPool);
         if (res != VK_SUCCESS) {
             error("Failed to create descriptor pool");
-        } else {
-            info("Created descriptor pool");
         }
     }
 

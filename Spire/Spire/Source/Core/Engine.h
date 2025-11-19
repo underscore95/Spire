@@ -1,30 +1,31 @@
 #pragma once
 
 #include "pch.h"
+#include "Utils/Random.h"
 #include "Utils/Timer.h"
 #include "Utils/Version.h"
 
-namespace Spire
-{
+namespace Spire {
     class RenderingManager;
     class Window;
     class Application;
 
-    class Engine
-    {
+    class Engine {
     public:
         explicit Engine(std::unique_ptr<Application> app);
 
         ~Engine();
 
     public:
-        [[nodiscard]] const Window& GetWindow() const;
+        [[nodiscard]] const Window &GetWindow() const;
 
-        [[nodiscard]] RenderingManager& GetRenderingManager() const;
+        [[nodiscard]] RenderingManager &GetRenderingManager() const;
 
         [[nodiscard]] float GetDeltaTime() const;
 
         void OnWindowResize();
+
+        [[nodiscard]] Random &GetRandom();
 
     private:
         void Start();
@@ -51,5 +52,7 @@ namespace Spire
         bool m_isMinimized = false;
 
         Version m_version;
+
+        Random m_random;
     };
 }

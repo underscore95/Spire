@@ -22,6 +22,7 @@
 #include <regex>
 #include <map>
 #include <span>
+#include <random>
 
 // vulkan
 #include <vulkan/vulkan_core.h>

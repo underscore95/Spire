@@ -77,4 +77,16 @@ namespace SpireVoxel {
     VoxelWorldRenderer &VoxelWorld::GetRenderer() const {
         return *m_renderer;
     }
+
+    glm::u64 VoxelWorld::CalculateGPUMemoryUsageForChunks() const {
+        return m_renderer->m_chunkVertexBufferAllocator.CalculateAllocatedOrPendingMemory();
+    }
+
+    glm::u64 VoxelWorld::CalculateCPUMemoryUsageForChunks() const {
+        glm::u64 usage = 0;
+        for (auto &pair : m_chunks) {
+            usage += sizeof(pair.second);
+        }
+        return usage;
+    }
 } // SpireVoxel

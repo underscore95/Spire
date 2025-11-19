@@ -27,13 +27,17 @@ namespace SpireVoxel {
     public:
         Allocation Allocate(glm::u32 requestedSize);
 
-        void FreeAllocation(glm::u32 start);
+        void ScheduleFreeAllocation(glm::u32 start);
 
         Spire::Descriptor GetDescriptor(glm::u32 binding, const std::string &debugName = "Buffer Allocator");
 
         void Render();
 
         void Write(Allocation allocation, const void *data, glm::u32 size) const;
+
+        // How much memory is either allocated or pending free
+        // this is bufferSize - availableMemory
+        [[nodiscard]] glm::u64 CalculateAllocatedOrPendingMemory() const;
 
     private:
         Spire::RenderingManager &m_renderingManager;
@@ -42,5 +46,8 @@ namespace SpireVoxel {
         glm::u32 m_numSwapchainImages;
         std::vector<PendingFree> m_allocationsPendingFree;
         std::map<glm::u32, glm::u32> m_allocations; // start, size
+        glm::u32 m_allocationsMade = 0;
+        glm::u32 m_pendingFreesMade = 0;
+        glm::u32 m_finishedFreesMade = 0;
     };
 } // SpireVoxel

@@ -14,7 +14,7 @@ using namespace Spire;
 constexpr glm::u32 NUM_CHUNKS = 1;
 
 namespace SpireVoxel {
-    static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = true;
+    static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = false;
 
     VoxelRenderer::VoxelRenderer(Spire::Engine &engine)
         : m_engine(engine) {
@@ -52,20 +52,26 @@ namespace SpireVoxel {
                 assert(false);
         });
 
-        if (TEST_RUNTIME_VOXEL_MODIFICATION) {
-            // load 3x1x3 chunks around 0,0,0
-            m_world->LoadChunks({
-                {-1, 0, -1},
-                {-1, 0, 0},
-                {-1, 0, 1},
-                {0, 0, -1},
-                {0, 0, 0},
-                {0, 0, 1},
-                {1, 0, -1},
-                {1, 0, 0},
-                {1, 0, 1},
-            });
+        // load 3x1x3 chunks around 0,0,0
+        m_world->LoadChunks({
+            {-1, 0, -1},
+            {-1, 0, 0},
+            {-1, 0, 1},
+            {0, 0, -1},
+            {0, 0, 0},
+            {0, 0, 1},
+            {1, 0, -1},
+            {1, 0, 0},
+            {1, 0, 1},
+        });
 
+        // Update world
+        for (auto &[chunkPos, chunk] : *m_world) {
+            chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
+            m_world->GetRenderer().NotifyChunkEdited(chunk);
+        }
+
+        if (TEST_RUNTIME_VOXEL_MODIFICATION) {
             m_world->LoadChunk({0, 0, 0});
             Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
             assert(chunk1);
@@ -80,10 +86,11 @@ namespace SpireVoxel {
 
             chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 0;
             m_world->GetRenderer().NotifyChunkEdited(*chunk1);
-        } else {
         }
 
-        //VoxelSerializer::Serialize(*m_world, std::filesystem::path("Worlds") / "World1");
+        VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
+        info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
+        m_timeSinceBeginProfiling.Restart();
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -91,15 +98,14 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::Update() {
-        static int i = 0;
-        i++;
+        m_currentFrame++;
         m_oldDescriptors.Update();
         m_oldPipelines.Update();
         m_oldCommandBuffers.Update();
         m_camera->Update();
 
         if (TEST_RUNTIME_VOXEL_MODIFICATION) {
-            if (i == 5000) {
+            if (m_currentFrame == 5000) {
                 Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
                 assert(chunk1);
                 chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
@@ -107,16 +113,18 @@ namespace SpireVoxel {
                 info("Using allocation at {}", chunk1->Allocation.Start);
             }
 
-            if (i == 10000) {
+            if (m_currentFrame == 10000) {
                 m_world->UnloadChunks({{0, 0, 0}});
             }
 
-            if (i == 15000) {
+            if (m_currentFrame == 15000) {
                 Chunk &chunk1 = m_world->LoadChunk({0, 0, 0});
                 chunk1.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
                 m_world->GetRenderer().NotifyChunkEdited(chunk1);
             }
         }
+
+        HandleProfiling();
     }
 
     VkCommandBuffer VoxelRenderer::Render(glm::u32 imageIndex) const {
@@ -188,7 +196,7 @@ namespace SpireVoxel {
             rm.GetCommandManager().EndCommandBuffer(commandBuffer);
         }
 
-        info("Command buffers recorded in {} ms", timer.MillisSinceStart()); // 0.1 to 0.8 ms
+        //  info("Command buffers recorded in {} ms", timer.MillisSinceStart()); // 0.1 to 0.8 ms
     }
 
     void VoxelRenderer::SetupDescriptors() {
@@ -280,5 +288,57 @@ namespace SpireVoxel {
             },
             {2, {std::string(ASSETS_DIRECTORY) + "/dirt.png"}, SPIRE_VOXEL_LAYOUT_ALL_SAME},
         });
+    }
+
+    void VoxelRenderer::HandleProfiling() {
+        if constexpr (!IS_PROFILING) return;
+        if (m_profileStrategyIndex >= PROFILE_STRATEGIES.size()) return;
+        if (m_currentFrame == 1) {
+            info("Profiling... (world: {})", WORLD_NAME);
+#ifndef NDEBUG
+            warn("Profiling in debug mode, results will be inaccurate!");
+#endif
+        }
+
+        const ProfileStrategy &profileStrategy = PROFILE_STRATEGIES[m_profileStrategyIndex];
+
+        glm::u32 profileEndFrame = profileStrategy.FramesToProfile;
+        for (std::size_t i = 0; i < m_profileStrategyIndex; i++) {
+            profileEndFrame += PROFILE_STRATEGIES[i].FramesToProfile;
+        }
+
+        assert(!TEST_RUNTIME_VOXEL_MODIFICATION);
+
+        if (profileStrategy.Dynamic == ProfileStrategy::DYNAMIC) {
+            for (auto &[_,chunk] : *m_world) {
+                chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(1, 1, 1)] = chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(1, 1, 1)] == 0 ? 1 : 0;
+                m_world->GetRenderer().NotifyChunkEdited(chunk);
+            }
+        } else {
+            assert(profileStrategy.Dynamic == ProfileStrategy::STATIC);
+        }
+
+        if (m_currentFrame == profileEndFrame) {
+            m_profileStrategyIndex++;
+            m_profileJson += std::format(
+                R"({{"time_ms": {}, "frames": {}, "chunks": {}, "world": "{}", "dynamic_state": "{}", "chunk_gpu_memory": {}, "chunk_cpu_memory": {}, "window_width": {}, "window_height": {}}}, )",
+                m_timeSinceBeginProfiling.MillisSinceStart(),
+                profileStrategy.FramesToProfile,
+                m_world->NumLoadedChunks(),
+                WORLD_NAME,
+                profileStrategy.Dynamic,
+                m_world->CalculateGPUMemoryUsageForChunks(),
+                m_world->CalculateCPUMemoryUsageForChunks(),
+                m_engine.GetWindow().GetDimensions().x,
+                m_engine.GetWindow().GetDimensions().y
+            );
+            m_timeSinceBeginProfiling.Restart();
+
+            if (m_profileStrategyIndex >= PROFILE_STRATEGIES.size()) {
+                info("Finished profiling! {}", m_profileJson);
+            } else {
+                info("Using profile strategy index {}...", m_profileStrategyIndex);
+            }
+        }
     }
 } // SpireVoxel

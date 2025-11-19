@@ -134,4 +134,8 @@ namespace Spire {
             m_application->OnWindowResize();
         }
     }
+
+    Random &Engine::GetRandom() {
+        return m_random;
+    }
 }

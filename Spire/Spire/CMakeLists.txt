@@ -89,6 +89,8 @@ add_library(Spire STATIC
         Source/Utils/FrameDeleter.h
         Source/Utils/CommandBufferVector.cpp
         Source/Utils/CommandBufferVector.h
+        Source/Utils/Random.cpp
+        Source/Utils/Random.h
 )
 
 target_precompile_headers(Spire PUBLIC "Source/pch.h")

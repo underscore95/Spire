@@ -34,7 +34,7 @@ namespace SpireVoxel {
 
         void OnWindowResize();
 
-        GameCamera& GetCamera() const;
+        GameCamera &GetCamera() const;
 
     private:
         void BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const;
@@ -49,7 +49,26 @@ namespace SpireVoxel {
 
         void RegisterVoxelTypes();
 
+        void HandleProfiling();
+
+    public:
+        static constexpr bool IS_PROFILING = true;
     private:
+        struct ProfileStrategy {
+            typedef const char* DynamicState;
+            static constexpr DynamicState STATIC = "static"; // no changes to world
+            static constexpr DynamicState DYNAMIC = "dynamic"; // change 1 voxel in every chunk every frame
+
+            DynamicState Dynamic;
+            glm::u64 FramesToProfile;
+        };
+
+        static constexpr const char* WORLD_NAME = "Test1";
+
+        static constexpr ProfileStrategy PROFILE_STATIC = {ProfileStrategy::STATIC, 10000};
+        static constexpr ProfileStrategy PROFILE_DYNAMIC = {ProfileStrategy::DYNAMIC, 100};
+        static constexpr std::array<ProfileStrategy, 2> PROFILE_STRATEGIES = {PROFILE_STATIC, PROFILE_DYNAMIC};
+
         Spire::Engine &m_engine;
         VkShaderModule m_vertexShader = VK_NULL_HANDLE;
         VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
@@ -63,5 +82,9 @@ namespace SpireVoxel {
         Spire::FrameDeleter<std::unique_ptr<Spire::GraphicsPipeline> > m_oldPipelines;
         Spire::FrameDeleter<std::unique_ptr<Spire::DescriptorManager> > m_oldDescriptors;
         Spire::FrameDeleter<std::unique_ptr<Spire::CommandBufferVector> > m_oldCommandBuffers;
+        Spire::Timer m_timeSinceBeginProfiling;
+        glm::u64 m_currentFrame = 0;
+        std::size_t m_profileStrategyIndex = 0;
+        std::string m_profileJson;
     };
 } // SpireVoxel

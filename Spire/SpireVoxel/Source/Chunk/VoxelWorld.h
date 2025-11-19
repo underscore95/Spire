@@ -34,6 +34,10 @@ namespace SpireVoxel {
 
         [[nodiscard]] VoxelWorldRenderer &GetRenderer() const;
 
+        [[nodiscard]] glm::u64 CalculateGPUMemoryUsageForChunks() const;
+
+        [[nodiscard]] glm::u64 CalculateCPUMemoryUsageForChunks() const;
+
     private:
         // https://en.cppreference.com/w/cpp/container/unordered_map.html - always iterates in the same order if the map hasnt been changed
         std::unordered_map<glm::ivec3, Chunk> m_chunks;
