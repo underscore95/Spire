@@ -76,12 +76,12 @@ namespace SpireVoxel {
 
     // face layout
 #define SPIRE_VOXEL_LAYOUT_ALL_SAME 0 // all sides use image 0 (e.g. dirt)
-#define SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT 1 // top uses image 0, all others use image 1 (e.g. grass)
+#define SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT 1 // top uses image 0, bottom uses image 1, sides use image 2 (e.g. grass)
 
     // Get the number of images for a specific face layout
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE GetNumImages(SPIRE_UINT32_TYPE faceLayout) {
         if (faceLayout == SPIRE_VOXEL_LAYOUT_ALL_SAME) return 1;
-        if (faceLayout == SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT) return 2;
+        if (faceLayout == SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT) return 3;
 
 #ifdef __cplusplus
         assert(false); // invalid face layout
@@ -92,7 +92,11 @@ namespace SpireVoxel {
     // Get image index to use for a specific face layout and face
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE GetImageIndex(SPIRE_UINT32_TYPE faceLayout, SPIRE_UINT32_TYPE face) {
         if (faceLayout == SPIRE_VOXEL_LAYOUT_ALL_SAME) return 0;
-        if (faceLayout == SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT) return face == SPIRE_VOXEL_FACE_POS_Y ? 1 : 0;
+        if (faceLayout == SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT) {
+            if (face == SPIRE_VOXEL_FACE_POS_Y) return 0;
+            if (face == SPIRE_VOXEL_FACE_NEG_Y) return 1;
+            return 2;
+        }
 
 #ifdef __cplusplus
         assert(false); // invalid face layout

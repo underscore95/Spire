@@ -34,7 +34,7 @@ void main()
     vec3 pos = vec3(vtx.x, vtx.y, vtx.z);
 
     gl_Position = cameraBuffer.ViewProjectionMatrix * vec4(pos, 1.0);
-
+    texCoord = vec2(vtx.u, vtx.v);
     shouldDiscard = 0;
     imageIndex = voxelTypesBuffer.voxelTypes[vtx.VoxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[vtx.VoxelType].VoxelFaceLayout, vtx.Face);
 }
