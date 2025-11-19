@@ -12,7 +12,7 @@ namespace SpireVoxel {
         }
 
     public:
-        Spire::VulkanImage Image;
+        std::vector<Spire::VulkanImage> Images;
         glm::u32 FirstImageIndex = UINT32_MAX;
 
         [[nodiscard]] const VoxelType &GetType() const { return m_type; }

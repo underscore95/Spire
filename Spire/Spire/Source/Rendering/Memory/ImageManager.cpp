@@ -11,29 +11,27 @@
 #include "Rendering/Core/VulkanQueue.h"
 #include "Resources/ImageLoader.h"
 
-namespace Spire
-{
-    ImageManager::ImageManager(RenderingManager& renderingManager)
-        : m_renderingManager(renderingManager)
-    {
+namespace Spire {
+    ImageManager::ImageManager(RenderingManager &renderingManager)
+        : m_renderingManager(renderingManager) {
         m_renderingManager.GetCommandManager().CreateCommandBuffers(1, &m_commandBuffer);
     }
 
-    ImageManager::~ImageManager()
-    {
+    ImageManager::~ImageManager() {
         assert(m_numAllocatedImages == 0);
         assert(&m_renderingManager.GetCommandManager() != nullptr);
         assert(&m_renderingManager.GetBufferManager() != nullptr);
         m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_commandBuffer);
     }
 
-    VulkanImage ImageManager::CreateImageFromFile(const char* filename)
-    {
+    VulkanImage ImageManager::CreateImageFromFile(const char *filename) {
         // Load image
         VulkanImage images = {};
+#ifndef NDEBUG
+        images.DebugName = std::format("{} (loaded from file)", filename);
+#endif
         LoadedImage loadedImage = ImageLoader::LoadImageFromFile(filename);
-        if (!loadedImage.IsValid())
-        {
+        if (!loadedImage.IsValid()) {
             return images;
         }
 
@@ -59,8 +57,7 @@ namespace Spire
         return images;
     }
 
-    void ImageManager::DestroyImage(const VulkanImage& image)
-    {
+    void ImageManager::DestroyImage(const VulkanImage &image) {
         assert(m_numAllocatedImages > 0);
         VkDevice device = m_renderingManager.GetDevice();
         vkDestroySampler(device, image.Sampler, nullptr);
@@ -73,9 +70,8 @@ namespace Spire
         m_numAllocatedImages--;
     }
 
-    void ImageManager::CreateImage(VulkanImage& image, glm::uvec2 dimensions,
-                                     VkImageUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkFormat format)
-    {
+    void ImageManager::CreateImage(VulkanImage &image, glm::uvec2 dimensions,
+                                   VkImageUsageFlags usage, VkMemoryPropertyFlags propertyFlags, VkFormat format) {
         VkImageCreateInfo imageInfo = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = nullptr,
@@ -112,46 +108,41 @@ namespace Spire
             &image.Allocation,
             nullptr);
 
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to create vulkan image");
-        }else
-        {
+        } else {
             m_numAllocatedImages++;
         }
     }
 
-    glm::u32 ImageManager::GetBytesPerTexFormat(VkFormat format) const
-    {
-        switch (format)
-        {
-        case VK_FORMAT_R8_SINT:
-        case VK_FORMAT_R8_UNORM:
-            return 1;
-        case VK_FORMAT_R16_SFLOAT:
-            return 2;
-        case VK_FORMAT_R16G16_SFLOAT:
-        case VK_FORMAT_R16G16_SNORM:
-        case VK_FORMAT_B8G8R8A8_UNORM:
-        case VK_FORMAT_R8G8B8A8_UNORM:
-        case VK_FORMAT_R8G8B8A8_SNORM:
-        case VK_FORMAT_R8G8B8A8_SRGB:
-            return 4;
-        case VK_FORMAT_R16G16B16A16_SFLOAT:
-            return 4 * sizeof(uint16_t);
-        case VK_FORMAT_R32G32B32A32_SFLOAT:
-            return 4 * sizeof(float);
-        default:
-            error("Unknown image format {}", static_cast<int>(format));
-            assert(false);
+    glm::u32 ImageManager::GetBytesPerTexFormat(VkFormat format) const {
+        switch (format) {
+            case VK_FORMAT_R8_SINT:
+            case VK_FORMAT_R8_UNORM:
+                return 1;
+            case VK_FORMAT_R16_SFLOAT:
+                return 2;
+            case VK_FORMAT_R16G16_SFLOAT:
+            case VK_FORMAT_R16G16_SNORM:
+            case VK_FORMAT_B8G8R8A8_UNORM:
+            case VK_FORMAT_R8G8B8A8_UNORM:
+            case VK_FORMAT_R8G8B8A8_SNORM:
+            case VK_FORMAT_R8G8B8A8_SRGB:
+                return 4;
+            case VK_FORMAT_R16G16B16A16_SFLOAT:
+                return 4 * sizeof(uint16_t);
+            case VK_FORMAT_R32G32B32A32_SFLOAT:
+                return 4 * sizeof(float);
+            default:
+                error("Unknown image format {}", static_cast<int>(format));
+                assert(false);
         }
 
         return 0;
     }
 
-    void ImageManager::CopyBufferToImage(VkImage dest, VkBuffer source, const glm::uvec2& imageDimensions) const
-    {
-        auto& commandManager = m_renderingManager.GetCommandManager();
+    void ImageManager::CopyBufferToImage(VkImage dest, VkBuffer source, const glm::uvec2 &imageDimensions) const {
+        auto &commandManager = m_renderingManager.GetCommandManager();
         commandManager.BeginCommandBuffer(m_commandBuffer, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
         VkBufferImageCopy bufferImageCopy = {
@@ -178,9 +169,8 @@ namespace Spire
         m_renderingManager.GetQueue().WaitIdle();
     }
 
-    void ImageManager::UpdateImageImage(const VulkanImage& image, const LoadedImage& loadedImage,
-                                            VkFormat format) const
-    {
+    void ImageManager::UpdateImageImage(const VulkanImage &image, const LoadedImage &loadedImage,
+                                        VkFormat format) const {
         glm::u32 bytesPerPixel = GetBytesPerTexFormat(format);
 
         VkDeviceSize layerSize = loadedImage.Dimensions.x * loadedImage.Dimensions.y * bytesPerPixel;
@@ -190,7 +180,7 @@ namespace Spire
         VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-        auto& bufferManager = m_renderingManager.GetBufferManager();
+        auto &bufferManager = m_renderingManager.GetBufferManager();
         VulkanBuffer stagingBuffer = bufferManager.CreateBuffer(imageSize, usage, memoryProperties);
         bufferManager.UpdateBuffer(stagingBuffer, loadedImage.Data, imageSize);
 
@@ -204,9 +194,8 @@ namespace Spire
         bufferManager.DestroyBuffer(stagingBuffer);
     }
 
-    void ImageManager::CreateImageFromData(VulkanImage& image, const LoadedImage& loadedImage,
-                                                    VkFormat format)
-    {
+    void ImageManager::CreateImageFromData(VulkanImage &image, const LoadedImage &loadedImage,
+                                           VkFormat format) {
         constexpr VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         constexpr VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
         CreateImage(image, loadedImage.Dimensions, usage, propertyFlags, format);
@@ -214,9 +203,8 @@ namespace Spire
         UpdateImageImage(image, loadedImage, format);
     }
 
-    void ImageManager::TransitionImageLayout(const VkImage& image, VkFormat format, VkImageLayout oldLayout,
-                                               VkImageLayout newLayout) const
-    {
+    void ImageManager::TransitionImageLayout(const VkImage &image, VkFormat format, VkImageLayout oldLayout,
+                                             VkImageLayout newLayout) const {
         m_renderingManager.GetCommandManager().BeginCommandBuffer(m_commandBuffer,
                                                                   VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
@@ -229,8 +217,7 @@ namespace Spire
         m_renderingManager.GetQueue().WaitIdle();
     }
 
-    VkImageView ImageManager::CreateImageView(VkImage image, VkFormat format, VkFlags aspectFlags) const
-    {
+    VkImageView ImageManager::CreateImageView(VkImage image, VkFormat format, VkFlags aspectFlags) const {
         VkImageViewCreateInfo viewInfo =
         {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -256,16 +243,14 @@ namespace Spire
 
         VkImageView imageView;
         VkResult res = vkCreateImageView(m_renderingManager.GetDevice(), &viewInfo, nullptr, &imageView);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to create image view");
         }
         return imageView;
     }
 
     VkSampler ImageManager::CreateImageSampler(VkFilter minFilter, VkFilter maxFilter,
-                                                   VkSamplerAddressMode addressMode) const
-    {
+                                               VkSamplerAddressMode addressMode) const {
         VkSamplerCreateInfo samplerInfo = {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .pNext = nullptr,
@@ -289,8 +274,7 @@ namespace Spire
 
         VkSampler sampler;
         VkResult res = vkCreateSampler(m_renderingManager.GetDevice(), &samplerInfo, nullptr, &sampler);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to create image sampler");
         }
         return sampler;

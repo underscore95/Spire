@@ -34,6 +34,8 @@ namespace SpireVoxel {
 
         void OnWindowResize();
 
+        GameCamera& GetCamera() const;
+
     private:
         void BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const;
 

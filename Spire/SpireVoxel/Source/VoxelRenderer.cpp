@@ -137,6 +137,10 @@ namespace SpireVoxel {
         CreateAndRecordCommandBuffers();
     }
 
+    GameCamera &VoxelRenderer::GetCamera() const {
+        return *m_camera;
+    }
+
     void VoxelRenderer::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const {
         auto &rm = m_engine.GetRenderingManager();
 
@@ -266,8 +270,15 @@ namespace SpireVoxel {
         m_voxelImageManager = std::make_unique<VoxelImageManager>(m_engine.GetRenderingManager(), *m_voxelTypeRegistry, SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING);
 
         m_voxelTypeRegistry->RegisterTypes(std::vector<VoxelType>{
-            {1, std::string(ASSETS_DIRECTORY) + "/1.png"},
-            {2, std::string(ASSETS_DIRECTORY) + "/2.png"},
+            {
+                1, {
+                    std::string(ASSETS_DIRECTORY) + "/grass_top.png",
+                    std::string(ASSETS_DIRECTORY) + "/dirt.png",
+                    std::string(ASSETS_DIRECTORY) + "/grass_side.png"
+                },
+                SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
+            },
+            {2, {std::string(ASSETS_DIRECTORY) + "/dirt.png"}, SPIRE_VOXEL_LAYOUT_ALL_SAME},
         });
     }
 } // SpireVoxel

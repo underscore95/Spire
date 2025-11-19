@@ -1,6 +1,7 @@
 #include "VoxelImageManager.h"
 #include "RegisteredVoxelType.h"
 #include "VoxelTypeRegistry.h"
+#include "../../Assets/Shaders/ShaderInfo.h"
 #include "Rendering/Descriptors/Descriptor.h"
 
 namespace SpireVoxel {
@@ -26,9 +27,11 @@ namespace SpireVoxel {
     void VoxelImageManager::ReloadImages() {
         m_voxelTypeImages.clear();
         for (RegisteredVoxelType &type : m_types) {
-            LoadImageIfNotLoaded(type);
+            LoadImagesIfNotLoaded(type);
             type.FirstImageIndex = m_voxelTypeImages.size();
-            m_voxelTypeImages.push_back({.Image = &type.Image});
+            for (const auto& image : type.Images) {
+                m_voxelTypeImages.push_back({.Image = &image});
+            }
         }
 
         m_descriptor = Spire::Descriptor{
@@ -44,16 +47,42 @@ namespace SpireVoxel {
 
     void VoxelImageManager::DestroyImagesForTypes(std::span<RegisteredVoxelType> types) {
         for (RegisteredVoxelType &type : types) {
-            m_renderingManager.GetImageManager().DestroyImage(type.Image);
-            type.Image = {};
+            for (auto& image : type.Images) {
+                if (image.Image != VK_NULL_HANDLE) {
+                    m_renderingManager.GetImageManager().DestroyImage(image);
+                    image = {};
+                }
+            }
             type.FirstImageIndex = UINT32_MAX;
         }
         m_descriptor.reset();
     }
 
-    void VoxelImageManager::LoadImageIfNotLoaded(RegisteredVoxelType &type) const {
-        if (type.Image.Image != VK_NULL_HANDLE) return;
+    void VoxelImageManager::LoadImagesIfNotLoaded(RegisteredVoxelType &type) const {
+        auto &images = type.Images;
 
-        type.Image = m_renderingManager.GetImageManager().CreateImageFromFile(type.GetType().Texture.c_str());
+        // check no images are loaded
+        bool isAnyImageLoaded = false;
+        for (const auto &image : images) {
+            if (image.Image == VK_NULL_HANDLE) {
+                isAnyImageLoaded = true;
+                break;
+            }
+        }
+        if (isAnyImageLoaded) {
+            // check that some aren't partial loaded
+            for (const auto &image : images) {
+                assert(image.Image != VK_NULL_HANDLE);
+            }
+            return;
+        }
+
+        images.clear();
+
+        // load images
+        assert(type.GetType().Textures.size() == GetNumImages(type.GetType().VoxelFaceLayout));
+        for (const std::string &path : type.GetType().Textures) {
+            images.push_back(m_renderingManager.GetImageManager().CreateImageFromFile(path.c_str()));
+        }
     }
 } // SpireVoxel
