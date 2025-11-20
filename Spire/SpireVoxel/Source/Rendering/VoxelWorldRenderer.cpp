@@ -13,13 +13,17 @@ namespace SpireVoxel {
 
         m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr);
         Spire::info("Allocated {} kb buffer for each swapchain image on GPU to store chunk datas", sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS / 1024);
+
+        m_dirtyChunkDataBuffers.resize(renderingManager.GetSwapchain().GetNumImages());
     }
 
     void VoxelWorldRenderer::Render(glm::u32 swapchainImageIndex) {
         HandleChunkEdits();
 
         // if empty we aren't issuing render commands so don't need to update the gpu buffer
-        if (!m_latestCachedChunkData.empty()) {
+        if (!m_latestCachedChunkData.empty() && m_dirtyChunkDataBuffers[swapchainImageIndex]) {
+            m_dirtyChunkDataBuffers[swapchainImageIndex] = false;
+
             const glm::u32 requiredBufferSize = sizeof(m_latestCachedChunkData[0]) * m_latestCachedChunkData.size();
             m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer->GetBuffer(swapchainImageIndex), m_latestCachedChunkData.data(), requiredBufferSize, 0);
         }
