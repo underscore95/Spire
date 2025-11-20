@@ -28,4 +28,6 @@ public:
 private:
     Spire::Engine *m_engine;
     std::unique_ptr<SpireVoxel::VoxelRenderer> m_voxelRenderer;
+    glm::u32 m_frame = 0;
+    glm::u32 m_swapchainImageIndex = 0;
 };

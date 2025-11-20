@@ -27,25 +27,27 @@ void GameApplication::Update() {
 }
 
 void GameApplication::Render() {
+m_frame++;
+
     auto &rm = m_engine->GetRenderingManager();
 
-    glm::u32 imageIndex = rm.GetQueue().AcquireNextImage();
-    if (imageIndex == rm.GetQueue().INVALID_IMAGE_INDEX) return;
+m_swapchainImageIndex = rm.GetQueue().AcquireNextImage();
+    if (m_swapchainImageIndex == rm.GetQueue().INVALID_IMAGE_INDEX) return;
 
-    VkCommandBuffer commandBuffer = m_voxelRenderer->Render(imageIndex);
+    VkCommandBuffer commandBuffer = m_voxelRenderer->Render(m_swapchainImageIndex);
     if (commandBuffer == VK_NULL_HANDLE) return;
 
     RenderUi();
 
     std::array commandBuffersToSubmit = {
-        rm.GetRenderer().GetBeginRenderingCommandBuffer(imageIndex),
+        rm.GetRenderer().GetBeginRenderingCommandBuffer(m_swapchainImageIndex),
         commandBuffer,
-        rm.GetImGuiRenderer().PrepareCommandBuffer(imageIndex),
-        rm.GetRenderer().GetEndRenderingCommandBuffer(imageIndex)
+        rm.GetImGuiRenderer().PrepareCommandBuffer(m_swapchainImageIndex),
+        rm.GetRenderer().GetEndRenderingCommandBuffer(m_swapchainImageIndex)
     };
     rm.GetQueue().SubmitRenderCommands(commandBuffersToSubmit.size(), commandBuffersToSubmit.data());
 
-    rm.GetQueue().Present(imageIndex);
+    rm.GetQueue().Present(m_swapchainImageIndex);
 }
 
 void GameApplication::RenderUi() const {
@@ -58,7 +60,7 @@ void GameApplication::RenderUi() const {
 
     ImGui::Begin(GetApplicationName(), nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS) (frame %d (swapchain image %d))", m_engine->GetDeltaTime() * 1000, 1.0f / m_engine->GetDeltaTime(), m_frame, m_swapchainImageIndex);
 
     glm::vec3 cameraForward = glm::normalize(m_voxelRenderer->GetCamera().GetCamera().GetForward());
 
