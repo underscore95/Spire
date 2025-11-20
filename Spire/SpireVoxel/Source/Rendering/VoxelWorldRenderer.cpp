@@ -108,11 +108,9 @@ namespace SpireVoxel {
                     .CPU_DrawCommandParams = {
                         .vertexCount = static_cast<glm::u32>(vertexData.size()),
                         .instanceCount = 1,
-                        .firstVertex = 0,
+                        .firstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData)),
                         .firstInstance = chunkIndex
-                    },
-                    .NumVertices = static_cast<glm::u32>(vertexData.size()),
-                    .FirstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData))
+                    }
                 };
                 m_latestCachedChunkData[chunkIndex] = data;
                 for (std::size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
@@ -140,13 +138,11 @@ namespace SpireVoxel {
                 .CPU_DrawCommandParams = {
                     .vertexCount = chunk.NumVertices,
                     .instanceCount = 1,
-                    .firstVertex = 0,
+                    .firstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData)),
                     .firstInstance = static_cast<glm::u32>(m_latestCachedChunkData.size())
-                },
-                .NumVertices = chunk.NumVertices,
-                .FirstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData))
+                }
             };
-            if (data.NumVertices == 0 || chunk.Allocation.Size == 0) continue;
+            if (chunk.Allocation.Size == 0) continue;
 
             m_latestCachedChunkData.push_back(data);
         }

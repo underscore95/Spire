@@ -66,10 +66,6 @@ namespace SpireVoxel {
 #endif
     struct ChunkData {
         SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(CPU_DrawCommandParams);
-        SPIRE_UINT32_TYPE NumVertices;
-        SPIRE_UINT32_TYPE FirstVertex;
-      //  SPIRE_UINT32_TYPE Padding1; // Padding required so that CPU_DrawCommandParams is aligned to 16 byte boundary
-        //SPIRE_UINT32_TYPE Padding2;
     };
 
 #ifdef __cplusplus
