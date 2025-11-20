@@ -17,7 +17,7 @@ namespace SpireVoxel {
     }
 
     BufferAllocator::Allocation BufferAllocator::Allocate(glm::u32 requestedSize) {
-m_allocationsMade++;
+        m_allocationsMade++;
 
         glm::u32 previousAllocationEnd = 0;
         for (auto &[start, size] : m_allocations) {
@@ -34,7 +34,11 @@ m_allocationsMade++;
         }
 
         // no space previously, need to allocate at end
-        assert(previousAllocationEnd + requestedSize <= m_buffer.Size); // OUT OF MEMORY :(
+        if (previousAllocationEnd + requestedSize > m_buffer.Size) {
+            assert(false); // OUT OF MEMORY :(
+            return {};
+        }
+
         m_allocations[previousAllocationEnd] = requestedSize;
         return Allocation{
             .Start = previousAllocationEnd,
@@ -44,7 +48,13 @@ m_allocationsMade++;
 
     void BufferAllocator::ScheduleFreeAllocation(glm::u32 start) {
         m_pendingFreesMade++;
-        m_allocationsPendingFree.push_back({start, m_numSwapchainImages});
+        m_allocationsPendingFree.push_back({start, m_numSwapchainImages - 1});
+    }
+
+    void BufferAllocator::ScheduleFreeAllocation(Allocation allocation) {
+        assert(m_allocations.contains(allocation.Start));
+        assert(m_allocations[allocation.Start] == allocation.Size);
+        ScheduleFreeAllocation(allocation.Start);
     }
 
     Spire::Descriptor BufferAllocator::GetDescriptor(glm::u32 binding, const std::string &debugName) {
@@ -61,15 +71,16 @@ m_allocationsMade++;
 
     void BufferAllocator::Render() {
         for (size_t i = 0; i < m_allocationsPendingFree.size(); i++) {
-            if (m_allocationsPendingFree[i].FramesUntilFreed > 0) {
-                m_allocationsPendingFree[i].FramesUntilFreed--;
-            } else {
+            while (i < m_allocationsPendingFree.size() && m_allocationsPendingFree[i].FramesUntilFreed == 0) {
                 // free it
-                m_allocations.erase(m_allocationsPendingFree[i].AllocationStart);
+                std::size_t numElementsRemoved = m_allocations.erase(m_allocationsPendingFree[i].AllocationStart);
+                assert(numElementsRemoved != 0);
                 m_allocationsPendingFree[i] = m_allocationsPendingFree.back();
                 m_allocationsPendingFree.pop_back();
                 m_finishedFreesMade++;
             }
+
+            m_allocationsPendingFree[i].FramesUntilFreed--;
         }
     }
 
@@ -80,11 +91,37 @@ m_allocationsMade++;
     }
 
     glm::u64 BufferAllocator::CalculateAllocatedOrPendingMemory() const {
+        constexpr bool LOG_ALLOCATIONS = false;
+
         glm::u64 allocated = 0;
-        for (auto& alloc : m_allocations) {
-            allocated += alloc.first;
+        for (auto &alloc : m_allocations) {
+            allocated += alloc.second;
+        }
+
+        if constexpr (LOG_ALLOCATIONS) {
+            // ReSharper disable once CppDFAUnreachableCode
+            Spire::info("Num allocations: {} (expected {})", m_allocations.size(), m_allocationsMade - m_finishedFreesMade);
+            Spire::info("Num allocations pending free: {}", m_allocationsPendingFree.size());
+            for (auto &alloc : m_allocations) {
+                std::optional pendingFree = IsPendingFree(alloc.first);
+                Spire::info(
+                    "allocation start: {} - size: {} - pending free: {}",
+                    alloc.first,
+                    alloc.second,
+                    pendingFree.has_value() ? std::format("freed in {} frames", pendingFree->FramesUntilFreed) : "no"
+                );
+            }
         }
 
         return allocated;
+    }
+
+    std::optional<BufferAllocator::PendingFree> BufferAllocator::IsPendingFree(glm::u32 start) const {
+        for (auto &pending : m_allocationsPendingFree) {
+            if (pending.AllocationStart == start) {
+                return {pending};
+            }
+        }
+        return {};
     }
 } // SpireVoxel

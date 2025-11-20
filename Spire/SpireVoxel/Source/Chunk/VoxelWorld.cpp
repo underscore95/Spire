@@ -33,8 +33,10 @@ namespace SpireVoxel {
     void VoxelWorld::UnloadChunks(const std::vector<glm::ivec3> &chunkPositions) {
         bool unloadedAnyChunks = false;
         for (auto chunkPosition : chunkPositions) {
-            if (!m_chunks.contains(chunkPosition)) continue;
-            m_chunks.erase(chunkPosition);
+            auto it = m_chunks.find(chunkPosition);
+            if (it == m_chunks.end()) continue;
+            m_renderer->FreeChunkVertexBuffer(it->second);
+            m_chunks.erase(it);
             unloadedAnyChunks = true;
         }
 
@@ -46,6 +48,13 @@ namespace SpireVoxel {
     Chunk *VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) {
         auto it = m_chunks.find(chunkPosition);
         return it != m_chunks.end() ? &it->second : nullptr;
+    }
+
+    bool VoxelWorld::IsLoaded(const Chunk &chunk) {
+        Chunk* loaded = GetLoadedChunk(chunk.ChunkPosition);
+        if (!loaded) return false;
+        assert(loaded == &chunk); // make sure there isn't two chunks at the same position
+        return true;
     }
 
     std::size_t VoxelWorld::NumLoadedChunks() const {

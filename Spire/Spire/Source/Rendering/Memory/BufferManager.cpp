@@ -88,6 +88,7 @@ namespace Spire {
     }
 
     void BufferManager::UpdateBuffer(const VulkanBuffer &buffer, const void *data, glm::u32 size, glm::u32 offset) const {
+        assert(size + offset <= buffer.Size);
         void *pMem = nullptr;
         VkResult res = vmaMapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation, &pMem);
         if (res != VK_SUCCESS) {

@@ -28,6 +28,7 @@ namespace SpireVoxel {
         Allocation Allocate(glm::u32 requestedSize);
 
         void ScheduleFreeAllocation(glm::u32 start);
+        void ScheduleFreeAllocation(Allocation allocation);
 
         Spire::Descriptor GetDescriptor(glm::u32 binding, const std::string &debugName = "Buffer Allocator");
 
@@ -38,6 +39,9 @@ namespace SpireVoxel {
         // How much memory is either allocated or pending free
         // this is bufferSize - availableMemory
         [[nodiscard]] glm::u64 CalculateAllocatedOrPendingMemory() const;
+
+    private:
+        [[nodiscard]] std::optional<BufferAllocator::PendingFree> IsPendingFree(glm::u32 start) const;
 
     private:
         Spire::RenderingManager &m_renderingManager;

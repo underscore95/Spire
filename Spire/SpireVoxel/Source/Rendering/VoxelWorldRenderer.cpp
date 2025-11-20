@@ -60,6 +60,8 @@ namespace SpireVoxel {
     }
 
     void VoxelWorldRenderer::NotifyChunkEdited(Chunk &chunk) {
+        assert(m_world.IsLoaded(chunk));
+
         std::vector<VertexData> vertexData = chunk.GenerateMesh();
 
         BufferAllocator::Allocation oldAllocation = chunk.Allocation;
@@ -122,6 +124,13 @@ namespace SpireVoxel {
             if (data.NumVertices == 0 || chunk.Allocation.Size == 0) continue;
 
             m_latestCachedChunkData.push_back(data);
+        }
+    }
+
+    void VoxelWorldRenderer::FreeChunkVertexBuffer(Chunk &chunk) {
+        if (chunk.Allocation.Size > 0) {
+            m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk.Allocation);
+            chunk.Allocation = {};
         }
     }
 } // SpireVoxel

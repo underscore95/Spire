@@ -22,6 +22,8 @@ namespace SpireVoxel {
 
         [[nodiscard]] Chunk *GetLoadedChunk(glm::ivec3 chunkPosition);
 
+        [[nodiscard]] bool IsLoaded(const Chunk& chunk);
+
         [[nodiscard]] std::size_t NumLoadedChunks() const;
 
         std::unordered_map<glm::ivec3, Chunk>::iterator begin();
