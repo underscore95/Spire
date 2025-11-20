@@ -33,9 +33,14 @@
 #ifdef __cplusplus
 #define SPIRE_UINT32_TYPE glm::uint32
 #define SPIRE_MAT4X4_TYPE glm::mat4
+// reason for assert: ivec4 is put as padding on the gpu
+// possible cause for failure: you didn't include vulkan before including this file
+static_assert(sizeof(VkDrawIndirectCommand) == 16);
+#define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE VkDrawIndirectCommand
 #else
 #define SPIRE_UINT32_TYPE uint
 #define SPIRE_MAT4X4_TYPE mat4
+#define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE ivec4
 #endif
 
 // c++ keywords
@@ -56,6 +61,7 @@
 namespace SpireVoxel {
 #endif
     struct ChunkData {
+        SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE CPU_DrawCommandParams;
         SPIRE_UINT32_TYPE NumVertices;
         SPIRE_UINT32_TYPE FirstVertex;
     };

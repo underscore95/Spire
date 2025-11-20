@@ -33,8 +33,8 @@ namespace Spire {
     }
 
     VulkanBuffer BufferManager::CreateStorageBuffer(const void *elements, glm::u32 size, glm::u32 elementSize,
-                                                    bool isTransferSource) {
-        VkBufferUsageFlags usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+                                                    bool isTransferSource, VkBufferUsageFlags extraUsageFlags) {
+        VkBufferUsageFlags usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | extraUsageFlags;
         if (isTransferSource) usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
@@ -76,12 +76,13 @@ namespace Spire {
     std::unique_ptr<PerImageBuffer> BufferManager::CreateStorageBuffers(
         size_t bufferSize,
         size_t numElements,
-        const void *data
+        const void *data,
+        VkBufferUsageFlags extraUsageFlags
     ) {
         std::vector<VulkanBuffer> buffers;
         buffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
         for (int i = 0; i < buffers.size(); ++i) {
-            buffers[i] = CreateStorageBuffer(data, bufferSize, bufferSize / numElements);
+            buffers[i] = CreateStorageBuffer(data, bufferSize, bufferSize / numElements, false, extraUsageFlags);
         }
 
         return std::unique_ptr<PerImageBuffer>(new PerImageBuffer(*this, buffers));
