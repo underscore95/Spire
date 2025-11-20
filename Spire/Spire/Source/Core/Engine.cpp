@@ -117,6 +117,8 @@ namespace Spire {
         m_window->Update();
 
         m_application->Update();
+
+        m_window->LateUpdate();
     }
 
     void Engine::Render() const {

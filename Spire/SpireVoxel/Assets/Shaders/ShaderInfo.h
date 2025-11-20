@@ -32,8 +32,10 @@
 // types
 #ifdef __cplusplus
 #define SPIRE_UINT32_TYPE glm::uint32
+#define SPIRE_MAT4X4_TYPE glm::mat4
 #else
 #define SPIRE_UINT32_TYPE uint
+#define SPIRE_MAT4X4_TYPE mat4
 #endif
 
 // c++ keywords
@@ -133,6 +135,22 @@ namespace SpireVoxel {
         float u;
         float v;
         SPIRE_UINT32_TYPE Face;
+    };
+
+#ifdef __cplusplus
+}
+#endif
+
+// camera
+#ifdef __cplusplus
+namespace SpireVoxel {
+#endif
+    struct CameraInfo {
+        SPIRE_MAT4X4_TYPE ViewProjectionMatrix;
+        int TargetedVoxelX;
+        int TargetedVoxelY;
+        int TargetedVoxelZ;
+        int IsTargetingVoxel;
     };
 
 #ifdef __cplusplus

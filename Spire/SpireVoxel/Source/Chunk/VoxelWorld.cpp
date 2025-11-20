@@ -1,5 +1,13 @@
 #include "VoxelWorld.h"
 
+#include "Rendering/BufferAllocator.h"
+#include "Rendering/BufferAllocator.h"
+#include "Rendering/BufferAllocator.h"
+#include "Rendering/BufferAllocator.h"
+#include "Rendering/BufferAllocator.h"
+#include "Rendering/BufferAllocator.h"
+#include "Rendering/BufferAllocator.h"
+#include "Rendering/BufferAllocator.h"
 #include "Rendering/VoxelWorldRenderer.h"
 
 namespace SpireVoxel {
@@ -50,8 +58,13 @@ namespace SpireVoxel {
         return it != m_chunks.end() ? &it->second : nullptr;
     }
 
+    const Chunk *VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) const {
+        auto it = m_chunks.find(chunkPosition);
+        return it != m_chunks.end() ? &it->second : nullptr;
+    }
+
     bool VoxelWorld::IsLoaded(const Chunk &chunk) {
-        Chunk* loaded = GetLoadedChunk(chunk.ChunkPosition);
+        Chunk *loaded = GetLoadedChunk(chunk.ChunkPosition);
         if (!loaded) return false;
         assert(loaded == &chunk); // make sure there isn't two chunks at the same position
         return true;
@@ -97,5 +110,37 @@ namespace SpireVoxel {
             usage += sizeof(pair.second);
         }
         return usage;
+    }
+
+    bool VoxelWorld::IsVoxelAt(glm::ivec3 worldPosition) const {
+        return GetVoxelAt(worldPosition) != VOXEL_TYPE_AIR;
+    }
+
+    glm::u32 VoxelWorld::GetVoxelAt(glm::ivec3 worldPosition) const {
+        glm::ivec3 chunkPos = {
+            glm::floor(worldPosition.x / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
+            glm::floor(worldPosition.y / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
+            glm::floor(worldPosition.z / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE))
+        };
+        glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
+
+        const Chunk *chunk = GetLoadedChunk(chunkPos);
+        return chunk ? chunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(positionInChunk)] : VOXEL_TYPE_AIR;
+    }
+
+    bool VoxelWorld::TrySetVoxelAt(glm::ivec3 worldPosition, glm::u32 voxelType) {
+        glm::ivec3 chunkPos = {
+            glm::floor(worldPosition.x / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
+            glm::floor(worldPosition.y / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
+            glm::floor(worldPosition.z / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE))
+        };
+        glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
+
+        Chunk *chunk = GetLoadedChunk(chunkPos);
+        if (chunk) {
+            chunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(positionInChunk)] = voxelType;
+            m_renderer->NotifyChunkEdited(*chunk);
+        }
+        return chunk;
     }
 } // SpireVoxel

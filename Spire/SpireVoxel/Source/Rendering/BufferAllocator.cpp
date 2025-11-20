@@ -80,6 +80,7 @@ namespace SpireVoxel {
                 m_finishedFreesMade++;
             }
 
+            if (i >= m_allocationsPendingFree.size()) continue;
             m_allocationsPendingFree[i].FramesUntilFreed--;
         }
     }

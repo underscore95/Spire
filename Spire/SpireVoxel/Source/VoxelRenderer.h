@@ -36,6 +36,8 @@ namespace SpireVoxel {
 
         GameCamera &GetCamera() const;
 
+        [[nodiscard]] VoxelWorld &GetWorld() const;
+
     private:
         void BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const;
 
@@ -52,10 +54,11 @@ namespace SpireVoxel {
         void HandleProfiling();
 
     public:
-        static constexpr bool IS_PROFILING = true;
+        static constexpr bool IS_PROFILING = false;
+
     private:
         struct ProfileStrategy {
-            typedef const char* DynamicState;
+            typedef const char *DynamicState;
             static constexpr DynamicState STATIC = "static"; // no changes to world
             static constexpr DynamicState DYNAMIC = "dynamic"; // change 1 voxel in every chunk every frame
 
@@ -63,7 +66,7 @@ namespace SpireVoxel {
             glm::u64 FramesToProfile;
         };
 
-        static constexpr const char* WORLD_NAME = "Test4";
+        static constexpr const char *WORLD_NAME = "Test4";
 
         static constexpr ProfileStrategy PROFILE_STATIC = {ProfileStrategy::STATIC, 10000};
         static constexpr ProfileStrategy PROFILE_DYNAMIC = {ProfileStrategy::DYNAMIC, 100};

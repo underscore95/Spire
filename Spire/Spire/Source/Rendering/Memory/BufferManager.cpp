@@ -157,7 +157,9 @@ namespace Spire {
 
     VulkanBuffer BufferManager::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
                                              VkMemoryPropertyFlags properties) {
+        assert(size != 0);
         VulkanBuffer buffer;
+        buffer.Size = size;
 
         VkBufferCreateInfo vbCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -187,6 +189,7 @@ namespace Spire {
             m_numAllocatedBuffers++;
         }
 
+        assert(buffer.Size != 0);
         return buffer;
     }
 }

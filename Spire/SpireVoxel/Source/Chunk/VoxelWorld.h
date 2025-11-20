@@ -22,7 +22,9 @@ namespace SpireVoxel {
 
         [[nodiscard]] Chunk *GetLoadedChunk(glm::ivec3 chunkPosition);
 
-        [[nodiscard]] bool IsLoaded(const Chunk& chunk);
+        [[nodiscard]] const Chunk *GetLoadedChunk(glm::ivec3 chunkPosition) const;
+
+        [[nodiscard]] bool IsLoaded(const Chunk &chunk);
 
         [[nodiscard]] std::size_t NumLoadedChunks() const;
 
@@ -39,6 +41,14 @@ namespace SpireVoxel {
         [[nodiscard]] glm::u64 CalculateGPUMemoryUsageForChunks() const;
 
         [[nodiscard]] glm::u64 CalculateCPUMemoryUsageForChunks() const;
+
+        // returns true if a voxel is present at the world position
+        // returns false if the voxel is air or the chunk is not loaded
+        [[nodiscard]] bool IsVoxelAt(glm::ivec3 worldPosition) const;
+
+        glm::u32 GetVoxelAt(glm::ivec3 worldPosition) const;
+
+        bool TrySetVoxelAt(glm::ivec3 worldPosition, glm::u32 voxelType);
 
     private:
         // https://en.cppreference.com/w/cpp/container/unordered_map.html - always iterates in the same order if the map hasnt been changed

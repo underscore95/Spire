@@ -1,3 +1,4 @@
+// ReSharper disable CppDFAUnreachableCode
 #include "VoxelRenderer.h"
 
 #include "Rendering/GameCamera.h"
@@ -19,9 +20,6 @@ namespace SpireVoxel {
     VoxelRenderer::VoxelRenderer(Spire::Engine &engine)
         : m_engine(engine) {
         auto &rm = m_engine.GetRenderingManager();
-
-        // Camera
-        m_camera = std::make_unique<GameCamera>(m_engine);
 
         // Shaders
         Timer shaderCompileTimer;
@@ -52,6 +50,9 @@ namespace SpireVoxel {
                 assert(false);
         });
 
+        // Camera
+        m_camera = std::make_unique<GameCamera>(m_engine, *m_world);
+
         // load 3x1x3 chunks around 0,0,0
         m_world->LoadChunks({
             {-1, 0, -1},
@@ -69,6 +70,7 @@ namespace SpireVoxel {
         for (auto &[chunkPos, chunk] : *m_world) {
             chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
             m_world->GetRenderer().NotifyChunkEdited(chunk);
+            m_world->GetRenderer().HandleChunkEdits();
         }
 
         if (TEST_RUNTIME_VOXEL_MODIFICATION) {
@@ -77,19 +79,25 @@ namespace SpireVoxel {
             assert(chunk1);
             chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
             m_world->GetRenderer().NotifyChunkEdited(*chunk1);
+            m_world->GetRenderer().HandleChunkEdits();
 
             // Update world
             for (auto &[chunkPos, chunk] : *m_world) {
                 chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
                 m_world->GetRenderer().NotifyChunkEdited(chunk);
+                m_world->GetRenderer().HandleChunkEdits();
             }
 
             chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 0;
             m_world->GetRenderer().NotifyChunkEdited(*chunk1);
+            m_world->GetRenderer().HandleChunkEdits();
         }
 
-        VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
-        info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
+        if (IS_PROFILING) {
+            VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
+            info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
+        }
+
         m_timeSinceBeginProfiling.Restart();
     }
 
@@ -147,6 +155,10 @@ namespace SpireVoxel {
 
     GameCamera &VoxelRenderer::GetCamera() const {
         return *m_camera;
+    }
+
+    VoxelWorld &VoxelRenderer::GetWorld() const {
+        return *m_world;
     }
 
     void VoxelRenderer::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const {

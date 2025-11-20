@@ -60,6 +60,8 @@ namespace Spire
 
         void Update();
 
+        void LateUpdate();
+
     public:
         [[nodiscard]] bool IsValid() const;
 

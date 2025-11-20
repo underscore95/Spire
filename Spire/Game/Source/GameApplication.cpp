@@ -1,5 +1,5 @@
 #include "GameApplication.h"
-
+#include "../../Libs/glfw/include/GLFW/glfw3.h"
 #include "Rendering/GameCamera.h"
 
 using namespace Spire;
@@ -24,14 +24,24 @@ void GameApplication::Cleanup() {
 
 void GameApplication::Update() {
     m_voxelRenderer->Update();
+
+    std::optional emptyVoxel = m_voxelRenderer->GetCamera().GetTargetedAdjacentEmptyVoxelPosition();
+    if (m_engine->GetWindow().IsKeyPressed(GLFW_KEY_L) && emptyVoxel.has_value()) {
+        m_voxelRenderer->GetWorld().TrySetVoxelAt(*emptyVoxel, 1);
+    }
+
+    std::optional targetVoxel = m_voxelRenderer->GetCamera().GetTargetedVoxelPosition();
+    if (m_engine->GetWindow().IsKeyPressed(GLFW_KEY_K) && targetVoxel.has_value()) {
+        m_voxelRenderer->GetWorld().TrySetVoxelAt(*targetVoxel, 0);
+    }
 }
 
 void GameApplication::Render() {
-m_frame++;
+    m_frame++;
 
     auto &rm = m_engine->GetRenderingManager();
 
-m_swapchainImageIndex = rm.GetQueue().AcquireNextImage();
+    m_swapchainImageIndex = rm.GetQueue().AcquireNextImage();
     if (m_swapchainImageIndex == rm.GetQueue().INVALID_IMAGE_INDEX) return;
 
     VkCommandBuffer commandBuffer = m_voxelRenderer->Render(m_swapchainImageIndex);
@@ -60,7 +70,21 @@ void GameApplication::RenderUi() const {
 
     ImGui::Begin(GetApplicationName(), nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS) (frame %d (swapchain image %d))", m_engine->GetDeltaTime() * 1000, 1.0f / m_engine->GetDeltaTime(), m_frame, m_swapchainImageIndex);
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS) (frame %d (swapchain image %d))", m_engine->GetDeltaTime() * 1000, 1.0f / m_engine->GetDeltaTime(), m_frame,
+                m_swapchainImageIndex);
+
+    const SpireVoxel::CameraInfo &cameraInfo = m_voxelRenderer->GetCamera().GetCameraInfo();
+    std::string targetedVoxelStr = "None";
+    if (cameraInfo.IsTargetingVoxel) {
+        targetedVoxelStr = std::format("({}, {}, {}) (Voxel Type: {})",
+                                       cameraInfo.TargetedVoxelX,
+                                       cameraInfo.TargetedVoxelY,
+                                       cameraInfo.TargetedVoxelZ,
+                                       m_voxelRenderer->GetWorld().GetVoxelAt(glm::ivec3{
+                                           cameraInfo.TargetedVoxelX, cameraInfo.TargetedVoxelY, cameraInfo.TargetedVoxelZ
+                                       }));
+    }
+    ImGui::Text("Targeted Voxel: %s", targetedVoxelStr.c_str());
 
     glm::vec3 cameraForward = glm::normalize(m_voxelRenderer->GetCamera().GetCamera().GetForward());
 

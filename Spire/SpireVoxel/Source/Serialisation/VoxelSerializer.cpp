@@ -76,6 +76,7 @@ namespace SpireVoxel {
             }
 
             world.GetRenderer().NotifyChunkEdited(chunk);
+            world.GetRenderer().HandleChunkEdits();
         }
     }
 } // SpireVoxel

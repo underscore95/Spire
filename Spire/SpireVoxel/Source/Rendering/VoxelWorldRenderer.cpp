@@ -16,6 +16,8 @@ namespace SpireVoxel {
     }
 
     void VoxelWorldRenderer::Render(glm::u32 swapchainImageIndex) {
+        HandleChunkEdits();
+
         // if empty we aren't issuing render commands so don't need to update the gpu buffer
         if (!m_latestCachedChunkData.empty()) {
             const glm::u32 requiredBufferSize = sizeof(m_latestCachedChunkData[0]) * m_latestCachedChunkData.size();
@@ -61,52 +63,62 @@ namespace SpireVoxel {
 
     void VoxelWorldRenderer::NotifyChunkEdited(Chunk &chunk) {
         assert(m_world.IsLoaded(chunk));
+        assert(m_world.GetLoadedChunk(chunk.ChunkPosition) == &chunk);
+        m_editedChunks.push_back(chunk.ChunkPosition);
+    }
 
-        std::vector<VertexData> vertexData = chunk.GenerateMesh();
+    void VoxelWorldRenderer::HandleChunkEdits() {
+        for (auto &chunkPos : m_editedChunks) {
+            Chunk *chunkPtr = m_world.GetLoadedChunk(chunkPos);
+            if (!chunkPtr) continue;
+            Chunk &chunk = *chunkPtr;
+            std::vector<VertexData> vertexData = chunk.GenerateMesh();
 
-        BufferAllocator::Allocation oldAllocation = chunk.Allocation;
-        if (!vertexData.empty()) {
-            chunk.Allocation = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
+            BufferAllocator::Allocation oldAllocation = chunk.Allocation;
+            if (!vertexData.empty()) {
+                chunk.Allocation = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
 
-            // write the mesh into the vertex buffer
-            m_chunkVertexBufferAllocator.Write(chunk.Allocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
-        } else {
-            chunk.Allocation = {};
-        }
-
-        if (oldAllocation.Size > 0) {
-            m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
-        }
-
-        // write the chunk data
-        chunk.NumVertices = vertexData.size();
-
-        WorldEditRequiredChanges changes = {false, false};
-        if (oldAllocation.Size == 0) {
-            UpdateChunkDatasBuffer();
-            changes.RecreatePipeline = true;
-        } else {
-            glm::u32 chunkIndex = 0;
-            for (auto &[_,c] : m_world) {
-                if (&c == &chunk) break;
-                if (c.Allocation.Size == 0) continue;
-                chunkIndex++;
+                // write the mesh into the vertex buffer
+                m_chunkVertexBufferAllocator.Write(chunk.Allocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
+            } else {
+                chunk.Allocation = {};
             }
 
-            ChunkData data = {
-                .NumVertices = static_cast<glm::u32>(vertexData.size()),
-                .FirstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData))
-            };
-            m_latestCachedChunkData[chunkIndex] = data;
-            for (size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
-                m_dirtyChunkDataBuffers[i] = true;
+            if (oldAllocation.Size > 0) {
+                m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
             }
+
+            // write the chunk data
+            chunk.NumVertices = vertexData.size();
+
+            WorldEditRequiredChanges changes = {false, false};
+            if (oldAllocation.Size == 0) {
+                UpdateChunkDatasBuffer();
+                changes.RecreatePipeline = true;
+            } else {
+                glm::u32 chunkIndex = 0;
+                for (auto &[_,c] : m_world) {
+                    if (&c == &chunk) break;
+                    if (c.Allocation.Size == 0) continue;
+                    chunkIndex++;
+                }
+
+                ChunkData data = {
+                    .NumVertices = static_cast<glm::u32>(vertexData.size()),
+                    .FirstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData))
+                };
+                m_latestCachedChunkData[chunkIndex] = data;
+                for (size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
+                    m_dirtyChunkDataBuffers[i] = true;
+                }
+            }
+
+            changes.RecreateOnlyCommandBuffers = true;
+
+            m_onWorldEditedDelegate.Broadcast(changes);
+            //Spire::info("Regenerated chunk ({}, {}) with {} vertices", chunk.ChunkPosition.x, chunk.ChunkPosition.y, chunk.NumVertices);
         }
-
-        changes.RecreateOnlyCommandBuffers = true;
-
-        m_onWorldEditedDelegate.Broadcast(changes);
-        //Spire::info("Regenerated chunk ({}, {}) with {} vertices", chunk.ChunkPosition.x, chunk.ChunkPosition.y, chunk.NumVertices);
+        m_editedChunks.clear();
     }
 
     void VoxelWorldRenderer::NotifyChunkLoadedOrUnloaded() {

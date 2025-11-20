@@ -184,6 +184,19 @@ namespace Spire
             m_engine.OnWindowResize();
         }
 
+        // poll events
+        glfwPollEvents();
+
+        // mouse pos & delta
+        m_mouseDelta = m_mouseRawPos - m_mousePos;
+        m_mousePos = m_mouseRawPos;
+
+        // mouse scroll
+        m_scrollDelta = m_scrollDeltaTemp;
+        m_scrollDeltaTemp = {0, 0};
+    }
+
+    void Window::LateUpdate() {
         // pressed -> held
         for (int key : m_pressedKeys)
         {
@@ -196,17 +209,6 @@ namespace Spire
             m_heldMouseButtons.insert(button);
         }
         m_pressedMouseButtons.clear();
-
-        // poll events
-        glfwPollEvents();
-
-        // mouse pos & delta
-        m_mouseDelta = m_mouseRawPos - m_mousePos;
-        m_mousePos = m_mouseRawPos;
-
-        // mouse scroll
-        m_scrollDelta = m_scrollDeltaTemp;
-        m_scrollDeltaTemp = {0, 0};
     }
 
     void Window::KeyCallback(int key, [[maybe_unused]] int scanCode, int action, [[maybe_unused]] int mods)
