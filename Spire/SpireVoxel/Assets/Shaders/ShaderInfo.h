@@ -36,11 +36,15 @@
 // reason for assert: ivec4 is put as padding on the gpu
 // possible cause for failure: you didn't include vulkan before including this file
 static_assert(sizeof(VkDrawIndirectCommand) == 16);
-#define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE VkDrawIndirectCommand
+#define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(VarName) VkDrawIndirectCommand VarName
 #else
 #define SPIRE_UINT32_TYPE uint
 #define SPIRE_MAT4X4_TYPE mat4
-#define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE ivec4
+#define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(VarName) \
+    int VarName##_Padding1;\
+    int VarName##_Padding2;\
+    int VarName##_Padding3;\
+    int VarName##_Padding4
 #endif
 
 // c++ keywords
@@ -61,9 +65,11 @@ static_assert(sizeof(VkDrawIndirectCommand) == 16);
 namespace SpireVoxel {
 #endif
     struct ChunkData {
-        SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE CPU_DrawCommandParams;
+        SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(CPU_DrawCommandParams);
         SPIRE_UINT32_TYPE NumVertices;
         SPIRE_UINT32_TYPE FirstVertex;
+      //  SPIRE_UINT32_TYPE Padding1; // Padding required so that CPU_DrawCommandParams is aligned to 16 byte boundary
+        //SPIRE_UINT32_TYPE Padding2;
     };
 
 #ifdef __cplusplus
