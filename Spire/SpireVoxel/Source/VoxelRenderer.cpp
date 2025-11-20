@@ -12,8 +12,6 @@
 
 using namespace Spire;
 
-constexpr glm::u32 NUM_CHUNKS = 1;
-
 namespace SpireVoxel {
     static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = false;
 
@@ -54,24 +52,24 @@ namespace SpireVoxel {
         m_camera = std::make_unique<GameCamera>(m_engine, *m_world);
 
         // load 3x1x3 chunks around 0,0,0
-        // m_world->LoadChunks({
-        //     {-1, 0, -1},
-        //     {-1, 0, 0},
-        //     {-1, 0, 1},
-        //     {0, 0, -1},
-        //     {0, 0, 0},
-        //     {0, 0, 1},
-        //     {1, 0, -1},
-        //     {1, 0, 0},
-        //     {1, 0, 1},
-        // });
-        //
-        // // Update world
-        // for (auto &[chunkPos, chunk] : *m_world) {
-        //     chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-        //     m_world->GetRenderer().NotifyChunkEdited(chunk);
-        //     m_world->GetRenderer().HandleChunkEdits();
-        // }
+        m_world->LoadChunks({
+            {-1, 0, -1},
+            {-1, 0, 0},
+            {-1, 0, 1},
+            {0, 0, -1},
+            {0, 0, 0},
+            {0, 0, 1},
+            {1, 0, -1},
+            {1, 0, 0},
+            {1, 0, 1},
+        });
+
+        // Update world
+        for (auto &[chunkPos, chunk] : *m_world) {
+            chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
+            m_world->GetRenderer().NotifyChunkEdited(chunk);
+            m_world->GetRenderer().HandleChunkEdits();
+        }
 
         if (TEST_RUNTIME_VOXEL_MODIFICATION) {
             m_world->LoadChunk({0, 0, 0});
@@ -97,8 +95,6 @@ namespace SpireVoxel {
             VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
         }
-
-        VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test1");
 
         m_timeSinceBeginProfiling.Restart();
     }
