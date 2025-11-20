@@ -102,6 +102,9 @@ void GameApplication::RenderUi() const {
     glm::vec3 cameraPos = m_voxelRenderer->GetCamera().GetCamera().GetPosition();
     ImGui::Text("Position %f, %f, %f", cameraPos.x, cameraPos.y, cameraPos.z);
 
+    glm::vec3 chunkPos = { glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE) };
+    ImGui::Text("Chunk Position %f, %f, %f", chunkPos.x, chunkPos.y, chunkPos.z);
+
     ImGui::End();
 
     ImGui::Render();

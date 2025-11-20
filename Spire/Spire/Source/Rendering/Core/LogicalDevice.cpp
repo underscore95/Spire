@@ -21,8 +21,7 @@ namespace Spire {
 
         std::vector deviceExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-            VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME,
-
+            VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
         };
 
         DynamicRenderingSupport dynamicRenderingSupport = GetDynamicRenderingSupport(deviceManager, vulkanVersion);
@@ -53,6 +52,11 @@ namespace Spire {
             return;
         }
 
+        if (!SupportsMultiDraw(deviceManager)) {
+            error("Multi draw not supported on this device");
+            return;
+        }
+
         // dynamic rendering
         VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
@@ -72,6 +76,7 @@ namespace Spire {
         VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
         deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
         deviceFeatures2.pNext = &indexingFeatures;
+        deviceFeatures2.features.multiDrawIndirect = VK_TRUE;
 
         // device features
         deviceFeatures2.features.geometryShader = VK_TRUE;
@@ -97,7 +102,7 @@ namespace Spire {
             &m_device
         );
         if (result != VK_SUCCESS) {
-            error("Failed to create logical device");
+            error("Failed to create logical device {}", static_cast<int>(result));
         } else {
             info("Created logical device");
         }
@@ -150,5 +155,11 @@ namespace Spire {
 
         vkGetPhysicalDeviceFeatures2(deviceManager.Selected().PhysicalDeviceHandle, &deviceFeatures2);
         return indexingFeatures.shaderStorageBufferArrayNonUniformIndexing && indexingFeatures.runtimeDescriptorArray;
+    }
+
+    bool LogicalDevice::SupportsMultiDraw(const RenderingDeviceManager &deviceManager) {
+        VkPhysicalDeviceFeatures features = {};
+        vkGetPhysicalDeviceFeatures(deviceManager.Selected().PhysicalDeviceHandle, &features);
+        return features.multiDrawIndirect == VK_TRUE;
     }
 }

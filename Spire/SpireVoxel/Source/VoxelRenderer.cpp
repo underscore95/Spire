@@ -54,24 +54,24 @@ namespace SpireVoxel {
         m_camera = std::make_unique<GameCamera>(m_engine, *m_world);
 
         // load 3x1x3 chunks around 0,0,0
-        m_world->LoadChunks({
-            {-1, 0, -1},
-            {-1, 0, 0},
-            {-1, 0, 1},
-            {0, 0, -1},
-            {0, 0, 0},
-            {0, 0, 1},
-            {1, 0, -1},
-            {1, 0, 0},
-            {1, 0, 1},
-        });
-
-        // Update world
-        for (auto &[chunkPos, chunk] : *m_world) {
-            chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-            m_world->GetRenderer().NotifyChunkEdited(chunk);
-            m_world->GetRenderer().HandleChunkEdits();
-        }
+        // m_world->LoadChunks({
+        //     {-1, 0, -1},
+        //     {-1, 0, 0},
+        //     {-1, 0, 1},
+        //     {0, 0, -1},
+        //     {0, 0, 0},
+        //     {0, 0, 1},
+        //     {1, 0, -1},
+        //     {1, 0, 0},
+        //     {1, 0, 1},
+        // });
+        //
+        // // Update world
+        // for (auto &[chunkPos, chunk] : *m_world) {
+        //     chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
+        //     m_world->GetRenderer().NotifyChunkEdited(chunk);
+        //     m_world->GetRenderer().HandleChunkEdits();
+        // }
 
         if (TEST_RUNTIME_VOXEL_MODIFICATION) {
             m_world->LoadChunk({0, 0, 0});
@@ -97,6 +97,8 @@ namespace SpireVoxel {
             VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
         }
+
+        VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test1");
 
         m_timeSinceBeginProfiling.Restart();
     }
@@ -187,21 +189,21 @@ namespace SpireVoxel {
 
         m_commandBuffers = std::make_unique<CommandBufferVector>(m_engine.GetRenderingManager(), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
 
-        for (int i = 0; i < m_commandBuffers->Size(); ++i) {
-            VkCommandBuffer commandBuffer = (*m_commandBuffers)[i];
+        for (int swapchainImage = 0; swapchainImage < m_commandBuffers->Size(); ++swapchainImage) {
+            VkCommandBuffer commandBuffer = (*m_commandBuffers)[swapchainImage];
             VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
             rm.GetCommandManager().BeginCommandBuffer(commandBuffer, flags);
 
-            BeginRendering(commandBuffer, i);
+            BeginRendering(commandBuffer, swapchainImage);
 
             m_graphicsPipeline->CmdBindTo(commandBuffer);
-            m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 0, 0);
-            m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 1, 1);
-            m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 4, 4);
+            m_descriptorManager->CmdBind(commandBuffer, swapchainImage, m_graphicsPipeline->GetLayout(), 0, 0);
+            m_descriptorManager->CmdBind(commandBuffer, swapchainImage, m_graphicsPipeline->GetLayout(), 1, 1);
+            m_descriptorManager->CmdBind(commandBuffer, swapchainImage, m_graphicsPipeline->GetLayout(), 4, 4);
 
             m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine.GetWindow().GetDimensions());
 
-            m_world->GetRenderer().CmdRender(commandBuffer);
+            m_world->GetRenderer().CmdRender(swapchainImage, commandBuffer);
 
             vkCmdEndRendering(commandBuffer);
 

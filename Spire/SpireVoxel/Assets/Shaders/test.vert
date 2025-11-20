@@ -19,22 +19,16 @@ layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_VOXEL_SHADER_
 } chunkDataBuffer;
 
 layout (location = 0) out vec2 texCoord;
-layout (location = 1) flat out int shouldDiscard;
 layout (location = 2) flat out uint imageIndex;
 
 void main()
 {
-    if (gl_VertexIndex >= chunkDataBuffer.chunkDatas[gl_InstanceIndex].NumVertices) {
-        shouldDiscard = 1;
-        return;
-    }
-
-    VertexData vtx = in_Vertices.data[chunkDataBuffer.chunkDatas[gl_InstanceIndex].FirstVertex + gl_VertexIndex];
+    uint firstVertexIndex = chunkDataBuffer.chunkDatas[gl_InstanceIndex].FirstVertex;
+    VertexData vtx = in_Vertices.data[firstVertexIndex + gl_VertexIndex];
 
     vec3 pos = vec3(vtx.x, vtx.y, vtx.z);
 
     gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(pos, 1.0);
     texCoord = vec2(vtx.u, vtx.v);
-    shouldDiscard = 0;
     imageIndex = voxelTypesBuffer.voxelTypes[vtx.VoxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[vtx.VoxelType].VoxelFaceLayout, vtx.Face);
 }

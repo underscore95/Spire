@@ -19,15 +19,15 @@ namespace Spire {
 
         // elements can be nullptr which means that initial data is undefined
         [[nodiscard]] VulkanBuffer CreateStorageBuffer(const void *elements, glm::u32 size, glm::u32 elementSize,
-                                                       bool isTransferSource = false);
+                                                       bool isTransferSource = false, VkBufferUsageFlags extraUsageFlags = 0);
 
-        [[nodiscard]] VulkanBuffer CreateUniformBuffer(glm::u32 size, glm::u32 elementSize,                                                       bool isTransferSource = false);
+        [[nodiscard]] VulkanBuffer CreateUniformBuffer(glm::u32 size, glm::u32 elementSize, bool isTransferSource = false);
 
         void DestroyBuffer(const VulkanBuffer &buffer);
 
         [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateUniformBuffers(size_t bufferSize, bool isTransferDest = false);
 
-        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateStorageBuffers(size_t bufferSize, size_t numElements, const void *data);
+        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateStorageBuffers(size_t bufferSize, size_t numElements, const void *data, VkBufferUsageFlags extraUsageFlags = 0);
 
         void UpdateBuffer(const VulkanBuffer &buffer, const void *data, glm::u32 size, glm::u32 offset = 0) const;
 
