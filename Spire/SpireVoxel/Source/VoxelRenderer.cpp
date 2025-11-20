@@ -96,6 +96,8 @@ namespace SpireVoxel {
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
         }
 
+        VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test1");
+
         m_timeSinceBeginProfiling.Restart();
     }
 
