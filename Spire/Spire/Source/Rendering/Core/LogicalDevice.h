@@ -33,6 +33,8 @@ namespace Spire {
 
         static bool SupportsDescriptorIndexing(const RenderingDeviceManager &deviceManager);
 
+        static bool SupportsMultiDraw(const RenderingDeviceManager & deviceManager);
+
     private:
         const glm::u32 INVALID_DEVICE_QUEUE_FAMILY = -1; // underflow
         glm::u32 m_deviceQueueFamily = INVALID_DEVICE_QUEUE_FAMILY;

@@ -12,8 +12,6 @@
 
 using namespace Spire;
 
-constexpr glm::u32 NUM_CHUNKS = 1;
-
 namespace SpireVoxel {
     static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = false;
 
@@ -187,21 +185,21 @@ namespace SpireVoxel {
 
         m_commandBuffers = std::make_unique<CommandBufferVector>(m_engine.GetRenderingManager(), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
 
-        for (int i = 0; i < m_commandBuffers->Size(); ++i) {
-            VkCommandBuffer commandBuffer = (*m_commandBuffers)[i];
+        for (int swapchainImage = 0; swapchainImage < m_commandBuffers->Size(); ++swapchainImage) {
+            VkCommandBuffer commandBuffer = (*m_commandBuffers)[swapchainImage];
             VkCommandBufferUsageFlags flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
             rm.GetCommandManager().BeginCommandBuffer(commandBuffer, flags);
 
-            BeginRendering(commandBuffer, i);
+            BeginRendering(commandBuffer, swapchainImage);
 
             m_graphicsPipeline->CmdBindTo(commandBuffer);
-            m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 0, 0);
-            m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 1, 1);
-            m_descriptorManager->CmdBind(commandBuffer, i, m_graphicsPipeline->GetLayout(), 4, 4);
+            m_descriptorManager->CmdBind(commandBuffer, swapchainImage, m_graphicsPipeline->GetLayout(), 0, 0);
+            m_descriptorManager->CmdBind(commandBuffer, swapchainImage, m_graphicsPipeline->GetLayout(), 1, 1);
+            m_descriptorManager->CmdBind(commandBuffer, swapchainImage, m_graphicsPipeline->GetLayout(), 4, 4);
 
             m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine.GetWindow().GetDimensions());
 
-            m_world->GetRenderer().CmdRender(commandBuffer);
+            m_world->GetRenderer().CmdRender(swapchainImage, commandBuffer);
 
             vkCmdEndRendering(commandBuffer);
 

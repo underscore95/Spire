@@ -25,7 +25,7 @@ namespace SpireVoxel {
 
         DelegateSubscribers<WorldEditRequiredChanges> &GetOnWorldEditSubscribers();
 
-        void CmdRender(VkCommandBuffer commandBuffer) const;
+        void CmdRender(glm::u32 swapchainImage, VkCommandBuffer commandBuffer) const;
 
         void PushDescriptors(Spire::PerImageDescriptorSetLayout &perFrameSet, Spire::DescriptorSetLayout &chunkVertexBuffersLayout);
 

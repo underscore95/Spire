@@ -11,15 +11,20 @@ namespace SpireVoxel {
           m_chunkVertexBufferAllocator(m_renderingManager, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(), sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD) {
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD / 1024 / 1024);
 
-        m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr);
+        m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr,
+                                                                                        VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT);
         Spire::info("Allocated {} kb buffer for each swapchain image on GPU to store chunk datas", sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS / 1024);
+
+        m_dirtyChunkDataBuffers.resize(renderingManager.GetSwapchain().GetNumImages());
     }
 
     void VoxelWorldRenderer::Render(glm::u32 swapchainImageIndex) {
         HandleChunkEdits();
 
         // if empty we aren't issuing render commands so don't need to update the gpu buffer
-        if (!m_latestCachedChunkData.empty()) {
+        if (!m_latestCachedChunkData.empty() && m_dirtyChunkDataBuffers[swapchainImageIndex]) {
+            m_dirtyChunkDataBuffers[swapchainImageIndex] = false;
+
             const glm::u32 requiredBufferSize = sizeof(m_latestCachedChunkData[0]) * m_latestCachedChunkData.size();
             m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer->GetBuffer(swapchainImageIndex), m_latestCachedChunkData.data(), requiredBufferSize, 0);
         }
@@ -31,13 +36,9 @@ namespace SpireVoxel {
         return m_onWorldEditedDelegate;
     }
 
-    void VoxelWorldRenderer::CmdRender(VkCommandBuffer commandBuffer) const {
-        glm::u32 numVerticesToRender = 0;
-        for (auto &[_,chunk] : m_world) {
-            numVerticesToRender = std::max(numVerticesToRender, chunk.NumVertices);
-        }
-
-        vkCmdDraw(commandBuffer, numVerticesToRender, m_world.GetNumLoadedChunks(), 0, 0);
+    void VoxelWorldRenderer::CmdRender(glm::u32 swapchainImage, VkCommandBuffer commandBuffer) const {
+        vkCmdDrawIndirect(commandBuffer, m_chunkDatasBuffer->GetBuffer(swapchainImage).Buffer, offsetof(ChunkData, CPU_DrawCommandParams), m_latestCachedChunkData.size(),
+                          sizeof(ChunkData));
     }
 
     void VoxelWorldRenderer::PushDescriptors(Spire::PerImageDescriptorSetLayout &perFrameSet, Spire::DescriptorSetLayout &chunkVertexBuffersLayout) {
@@ -104,11 +105,17 @@ namespace SpireVoxel {
                 }
 
                 ChunkData data = {
+                    .CPU_DrawCommandParams = {
+                        .vertexCount = static_cast<glm::u32>(vertexData.size()),
+                        .instanceCount = 1,
+                        .firstVertex = 0,
+                        .firstInstance = chunkIndex
+                    },
                     .NumVertices = static_cast<glm::u32>(vertexData.size()),
                     .FirstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData))
                 };
                 m_latestCachedChunkData[chunkIndex] = data;
-                for (size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
+                for (std::size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
                     m_dirtyChunkDataBuffers[i] = true;
                 }
             }
@@ -130,6 +137,12 @@ namespace SpireVoxel {
         m_latestCachedChunkData.clear();
         for (const auto &[_, chunk] : m_world) {
             ChunkData data = {
+                .CPU_DrawCommandParams = {
+                    .vertexCount = chunk.NumVertices,
+                    .instanceCount = 1,
+                    .firstVertex = 0,
+                    .firstInstance = static_cast<glm::u32>(m_latestCachedChunkData.size())
+                },
                 .NumVertices = chunk.NumVertices,
                 .FirstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData))
             };
