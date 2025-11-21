@@ -151,8 +151,7 @@ namespace SpireVoxel {
     // Utility functions to pack and unpack this type are below
     struct VertexData {
         SPIRE_UINT32_TYPE VoxelType;
-        SPIRE_UINT32_TYPE Packed_8X8Y8Z2VertPos;
-        SPIRE_UINT32_TYPE Face;
+        SPIRE_UINT32_TYPE Packed_8X8Y8Z2VertPos3Face;
     };
 
     // voxel vertex positions
@@ -195,8 +194,8 @@ namespace SpireVoxel {
     /*
      * VertexData Spec
      * uint32 VoxelType; 32 bit integer representing voxel type, where 0 is empty and all other values are runtime-defined.
-     * uint32 Packed_7X7Y7Z2VertPos Packed_XYZ; 32 bit integer where the first 7 bits the voxel Z coordinate in the chunk, second 7 bits is the Y coordinate, third 7 bits is the X coordinate,
-     *      next 2 bits are VoxelVertexPosition
+     * uint32 Packed_7X7Y7Z2VertPos3Face Packed_XYZ; 32 bit integer where the first 7 bits the voxel Z coordinate in the chunk, second 7 bits is the Y coordinate, third 7 bits is the X coordinate,
+     *      next 2 bits are VoxelVertexPosition, next 3 bits are voxel face (see SPIRE_VOXEL_NUM_FACES)
      */
 
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE VertexData PackVertexData(
@@ -208,15 +207,20 @@ namespace SpireVoxel {
         assert(x <= 64);
         assert(y <= 64);
         assert(z <= 64);
+        assert(face < SPIRE_VOXEL_NUM_FACES);
         VertexData vertex = {
             .VoxelType = voxelType,
-            .Packed_8X8Y8Z2VertPos = ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (0xFF & z),
-            .Face = face,
+            .Packed_8X8Y8Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (0xFF & z)
         };
 
         return vertex;
     }
 #endif
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE UnpackVertexDataFace(SPIRE_UINT32_TYPE packed) {
+        const SPIRE_UINT32_TYPE MAX_THREE_BIT_VALUE = 7; // 0b111
+        return (packed >> 23) & MAX_THREE_BIT_VALUE;
+    }
 
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_VOXEL_VERTEX_POSITION_TYPE UnpackVertexDataVertexPosition(SPIRE_UINT32_TYPE packed) {
         const SPIRE_UINT32_TYPE MAX_TWO_BIT_VALUE = 3; // 0b11
