@@ -2,6 +2,7 @@ include(../../CMake/Utils/Tests.cmake)
 
 add_executable(SpireVoxelTests
         Tests/Test.cpp
+        Tests/VertexPackingTests.cpp
 )
 
 target_include_directories(SpireVoxelTests PRIVATE "Tests/")

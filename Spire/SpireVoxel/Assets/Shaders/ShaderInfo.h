@@ -32,14 +32,18 @@
 // types
 #ifdef __cplusplus
 #define SPIRE_UINT32_TYPE glm::uint32
+#define SPIRE_INT32_TYPE glm::int32
 #define SPIRE_MAT4X4_TYPE glm::mat4
+#define SPIRE_UVEC3_TYPE glm::uvec3
 // reason for assert: ivec4 is put as padding on the gpu
 // possible cause for failure: you didn't include vulkan before including this file
 static_assert(sizeof(VkDrawIndirectCommand) == 16);
 #define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(VarName) VkDrawIndirectCommand VarName
 #else
 #define SPIRE_UINT32_TYPE uint
+#define SPIRE_INT32_TYPE int
 #define SPIRE_MAT4X4_TYPE mat4
+#define SPIRE_UVEC3_TYPE uvec3
 #define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(VarName) \
     int VarName##_Padding1;\
     int VarName##_Padding2;\
@@ -66,6 +70,9 @@ namespace SpireVoxel {
 #endif
     struct ChunkData {
         SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(CPU_DrawCommandParams);
+        SPIRE_INT32_TYPE ChunkX; // allows for 137 billion voxels in each direction
+        SPIRE_INT32_TYPE ChunkY;
+        SPIRE_INT32_TYPE ChunkZ;
     };
 
 #ifdef __cplusplus
@@ -136,14 +143,42 @@ namespace SpireVoxel {
 namespace SpireVoxel {
 #endif
     struct VertexData {
-        int VoxelType;
-        float x;
-        float y;
-        float z;
+        SPIRE_UINT32_TYPE VoxelType;
+        SPIRE_UINT32_TYPE Packed_XYZ;
         float u;
         float v;
         SPIRE_UINT32_TYPE Face;
     };
+
+#ifdef __cplusplus
+
+    /*
+     * VertexData Spec
+     * SPIRE_UINT32_TYPE VoxelType; 32 bit integer representing voxel type, where 0 is empty and all other values are runtime-defined.
+     * SPIRE_UINT32_TYPE Packed_XYZ; 32 bit integer where the first byte is the voxel Z coordinate in the chunk, second byte is the Y coordinate, third byte is the X coordinate, fourth byte is unused
+     */
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE VertexData PackVertexData(
+        SPIRE_UINT32_TYPE voxelType,
+        SPIRE_UINT32_TYPE x, SPIRE_UINT32_TYPE y, SPIRE_UINT32_TYPE z,
+        float u, float v,
+        SPIRE_UINT32_TYPE face
+    ) {
+        VertexData vertex = {
+            .VoxelType = voxelType,
+            .Packed_XYZ = ((0xFF & x) << 16) | ((0xFF & y) << 8) | (0xFF & z),
+            .u = u,
+            .v = v,
+            .Face = face,
+        };
+
+        return vertex;
+    }
+#endif
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UVEC3_TYPE UnpackVertexDataXYZ(SPIRE_UINT32_TYPE packed) {
+        return SPIRE_UVEC3_TYPE((packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF);
+    }
 
 #ifdef __cplusplus
 }
