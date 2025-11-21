@@ -2,10 +2,20 @@
 #include "../Assets/Shaders/ShaderInfo.h"
 #include <gtest/gtest.h>
 
-TEST(VertexPackingTests, BasicAssertions) {
-    SpireVoxel::VertexData vertex = SpireVoxel::PackVertexData(0, 14, 100, 15, 0, 0, 0);
-    glm::uvec3 pos = SpireVoxel::UnpackVertexDataXYZ(vertex.Packed_XYZ);
+TEST(TestA, VertexPackingTests) {
+    SpireVoxel::VertexData vertex = SpireVoxel::PackVertexData(0, 14, 50, 15, SpireVoxel::VoxelVertexPosition::ZERO, 0);
+    glm::uvec3 pos = SpireVoxel::UnpackVertexDataXYZ(vertex.Packed_8X8Y8Z2VertPos);
     EXPECT_EQ(pos.x, 14);
-    EXPECT_EQ(pos.y, 100);
+    EXPECT_EQ(pos.y, 50);
     EXPECT_EQ(pos.z, 15);
+    EXPECT_EQ(SpireVoxel::UnpackVertexDataVertexPosition(vertex.Packed_8X8Y8Z2VertPos), SpireVoxel::VoxelVertexPosition::ZERO);
+}
+
+TEST(TestB, VertexPackingTests) {
+    SpireVoxel::VertexData vertex = SpireVoxel::PackVertexData(0, 63, 64, 0, SpireVoxel::VoxelVertexPosition::THREE, 0);
+    glm::uvec3 pos = SpireVoxel::UnpackVertexDataXYZ(vertex.Packed_8X8Y8Z2VertPos);
+    EXPECT_EQ(pos.x, 63);
+    EXPECT_EQ(pos.y, 64);
+    EXPECT_EQ(pos.z, 0);
+    EXPECT_EQ(SpireVoxel::UnpackVertexDataVertexPosition(vertex.Packed_8X8Y8Z2VertPos), SpireVoxel::VoxelVertexPosition::THREE);
 }
