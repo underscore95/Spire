@@ -1,3 +1,4 @@
+// ReSharper disable CppVariableCanBeMadeConstexpr
 #ifndef SPIRE_SHADER_BINDINGS
 #define SPIRE_SHADER_BINDINGS
 
@@ -32,30 +33,38 @@
 // types
 #ifdef __cplusplus
 #define SPIRE_UINT32_TYPE glm::uint32
+#define SPIRE_INT32_TYPE glm::int32
 #define SPIRE_MAT4X4_TYPE glm::mat4
+#define SPIRE_UVEC3_TYPE glm::uvec3
+#define SPIRE_VEC2_TYPE glm::vec2
 // reason for assert: ivec4 is put as padding on the gpu
 // possible cause for failure: you didn't include vulkan before including this file
 static_assert(sizeof(VkDrawIndirectCommand) == 16);
 #define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(VarName) VkDrawIndirectCommand VarName
 #else
 #define SPIRE_UINT32_TYPE uint
+#define SPIRE_INT32_TYPE int
 #define SPIRE_MAT4X4_TYPE mat4
+#define SPIRE_UVEC3_TYPE uvec3
 #define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(VarName) \
     int VarName##_Padding1;\
     int VarName##_Padding2;\
     int VarName##_Padding3;\
     int VarName##_Padding4
+#define SPIRE_VEC2_TYPE vec2
 #endif
 
 // c++ keywords
 #ifdef __cplusplus
 
-#define SPIRE_KEYWORD_INLINE inline
 #define SPIRE_KEYWORD_NODISCARD [[nodiscard]]
+#define SPIRE_KEYWORD_STATIC static
+#define SPIRE_KEYWORD_INLINE inline
 
 #else
 
 #define SPIRE_KEYWORD_NODISCARD
+#define SPIRE_KEYWORD_STATIC
 #define SPIRE_KEYWORD_INLINE
 
 #endif
@@ -66,6 +75,9 @@ namespace SpireVoxel {
 #endif
     struct ChunkData {
         SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(CPU_DrawCommandParams);
+        SPIRE_INT32_TYPE ChunkX; // allows for 137 billion voxels in each direction
+        SPIRE_INT32_TYPE ChunkY;
+        SPIRE_INT32_TYPE ChunkZ;
     };
 
 #ifdef __cplusplus
@@ -77,6 +89,7 @@ namespace SpireVoxel {
 #endif
 
     // faces
+#define SPIRE_VOXEL_NUM_FACES 6
 #define SPIRE_VOXEL_FACE_POS_X 0
 #define SPIRE_VOXEL_FACE_NEG_X 1
 #define SPIRE_VOXEL_FACE_POS_Y 2
@@ -135,15 +148,95 @@ namespace SpireVoxel {
 #ifdef __cplusplus
 namespace SpireVoxel {
 #endif
+    // Utility functions to pack and unpack this type are below
     struct VertexData {
-        int VoxelType;
-        float x;
-        float y;
-        float z;
-        float u;
-        float v;
-        SPIRE_UINT32_TYPE Face;
+        SPIRE_UINT32_TYPE VoxelType;
+        SPIRE_UINT32_TYPE Packed_8X8Y8Z2VertPos3Face;
     };
+
+    // voxel vertex positions
+#define SPIRE_NUM_VOXEL_VERTEX_POSITIONS 4
+#ifdef __cplusplus
+    enum class VoxelVertexPosition : SPIRE_UINT32_TYPE {
+        ZERO, // uv 0, 0
+        ONE, // uv 1, 0
+        TWO, // uv 1, 1
+        THREE // uv 0, 1
+    };
+
+#define SPIRE_VOXEL_VERTEX_POSITION_TYPE SpireVoxel::VoxelVertexPosition
+#else
+#define SPIRE_VOXEL_VERTEX_POSITION_TYPE SPIRE_UINT32_TYPE
+#endif
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_VEC2_TYPE VoxelVertexPositionToUV(SPIRE_VOXEL_VERTEX_POSITION_TYPE position) {
+        SPIRE_KEYWORD_STATIC const SPIRE_VEC2_TYPE UV_COORDINATES[SPIRE_NUM_VOXEL_VERTEX_POSITIONS] =
+#ifdef __cplusplus
+        {
+#else
+               SPIRE_VEC2_TYPE[SPIRE_NUM_VOXEL_VERTEX_POSITIONS](
+#endif
+            SPIRE_VEC2_TYPE(0.0f, 0.0f),
+            SPIRE_VEC2_TYPE(1.0f, 0.0f),
+            SPIRE_VEC2_TYPE(1, 1.0f),
+            SPIRE_VEC2_TYPE(0.0, 1.0f)
+#ifdef __cplusplus
+        };
+        assert(static_cast<SPIRE_UINT32_TYPE>(position) < SPIRE_NUM_VOXEL_VERTEX_POSITIONS);
+        return UV_COORDINATES[static_cast<SPIRE_UINT32_TYPE>(position)];
+#else
+);
+        return UV_COORDINATES[position];
+#endif
+    }
+
+    // packing and unpacking VertexData
+#ifdef __cplusplus
+    /*
+     * VertexData Spec
+     * uint32 VoxelType; 32 bit integer representing voxel type, where 0 is empty and all other values are runtime-defined.
+     * uint32 Packed_7X7Y7Z2VertPos3Face Packed_XYZ; 32 bit integer where the first 7 bits the voxel Z coordinate in the chunk, second 7 bits is the Y coordinate, third 7 bits is the X coordinate,
+     *      next 2 bits are VoxelVertexPosition, next 3 bits are voxel face (see SPIRE_VOXEL_NUM_FACES)
+     */
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE VertexData PackVertexData(
+        SPIRE_UINT32_TYPE voxelType,
+        SPIRE_UINT32_TYPE x, SPIRE_UINT32_TYPE y, SPIRE_UINT32_TYPE z,
+        VoxelVertexPosition vertexPosition,
+        SPIRE_UINT32_TYPE face
+    ) {
+        assert(x <= 64);
+        assert(y <= 64);
+        assert(z <= 64);
+        assert(face < SPIRE_VOXEL_NUM_FACES);
+        VertexData vertex = {
+            .VoxelType = voxelType,
+            .Packed_8X8Y8Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (0xFF & z)
+        };
+
+        return vertex;
+    }
+#endif
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE UnpackVertexDataFace(SPIRE_UINT32_TYPE packed) {
+        const SPIRE_UINT32_TYPE MAX_THREE_BIT_VALUE = 7; // 0b111
+        return (packed >> 23) & MAX_THREE_BIT_VALUE;
+    }
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_VOXEL_VERTEX_POSITION_TYPE UnpackVertexDataVertexPosition(SPIRE_UINT32_TYPE packed) {
+        const SPIRE_UINT32_TYPE MAX_TWO_BIT_VALUE = 3; // 0b11
+        SPIRE_UINT32_TYPE raw = (packed >> 21) & MAX_TWO_BIT_VALUE;
+#ifdef __cplusplus
+        assert(raw <= SPIRE_NUM_VOXEL_VERTEX_POSITIONS);
+        return static_cast<SPIRE_VOXEL_VERTEX_POSITION_TYPE>(raw);
+#else
+        return raw;
+#endif
+    }
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UVEC3_TYPE UnpackVertexDataXYZ(SPIRE_UINT32_TYPE packed) {
+        const SPIRE_UINT32_TYPE MAX_SEVEN_BIT_VALUE = 127; // 0b1111111
+        return SPIRE_UVEC3_TYPE((packed >> 14) & MAX_SEVEN_BIT_VALUE, (packed >> 7) & MAX_SEVEN_BIT_VALUE, packed & MAX_SEVEN_BIT_VALUE);
+    }
 
 #ifdef __cplusplus
 }

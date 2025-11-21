@@ -24,10 +24,15 @@ layout (location = 2) flat out uint imageIndex;
 void main()
 {
     VertexData vtx = in_Vertices.data[gl_VertexIndex];
+    ChunkData chunkData = chunkDataBuffer.chunkDatas[gl_InstanceIndex];
 
-    vec3 pos = vec3(vtx.x, vtx.y, vtx.z);
+    uint vertexVoxelPos = UnpackVertexDataVertexPosition(vtx.Packed_8X8Y8Z2VertPos3Face);
+    uvec3 voxelPos = UnpackVertexDataXYZ(vtx.Packed_8X8Y8Z2VertPos3Face); // position in the chunk
+    ivec3 chunkPos = ivec3(chunkData.ChunkX, chunkData.ChunkY, chunkData.ChunkZ); // position of the chunk in chunk-space, so chunk 1,0,0's minimum x voxel is 64
+    vec3 worldPos = vec3(voxelPos) + chunkPos * SPIRE_VOXEL_CHUNK_SIZE; // world position of the vertex
+    uint face = UnpackVertexDataFace(vtx.Packed_8X8Y8Z2VertPos3Face);
 
-    gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(pos, 1.0);
-    texCoord = vec2(vtx.u, vtx.v);
-    imageIndex = voxelTypesBuffer.voxelTypes[vtx.VoxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[vtx.VoxelType].VoxelFaceLayout, vtx.Face);
+    gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);
+    texCoord = VoxelVertexPositionToUV(vertexVoxelPos);
+    imageIndex = voxelTypesBuffer.voxelTypes[vtx.VoxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[vtx.VoxelType].VoxelFaceLayout, face);
 }

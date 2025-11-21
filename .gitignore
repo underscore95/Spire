@@ -34,6 +34,7 @@
 # CLion
 Spire/.idea/
 Spire/cmake-build-debug/
+Spire/cmake-build-release/
 Spire/cmake-build-debug-visual-studio/
 
 # SPIRV Shaders

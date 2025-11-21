@@ -308,6 +308,9 @@ namespace Spire {
             parsed.FullSource.replace(pos, includeLineEnd - pos, includedSource);
         }
 
+        // Remove excessive white space
+
+
         parsed.Success = true;
         return parsed;
     }

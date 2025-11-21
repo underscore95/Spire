@@ -40,10 +40,11 @@ namespace SpireVoxel {
 
         void UpdateChunkDataCache();
 
-        void FreeChunkVertexBuffer(Chunk & chunk);
+        void FreeChunkVertexBuffer(Chunk &chunk);
 
     private:
-        static constexpr glm::u32 MAXIMUM_VERTICES_IN_WORLD = 36 * SPIRE_VOXEL_CHUNK_VOLUME * (VoxelRenderer::IS_PROFILING ? 4 : 1); // 4 or 1 chunks full of voxels where each voxel uses all 36 vertices
+        // 4 chunks (plus a buffer 1024 voxels) full of voxels where each voxel uses all 36 vertices
+        static constexpr glm::u32 MAXIMUM_VERTICES_IN_WORLD = 36 * (SPIRE_VOXEL_CHUNK_VOLUME * 4 + 1024);
         static constexpr glm::u32 MAXIMUM_LOADED_CHUNKS = 4096;
 
         VoxelWorld &m_world;
