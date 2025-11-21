@@ -18,5 +18,7 @@ namespace SpireVoxel {
         glm::u32 NumVertices;
 
         std::vector<VertexData> GenerateMesh();
+
+        [[nodiscard]] ChunkData GenerateChunkData(glm::u32 chunkIndex) const;
     };
 } // SpireVoxel

@@ -104,18 +104,7 @@ namespace SpireVoxel {
                     chunkIndex++;
                 }
 
-                ChunkData data = {
-                    .CPU_DrawCommandParams = {
-                        .vertexCount = static_cast<glm::u32>(vertexData.size()),
-                        .instanceCount = 1,
-                        .firstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData)),
-                        .firstInstance = chunkIndex
-                    },
-                    .ChunkX = chunk.ChunkPosition.x,
-                    .ChunkY = chunk.ChunkPosition.y,
-                    .ChunkZ = chunk.ChunkPosition.z
-                };
-                m_latestCachedChunkData[chunkIndex] = data;
+                m_latestCachedChunkData[chunkIndex] = chunk.GenerateChunkData(chunkIndex);
                 for (std::size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
                     m_dirtyChunkDataBuffers[i] = true;
                 }
@@ -137,20 +126,10 @@ namespace SpireVoxel {
     void VoxelWorldRenderer::UpdateChunkDataCache() {
         m_latestCachedChunkData.clear();
         for (const auto &[_, chunk] : m_world) {
-            ChunkData data = {
-                .CPU_DrawCommandParams = {
-                    .vertexCount = chunk.NumVertices,
-                    .instanceCount = 1,
-                    .firstVertex = chunk.Allocation.Start / static_cast<glm::u32>(sizeof(VertexData)),
-                    .firstInstance = static_cast<glm::u32>(m_latestCachedChunkData.size())
-                },
-                .ChunkX = chunk.ChunkPosition.x,
-                .ChunkY = chunk.ChunkPosition.y,
-                .ChunkZ = chunk.ChunkPosition.z
-            };
+            glm::u32 chunkIndex = static_cast<glm::u32>(m_latestCachedChunkData.size());
             if (chunk.Allocation.Size == 0) continue;
 
-            m_latestCachedChunkData.push_back(data);
+            m_latestCachedChunkData.push_back(chunk.GenerateChunkData(chunkIndex));
         }
     }
 

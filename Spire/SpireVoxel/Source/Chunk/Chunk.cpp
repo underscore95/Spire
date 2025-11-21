@@ -61,4 +61,19 @@ namespace SpireVoxel {
         }
         return vertices;
     }
+
+    ChunkData Chunk::GenerateChunkData(glm::u32 chunkIndex) const {
+        assert(NumVertices > 0);
+        return {
+            .CPU_DrawCommandParams = {
+                .vertexCount = (NumVertices),
+                .instanceCount = 1,
+                .firstVertex = Allocation.Start / static_cast<glm::u32>(sizeof(VertexData)),
+                .firstInstance = chunkIndex
+            },
+            .ChunkX = ChunkPosition.x,
+            .ChunkY = ChunkPosition.y,
+            .ChunkZ = ChunkPosition.z
+        };
+    }
 } // SpireVoxel
