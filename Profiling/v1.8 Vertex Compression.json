@@ -1,0 +1,90 @@
+[
+    {
+        "time_ms": 2447.7966,
+        "frames": 10000,
+        "chunks": 125,
+        "world": "Test1",
+        "dynamic_state": "static",
+        "chunk_gpu_memory": 576000,
+        "chunk_cpu_memory": 131075000,
+        "window_width": 1280,
+        "window_height": 720
+    },
+    {
+        "time_ms": 1742.9865,
+        "frames": 100,
+        "chunks": 125,
+        "world": "Test1",
+        "dynamic_state": "dynamic",
+        "chunk_gpu_memory": 1800000,
+        "chunk_cpu_memory": 131075000,
+        "window_width": 1280,
+        "window_height": 720
+    },
+    {
+        "time_ms": 4589.2183,
+        "frames": 10000,
+        "chunks": 1,
+        "world": "Test2",
+        "dynamic_state": "static",
+        "chunk_gpu_memory": 75497472,
+        "chunk_cpu_memory": 1048600,
+        "window_width": 1280,
+        "window_height": 720
+    },
+    {
+        "time_ms": 6451.6265,
+        "frames": 100,
+        "chunks": 1,
+        "world": "Test2",
+        "dynamic_state": "dynamic",
+        "chunk_gpu_memory": 226491840,
+        "chunk_cpu_memory": 1048600,
+        "window_width": 1280,
+        "window_height": 720
+    },
+    {
+        "time_ms": 2515.4622,
+        "frames": 10000,
+        "chunks": 1,
+        "world": "Test3",
+        "dynamic_state": "static",
+        "chunk_gpu_memory": 37749888,
+        "chunk_cpu_memory": 1048600,
+        "window_width": 1280,
+        "window_height": 720
+    },
+    {
+        "time_ms": 3055.5056,
+        "frames": 100,
+        "chunks": 1,
+        "world": "Test3",
+        "dynamic_state": "dynamic",
+        "chunk_gpu_memory": 113249088,
+        "chunk_cpu_memory": 1048600,
+        "window_width": 1280,
+        "window_height": 720
+    },
+    {
+        "time_ms": 4142.76,
+        "frames": 10000,
+        "chunks": 1,
+        "world": "Test4",
+        "dynamic_state": "static",
+        "chunk_gpu_memory": 68023584,
+        "chunk_cpu_memory": 1048600,
+        "window_width": 1280,
+        "window_height": 720
+    },
+    {
+        "time_ms": 7011.979,
+        "frames": 100,
+        "chunks": 1,
+        "world": "Test4",
+        "dynamic_state": "dynamic",
+        "chunk_gpu_memory": 204070176,
+        "chunk_cpu_memory": 1048600,
+        "window_width": 1280,
+        "window_height": 720
+    }
+]
