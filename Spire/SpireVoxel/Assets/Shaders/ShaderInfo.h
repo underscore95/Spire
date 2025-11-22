@@ -151,7 +151,7 @@ namespace SpireVoxel {
     // Utility functions to pack and unpack this type are below
     struct VertexData {
         SPIRE_UINT32_TYPE VoxelType;
-        SPIRE_UINT32_TYPE Packed_8X8Y8Z2VertPos3Face;
+        SPIRE_UINT32_TYPE Packed_7X7Y7Z2VertPos3Face;
     };
 
     // voxel vertex positions
@@ -210,7 +210,7 @@ namespace SpireVoxel {
         assert(face < SPIRE_VOXEL_NUM_FACES);
         VertexData vertex = {
             .VoxelType = voxelType,
-            .Packed_8X8Y8Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (0xFF & z)
+            .Packed_7X7Y7Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (0xFF & z)
         };
 
         return vertex;
