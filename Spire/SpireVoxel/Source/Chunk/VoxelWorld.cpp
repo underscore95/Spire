@@ -1,13 +1,6 @@
 #include "VoxelWorld.h"
 
 #include "Rendering/BufferAllocator.h"
-#include "Rendering/BufferAllocator.h"
-#include "Rendering/BufferAllocator.h"
-#include "Rendering/BufferAllocator.h"
-#include "Rendering/BufferAllocator.h"
-#include "Rendering/BufferAllocator.h"
-#include "Rendering/BufferAllocator.h"
-#include "Rendering/BufferAllocator.h"
 #include "Rendering/VoxelWorldRenderer.h"
 
 namespace SpireVoxel {
@@ -19,7 +12,7 @@ namespace SpireVoxel {
         auto it = m_chunks.find(chunkPosition);
         if (it != m_chunks.end()) return it->second;
 
-        m_chunks.try_emplace(chunkPosition, chunkPosition);
+        m_chunks.try_emplace(chunkPosition, chunkPosition, *this);
         m_renderer->NotifyChunkLoadedOrUnloaded();
         return m_chunks.find(chunkPosition)->second;
     }
@@ -29,7 +22,7 @@ namespace SpireVoxel {
 
         for (auto chunkPosition : chunkPositions) {
             if (m_chunks.contains(chunkPosition)) continue;
-            m_chunks.try_emplace(chunkPosition, chunkPosition);
+            m_chunks.try_emplace(chunkPosition, chunkPosition, *this);
             loadedAnyChunks = true;
         }
 

@@ -36,6 +36,7 @@
 #define SPIRE_INT32_TYPE glm::int32
 #define SPIRE_MAT4X4_TYPE glm::mat4
 #define SPIRE_UVEC3_TYPE glm::uvec3
+#define SPIRE_IVEC3_TYPE glm::ivec3
 #define SPIRE_VEC2_TYPE glm::vec2
 // reason for assert: ivec4 is put as padding on the gpu
 // possible cause for failure: you didn't include vulkan before including this file
@@ -46,6 +47,7 @@ static_assert(sizeof(VkDrawIndirectCommand) == 16);
 #define SPIRE_INT32_TYPE int
 #define SPIRE_MAT4X4_TYPE mat4
 #define SPIRE_UVEC3_TYPE uvec3
+#define SPIRE_IVEC3_TYPE ivec3
 #define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(VarName) \
     int VarName##_Padding1;\
     int VarName##_Padding2;\
@@ -96,6 +98,19 @@ namespace SpireVoxel {
 #define SPIRE_VOXEL_FACE_NEG_Y 3
 #define SPIRE_VOXEL_FACE_POS_Z 4
 #define SPIRE_VOXEL_FACE_NEG_Z 5
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_IVEC3_TYPE FaceToDirection(SPIRE_UINT32_TYPE face) {
+        if (face == SPIRE_VOXEL_FACE_POS_X) return SPIRE_IVEC3_TYPE(1, 0, 0);
+        if (face == SPIRE_VOXEL_FACE_NEG_X) return SPIRE_IVEC3_TYPE(-1, 0, 0);
+        if (face == SPIRE_VOXEL_FACE_POS_Y) return SPIRE_IVEC3_TYPE(0, 1, 0);
+        if (face == SPIRE_VOXEL_FACE_NEG_Y) return SPIRE_IVEC3_TYPE(0, -1, 0);
+        if (face == SPIRE_VOXEL_FACE_POS_Z) return SPIRE_IVEC3_TYPE(0, 0, 1);
+        if (face == SPIRE_VOXEL_FACE_NEG_Z) return SPIRE_IVEC3_TYPE(0, 0, -1);
+#ifdef __cplusplus
+        assert(false);
+#endif
+        return SPIRE_IVEC3_TYPE(0, 0, 0);
+    }
 
     // face layout
 #define SPIRE_VOXEL_LAYOUT_ALL_SAME 0 // all sides use image 0 (e.g. dirt)
@@ -210,7 +225,8 @@ namespace SpireVoxel {
         assert(face < SPIRE_VOXEL_NUM_FACES);
         VertexData vertex = {
             .VoxelType = voxelType,
-            .Packed_7X7Y7Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (0xFF & z)
+            .Packed_7X7Y7Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (
+                                              0xFF & z)
         };
 
         return vertex;
