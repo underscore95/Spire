@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 
 project(Spire)
 
-set(SPIRE_VERSION "1.7.0")
+set(SPIRE_VERSION "1.8.0")
 add_compile_definitions(SPIRE_VERSION="${SPIRE_VERSION}")
 
 set(LIBS_DIRECTORY ${CMAKE_SOURCE_DIR}/Libs)
