@@ -15,21 +15,22 @@ namespace Spire {
         ~BufferManager();
 
         // Create an index buffer, indexTypeSize determines type of indices, either sizeof(std::uint32_t) or sizeof(std::uint16_t) or sizeof(std::uint8_t)
-        [[nodiscard]] VulkanBuffer CreateIndexBuffer(glm::u32 indexTypeSize, const void *indices, glm::u32 numIndices);
+        [[nodiscard]] VulkanBuffer CreateIndexBuffer(glm::u32 indexTypeSize, const void *indices, std::size_t numIndices);
 
         // elements can be nullptr which means that initial data is undefined
-        [[nodiscard]] VulkanBuffer CreateStorageBuffer(const void *elements, glm::u32 size, glm::u32 elementSize,
+        [[nodiscard]] VulkanBuffer CreateStorageBuffer(const void *elements, std::size_t size, glm::u32 elementSize,
                                                        bool isTransferSource = false, VkBufferUsageFlags extraUsageFlags = 0);
 
-        [[nodiscard]] VulkanBuffer CreateUniformBuffer(glm::u32 size, glm::u32 elementSize, bool isTransferSource = false);
+        [[nodiscard]] VulkanBuffer CreateUniformBuffer(std::size_t size, glm::u32 elementSize, bool isTransferSource = false);
 
         void DestroyBuffer(const VulkanBuffer &buffer);
 
-        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateUniformBuffers(size_t bufferSize, bool isTransferDest = false);
+        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateUniformBuffers(std::size_t bufferSize, bool isTransferDest = false);
 
-        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateStorageBuffers(size_t bufferSize, size_t numElements, const void *data, VkBufferUsageFlags extraUsageFlags = 0);
+        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateStorageBuffers(std::size_t bufferSize, std::size_t numElements, const void *data,
+                                                                           VkBufferUsageFlags extraUsageFlags = 0);
 
-        void UpdateBuffer(const VulkanBuffer &buffer, const void *data, glm::u32 size, glm::u32 offset = 0) const;
+        void UpdateBuffer(const VulkanBuffer &buffer, const void *data, std::size_t size, std::size_t offset = 0) const;
 
     public:
         static bool HasBufferManagerBeenDestroyed();

@@ -26,13 +26,13 @@ namespace Spire {
         m_renderingManager.GetCommandManager().FreeCommandBuffers(1, &m_copyCommandBuffer);
     }
 
-    VulkanBuffer BufferManager::CreateIndexBuffer(glm::u32 indexTypeSize, const void *indices, glm::u32 numIndices) {
+    VulkanBuffer BufferManager::CreateIndexBuffer(glm::u32 indexTypeSize, const void *indices, std::size_t numIndices) {
         VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
         VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
         return CreateBufferWithData(indexTypeSize * numIndices, usage, memoryProperties, indices, indexTypeSize);
     }
 
-    VulkanBuffer BufferManager::CreateStorageBuffer(const void *elements, glm::u32 size, glm::u32 elementSize,
+    VulkanBuffer BufferManager::CreateStorageBuffer(const void *elements, std::size_t size, glm::u32 elementSize,
                                                     bool isTransferSource, VkBufferUsageFlags extraUsageFlags) {
         VkBufferUsageFlags usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | extraUsageFlags;
         if (isTransferSource) usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
@@ -41,7 +41,7 @@ namespace Spire {
         return CreateBufferWithData(size, usage, memoryProperties, elements, elementSize);
     }
 
-    VulkanBuffer BufferManager::CreateUniformBuffer(glm::u32 size, glm::u32 elementSize, bool isTransferSource) {
+    VulkanBuffer BufferManager::CreateUniformBuffer(std::size_t size, glm::u32 elementSize, bool isTransferSource) {
         if (isTransferSource) warn("Uniform buffer created as transfer source, is this intended?");
 
         VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -57,7 +57,7 @@ namespace Spire {
         m_numAllocatedBuffers--;
     }
 
-    std::unique_ptr<PerImageBuffer> BufferManager::CreateUniformBuffers(size_t bufferSize, bool isTransferDest) {
+    std::unique_ptr<PerImageBuffer> BufferManager::CreateUniformBuffers(std::size_t bufferSize, bool isTransferDest) {
         std::vector<VulkanBuffer> buffers;
         buffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
 
@@ -74,8 +74,8 @@ namespace Spire {
     }
 
     std::unique_ptr<PerImageBuffer> BufferManager::CreateStorageBuffers(
-        size_t bufferSize,
-        size_t numElements,
+        std::size_t bufferSize,
+        std::size_t numElements,
         const void *data,
         VkBufferUsageFlags extraUsageFlags
     ) {
@@ -88,7 +88,7 @@ namespace Spire {
         return std::unique_ptr<PerImageBuffer>(new PerImageBuffer(*this, buffers));
     }
 
-    void BufferManager::UpdateBuffer(const VulkanBuffer &buffer, const void *data, glm::u32 size, glm::u32 offset) const {
+    void BufferManager::UpdateBuffer(const VulkanBuffer &buffer, const void *data, std::size_t size, std::size_t offset) const {
         assert(size + offset <= buffer.Size);
         void *pMem = nullptr;
         VkResult res = vmaMapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation, &pMem);

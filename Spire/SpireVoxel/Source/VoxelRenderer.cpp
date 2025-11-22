@@ -98,6 +98,8 @@ namespace SpireVoxel {
 
         else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test2");
 
+        m_world->GetRenderer().HandleChunkEdits();
+
         m_timeSinceBeginProfiling.Restart();
     }
 

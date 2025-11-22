@@ -123,7 +123,7 @@ namespace SpireVoxel {
             .CPU_DrawCommandParams = {
                 .vertexCount = (NumVertices),
                 .instanceCount = 1,
-                .firstVertex = Allocation.Start / static_cast<glm::u32>(sizeof(VertexData)),
+                .firstVertex = static_cast<glm::u32>(Allocation.Start / sizeof(VertexData)),
                 .firstInstance = chunkIndex
             },
             .ChunkX = ChunkPosition.x,

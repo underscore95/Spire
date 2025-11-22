@@ -5,7 +5,7 @@ namespace SpireVoxel {
         Spire::RenderingManager &renderingManager,
         glm::u32 elementSize,
         glm::u32 numSwapchainImages,
-        glm::u32 bufferSize
+        std::size_t bufferSize
     ) : m_renderingManager(renderingManager),
         m_elementSize(elementSize),
         m_numSwapchainImages(numSwapchainImages) {
@@ -16,10 +16,10 @@ namespace SpireVoxel {
         m_renderingManager.GetBufferManager().DestroyBuffer(m_buffer);
     }
 
-    BufferAllocator::Allocation BufferAllocator::Allocate(glm::u32 requestedSize) {
+    BufferAllocator::Allocation BufferAllocator::Allocate(std::size_t requestedSize) {
         m_allocationsMade++;
 
-        glm::u32 previousAllocationEnd = 0;
+        std::size_t previousAllocationEnd = 0;
         for (auto &[start, size] : m_allocations) {
             if (start - previousAllocationEnd >= requestedSize) {
                 // there is enough space between these allocations
@@ -46,7 +46,7 @@ namespace SpireVoxel {
         };
     }
 
-    void BufferAllocator::ScheduleFreeAllocation(glm::u32 start) {
+    void BufferAllocator::ScheduleFreeAllocation(std::size_t start) {
         m_pendingFreesMade++;
         m_allocationsPendingFree.push_back({start, m_numSwapchainImages - 1});
     }
@@ -85,7 +85,7 @@ namespace SpireVoxel {
         }
     }
 
-    void BufferAllocator::Write(Allocation allocation, const void *data, glm::u32 size) const {
+    void BufferAllocator::Write(Allocation allocation, const void *data, std::size_t size) const {
         assert(m_allocations.contains(allocation.Start));
         assert(allocation.Size >= size);
         m_renderingManager.GetBufferManager().UpdateBuffer(m_buffer, data, size, allocation.Start);
@@ -117,7 +117,7 @@ namespace SpireVoxel {
         return allocated;
     }
 
-    std::optional<BufferAllocator::PendingFree> BufferAllocator::IsPendingFree(glm::u32 start) const {
+    std::optional<BufferAllocator::PendingFree> BufferAllocator::IsPendingFree(std::size_t start) const {
         for (auto &pending : m_allocationsPendingFree) {
             if (pending.AllocationStart == start) {
                 return {pending};
