@@ -29,7 +29,7 @@ namespace Spire {
     }
 
     glm::mat4 Camera::GetProjectionMatrix() const {
-        return glm::perspective(glm::radians(m_zoom), m_window.GetAspectRatio(), 0.1f, 100.0f);
+        return glm::perspective(glm::radians(m_zoom), m_window.GetAspectRatio(), 0.1f, 1000.0f);
     }
 
     void Camera::Update(float deltaTime) {

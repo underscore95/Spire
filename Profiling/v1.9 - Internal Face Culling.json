@@ -86,5 +86,16 @@
         "chunk_cpu_memory": 1048616,
         "window_width": 1280,
         "window_height": 720
+    },
+    {
+        "time_ms": 7684.1772,
+        "frames": 1000,
+        "chunks": 100,
+        "world": "Test5",
+        "dynamic_state": "static",
+        "chunk_gpu_memory": 1196674560,
+        "chunk_cpu_memory": 104861600,
+        "window_width": 1280,
+        "window_height": 720
     }
 ]
