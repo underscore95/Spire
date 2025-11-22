@@ -55,6 +55,6 @@ namespace SpireVoxel {
         std::unique_ptr<Spire::PerImageBuffer> m_chunkDatasBuffer;
         std::vector<bool> m_dirtyChunkDataBuffers; // if {true,false,false} it means we need to update buffer 0 on swapchain image index 0
         std::vector<ChunkData> m_latestCachedChunkData;
-        std::vector<glm::ivec3> m_editedChunks;
+        std::unordered_set<glm::ivec3> m_editedChunks;
     };
 } // SpireVoxel

@@ -65,7 +65,12 @@ namespace SpireVoxel {
     void VoxelWorldRenderer::NotifyChunkEdited(Chunk &chunk) {
         assert(m_world.IsLoaded(chunk));
         assert(m_world.GetLoadedChunk(chunk.ChunkPosition) == &chunk);
-        m_editedChunks.push_back(chunk.ChunkPosition);
+        m_editedChunks.insert(chunk.ChunkPosition);
+
+        for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
+            Chunk* adjacent=  m_world.GetLoadedChunk(chunk.ChunkPosition + FaceToDirection(face));
+            if (adjacent) m_editedChunks.insert(adjacent->ChunkPosition);
+        }
     }
 
     void VoxelWorldRenderer::HandleChunkEdits() {
