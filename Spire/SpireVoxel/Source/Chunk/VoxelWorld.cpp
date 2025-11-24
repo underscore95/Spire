@@ -1,5 +1,4 @@
 #include "VoxelWorld.h"
-
 #include "Rendering/BufferAllocator.h"
 #include "Rendering/VoxelWorldRenderer.h"
 
@@ -10,11 +9,11 @@ namespace SpireVoxel {
 
     Chunk &VoxelWorld::LoadChunk(glm::ivec3 chunkPosition) {
         auto it = m_chunks.find(chunkPosition);
-        if (it != m_chunks.end()) return it->second;
+        if (it != m_chunks.end()) return *it->second;
 
-        m_chunks.try_emplace(chunkPosition, chunkPosition, *this);
+        m_chunks.try_emplace(chunkPosition, std::make_unique<Chunk>(chunkPosition, *this));
         m_renderer->NotifyChunkLoadedOrUnloaded();
-        return m_chunks.find(chunkPosition)->second;
+        return *m_chunks.find(chunkPosition)->second;
     }
 
     void VoxelWorld::LoadChunks(const std::vector<glm::ivec3> &chunkPositions) {
@@ -22,7 +21,9 @@ namespace SpireVoxel {
 
         for (auto chunkPosition : chunkPositions) {
             if (m_chunks.contains(chunkPosition)) continue;
-            m_chunks.try_emplace(chunkPosition, chunkPosition, *this);
+            m_chunks.try_emplace(chunkPosition, new Chunk(chunkPosition, *this)); // this constructs a unique ptr
+            auto& chunk = m_chunks.at(chunkPosition);
+            assert(!chunk->IsCorrupted());
             loadedAnyChunks = true;
         }
 
@@ -36,7 +37,7 @@ namespace SpireVoxel {
         for (auto chunkPosition : chunkPositions) {
             auto it = m_chunks.find(chunkPosition);
             if (it == m_chunks.end()) continue;
-            m_renderer->FreeChunkVertexBuffer(it->second);
+            m_renderer->FreeChunkVertexBuffer(*it->second);
             m_chunks.erase(it);
             unloadedAnyChunks = true;
         }
@@ -48,12 +49,12 @@ namespace SpireVoxel {
 
     Chunk *VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) {
         auto it = m_chunks.find(chunkPosition);
-        return it != m_chunks.end() ? &it->second : nullptr;
+        return it != m_chunks.end() ? it->second.get() : nullptr;
     }
 
     const Chunk *VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) const {
         auto it = m_chunks.find(chunkPosition);
-        return it != m_chunks.end() ? &it->second : nullptr;
+        return it != m_chunks.end() ? it->second.get() : nullptr;
     }
 
     bool VoxelWorld::IsLoaded(const Chunk &chunk) {
@@ -67,11 +68,11 @@ namespace SpireVoxel {
         return m_chunks.size();
     }
 
-    std::unordered_map<glm::ivec3, Chunk>::iterator VoxelWorld::begin() {
+    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator VoxelWorld::begin() {
         return m_chunks.begin();
     }
 
-    std::unordered_map<glm::ivec3, Chunk>::iterator VoxelWorld::end() {
+    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator VoxelWorld::end() {
         return m_chunks.end();
     }
 
@@ -110,11 +111,7 @@ namespace SpireVoxel {
     }
 
     glm::u32 VoxelWorld::GetVoxelAt(glm::ivec3 worldPosition) const {
-        glm::ivec3 chunkPos = {
-            glm::floor(worldPosition.x / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
-            glm::floor(worldPosition.y / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
-            glm::floor(worldPosition.z / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE))
-        };
+        glm::ivec3 chunkPos = GetChunkPositionOfVoxel(worldPosition);
         glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
 
         const Chunk *chunk = GetLoadedChunk(chunkPos);
@@ -122,11 +119,7 @@ namespace SpireVoxel {
     }
 
     bool VoxelWorld::TrySetVoxelAt(glm::ivec3 worldPosition, glm::u32 voxelType) {
-        glm::ivec3 chunkPos = {
-            glm::floor(worldPosition.x / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
-            glm::floor(worldPosition.y / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
-            glm::floor(worldPosition.z / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE))
-        };
+        glm::ivec3 chunkPos = GetChunkPositionOfVoxel(worldPosition);
         glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
 
         Chunk *chunk = GetLoadedChunk(chunkPos);
@@ -135,5 +128,20 @@ namespace SpireVoxel {
             m_renderer->NotifyChunkEdited(*chunk);
         }
         return chunk;
+    }
+
+    glm::ivec3 VoxelWorld::GetChunkPositionOfVoxel(glm::ivec3 voxelWorldPosition) {
+        return {
+            glm::floor(voxelWorldPosition.x / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
+            glm::floor(voxelWorldPosition.y / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
+            glm::floor(voxelWorldPosition.z / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE))
+        };
+    }
+
+    glm::ivec3 VoxelWorld::GetWorldVoxelPositionInChunk(glm::ivec3 chunkPosition, glm::uvec3 voxelPositionInChunk) {
+        assert(voxelPositionInChunk.x < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(voxelPositionInChunk.y < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(voxelPositionInChunk.z < SPIRE_VOXEL_CHUNK_SIZE);
+        return chunkPosition * SPIRE_VOXEL_CHUNK_SIZE + glm::ivec3(voxelPositionInChunk);
     }
 } // SpireVoxel

@@ -1,8 +1,8 @@
 #include "GameApplication.h"
 #include "../../Libs/glfw/include/GLFW/glfw3.h"
-#include "Rendering/GameCamera.h"
 
 using namespace Spire;
+using namespace SpireVoxel;
 
 GameApplication::GameApplication() {
     // don't do anything here!
@@ -11,7 +11,16 @@ GameApplication::GameApplication() {
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
 
-    m_voxelRenderer = std::make_unique<SpireVoxel::VoxelRenderer>(*m_engine);
+    m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine);
+
+    MergedVoxelEdit()
+            .With(BasicVoxelEdit({
+                BasicVoxelEdit::Edit{{2, 2, 2}, 1},
+                BasicVoxelEdit::Edit{{2, 3, 2}, 2},
+            }))
+            .With(CuboidVoxelEdit({-20, -20, -50}, {40, 40, 40}, 2))
+            .Apply(m_voxelRenderer->GetWorld());
+    m_voxelRenderer->GetWorld().GetRenderer().HandleChunkEdits();
 }
 
 GameApplication::~GameApplication() {
@@ -73,7 +82,7 @@ void GameApplication::RenderUi() const {
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS) (frame %d (swapchain image %d))", m_engine->GetDeltaTime() * 1000, 1.0f / m_engine->GetDeltaTime(), m_frame,
                 m_swapchainImageIndex);
 
-    const SpireVoxel::CameraInfo &cameraInfo = m_voxelRenderer->GetCamera().GetCameraInfo();
+    const CameraInfo &cameraInfo = m_voxelRenderer->GetCamera().GetCameraInfo();
     std::string targetedVoxelStr = "None";
     if (cameraInfo.IsTargetingVoxel) {
         targetedVoxelStr = std::format("({}, {}, {}) (Voxel Type: {})",
@@ -102,10 +111,11 @@ void GameApplication::RenderUi() const {
     glm::vec3 cameraPos = m_voxelRenderer->GetCamera().GetCamera().GetPosition();
     ImGui::Text("Position %f, %f, %f", cameraPos.x, cameraPos.y, cameraPos.z);
 
-    glm::vec3 chunkPos = { glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE) };
+    glm::vec3 chunkPos = {glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE)};
     ImGui::Text("Chunk Position %f, %f, %f", chunkPos.x, chunkPos.y, chunkPos.z);
 
-    ImGui::Text("Chunks Loaded: %d (%d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(), m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks() / 1024 / 1024 );
+    ImGui::Text("Chunks Loaded: %d (%d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(),
+                static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0)));
 
     ImGui::End();
 

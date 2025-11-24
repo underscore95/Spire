@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VoxelRenderer.h"
+#include "SpireVoxelRenderer.h"
 
 class GameApplication final : public Spire::Application {
 public:

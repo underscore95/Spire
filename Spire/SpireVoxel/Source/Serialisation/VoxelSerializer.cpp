@@ -13,13 +13,13 @@ namespace SpireVoxel {
         }
 
         for (const auto &[_, chunk] : world) {
-            std::filesystem::path path = directory / std::format("{}_{}_{}.sprc", chunk.ChunkPosition.x, chunk.ChunkPosition.y, chunk.ChunkPosition.z);
+            std::filesystem::path path = directory / std::format("{}_{}_{}.sprc", chunk->ChunkPosition.x, chunk->ChunkPosition.y, chunk->ChunkPosition.z);
             std::ofstream file(path, std::ios_base::binary | std::ios_base::trunc);
 
             file.write(HEADER_IDENTIFIER.data(), HEADER_IDENTIFIER.size());
             file.write(reinterpret_cast<const char *>(&VERSION), sizeof(VERSION));
-            file.write(reinterpret_cast<const char *>(&chunk.ChunkPosition), sizeof(chunk.ChunkPosition));
-            file.write(reinterpret_cast<const char *>(chunk.VoxelData.data()), chunk.VoxelData.size() * sizeof(chunk.VoxelData[0]));
+            file.write(reinterpret_cast<const char *>(&chunk->ChunkPosition), sizeof(chunk->ChunkPosition));
+            file.write(reinterpret_cast<const char *>(chunk->VoxelData.data()), chunk->VoxelData.size() * sizeof(chunk->VoxelData[0]));
 
             file.close();
         }
@@ -70,12 +70,18 @@ namespace SpireVoxel {
             loadedChunks.insert(chunkPos);
 
             Chunk &chunk = world.LoadChunk(chunkPos);
+            assert(!chunk.IsCorrupted());
             if (!file.read(reinterpret_cast<char *>(chunk.VoxelData.data()), chunk.VoxelData.size() * sizeof(chunk.VoxelData[0]))) {
                 Spire::error("Failed to read chunk voxel data of {} (chunk {})", entry.path().string(), chunkPos.x, chunkPos.y, chunkPos.z);
                 continue;
             }
+            assert(!chunk.IsCorrupted());
 
             world.GetRenderer().NotifyChunkEdited(chunk);
+            for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
+                Chunk *adjacent = world.GetLoadedChunk(chunk.ChunkPosition + FaceToDirection(face));
+                if (adjacent) world.GetRenderer().NotifyChunkEdited(*adjacent);
+            }
         }
 
         world.GetRenderer().HandleChunkEdits();

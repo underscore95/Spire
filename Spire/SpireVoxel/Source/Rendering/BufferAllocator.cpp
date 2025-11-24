@@ -47,6 +47,7 @@ namespace SpireVoxel {
     }
 
     void BufferAllocator::ScheduleFreeAllocation(std::size_t start) {
+        assert(m_allocations.contains(start));
         m_pendingFreesMade++;
         m_allocationsPendingFree.push_back({start, m_numSwapchainImages - 1});
     }

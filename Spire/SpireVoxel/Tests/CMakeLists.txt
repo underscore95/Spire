@@ -1,8 +1,10 @@
 include(../../CMake/Utils/Tests.cmake)
 
 add_executable(SpireVoxelTests
-        Tests/Test.cpp
         Tests/VertexPackingTests.cpp
+        Tests/VoxelWorldTests.cpp
+        Tests/TestVoxelEdits.cpp
+        Tests/TestHelpers.h
 )
 
 target_include_directories(SpireVoxelTests PRIVATE "Tests/")
