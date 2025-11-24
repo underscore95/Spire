@@ -21,6 +21,14 @@ add_library(SpireVoxel STATIC
         Source/Types/RegisteredVoxelType.h
         Source/Types/VoxelImageManager.cpp
         Source/Types/VoxelImageManager.h
+        Source/Edits/IVoxelEdit.h
+        Source/Edits/MergedVoxelEdit.cpp
+        Source/Edits/MergedVoxelEdit.h
+        Source/Edits/BasicVoxelEdit.cpp
+        Source/Edits/BasicVoxelEdit.h
+        Source/Edits/CuboidVoxelEdit.cpp
+        Source/Edits/CuboidVoxelEdit.h
+        Source/SpireVoxelRenderer.h
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

@@ -13,7 +13,7 @@ namespace SpireVoxel {
 
     struct Chunk {
         glm::ivec3 ChunkPosition;
-        VoxelWorld& World;
+        VoxelWorld &World;
         std::array<std::int32_t, SPIRE_VOXEL_CHUNK_VOLUME> VoxelData{};
         BufferAllocator::Allocation Allocation;
         glm::u32 NumVertices;
@@ -21,5 +21,7 @@ namespace SpireVoxel {
         std::vector<VertexData> GenerateMesh();
 
         [[nodiscard]] ChunkData GenerateChunkData(glm::u32 chunkIndex) const;
+
+        [[nodiscard]] static std::optional<std::size_t> GetIndexOfVoxel(glm::ivec3 chunkPosition, glm::ivec3 voxelWorldPosition);
     };
 } // SpireVoxel

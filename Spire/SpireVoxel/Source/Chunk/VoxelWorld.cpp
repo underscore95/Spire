@@ -110,11 +110,7 @@ namespace SpireVoxel {
     }
 
     glm::u32 VoxelWorld::GetVoxelAt(glm::ivec3 worldPosition) const {
-        glm::ivec3 chunkPos = {
-            glm::floor(worldPosition.x / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
-            glm::floor(worldPosition.y / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
-            glm::floor(worldPosition.z / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE))
-        };
+        glm::ivec3 chunkPos = GetChunkPositionOfVoxel(worldPosition);
         glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
 
         const Chunk *chunk = GetLoadedChunk(chunkPos);
@@ -122,11 +118,7 @@ namespace SpireVoxel {
     }
 
     bool VoxelWorld::TrySetVoxelAt(glm::ivec3 worldPosition, glm::u32 voxelType) {
-        glm::ivec3 chunkPos = {
-            glm::floor(worldPosition.x / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
-            glm::floor(worldPosition.y / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
-            glm::floor(worldPosition.z / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE))
-        };
+        glm::ivec3 chunkPos = GetChunkPositionOfVoxel(worldPosition);
         glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
 
         Chunk *chunk = GetLoadedChunk(chunkPos);
@@ -135,5 +127,20 @@ namespace SpireVoxel {
             m_renderer->NotifyChunkEdited(*chunk);
         }
         return chunk;
+    }
+
+    glm::ivec3 VoxelWorld::GetChunkPositionOfVoxel(glm::ivec3 voxelWorldPosition) {
+        return {
+            glm::floor(voxelWorldPosition.x / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
+            glm::floor(voxelWorldPosition.y / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
+            glm::floor(voxelWorldPosition.z / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE))
+        };
+    }
+
+    glm::ivec3 VoxelWorld::GetWorldVoxelPositionInChunk(glm::ivec3 chunkPosition, glm::uvec3 voxelPositionInChunk) {
+        assert(voxelPositionInChunk.x < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(voxelPositionInChunk.y < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(voxelPositionInChunk.z < SPIRE_VOXEL_CHUNK_SIZE);
+        return chunkPosition * SPIRE_VOXEL_CHUNK_SIZE + glm::ivec3(voxelPositionInChunk);
     }
 } // SpireVoxel
