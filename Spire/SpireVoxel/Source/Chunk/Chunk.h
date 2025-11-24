@@ -15,13 +15,16 @@ namespace SpireVoxel {
         glm::ivec3 ChunkPosition;
         VoxelWorld &World;
         std::array<std::int32_t, SPIRE_VOXEL_CHUNK_VOLUME> VoxelData{};
-        BufferAllocator::Allocation Allocation;
+        std::uint64_t CorruptedMemoryCheck = 9238745897238972389; // This value will be changed if something overruns when editing VoxelData
+        BufferAllocator::Allocation Allocation = {};
         glm::u32 NumVertices;
 
-        std::vector<VertexData> GenerateMesh();
+        std::vector<VertexData> GenerateMesh() const;
 
         [[nodiscard]] ChunkData GenerateChunkData(glm::u32 chunkIndex) const;
 
         [[nodiscard]] static std::optional<std::size_t> GetIndexOfVoxel(glm::ivec3 chunkPosition, glm::ivec3 voxelWorldPosition);
+
+        bool IsCorrupted() const { return CorruptedMemoryCheck != 9238745897238972389; }
     };
 } // SpireVoxel

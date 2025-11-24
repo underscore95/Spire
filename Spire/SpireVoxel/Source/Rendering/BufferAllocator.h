@@ -8,8 +8,10 @@ namespace SpireVoxel {
     class BufferAllocator {
     public:
         struct Allocation {
-            std::size_t Start;
-            std::size_t Size;
+            std::size_t Start = 0;
+            std::size_t Size = 0;
+
+            bool operator==(const Allocation &allocation) const { return Start == allocation.Start && Size == allocation.Size; }
         };
 
         struct PendingFree {

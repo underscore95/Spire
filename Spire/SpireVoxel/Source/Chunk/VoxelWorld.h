@@ -28,9 +28,9 @@ namespace SpireVoxel {
 
         [[nodiscard]] std::size_t NumLoadedChunks() const;
 
-        std::unordered_map<glm::ivec3, Chunk>::iterator begin();
+        std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator begin();
 
-        std::unordered_map<glm::ivec3, Chunk>::iterator end();
+        std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator end();
 
         [[nodiscard]] std::uint32_t GetNumLoadedChunks() const;
 
@@ -56,7 +56,7 @@ namespace SpireVoxel {
 
     private:
         // https://en.cppreference.com/w/cpp/container/unordered_map.html - always iterates in the same order if the map hasnt been changed
-        std::unordered_map<glm::ivec3, Chunk> m_chunks;
+        std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>> m_chunks;
         std::unique_ptr<VoxelWorldRenderer> m_renderer;
     };
 } // SpireVoxel

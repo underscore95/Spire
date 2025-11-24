@@ -66,8 +66,10 @@ namespace SpireVoxel {
 
         // Update world
         for (auto &[chunkPos, chunk] : *m_world) {
-            chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-            m_world->GetRenderer().NotifyChunkEdited(chunk);
+            assert(!chunk->IsCorrupted());
+            chunk->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
+            assert(!chunk->IsCorrupted());
+            m_world->GetRenderer().NotifyChunkEdited(*chunk);
             m_world->GetRenderer().HandleChunkEdits();
         }
 
@@ -81,8 +83,8 @@ namespace SpireVoxel {
 
             // Update world
             for (auto &[chunkPos, chunk] : *m_world) {
-                chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-                m_world->GetRenderer().NotifyChunkEdited(chunk);
+                chunk->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
+                m_world->GetRenderer().NotifyChunkEdited(*chunk);
                 m_world->GetRenderer().HandleChunkEdits();
             }
 
@@ -94,9 +96,7 @@ namespace SpireVoxel {
         if (IS_PROFILING) {
             VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
-        }
-
-        else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test1");
+        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test1");
 
         m_world->GetRenderer().HandleChunkEdits();
 
@@ -325,8 +325,8 @@ namespace SpireVoxel {
 
         if (profileStrategy.Dynamic == ProfileStrategy::DYNAMIC) {
             for (auto &[_,chunk] : *m_world) {
-                chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(1, 1, 1)] = chunk.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(1, 1, 1)] == 0 ? 1 : 0;
-                m_world->GetRenderer().NotifyChunkEdited(chunk);
+                chunk->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(1, 1, 1)] = chunk->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(1, 1, 1)] == 0 ? 1 : 0;
+                m_world->GetRenderer().NotifyChunkEdited(*chunk);
             }
         } else {
             assert(profileStrategy.Dynamic == ProfileStrategy::STATIC);

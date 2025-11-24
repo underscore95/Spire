@@ -66,28 +66,24 @@ namespace SpireVoxel {
         assert(m_world.IsLoaded(chunk));
         assert(m_world.GetLoadedChunk(chunk.ChunkPosition) == &chunk);
         m_editedChunks.insert(chunk.ChunkPosition);
-
-        for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
-            Chunk* adjacent=  m_world.GetLoadedChunk(chunk.ChunkPosition + FaceToDirection(face));
-            if (adjacent) m_editedChunks.insert(adjacent->ChunkPosition);
-        }
     }
 
     void VoxelWorldRenderer::HandleChunkEdits() {
+        WorldEditRequiredChanges changes = {false, false};
         for (auto &chunkPos : m_editedChunks) {
-            Chunk *chunkPtr = m_world.GetLoadedChunk(chunkPos);
-            if (!chunkPtr) continue;
-            Chunk &chunk = *chunkPtr;
-            std::vector<VertexData> vertexData = chunk.GenerateMesh();
+            Chunk *chunk = m_world.GetLoadedChunk(chunkPos);
+            if (!chunk) continue;
+            const BufferAllocator::Allocation oldAllocation = chunk->Allocation;
+            std::vector<VertexData> vertexData = chunk->GenerateMesh();
 
-            BufferAllocator::Allocation oldAllocation = chunk.Allocation;
+            assert(oldAllocation.Start < 5785920);
             if (!vertexData.empty()) {
-                chunk.Allocation = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
+                chunk->Allocation = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
 
                 // write the mesh into the vertex buffer
-                m_chunkVertexBufferAllocator.Write(chunk.Allocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
+                m_chunkVertexBufferAllocator.Write(chunk->Allocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
             } else {
-                chunk.Allocation = {};
+                chunk->Allocation = {};
             }
 
             if (oldAllocation.Size > 0) {
@@ -95,32 +91,31 @@ namespace SpireVoxel {
             }
 
             // write the chunk data
-            chunk.NumVertices = vertexData.size();
+            chunk->NumVertices = vertexData.size();
 
-            WorldEditRequiredChanges changes = {false, false};
             if (oldAllocation.Size == 0) {
                 UpdateChunkDatasBuffer();
                 changes.RecreatePipeline = true;
             } else {
                 glm::u32 chunkIndex = 0;
                 for (auto &[_,c] : m_world) {
-                    if (&c == &chunk) break;
-                    if (c.Allocation.Size == 0) continue;
+                    if (c.get() == chunk) break;
+                    if (c->Allocation.Size == 0) continue;
                     chunkIndex++;
                 }
 
-                m_latestCachedChunkData[chunkIndex] = chunk.GenerateChunkData(chunkIndex);
+                m_latestCachedChunkData[chunkIndex] = chunk->GenerateChunkData(chunkIndex);
                 for (std::size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
                     m_dirtyChunkDataBuffers[i] = true;
                 }
             }
-
-            changes.RecreateOnlyCommandBuffers = true;
-
-            m_onWorldEditedDelegate.Broadcast(changes);
-            //Spire::info("Regenerated chunk ({}, {}) with {} vertices", chunk.ChunkPosition.x, chunk.ChunkPosition.y, chunk.NumVertices);
         }
-        m_editedChunks.clear();
+
+        if (!m_editedChunks.empty()) {
+            changes.RecreateOnlyCommandBuffers = true;
+            m_onWorldEditedDelegate.Broadcast(changes);
+            m_editedChunks.clear();
+        }
     }
 
     void VoxelWorldRenderer::NotifyChunkLoadedOrUnloaded() {
@@ -132,9 +127,9 @@ namespace SpireVoxel {
         m_latestCachedChunkData.clear();
         for (const auto &[_, chunk] : m_world) {
             glm::u32 chunkIndex = static_cast<glm::u32>(m_latestCachedChunkData.size());
-            if (chunk.Allocation.Size == 0) continue;
+            if (chunk->Allocation.Size == 0) continue;
 
-            m_latestCachedChunkData.push_back(chunk.GenerateChunkData(chunkIndex));
+            m_latestCachedChunkData.push_back(chunk->GenerateChunkData(chunkIndex));
         }
     }
 

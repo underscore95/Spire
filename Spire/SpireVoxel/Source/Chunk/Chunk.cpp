@@ -46,7 +46,7 @@ namespace SpireVoxel {
         return queryChunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(queryPosition)];
     }
 
-    std::vector<VertexData> Chunk::GenerateMesh() {
+    std::vector<VertexData> Chunk::GenerateMesh() const {
         std::vector<VertexData> vertices;
 
         for (size_t i = 0; i < VoxelData.size(); i++) {
