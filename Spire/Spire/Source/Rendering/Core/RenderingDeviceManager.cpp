@@ -23,7 +23,7 @@ namespace Spire
         VkResult res = vkEnumeratePhysicalDevices(instance, &numDevices, nullptr);
         if (res != VK_SUCCESS)
         {
-            error("Failed to enumerate vulkan physical devices");
+            error("Failed to enumerate vulkan physical devices: {}", static_cast<int>(res));
             return;
         }
 

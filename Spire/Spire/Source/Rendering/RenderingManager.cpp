@@ -195,8 +195,10 @@ namespace Spire {
     }
 
     void RenderingManager::CreateInstance(const std::string &applicationName) {
-        std::vector Layers = {
+        std::vector<const char*> layers = {
+#ifndef NDEBUG
             "VK_LAYER_KHRONOS_validation"
+#endif
         };
 
         std::vector Extensions = {
@@ -210,7 +212,9 @@ namespace Spire {
 #if defined (__linux__)
             "VK_KHR_xcb_surface",
 #endif
+#ifndef NDEBUG
             VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+#endif
         };
 
         assert(
@@ -232,15 +236,15 @@ namespace Spire {
             .pNext = nullptr,
             .flags = 0, // reserved for future use. Must be zero
             .pApplicationInfo = &AppInfo,
-            .enabledLayerCount = static_cast<glm::u32>(Layers.size()),
-            .ppEnabledLayerNames = Layers.data(),
+            .enabledLayerCount = static_cast<glm::u32>(layers.size()),
+            .ppEnabledLayerNames = layers.data(),
             .enabledExtensionCount = static_cast<glm::u32>(Extensions.size()),
             .ppEnabledExtensionNames = Extensions.data()
         };
 
         VkResult res = vkCreateInstance(&createInfo, nullptr, &m_instance);
         if (res != VK_SUCCESS) {
-            error("Failed to create Vulkan instance");
+            error("Failed to create Vulkan instance: {}", static_cast<int>(res));
             return;
         }
 
