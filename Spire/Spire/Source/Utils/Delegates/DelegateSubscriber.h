@@ -4,6 +4,7 @@
 #include "pch.h"
 #include "Utils/MacroDisableCopy.h"
 
+// Adapted from my CMP425 Assessment: https://github.com/Abertay-University-SDI/networking-project-25-26
 namespace SpireVoxel {
     template<typename... Args>
     class LocalDelegateSubscriber {

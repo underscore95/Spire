@@ -2,6 +2,7 @@
 
 #include "pch.h"
 
+// From: https://github.com/underscore95/Chimp/blob/main/Chimp/ChimpFramework/Source/api/utils/HashCombine.h
 namespace Spire {
     // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
 

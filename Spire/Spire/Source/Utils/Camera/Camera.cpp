@@ -1,10 +1,8 @@
 #include "Camera.h"
 #include <GLFW/glfw3.h>
-
-
 #include "Window/Window.h"
 
-// https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/camera.h
+// Adapted from: https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/camera.h
 
 namespace Spire {
     Camera::Camera(const Window &m_window,

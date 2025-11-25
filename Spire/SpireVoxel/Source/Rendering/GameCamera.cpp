@@ -67,15 +67,15 @@ namespace SpireVoxel {
             float o = origin[i];
             float d = dir[i];
             int s = step[i];
-            float vb = voxel[i] + (s > 0 ? 1.0f : 0.0f);
+            float vb = static_cast<float>(voxel[i]) + (s > 0 ? 1.0f : 0.0f);
             tMax[i] = (vb - o) / d;
             tDelta[i] = 1.0f / std::abs(d);
         }
 
-        float maxDist = m_targetedVoxelRange;
+        auto maxDist = static_cast<float>(m_targetedVoxelRange);
         m_cameraInfo.IsTargetingVoxel = false;
         m_targetedAdjacentEmptyVoxel.reset();
-        glm::ivec3 lastStepMoved = glm::ivec3(0);
+        glm::ivec3 lastStepMoved = {0, 0, 0};
 
         while (true) {
             glm::vec3 voxelCenter = glm::vec3(voxel) + 0.5f;

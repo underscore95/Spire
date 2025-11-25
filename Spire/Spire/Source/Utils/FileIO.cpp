@@ -2,6 +2,7 @@
 #include "Utils/Log.h"
 
 namespace Spire {
+    // Adapted from: https://github.com/emeiri/ogldev/blob/VULKAN_13/Vulkan/VulkanCore/Source/shader.cpp
     char *FileIO::ReadBinaryFile(const char *pFilename, int &size) {
         FILE *f = nullptr;
 
@@ -43,6 +44,7 @@ namespace Spire {
         return p;
     }
 
+    // Adapted from: https://github.com/emeiri/ogldev/blob/VULKAN_13/Vulkan/VulkanCore/Source/shader.cpp
     void FileIO::WriteBinaryFile(const char *pFilename, const void *pData, int size) {
         FILE *f = nullptr;
 
@@ -63,6 +65,7 @@ namespace Spire {
         fclose(f);
     }
 
+    // Adapted from: https://github.com/emeiri/ogldev/blob/VULKAN_13/Vulkan/VulkanCore/Source/shader.cpp
     bool FileIO::ReadFile(const char *pFileName, std::string &outFile) {
         std::ifstream f(pFileName);
 

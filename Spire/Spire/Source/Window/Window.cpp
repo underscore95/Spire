@@ -3,6 +3,7 @@
 #include "Utils/Log.h"
 #include "Core/Engine.h"
 
+// Adapted from: https://github.com/underscore95/Chimp/blob/main/Chimp/ChimpFramework/Source/api/window/IWindow.h
 namespace Spire
 {
     static void GLFW_KeyCallback(GLFWwindow* pWindow, int key, int scanCode, int action, int mods)

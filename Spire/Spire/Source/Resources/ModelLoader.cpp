@@ -32,6 +32,7 @@ namespace Spire {
         return vec.size() - 1;
     }
 
+    // Adapted from: https://github.com/underscore95/Chimp/blob/main/Chimp/ChimpFramework/Source/impl/resources/assimp/ModelImporter.cpp
     static std::unique_ptr<Mesh> ConvertMesh(const aiMesh *aiMesh, const aiScene *aiScene,
                                              std::vector<std::string> &texturePaths,
                                              std::string absoluteModelDirectoryPath) {
@@ -99,6 +100,7 @@ namespace Spire {
         return result;
     }
 
+    // Adapted from: https://github.com/underscore95/Chimp/blob/main/Chimp/ChimpFramework/Source/impl/resources/assimp/ModelImporter.cpp
     Model ModelLoader::LoadModel(std::string_view assetsDirectory, const char *fileName, std::vector<std::string> &imagePaths,
                                  const ModelLoadingSettings &settings) {
         assert(settings.IgnoreNonTriangleMeshes); // Don't support not doing this rn

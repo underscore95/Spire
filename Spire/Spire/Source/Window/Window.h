@@ -4,6 +4,7 @@
 
 struct GLFWwindow;
 
+// Adapted from: https://github.com/underscore95/Chimp/blob/main/Chimp/ChimpFramework/Source/api/window/IWindow.h
 namespace Spire
 {
     class Engine;

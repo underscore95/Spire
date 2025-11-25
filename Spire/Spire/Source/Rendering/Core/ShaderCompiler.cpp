@@ -4,8 +4,8 @@
 #include <glslang/Include/glslang_c_interface.h>
 #include "Utils/FileIO.h"
 
-// https://github.com/KhronosGroup/glslang
-// https://github.com/emeiri/ogldev/blob/VULKAN_13/Vulkan/VulkanCore/Source/shader.cpp
+// Adapted from: https://github.com/KhronosGroup/glslang
+// Adapted from: https://github.com/emeiri/ogldev/blob/VULKAN_13/Vulkan/VulkanCore/Source/shader.cpp
 
 namespace Spire {
     struct CompiledShader {
@@ -25,7 +25,7 @@ namespace Spire {
                               const char *pShaderCode,
                               CompiledShader &ShaderModule) {
 #pragma region defaultResource
-        // https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/%2B/HEAD/glslang/ResourceLimits/ResourceLimits.cpp
+        // From: https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/%2B/HEAD/glslang/ResourceLimits/ResourceLimits.cpp
         constexpr glslang_resource_t defaultResource = {
             32, // max_lights
             6, // max_clip_planes

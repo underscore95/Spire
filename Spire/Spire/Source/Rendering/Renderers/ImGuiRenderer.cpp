@@ -8,6 +8,8 @@
 #include "Rendering/Core/VulkanQueue.h"
 #include "Window/Window.h"
 
+// Adapted from: www.vkguide.dev/docs/extra-chapter/implementing_imgui/
+
 namespace Spire {
     ImGuiRenderer::ImGuiRenderer(
         RenderingManager &renderingManager,

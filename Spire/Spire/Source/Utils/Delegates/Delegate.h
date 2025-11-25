@@ -2,6 +2,7 @@
 #include "Utils/MacroDisableCopy.h"
 #include "pch.h"
 
+// Adapted from my CMP425 Assessment: https://github.com/Abertay-University-SDI/networking-project-25-26
 namespace SpireVoxel {
     template<typename... Args>
     class Delegate;
@@ -31,7 +32,7 @@ namespace SpireVoxel {
             mCallbacks.erase(id);
         }
 
-        const std::shared_ptr<bool>& GetIsValidPtr() const { return m_isValid; }
+        [[nodiscard]] const std::shared_ptr<bool>& GetIsValidPtr() const { return m_isValid; }
 
     private:
         std::unordered_map<int, FuncType> mCallbacks;
