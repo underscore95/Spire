@@ -1,15 +1,32 @@
+
 [submodule "Spire/Libs/imgui"]
-	path = Spire/Libs/imgui
-	url = https://github.com/ocornut/imgui.git
-[submodule "Spire/Libs/imgui/imgui"]
-	path = Spire/Libs/imgui/imgui
-	url = https://github.com/ocornut/imgui.git
+    path = Spire/Libs/imgui
+    url = https://github.com/ocornut/imgui.git
+
 [submodule "Spire/Libs/glslang"]
-	path = Spire/Libs/glslang
-	url = https://github.com/KhronosGroup/glslang
+    path = Spire/Libs/glslang
+    url = https://github.com/KhronosGroup/glslang
+
 [submodule "Spire/libs/stb/stb"]
-	path = Spire/libs/stb/stb
-	url = https://github.com/nothings/stb
+    path = Spire/libs/stb/stb
+    url = https://github.com/nothings/stb
+
 [submodule "Spire/Libs/googletest"]
-	path = Spire/Libs/googletest
-	url = https://github.com/google/googletest
+    path = Spire/Libs/googletest
+    url = https://github.com/google/googletest
+
+[submodule "Spire/Libs/glm"]
+    path = Spire/Libs/glm
+    url = https://github.com/g-truc/glm.git
+
+[submodule "Spire/Libs/glfw"]
+    path = Spire/Libs/glfw
+    url = https://github.com/glfw/glfw.git
+
+[submodule "Spire/Libs/vulkan-memory-allocator"]
+    path = Spire/Libs/vulkan-memory-allocator
+    url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+
+[submodule "Spire/Libs/assimp"]
+    path = Spire/Libs/assimp
+    url = https://github.com/assimp/assimp.git
