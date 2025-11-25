@@ -195,7 +195,7 @@ namespace Spire {
     }
 
     void RenderingManager::CreateInstance(const std::string &applicationName) {
-        std::vector<const char*> layers = {
+        std::vector<const char *> layers = {
 #ifndef NDEBUG
             "VK_LAYER_KHRONOS_validation"
 #endif
@@ -254,7 +254,7 @@ namespace Spire {
     void RenderingManager::CreateSurface(const Window &window) {
         VkResult result = glfwCreateWindowSurface(m_instance, window.GLFWWindow(), nullptr, &m_surface);
         if (result != VK_SUCCESS) {
-            error("Failed to create Vulkan window surface");
+            error("Failed to create Vulkan window surface, result: {}", static_cast<int>(result));
         } else {
             info("Created Vulkan window surface");
         }

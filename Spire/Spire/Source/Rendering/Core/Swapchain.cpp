@@ -61,7 +61,7 @@ namespace Spire {
 
         VkResult res = vkCreateSwapchainKHR(m_device, &swapChainCreateInfo, nullptr, &m_swapChain);
         if (res != VK_SUCCESS) {
-            error("Failed to create Vulkan swapchain");
+            error("Failed to create Vulkan swapchain, result: {}", static_cast<int>(res));
         } else {
             info("Created Vulkan swapchain");
             assert(m_swapChain);
@@ -71,7 +71,7 @@ namespace Spire {
         glm::u32 numSwapChainImages = 0;
         res = vkGetSwapchainImagesKHR(m_device, m_swapChain, &numSwapChainImages, nullptr);
         if (res != VK_SUCCESS) {
-            error("Failed to get number of swapchain images");
+            error("Failed to get number of swapchain images, result: {}", static_cast<int>(res));
         }
         assert(numImages == numSwapChainImages);
 
