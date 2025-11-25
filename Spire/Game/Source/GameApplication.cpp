@@ -13,13 +13,6 @@ void GameApplication::Start(Engine &engine) {
 
     m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine);
 
-    MergedVoxelEdit()
-            .With(BasicVoxelEdit({
-                BasicVoxelEdit::Edit{{2, 2, 2}, 1},
-                BasicVoxelEdit::Edit{{2, 3, 2}, 2},
-            }))
-            .With(CuboidVoxelEdit({-20, -20, -50}, {40, 40, 40}, 2))
-            .Apply(m_voxelRenderer->GetWorld());
     m_voxelRenderer->GetWorld().GetRenderer().HandleChunkEdits();
 }
 

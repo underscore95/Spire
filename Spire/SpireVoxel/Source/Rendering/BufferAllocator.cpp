@@ -16,7 +16,7 @@ namespace SpireVoxel {
         m_renderingManager.GetBufferManager().DestroyBuffer(m_buffer);
     }
 
-    BufferAllocator::Allocation BufferAllocator::Allocate(std::size_t requestedSize) {
+    std::optional<BufferAllocator::Allocation> BufferAllocator::Allocate(std::size_t requestedSize) {
         m_allocationsMade++;
 
         std::size_t previousAllocationEnd = 0;
@@ -35,8 +35,8 @@ namespace SpireVoxel {
 
         // no space previously, need to allocate at end
         if (previousAllocationEnd + requestedSize > m_buffer.Size) {
-            assert(false); // OUT OF MEMORY :(
-            return {};
+            Spire::warn("Failed to allocate chunk vertex buffer memory - out of memory! Requested allocation size: {}", requestedSize);
+            return std::nullopt;
         }
 
         m_allocations[previousAllocationEnd] = requestedSize;

@@ -27,7 +27,7 @@ namespace SpireVoxel {
         ~BufferAllocator();
 
     public:
-        Allocation Allocate(std::size_t requestedSize);
+        std::optional<Allocation> Allocate(std::size_t requestedSize);
 
         void ScheduleFreeAllocation(std::size_t start);
 

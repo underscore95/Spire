@@ -74,16 +74,18 @@ namespace SpireVoxel {
             Chunk *chunk = m_world.GetLoadedChunk(chunkPos);
             if (!chunk) continue;
             const BufferAllocator::Allocation oldAllocation = chunk->Allocation;
+           chunk->Allocation = {};
+
             std::vector<VertexData> vertexData = chunk->GenerateMesh();
 
-            assert(oldAllocation.Start < 5785920);
             if (!vertexData.empty()) {
-                chunk->Allocation = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
+                std::optional alloc =  m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
+                if (alloc) {
+                    chunk->Allocation = *alloc;
 
-                // write the mesh into the vertex buffer
-                m_chunkVertexBufferAllocator.Write(chunk->Allocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
-            } else {
-                chunk->Allocation = {};
+                    // write the mesh into the vertex buffer
+                    m_chunkVertexBufferAllocator.Write(chunk->Allocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
+                }
             }
 
             if (oldAllocation.Size > 0) {
@@ -126,7 +128,7 @@ namespace SpireVoxel {
     void VoxelWorldRenderer::UpdateChunkDataCache() {
         m_latestCachedChunkData.clear();
         for (const auto &[_, chunk] : m_world) {
-            glm::u32 chunkIndex = static_cast<glm::u32>(m_latestCachedChunkData.size());
+            auto chunkIndex = static_cast<glm::u32>(m_latestCachedChunkData.size());
             if (chunk->Allocation.Size == 0) continue;
 
             m_latestCachedChunkData.push_back(chunk->GenerateChunkData(chunkIndex));
