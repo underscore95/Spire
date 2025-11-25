@@ -2,6 +2,7 @@
 
 #include "EngineIncludes.h"
 #include "Chunk/Chunk.h"
+#include "Rendering/VoxelWorldRenderer.h"
 #include "Utils/CommandBufferVector.h"
 #include "Utils/FrameDeleter.h"
 
@@ -91,5 +92,6 @@ namespace SpireVoxel {
         glm::u64 m_currentFrame = 0;
         std::size_t m_profileStrategyIndex = 0;
         std::string m_profileJson;
+        int m_worldEditCallback;
     };
 } // SpireVoxel

@@ -36,7 +36,7 @@ namespace SpireVoxel {
 
         // World
         m_world = std::make_unique<VoxelWorld>(rm);
-        m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this](VoxelWorldRenderer::WorldEditRequiredChanges changes) {
+m_worldEditCallback =    m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this](VoxelWorldRenderer::WorldEditRequiredChanges changes) {
             if (changes.RecreatePipeline) {
                 // Takes 1.6ms on my PC
                 SetupDescriptors();
@@ -178,8 +178,6 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::CreateAndRecordCommandBuffers() {
-        Timer timer;
-
         auto &rm = m_engine.GetRenderingManager();
 
         // free any existing command buffers
@@ -272,6 +270,7 @@ namespace SpireVoxel {
         rm.GetQueue().WaitIdle();
         m_commandBuffers.reset();
 
+        m_world->GetRenderer().GetOnWorldEditSubscribers().RemoveCallback( m_worldEditCallback);
         m_world.reset();
         m_camera.reset();
 
