@@ -101,7 +101,7 @@ namespace SpireVoxel {
     glm::u64 VoxelWorld::CalculateCPUMemoryUsageForChunks() const {
         glm::u64 usage = 0;
         for (auto &pair : m_chunks) {
-            usage += sizeof(pair.second);
+            usage += sizeof(*pair.second);
         }
         return usage;
     }
