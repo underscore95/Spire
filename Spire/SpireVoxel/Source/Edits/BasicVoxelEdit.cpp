@@ -5,6 +5,10 @@ namespace SpireVoxel {
         : m_edits(edits) {
     }
 
+    BasicVoxelEdit::BasicVoxelEdit(const Edit &edit)
+        : m_edits({edit}) {
+    }
+
     void BasicVoxelEdit::Apply(VoxelWorld &world) {
         for (const auto &edit : m_edits) {
             Chunk *chunk = world.GetLoadedChunk(world.GetChunkPositionOfVoxel(edit.Position));

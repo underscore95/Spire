@@ -1,7 +1,6 @@
 // ReSharper disable CppDFAUnreachableCode
 #include "VoxelRenderer.h"
 
-#include "Rendering/GameCamera.h"
 #include "../Assets/Shaders/ShaderInfo.h"
 #include "Chunk/VoxelWorld.h"
 #include "Rendering/VoxelWorldRenderer.h"
@@ -9,12 +8,13 @@
 #include "Types/VoxelImageManager.h"
 #include "Types/VoxelType.h"
 #include "Types/VoxelTypeRegistry.h"
+#include "Utils/IVoxelCamera.h"
 
 using namespace Spire;
 
 namespace SpireVoxel {
-    VoxelRenderer::VoxelRenderer(Engine &engine)
-        : m_engine(engine) {
+    VoxelRenderer::VoxelRenderer(Engine &engine, IVoxelCamera& camera)
+        : m_engine(engine), m_camera(camera) {
         auto &rm = m_engine.GetRenderingManager();
 
         // Shaders
@@ -46,9 +46,6 @@ namespace SpireVoxel {
                 assert(false);
         });
 
-        // Camera
-        m_camera = std::make_unique<GameCamera>(m_engine, *m_world);
-
         // load 3x1x3 chunks around 0,0,0
         m_world->LoadChunks({
             {-1, 0, -1},
@@ -74,7 +71,7 @@ namespace SpireVoxel {
         if (IS_PROFILING) {
             VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
-        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test6");
+        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test1");
 
         m_world->GetRenderer().HandleChunkEdits();
 
@@ -90,7 +87,6 @@ namespace SpireVoxel {
         m_oldDescriptors.Update();
         m_oldPipelines.Update();
         m_oldCommandBuffers.Update();
-        m_camera->Update();
 
         HandleProfiling();
     }
@@ -102,7 +98,7 @@ namespace SpireVoxel {
             .ImageIndex = imageIndex
         };
 
-        m_camera->Render(renderInfo);
+        m_camera.Render(renderInfo);
 
         return (*m_commandBuffers)[imageIndex];
     }
@@ -111,10 +107,6 @@ namespace SpireVoxel {
         SetupDescriptors();
         SetupGraphicsPipeline();
         CreateAndRecordCommandBuffers();
-    }
-
-    GameCamera &VoxelRenderer::GetCamera() const {
-        return *m_camera;
     }
 
     VoxelWorld &VoxelRenderer::GetWorld() const {
@@ -184,7 +176,7 @@ namespace SpireVoxel {
         constantSet.push_back(m_voxelImageManager->GetDescriptor());
 
         // Camera
-        perFrameSet.push_back(m_camera->GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
+        perFrameSet.push_back(m_camera.GetDescriptor(SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING));
 
         // Chunks
         m_world->GetRenderer().PushDescriptors(perFrameSet, chunkSet);
@@ -230,7 +222,6 @@ namespace SpireVoxel {
 
         m_world->GetRenderer().GetOnWorldEditSubscribers().RemoveCallback(m_worldEditCallback);
         m_world.reset();
-        m_camera.reset();
 
         m_voxelImageManager.reset();
         m_voxelTypeRegistry.reset();
@@ -277,8 +268,6 @@ namespace SpireVoxel {
         for (std::size_t i = 0; i < m_profileStrategyIndex; i++) {
             profileEndFrame += PROFILE_STRATEGIES[i].FramesToProfile;
         }
-
-        assert(!TEST_RUNTIME_VOXEL_MODIFICATION);
 
         if (profileStrategy.Dynamic == ProfileStrategy::DYNAMIC) {
             for (auto &[_,chunk] : *m_world) {

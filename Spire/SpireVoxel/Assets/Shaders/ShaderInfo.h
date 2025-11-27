@@ -99,6 +99,23 @@ namespace SpireVoxel {
 #define SPIRE_VOXEL_FACE_POS_Z 4
 #define SPIRE_VOXEL_FACE_NEG_Z 5
 
+#ifdef __cplusplus
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE const char *FaceToString(SPIRE_UINT32_TYPE face) {
+        static constexpr std::array<const char *, SPIRE_VOXEL_NUM_FACES> faces = {
+            "PosX",
+            "NegX",
+            "PosY",
+            "NegY",
+            "PosZ",
+            "NegZ",
+        };
+        if (face >= SPIRE_VOXEL_NUM_FACES) {
+            return "Invalid Face";
+        }
+        return faces[face];
+    }
+#endif
+
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_IVEC3_TYPE FaceToDirection(SPIRE_UINT32_TYPE face) {
         if (face == SPIRE_VOXEL_FACE_POS_X) return SPIRE_IVEC3_TYPE(1, 0, 0);
         if (face == SPIRE_VOXEL_FACE_NEG_X) return SPIRE_IVEC3_TYPE(-1, 0, 0);
@@ -110,6 +127,22 @@ namespace SpireVoxel {
         assert(false);
 #endif
         return SPIRE_IVEC3_TYPE(0, 0, 0);
+    }
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE DirectionToFace(SPIRE_IVEC3_TYPE direction) {
+#ifdef __cplusplus
+        //  assert(direction.x != 0 || direction.y != 0 || direction.z != 0);
+#endif
+
+        if (abs(direction.x) > abs(direction.y) && abs(direction.x) > abs(direction.z)) {
+            return direction.x > 0 ? SPIRE_VOXEL_FACE_POS_X : SPIRE_VOXEL_FACE_NEG_X;
+        }
+
+        if (abs(direction.y) > abs(direction.x) && abs(direction.y) > abs(direction.z)) {
+            return direction.y > 0 ? SPIRE_VOXEL_FACE_POS_Y : SPIRE_VOXEL_FACE_NEG_Y;
+        }
+
+        return direction.z > 0 ? SPIRE_VOXEL_FACE_POS_Z : SPIRE_VOXEL_FACE_NEG_Z;
     }
 
     // face layout
@@ -264,10 +297,6 @@ namespace SpireVoxel {
 #endif
     struct CameraInfo {
         SPIRE_MAT4X4_TYPE ViewProjectionMatrix;
-        int TargetedVoxelX;
-        int TargetedVoxelY;
-        int TargetedVoxelZ;
-        int IsTargetingVoxel;
     };
 
 #ifdef __cplusplus

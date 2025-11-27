@@ -7,6 +7,10 @@
 #include "Utils/FrameDeleter.h"
 
 namespace SpireVoxel {
+    class IVoxelCamera;
+}
+
+namespace SpireVoxel {
     class VoxelImageManager;
 }
 
@@ -20,11 +24,10 @@ namespace SpireVoxel {
 
 namespace SpireVoxel {
     class ObjectRenderer;
-    class GameCamera;
 
     class VoxelRenderer {
     public:
-        explicit VoxelRenderer(Spire::Engine &engine);
+        explicit VoxelRenderer(Spire::Engine &engine, IVoxelCamera& camera);
 
         ~VoxelRenderer();
 
@@ -34,8 +37,6 @@ namespace SpireVoxel {
         [[nodiscard]] VkCommandBuffer Render(glm::u32 imageIndex) const;
 
         void OnWindowResize();
-
-        GameCamera &GetCamera() const;
 
         [[nodiscard]] VoxelWorld &GetWorld() const;
 
@@ -72,8 +73,8 @@ namespace SpireVoxel {
         static constexpr ProfileStrategy PROFILE_STATIC = {ProfileStrategy::STATIC, 10000};
         static constexpr ProfileStrategy PROFILE_STATIC_1000 = {ProfileStrategy::STATIC, 1000};
         static constexpr ProfileStrategy PROFILE_DYNAMIC = {ProfileStrategy::DYNAMIC, 100};
-     //  static constexpr std::array<ProfileStrategy, 2> PROFILE_STRATEGIES = {PROFILE_STATIC, PROFILE_DYNAMIC};
-     static constexpr std::array<ProfileStrategy, 1> PROFILE_STRATEGIES = {PROFILE_STATIC_1000};
+        //  static constexpr std::array<ProfileStrategy, 2> PROFILE_STRATEGIES = {PROFILE_STATIC, PROFILE_DYNAMIC};
+        static constexpr std::array<ProfileStrategy, 1> PROFILE_STRATEGIES = {PROFILE_STATIC_1000};
 
         Spire::Engine &m_engine;
         VkShaderModule m_vertexShader = VK_NULL_HANDLE;
@@ -83,7 +84,7 @@ namespace SpireVoxel {
         std::unique_ptr<Spire::GraphicsPipeline> m_graphicsPipeline;
         std::unique_ptr<Spire::CommandBufferVector> m_commandBuffers;
         std::unique_ptr<Spire::DescriptorManager> m_descriptorManager;
-        std::unique_ptr<GameCamera> m_camera;
+        IVoxelCamera &m_camera;
         std::unique_ptr<VoxelWorld> m_world;
         Spire::FrameDeleter<std::unique_ptr<Spire::GraphicsPipeline> > m_oldPipelines;
         Spire::FrameDeleter<std::unique_ptr<Spire::DescriptorManager> > m_oldDescriptors;

@@ -54,6 +54,8 @@ namespace SpireVoxel {
 
         [[nodiscard]] static glm::ivec3 GetWorldVoxelPositionInChunk(glm::ivec3 chunkPosition, glm::uvec3 voxelPositionInChunk);
 
+        [[nodiscard]] static glm::uvec3 ToChunkSpace(glm::ivec3 worldVoxelPosition);
+
     private:
         // https://en.cppreference.com/w/cpp/container/unordered_map.html - always iterates in the same order if the map hasnt been changed
         std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>> m_chunks;

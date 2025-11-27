@@ -1,17 +1,19 @@
 #include "GameApplication.h"
 #include "../../Libs/glfw/include/GLFW/glfw3.h"
+#include "GameCamera.h"
+#include "Utils/RaycastUtils.h"
 
 using namespace Spire;
 using namespace SpireVoxel;
 
 GameApplication::GameApplication() {
-    // don't do anything here!
 }
 
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
 
-    m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine);
+    m_camera = std::make_unique<GameCamera>(engine);
+    m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine, *m_camera);
 
     m_voxelRenderer->GetWorld().GetRenderer().HandleChunkEdits();
 }
@@ -26,15 +28,19 @@ void GameApplication::Cleanup() {
 
 void GameApplication::Update() {
     m_voxelRenderer->Update();
+    m_camera->Update();
+    RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), m_camera->GetCamera().GetForward(), 10);
+    if (hit) {
+        Chunk *chunkOfHitVoxel = m_voxelRenderer->GetWorld().GetLoadedChunk(VoxelWorld::GetChunkPositionOfVoxel(hit.VoxelPosition));
 
-    std::optional emptyVoxel = m_voxelRenderer->GetCamera().GetTargetedAdjacentEmptyVoxelPosition();
-    if (m_engine->GetWindow().IsKeyPressed(GLFW_KEY_L) && emptyVoxel.has_value()) {
-        m_voxelRenderer->GetWorld().TrySetVoxelAt(*emptyVoxel, 1);
-    }
+        if (m_engine->GetWindow().IsKeyPressed(GLFW_KEY_L) && chunkOfHitVoxel) {
+            glm::ivec3 adjacentVoxel = hit.VoxelPosition + FaceToDirection(hit.Face);
+            BasicVoxelEdit(BasicVoxelEdit::Edit{.Position = adjacentVoxel, .Type = 1}).Apply(m_voxelRenderer->GetWorld());
+        }
 
-    std::optional targetVoxel = m_voxelRenderer->GetCamera().GetTargetedVoxelPosition();
-    if (m_engine->GetWindow().IsKeyPressed(GLFW_KEY_K) && targetVoxel.has_value()) {
-        m_voxelRenderer->GetWorld().TrySetVoxelAt(*targetVoxel, 0);
+        if (m_engine->GetWindow().IsKeyPressed(GLFW_KEY_K) && chunkOfHitVoxel) {
+            BasicVoxelEdit(BasicVoxelEdit::Edit{.Position = hit.VoxelPosition, .Type = 0}).Apply(m_voxelRenderer->GetWorld());
+        }
     }
 }
 
@@ -75,20 +81,22 @@ void GameApplication::RenderUi() const {
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS) (frame %d (swapchain image %d))", m_engine->GetDeltaTime() * 1000, 1.0f / m_engine->GetDeltaTime(), m_frame,
                 m_swapchainImageIndex);
 
-    const CameraInfo &cameraInfo = m_voxelRenderer->GetCamera().GetCameraInfo();
+    const CameraInfo &cameraInfo = m_camera->GetCameraInfo();
     std::string targetedVoxelStr = "None";
-    if (cameraInfo.IsTargetingVoxel) {
-        targetedVoxelStr = std::format("({}, {}, {}) (Voxel Type: {})",
-                                       cameraInfo.TargetedVoxelX,
-                                       cameraInfo.TargetedVoxelY,
-                                       cameraInfo.TargetedVoxelZ,
-                                       m_voxelRenderer->GetWorld().GetVoxelAt(glm::ivec3{
-                                           cameraInfo.TargetedVoxelX, cameraInfo.TargetedVoxelY, cameraInfo.TargetedVoxelZ
-                                       }));
+    RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), m_camera->GetCamera().GetForward(), 10);
+    if (hit) {
+        targetedVoxelStr = std::format(
+            "({}, {}, {}), Voxel Type: {}, Targeted Face: {}",
+            hit.VoxelPosition.x,
+            hit.VoxelPosition.y,
+            hit.VoxelPosition.z,
+            m_voxelRenderer->GetWorld().GetVoxelAt(hit.VoxelPosition),
+            FaceToString(hit.Face)
+        );
     }
     ImGui::Text("Targeted Voxel: %s", targetedVoxelStr.c_str());
 
-    glm::vec3 cameraForward = glm::normalize(m_voxelRenderer->GetCamera().GetCamera().GetForward());
+    glm::vec3 cameraForward = glm::normalize(m_camera->GetCamera().GetForward());
 
     const char *dir;
     if (std::abs(cameraForward.x) > std::abs(cameraForward.y) && std::abs(cameraForward.x) > std::abs(cameraForward.z)) {
@@ -101,7 +109,7 @@ void GameApplication::RenderUi() const {
 
     ImGui::Text("Facing: %s (%f, %f, %f)", dir, cameraForward.x, cameraForward.y, cameraForward.z);
 
-    glm::vec3 cameraPos = m_voxelRenderer->GetCamera().GetCamera().GetPosition();
+    glm::vec3 cameraPos = m_camera->GetCamera().GetPosition();
     ImGui::Text("Position %f, %f, %f", cameraPos.x, cameraPos.y, cameraPos.z);
 
     glm::vec3 chunkPos = {glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE)};

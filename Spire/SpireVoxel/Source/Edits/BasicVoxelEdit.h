@@ -12,6 +12,7 @@ namespace SpireVoxel {
 
     public:
         explicit BasicVoxelEdit(const std::vector<Edit> &edits);
+        explicit BasicVoxelEdit(const Edit &edit);
 
     public:
         void Apply(VoxelWorld &world) override;

@@ -26,5 +26,6 @@ namespace SpireVoxel {
         [[nodiscard]] static std::optional<std::size_t> GetIndexOfVoxel(glm::ivec3 chunkPosition, glm::ivec3 voxelWorldPosition);
 
         bool IsCorrupted() const { return CorruptedMemoryCheck != 9238745897238972389; }
+
     };
 } // SpireVoxel

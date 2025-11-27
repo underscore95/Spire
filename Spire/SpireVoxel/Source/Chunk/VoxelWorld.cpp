@@ -144,4 +144,12 @@ namespace SpireVoxel {
         assert(voxelPositionInChunk.z < SPIRE_VOXEL_CHUNK_SIZE);
         return chunkPosition * SPIRE_VOXEL_CHUNK_SIZE + glm::ivec3(voxelPositionInChunk);
     }
+
+    glm::uvec3 VoxelWorld::ToChunkSpace(glm::ivec3 worldVoxelPosition) {
+        return glm::uvec3 {
+            abs(worldVoxelPosition.x % SPIRE_VOXEL_CHUNK_SIZE),
+            abs(worldVoxelPosition.y % SPIRE_VOXEL_CHUNK_SIZE),
+            abs(worldVoxelPosition.z % SPIRE_VOXEL_CHUNK_SIZE)
+        };
+    }
 } // SpireVoxel

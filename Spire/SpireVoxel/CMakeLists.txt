@@ -2,9 +2,6 @@
 add_library(SpireVoxel STATIC
         Source/VoxelRenderer.cpp
         Source/VoxelRenderer.h
-        Source/Rendering/GameCamera.cpp
-        Source/Rendering/GameCamera.h
-        Source/Rendering/RenderInfo.h
         Source/Chunk/Chunk.cpp
         Source/Chunk/Chunk.h
         Source/Chunk/VoxelWorld.cpp
@@ -29,6 +26,9 @@ add_library(SpireVoxel STATIC
         Source/Edits/CuboidVoxelEdit.cpp
         Source/Edits/CuboidVoxelEdit.h
         Source/SpireVoxelRenderer.h
+        Source/Utils/RaycastUtils.cpp
+        Source/Utils/RaycastUtils.h
+        Source/Utils/IVoxelCamera.h
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")
