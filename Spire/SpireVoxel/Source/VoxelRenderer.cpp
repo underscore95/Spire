@@ -13,9 +13,7 @@
 using namespace Spire;
 
 namespace SpireVoxel {
-    static constexpr bool TEST_RUNTIME_VOXEL_MODIFICATION = false;
-
-    VoxelRenderer::VoxelRenderer(Spire::Engine &engine)
+    VoxelRenderer::VoxelRenderer(Engine &engine)
         : m_engine(engine) {
         auto &rm = m_engine.GetRenderingManager();
 
@@ -36,7 +34,7 @@ namespace SpireVoxel {
 
         // World
         m_world = std::make_unique<VoxelWorld>(rm);
-m_worldEditCallback =    m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this](VoxelWorldRenderer::WorldEditRequiredChanges changes) {
+        m_worldEditCallback = m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this](VoxelWorldRenderer::WorldEditRequiredChanges changes) {
             if (changes.RecreatePipeline) {
                 // Takes 1.6ms on my PC
                 SetupDescriptors();
@@ -73,30 +71,10 @@ m_worldEditCallback =    m_world->GetRenderer().GetOnWorldEditSubscribers().AddC
             m_world->GetRenderer().HandleChunkEdits();
         }
 
-        if (TEST_RUNTIME_VOXEL_MODIFICATION) {
-            m_world->LoadChunk({0, 0, 0});
-            Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
-            assert(chunk1);
-            chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-            m_world->GetRenderer().NotifyChunkEdited(*chunk1);
-            m_world->GetRenderer().HandleChunkEdits();
-
-            // Update world
-            for (auto &[chunkPos, chunk] : *m_world) {
-                chunk->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-                m_world->GetRenderer().NotifyChunkEdited(*chunk);
-                m_world->GetRenderer().HandleChunkEdits();
-            }
-
-            chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 0;
-            m_world->GetRenderer().NotifyChunkEdited(*chunk1);
-            m_world->GetRenderer().HandleChunkEdits();
-        }
-
         if (IS_PROFILING) {
             VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
-        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test2");
+        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test6");
 
         m_world->GetRenderer().HandleChunkEdits();
 
@@ -113,26 +91,6 @@ m_worldEditCallback =    m_world->GetRenderer().GetOnWorldEditSubscribers().AddC
         m_oldPipelines.Update();
         m_oldCommandBuffers.Update();
         m_camera->Update();
-
-        if (TEST_RUNTIME_VOXEL_MODIFICATION) {
-            if (m_currentFrame == 5000) {
-                Chunk *chunk1 = m_world->GetLoadedChunk({0, 0, 0});
-                assert(chunk1);
-                chunk1->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
-                m_world->GetRenderer().NotifyChunkEdited(*chunk1);
-                info("Using allocation at {}", chunk1->Allocation.Start);
-            }
-
-            if (m_currentFrame == 10000) {
-                m_world->UnloadChunks({{0, 0, 0}});
-            }
-
-            if (m_currentFrame == 15000) {
-                Chunk &chunk1 = m_world->LoadChunk({0, 0, 0});
-                chunk1.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 2;
-                m_world->GetRenderer().NotifyChunkEdited(chunk1);
-            }
-        }
 
         HandleProfiling();
     }
@@ -270,7 +228,7 @@ m_worldEditCallback =    m_world->GetRenderer().GetOnWorldEditSubscribers().AddC
         rm.GetQueue().WaitIdle();
         m_commandBuffers.reset();
 
-        m_world->GetRenderer().GetOnWorldEditSubscribers().RemoveCallback( m_worldEditCallback);
+        m_world->GetRenderer().GetOnWorldEditSubscribers().RemoveCallback(m_worldEditCallback);
         m_world.reset();
         m_camera.reset();
 
