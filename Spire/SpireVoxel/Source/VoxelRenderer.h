@@ -56,7 +56,8 @@ namespace SpireVoxel {
         void HandleProfiling();
 
     public:
-        static constexpr bool IS_PROFILING = false;
+        static constexpr bool IS_PROFILING = true;
+        static constexpr bool RENDER_WIREFRAMES = false;
 
     private:
         struct ProfileStrategy {
@@ -68,7 +69,7 @@ namespace SpireVoxel {
             glm::u64 FramesToProfile;
         };
 
-        static constexpr const char *WORLD_NAME = "Test5";
+        static constexpr const char *WORLD_NAME = "Test2B";
 
         static constexpr ProfileStrategy PROFILE_STATIC = {ProfileStrategy::STATIC, 10000};
         static constexpr ProfileStrategy PROFILE_STATIC_1000 = {ProfileStrategy::STATIC, 1000};

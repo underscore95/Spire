@@ -4,19 +4,25 @@
 #include "Rendering/Memory/BufferManager.h"
 #include "../RenderingCommandManager.h"
 
-namespace Spire
-{
+namespace Spire {
     GraphicsPipeline::GraphicsPipeline(
         VkDevice device,
         VkShaderModule vertexShader,
         VkShaderModule fragmentShader,
-        const DescriptorManager& descriptorManager,
+        const DescriptorManager &descriptorManager,
         VkFormat colorFormat,
         VkFormat depthFormat,
-        RenderingManager& renderingManager,
-        glm::u32 pushConstantSize)
-        : Pipeline(device, descriptorManager, renderingManager, pushConstantSize)
-    {
+        RenderingManager &renderingManager,
+        glm::u32 pushConstantSize,
+        bool renderWireframes)
+        : Pipeline(device, descriptorManager, renderingManager, pushConstantSize) {
+#ifdef NDEBUG
+        if (renderWireframes) {
+            error("Attempted to create a graphics pipeline that renders wireframes in release mode!");
+            renderWireframes = false;
+        }
+#endif
+
         // pipeline
         std::array<VkPipelineShaderStageCreateInfo, 2> shaderStageCreateInfo = CreateVertFragShaderInfo(
             vertexShader, fragmentShader);
@@ -51,7 +57,7 @@ namespace Spire
 
         VkPipelineRasterizationStateCreateInfo rastCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-            .polygonMode = VK_POLYGON_MODE_FILL,
+            .polygonMode = renderWireframes ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL,
             .cullMode = VK_CULL_MODE_BACK_BIT,
             .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
             .lineWidth = 1.0f
@@ -80,7 +86,7 @@ namespace Spire
         VkPipelineColorBlendAttachmentState blendAttachState = {
             .blendEnable = VK_FALSE,
             .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-            VK_COLOR_COMPONENT_A_BIT
+                              VK_COLOR_COMPONENT_A_BIT
         };
 
         VkPipelineColorBlendStateCreateInfo blendCreateInfo = {
@@ -122,27 +128,23 @@ namespace Spire
         };
 
         VkResult res = vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline);
-        if (res != VK_SUCCESS)
-        {
+        if (res != VK_SUCCESS) {
             error("Failed to create graphics pipeline layout");
         }
     }
 
-    GraphicsPipeline::~GraphicsPipeline()
-    {
+    GraphicsPipeline::~GraphicsPipeline() {
         vkDestroyPipeline(m_device, m_pipeline, nullptr);
         m_pipeline = VK_NULL_HANDLE;
     }
 
-    void GraphicsPipeline::CmdSetViewport(VkCommandBuffer commandBuffer, const VkViewport* viewport,
-                                          const VkRect2D* scissor) const
-    {
+    void GraphicsPipeline::CmdSetViewport(VkCommandBuffer commandBuffer, const VkViewport *viewport,
+                                          const VkRect2D *scissor) const {
         if (viewport) vkCmdSetViewport(commandBuffer, 0, 1, viewport);
         if (scissor) vkCmdSetScissor(commandBuffer, 0, 1, scissor);
     }
 
-    void GraphicsPipeline::CmdSetViewportToWindowSize(VkCommandBuffer commandBuffer, glm::uvec2 windowDimensions) const
-    {
+    void GraphicsPipeline::CmdSetViewportToWindowSize(VkCommandBuffer commandBuffer, glm::uvec2 windowDimensions) const {
         VkViewport viewport = {
             .x = 0.0f,
             .y = 0.0f,
@@ -166,8 +168,7 @@ namespace Spire
         CmdSetViewport(commandBuffer, &viewport, &scissor);
     }
 
-    void GraphicsPipeline::CmdBindTo(VkCommandBuffer commandBuffer) const
-    {
+    void GraphicsPipeline::CmdBindTo(VkCommandBuffer commandBuffer) const {
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
     }
 }

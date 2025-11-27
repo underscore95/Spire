@@ -81,6 +81,9 @@ namespace Spire {
         // device features
         deviceFeatures2.features.geometryShader = VK_TRUE;
         deviceFeatures2.features.tessellationShader = VK_TRUE;
+#ifndef NDEBUG
+        deviceFeatures2.features.fillModeNonSolid = VK_TRUE; // allow wireframes
+#endif
 
         VkDeviceCreateInfo deviceCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,

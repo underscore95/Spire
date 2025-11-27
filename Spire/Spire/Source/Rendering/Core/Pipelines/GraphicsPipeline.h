@@ -21,7 +21,8 @@ namespace Spire
             VkFormat colorFormat,
             VkFormat depthFormat,
             RenderingManager& renderingManager,
-            glm::u32 pushConstantSize
+            glm::u32 pushConstantSize,
+            bool renderWireframes
         );
 
         ~GraphicsPipeline() override;

@@ -210,7 +210,8 @@ namespace SpireVoxel {
             rm.GetSwapchain().GetSurfaceFormat().format,
             rm.GetPhysicalDevice().DepthFormat,
             rm,
-            static_cast<glm::u32>(sizeof(PushConstants))
+            static_cast<glm::u32>(sizeof(PushConstants)),
+            RENDER_WIREFRAMES
         );
     }
 
