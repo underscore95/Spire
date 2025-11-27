@@ -39,17 +39,15 @@ namespace SpireVoxel {
 
         auto maxDist = maxRange;
         Hit hit = {.HitAnything = false};
-        glm::ivec3 lastStepMoved = {0, 0, 0};
 
         while (true) {
             glm::vec3 voxelCenter = glm::vec3(voxel) + 0.5f;
             if (glm::distance(origin, voxelCenter) > maxDist) return hit;
 
-
             if (world.IsVoxelAt(voxel)) {
                 hit.HitAnything = true;
                 hit.VoxelPosition = voxel;
-                hit.Face = DirectionToFace(-lastStepMoved); // since moving towards voxel, the hit face is the opposite direction
+                hit.Face = DirectionToFace(-normalizedForward); // since moving towards voxel, the hit face is the opposite direction
                 return hit;
             }
 
@@ -57,21 +55,17 @@ namespace SpireVoxel {
                 if (tMax.x < tMax.z) {
                     voxel.x += step.x;
                     tMax.x += tDelta.x;
-                    lastStepMoved = glm::ivec3(step.x, 0, 0);
                 } else {
                     voxel.z += step.z;
                     tMax.z += tDelta.z;
-                    lastStepMoved = glm::ivec3(0, 0, step.z);
                 }
             } else {
                 if (tMax.y < tMax.z) {
                     voxel.y += step.y;
                     tMax.y += tDelta.y;
-                    lastStepMoved = glm::ivec3(0, step.y, 0);
                 } else {
                     voxel.z += step.z;
                     tMax.z += tDelta.z;
-                    lastStepMoved = glm::ivec3(0, 0, step.z);
                 }
             }
         }
