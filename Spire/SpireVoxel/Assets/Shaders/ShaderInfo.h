@@ -36,6 +36,7 @@
 #define SPIRE_INT32_TYPE glm::int32
 #define SPIRE_MAT4X4_TYPE glm::mat4
 #define SPIRE_UVEC3_TYPE glm::uvec3
+#define SPIRE_VEC3_TYPE glm::vec3
 #define SPIRE_IVEC3_TYPE glm::ivec3
 #define SPIRE_VEC2_TYPE glm::vec2
 // reason for assert: ivec4 is put as padding on the gpu
@@ -47,6 +48,7 @@ static_assert(sizeof(VkDrawIndirectCommand) == 16);
 #define SPIRE_INT32_TYPE int
 #define SPIRE_MAT4X4_TYPE mat4
 #define SPIRE_UVEC3_TYPE uvec3
+#define SPIRE_VEC3_TYPE vec3
 #define SPIRE_IVEC3_TYPE ivec3
 #define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(VarName) \
     int VarName##_Padding1;\
@@ -129,9 +131,9 @@ namespace SpireVoxel {
         return SPIRE_IVEC3_TYPE(0, 0, 0);
     }
 
-    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE DirectionToFace(SPIRE_IVEC3_TYPE direction) {
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE DirectionToFace(SPIRE_VEC3_TYPE direction) {
 #ifdef __cplusplus
-        //  assert(direction.x != 0 || direction.y != 0 || direction.z != 0);
+        assert(direction.x != 0 || direction.y != 0 || direction.z != 0);
 #endif
 
         if (abs(direction.x) > abs(direction.y) && abs(direction.x) > abs(direction.z)) {
