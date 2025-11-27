@@ -57,60 +57,60 @@ namespace SpireVoxel {
             // Front (Z+)
             if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_Z) == VOXEL_TYPE_AIR) {
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 1, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 1, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_Z));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 1, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Z));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
             }
 
             // Back (Z-)
             if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_Z) == VOXEL_TYPE_AIR) {
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_Z));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Z));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Z));
             }
 
             // Left (X-)
             if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_X) == VOXEL_TYPE_AIR) {
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_X));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_X));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_X));
             }
 
             // Right (X+)
             if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_X) == VOXEL_TYPE_AIR) {
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 1, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_X));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_X));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_X));
             }
 
             // Top (Y+)
             if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_Y) == VOXEL_TYPE_AIR) {
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 1, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_Y));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 1, p.z + 1, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Y));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 1, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Y));
             }
 
             // Bottom (Y-)
             if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_Y) == VOXEL_TYPE_AIR) {
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_Y));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
+                vertices.push_back(PackVertexData(VoxelData[i], p.x + 1, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Y));
                 vertices.push_back(PackVertexData(VoxelData[i], p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Y));
             }
         }

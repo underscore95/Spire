@@ -96,7 +96,7 @@ m_worldEditCallback =    m_world->GetRenderer().GetOnWorldEditSubscribers().AddC
         if (IS_PROFILING) {
             VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
-        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test6");
+        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test2");
 
         m_world->GetRenderer().HandleChunkEdits();
 

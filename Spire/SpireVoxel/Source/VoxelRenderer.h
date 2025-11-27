@@ -72,8 +72,8 @@ namespace SpireVoxel {
         static constexpr ProfileStrategy PROFILE_STATIC = {ProfileStrategy::STATIC, 10000};
         static constexpr ProfileStrategy PROFILE_STATIC_1000 = {ProfileStrategy::STATIC, 1000};
         static constexpr ProfileStrategy PROFILE_DYNAMIC = {ProfileStrategy::DYNAMIC, 100};
-       // static constexpr std::array<ProfileStrategy, 2> PROFILE_STRATEGIES = {PROFILE_STATIC, PROFILE_DYNAMIC};
-        static constexpr std::array<ProfileStrategy, 1> PROFILE_STRATEGIES = {PROFILE_STATIC_1000};
+     //  static constexpr std::array<ProfileStrategy, 2> PROFILE_STRATEGIES = {PROFILE_STATIC, PROFILE_DYNAMIC};
+     static constexpr std::array<ProfileStrategy, 1> PROFILE_STRATEGIES = {PROFILE_STATIC_1000};
 
         Spire::Engine &m_engine;
         VkShaderModule m_vertexShader = VK_NULL_HANDLE;
