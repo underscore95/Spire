@@ -131,8 +131,7 @@ namespace SpireVoxel {
 
         // slice, row, col are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetChunkCoords
         // slice is the slice of voxels we are working with
-        // row is width, this is always the face axis (e.g. POS_Z/NEG_Z row is Z axis)
-        // col is height, this is y unless the face axis is POS_Y/NEG_Y
+        // POS_Z/NEG_Z col is X axis, row is Y axis, z is slice
 
         for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
             for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
