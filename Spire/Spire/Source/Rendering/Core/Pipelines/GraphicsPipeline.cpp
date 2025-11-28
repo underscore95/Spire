@@ -18,7 +18,6 @@ namespace Spire {
         : Pipeline(device, descriptorManager, renderingManager, pushConstantSize) {
 #ifdef NDEBUG
         if (renderWireframes) {
-            error("Attempted to create a graphics pipeline that renders wireframes in release mode!");
             renderWireframes = false;
         }
 #endif
