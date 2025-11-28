@@ -4,7 +4,7 @@
 #include "../../Assets/Shaders/ShaderInfo.h"
 
 namespace SpireVoxel {
-    class GreedyMeshingBitmask {
+    class GreedyMeshingGrid {
     public:
         void SetBit(glm::u32 row, glm::u32 col);
 

@@ -124,7 +124,7 @@ namespace SpireVoxel {
 
         Chunk *chunk = GetLoadedChunk(chunkPos);
         if (chunk) {
-            chunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(positionInChunk)] = voxelType;
+            chunk->SetVoxel(SPIRE_VOXEL_POSITION_TO_INDEX(positionInChunk), voxelType);
             m_renderer->NotifyChunkEdited(*chunk);
         }
         return chunk;

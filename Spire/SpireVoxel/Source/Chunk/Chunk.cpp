@@ -1,6 +1,6 @@
 #include "Chunk.h"
 
-#include "GreedyMeshingBitmask.h"
+#include "GreedyMeshingGrid.h"
 #include "VoxelWorld.h"
 
 namespace SpireVoxel {
@@ -113,13 +113,17 @@ namespace SpireVoxel {
         }
     }
 
-    /*
-u u u u
-0 0 0 0
-1 0 0 0
-0 0 0 0
-0 0 0 0
-     */
+    void Chunk::SetVoxel(glm::u32 index, glm::u32 type) {
+        VoxelData[index] = type;
+        VoxelBits[index] = static_cast<bool>(type);
+    }
+
+    void Chunk::SetVoxels(glm::u32 startIndex, glm::u32 endIndex, glm::u32 type) {
+        std::fill(VoxelData.data() + startIndex, VoxelData.data() + endIndex, type);
+        for (; startIndex <= endIndex; startIndex++) {
+            VoxelBits[startIndex] = static_cast<bool>(type); // todo: can we do this in a single write?
+        }
+    }
 
     std::vector<VertexData> Chunk::GenerateMesh() const {
         std::vector<VertexData> vertices;
@@ -130,19 +134,21 @@ u u u u
         // row is width, this is always the face axis (e.g. POS_Z/NEG_Z a is Z axis)
         // col is height, this is y unless the face axis is POS_Y/NEG_Y
 
-
         for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
             for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
-                // generate the bitmask
-
-                GreedyMeshingBitmask mask;
+                // generate the grid
+                GreedyMeshingGrid grid;
 
                 for (glm::u32 row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
                     for (glm::u32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
-                        glm::uvec3 chunkCoords = GreedyMeshingBitmask::GetChunkCoords(slice, row, col, face);
-
-                        if (VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] != VOXEL_TYPE_AIR && GetAdjacentVoxelType(*this, chunkCoords, face) == VOXEL_TYPE_AIR) {
-                            mask.SetBit(row, col); // todo: go across chunk boundaries
+                        glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face);
+                        glm::ivec3 adjacent = glm::ivec3(chunkCoords) + FaceToDirection(face);
+                        bool adjacentIsPresent = adjacent.x >= 0 && adjacent.y >= 0 && adjacent.z >= 0 &&
+                                               adjacent.x < SPIRE_VOXEL_CHUNK_SIZE && adjacent.y < SPIRE_VOXEL_CHUNK_SIZE && adjacent.z < SPIRE_VOXEL_CHUNK_SIZE &&
+                                               VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacent)];
+                        if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentIsPresent) {
+                            // todo: can positive and negative face bits be generated at the same time?
+                            grid.SetBit(row, col); // todo: go across chunk boundaries
                         }
                     }
                 }
@@ -150,74 +156,32 @@ u u u u
                 // push the faces
                 for (glm::i32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
                     // find the starting row and height of the face
-                    glm::u32 row = mask.NumTrailingEmptyVoxels(col, 0);
+                    glm::u32 row = grid.NumTrailingEmptyVoxels(col, 0);
                     if (row >= SPIRE_VOXEL_CHUNK_SIZE) continue;
-                    glm::u32 height = mask.NumTrailingPresentVoxels(col, row);
+                    glm::u32 height = grid.NumTrailingPresentVoxels(col, row);
 
                     // absorb faces
-                    mask.SetEmptyVoxels(col, row, height);
+                    grid.SetEmptyVoxels(col, row, height);
 
                     // move as far right as we can
                     glm::u32 width = 1;
-                    while (col + width < SPIRE_VOXEL_CHUNK_SIZE && mask.NumTrailingPresentVoxels(col + width, row) >= height) {
-                        mask.SetEmptyVoxels(col + width, row, height); // absorb the new column
+                    while (col + width < SPIRE_VOXEL_CHUNK_SIZE && grid.NumTrailingPresentVoxels(col + width, row) >= height) {
+                        grid.SetEmptyVoxels(col + width, row, height); // absorb the new column
                         width++;
                     }
                     //     mask.Print();
 
                     // push the face
-                    glm::uvec3 chunkCoords = mask.GetChunkCoords(slice, row, col, face);
+                    glm::uvec3 chunkCoords = grid.GetChunkCoords(slice, row, col, face);
                     PushFace(vertices, type, face, chunkCoords, width, height);
 
-                    if (mask.GetColumn(col) != 0) {
+                    if (grid.GetColumn(col) != 0) {
                         // we didn't get all the voxels on this row, loop again
                         col--;
                     }
                 }
             }
         }
-
-        // for
-        // (size_t i =
-        //          0;
-        //  i < VoxelData.size();
-        //  i
-        //  ++
-        // ) {
-        //     if (VoxelData[i] == 0) continue;
-        //
-        //     glm::uvec3 p = SPIRE_VOXEL_INDEX_TO_POSITION(glm::vec3, i);
-        //
-        //     // Front (Z+)
-        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_Z) == VOXEL_TYPE_AIR) {
-        //         PushFace(VoxelData, vertices, VoxelData[i],SPIRE_VOXEL_FACE_POS_Z, p);
-        //     }
-        //
-        //     // Back (Z-)
-        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_Z) == VOXEL_TYPE_AIR) {
-        //         PushFace(VoxelData, vertices, VoxelData[i], SPIRE_VOXEL_FACE_NEG_Z, p);
-        //     }
-        //
-        //     // Left (X-)
-        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_X) == VOXEL_TYPE_AIR) {
-        //         PushFace(VoxelData, vertices, VoxelData[i], SPIRE_VOXEL_FACE_NEG_X, p);
-        //     }
-        //
-        //     // Right (X+)
-        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_X) == VOXEL_TYPE_AIR) {
-        //         PushFace(VoxelData, vertices, VoxelData[i], SPIRE_VOXEL_FACE_POS_X, p);
-        //     }
-        //
-        //     // Top (Y+)
-        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_Y) == VOXEL_TYPE_AIR) {
-        //         PushFace(VoxelData, vertices, VoxelData[i], SPIRE_VOXEL_FACE_POS_Y, p);
-        //     }
-        //
-        //     // Bottom (Y-)
-        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_Y) == VOXEL_TYPE_AIR) {
-        //         PushFace(VoxelData, vertices, VoxelData[i], SPIRE_VOXEL_FACE_NEG_Y, p);
-        //     }
-        // }
 
         return vertices;
     }
@@ -235,6 +199,12 @@ u u u u
             .ChunkY = ChunkPosition.y,
             .ChunkZ = ChunkPosition.z
         };
+    }
+
+    void Chunk::RegenerateVoxelBits() {
+        for (std::size_t i = 0; i < VoxelData.size(); i++) {
+            VoxelBits[i] = static_cast<bool>(VoxelData[i]); // todo can this be done in a single write?
+        }
     }
 
     std::optional<std::size_t> Chunk::GetIndexOfVoxel(glm::ivec3 chunkPosition, glm::ivec3 voxelWorldPosition) {

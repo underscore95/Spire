@@ -24,7 +24,7 @@ namespace SpireVoxel {
                     assert(startIndex < endIndex);
                     assert(endIndex < chunk->VoxelData.size());
                     assert(!chunk->IsCorrupted());
-                    std::fill(chunk->VoxelData.data() + startIndex, chunk->VoxelData.data() + endIndex, m_voxelType);
+                    chunk->SetVoxels(startIndex, endIndex, m_voxelType);
                     assert(!chunk->IsCorrupted());
                 }
             }

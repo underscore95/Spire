@@ -24,6 +24,7 @@
 #include <span>
 #include <random>
 #include <bit>
+#include <bitset>
 
 // vulkan
 #include <vulkan/vulkan_core.h>

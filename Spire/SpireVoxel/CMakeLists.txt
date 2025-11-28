@@ -29,7 +29,7 @@ add_library(SpireVoxel STATIC
         Source/Utils/RaycastUtils.cpp
         Source/Utils/RaycastUtils.h
         Source/Utils/IVoxelCamera.h
-        Source/Chunk/GreedyMeshingBitmask.h
+        Source/Chunk/GreedyMeshingGrid.h
         Source/Chunk/GreedyMeshingBitmask.cpp
 )
 

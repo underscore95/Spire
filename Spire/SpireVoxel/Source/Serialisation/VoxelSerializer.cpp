@@ -28,6 +28,8 @@ namespace SpireVoxel {
     }
 
     void VoxelSerializer::ClearAndDeserialize(VoxelWorld &world, const std::filesystem::path &directory) {
+Spire::Timer timer;
+
         world.UnloadAllChunks();
 
         if (!std::filesystem::exists(directory)) return;
@@ -75,6 +77,7 @@ namespace SpireVoxel {
                 Spire::error("Failed to read chunk voxel data of {} (chunk {})", entry.path().string(), chunkPos.x, chunkPos.y, chunkPos.z);
                 continue;
             }
+            chunk.RegenerateVoxelBits();
             assert(!chunk.IsCorrupted());
 
             world.GetRenderer().NotifyChunkEdited(chunk);
@@ -85,5 +88,6 @@ namespace SpireVoxel {
         }
 
         world.GetRenderer().HandleChunkEdits();
+        Spire::info("Deserialized world in {} ms", timer.MillisSinceStart());
     }
 } // SpireVoxel

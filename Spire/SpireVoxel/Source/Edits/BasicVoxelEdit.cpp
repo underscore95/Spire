@@ -20,7 +20,7 @@ namespace SpireVoxel {
 
             std::optional<std::size_t> index = Chunk::GetIndexOfVoxel(chunk->ChunkPosition, edit.Position);
             assert(index);
-            chunk->VoxelData[index.value()] = edit.Type;
+            chunk->SetVoxel(index.value(), edit.Type);
             NotifyChunkEdit(world, *chunk);
         }
     }
