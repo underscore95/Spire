@@ -1,5 +1,6 @@
 #include "Chunk.h"
 
+#include "GreedyMeshingBitmask.h"
 #include "VoxelWorld.h"
 
 namespace SpireVoxel {
@@ -47,10 +48,11 @@ namespace SpireVoxel {
     }
 
     void PushFace(std::vector<VertexData> &vertices, glm::u32 type, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) {
-        // aliases to keep alignment of positions for readability
+        assert(width > 0);
+        assert(height > 0);
+        //  Spire::info("pushing {}x{}",width,height);
         const glm::u32 w = width;
         const glm::u32 h = height;
-
         switch (face) {
             case SPIRE_VOXEL_FACE_POS_Z:
                 vertices.push_back(PackVertexData(type, p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
@@ -111,44 +113,108 @@ namespace SpireVoxel {
         }
     }
 
+    /*
+u u u u
+0 0 0 0
+1 0 0 0
+0 0 0 0
+0 0 0 0
+     */
+
     std::vector<VertexData> Chunk::GenerateMesh() const {
         std::vector<VertexData> vertices;
+        const glm::u32 type = 1;
 
-        for (size_t i = 0; i < VoxelData.size(); i++) {
-            if (VoxelData[i] == 0) continue;
+        for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
+            // slice, a, b are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetVoxelIndex
+            // slice is the slice of voxels we are working with
+            // row is width, this is always the face axis (e.g. POS_Z/NEG_Z a is Z axis)
+            // col is height, this is y unless the face axis is POS_Y/NEG_Y
+            for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
+                // generate the bitmask
+                GreedyMeshingBitmask mask;
+                for (glm::u32 row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
+                    for (glm::u32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
+                        glm::uvec3 chunkCoords = GreedyMeshingBitmask::GetChunkCoords(slice, row, col, face);
+                        if (VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] != VOXEL_TYPE_AIR && GetAdjacentVoxelType(*this, chunkCoords, face) == VOXEL_TYPE_AIR) {
+                            mask.SetBit(row, col); // todo: go across chunk boundaries
+                        }
+                    }
+                }
 
-            glm::uvec3 p = SPIRE_VOXEL_INDEX_TO_POSITION(glm::vec3, i);
+                // push the faces
+                for (glm::i32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
+                    // find the starting row and height of the face
+                    glm::u32 row = mask.NumTrailingEmptyVoxels(col, 0);
+                    if (row >= SPIRE_VOXEL_CHUNK_SIZE) continue;
+                    glm::u32 height = mask.NumTrailingPresentVoxels(col, row);
 
-            // Front (Z+)
-            if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_Z) == VOXEL_TYPE_AIR) {
-                PushFace(vertices, VoxelData[i],SPIRE_VOXEL_FACE_POS_Z, p, 1, 1);
-            }
+                    // absorb faces
+                    mask.SetEmptyVoxels(col, row, height);
 
-            // Back (Z-)
-            if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_Z) == VOXEL_TYPE_AIR) {
-                PushFace(vertices, VoxelData[i], SPIRE_VOXEL_FACE_NEG_Z, p, 1, 1);
-            }
+                    // move as far right as we can
+                    glm::u32 width = 1;
+                    while (col + width < SPIRE_VOXEL_CHUNK_SIZE && mask.NumTrailingPresentVoxels(col + width, row) >= height) {
+                        mask.SetEmptyVoxels(col + width, row, height); // absorb the new column
+                        width++;
+                    }
+                    //     mask.Print();
 
-            // Left (X-)
-            if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_X) == VOXEL_TYPE_AIR) {
-                PushFace(vertices, VoxelData[i], SPIRE_VOXEL_FACE_NEG_X, p, 1, 1);
-            }
+                    // push the face
+                    glm::uvec3 chunkCoords = mask.GetChunkCoords(slice, row, col, face);
+                    PushFace(vertices, type, face, chunkCoords, width, height);
 
-            // Right (X+)
-            if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_X) == VOXEL_TYPE_AIR) {
-                PushFace(vertices, VoxelData[i], SPIRE_VOXEL_FACE_POS_X, p, 1, 1);
-            }
-
-            // Top (Y+)
-            if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_Y) == VOXEL_TYPE_AIR) {
-                PushFace(vertices, VoxelData[i], SPIRE_VOXEL_FACE_POS_Y, p, 1, 1);
-            }
-
-            // Bottom (Y-)
-            if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_Y) == VOXEL_TYPE_AIR) {
-                PushFace(vertices, VoxelData[i], SPIRE_VOXEL_FACE_NEG_Y, p, 1, 1);
+                    if (mask.GetColumn(col) != 0) {
+                        // we didn't get all the voxels on this row, loop again
+                        col--;
+                    }
+                }
             }
         }
+
+
+        // for
+        // (size_t i =
+        //          0;
+        //  i < VoxelData.size();
+        //  i
+        //  ++
+        // ) {
+        //     if (VoxelData[i] == 0) continue;
+        //
+        //     glm::uvec3 p = SPIRE_VOXEL_INDEX_TO_POSITION(glm::vec3, i);
+        //
+        //     // Front (Z+)
+        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_Z) == VOXEL_TYPE_AIR) {
+        //         PushFace(VoxelData, vertices, VoxelData[i],SPIRE_VOXEL_FACE_POS_Z, p);
+        //     }
+        //
+        //     // Back (Z-)
+        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_Z) == VOXEL_TYPE_AIR) {
+        //         PushFace(VoxelData, vertices, VoxelData[i], SPIRE_VOXEL_FACE_NEG_Z, p);
+        //     }
+        //
+        //     // Left (X-)
+        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_X) == VOXEL_TYPE_AIR) {
+        //         PushFace(VoxelData, vertices, VoxelData[i], SPIRE_VOXEL_FACE_NEG_X, p);
+        //     }
+        //
+        //     // Right (X+)
+        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_X) == VOXEL_TYPE_AIR) {
+        //         PushFace(VoxelData, vertices, VoxelData[i], SPIRE_VOXEL_FACE_POS_X, p);
+        //     }
+        //
+        //     // Top (Y+)
+        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_POS_Y) == VOXEL_TYPE_AIR) {
+        //         PushFace(VoxelData, vertices, VoxelData[i], SPIRE_VOXEL_FACE_POS_Y, p);
+        //     }
+        //
+        //     // Bottom (Y-)
+        //     if (GetAdjacentVoxelType(*this, p, SPIRE_VOXEL_FACE_NEG_Y) == VOXEL_TYPE_AIR) {
+        //         PushFace(VoxelData, vertices, VoxelData[i], SPIRE_VOXEL_FACE_NEG_Y, p);
+        //     }
+        // }
+
         return vertices;
     }
 

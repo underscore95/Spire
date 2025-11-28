@@ -29,6 +29,8 @@ add_library(SpireVoxel STATIC
         Source/Utils/RaycastUtils.cpp
         Source/Utils/RaycastUtils.h
         Source/Utils/IVoxelCamera.h
+        Source/Chunk/GreedyMeshingBitmask.h
+        Source/Chunk/GreedyMeshingBitmask.cpp
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

@@ -26,7 +26,7 @@
         )
 
 #define SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(x, y, z) \
-    (x * SPIRE_VOXEL_CHUNK_AREA + y * SPIRE_VOXEL_CHUNK_SIZE + z)
+    ((x) * SPIRE_VOXEL_CHUNK_AREA + (y) * SPIRE_VOXEL_CHUNK_SIZE + (z))
 
 #define SPIRE_VOXEL_POSITION_TO_INDEX(pos) SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(pos.x, pos.y, pos.z)
 
@@ -117,6 +117,18 @@ namespace SpireVoxel {
         return faces[face];
     }
 #endif
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE bool IsFaceOnXAxis(SPIRE_UINT32_TYPE face) {
+        return face == SPIRE_VOXEL_FACE_POS_X || face == SPIRE_VOXEL_FACE_NEG_X;
+    }
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE bool IsFaceOnYAxis(SPIRE_UINT32_TYPE face) {
+        return face == SPIRE_VOXEL_FACE_POS_Y || face == SPIRE_VOXEL_FACE_NEG_Y;
+    }
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE bool IsFaceOnZAxis(SPIRE_UINT32_TYPE face) {
+        return face == SPIRE_VOXEL_FACE_POS_Z || face == SPIRE_VOXEL_FACE_NEG_Z;
+    }
 
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_IVEC3_TYPE FaceToDirection(SPIRE_UINT32_TYPE face) {
         if (face == SPIRE_VOXEL_FACE_POS_X) return SPIRE_IVEC3_TYPE(1, 0, 0);

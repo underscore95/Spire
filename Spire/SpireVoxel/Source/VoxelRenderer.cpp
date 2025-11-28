@@ -46,28 +46,6 @@ namespace SpireVoxel {
                 assert(false);
         });
 
-        // load 3x1x3 chunks around 0,0,0
-        m_world->LoadChunks({
-            {-1, 0, -1},
-            {-1, 0, 0},
-            {-1, 0, 1},
-            {0, 0, -1},
-            {0, 0, 0},
-            {0, 0, 1},
-            {1, 0, -1},
-            {1, 0, 0},
-            {1, 0, 1},
-        });
-
-        // Update world
-        for (auto &[chunkPos, chunk] : *m_world) {
-            assert(!chunk->IsCorrupted());
-            chunk->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-            assert(!chunk->IsCorrupted());
-            m_world->GetRenderer().NotifyChunkEdited(*chunk);
-            m_world->GetRenderer().HandleChunkEdits();
-        }
-
         if (IS_PROFILING) {
             VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);

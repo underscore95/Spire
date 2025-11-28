@@ -6,6 +6,7 @@ add_executable(SpireVoxelTests
         Tests/TestVoxelEdits.cpp
         Tests/TestHelpers.h
         Tests/TestFaceUtils.cpp
+        Tests/GreedyMeshingTests.cpp
 )
 
 target_include_directories(SpireVoxelTests PRIVATE "Tests/")

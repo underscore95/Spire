@@ -23,6 +23,7 @@
 #include <map>
 #include <span>
 #include <random>
+#include <bit>
 
 // vulkan
 #include <vulkan/vulkan_core.h>

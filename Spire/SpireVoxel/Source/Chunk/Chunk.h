@@ -16,6 +16,7 @@ namespace SpireVoxel {
         VoxelWorld &World;
         std::array<std::int32_t, SPIRE_VOXEL_CHUNK_VOLUME> VoxelData{};
         std::uint64_t CorruptedMemoryCheck = 9238745897238972389; // This value will be changed if something overruns when editing VoxelData
+        std::uint64_t CorruptedMemoryCheck2 = 12387732823748723; // This value will be changed if something overruns when editing MergedVoxels
         BufferAllocator::Allocation Allocation = {};
         glm::u32 NumVertices;
 
@@ -25,7 +26,7 @@ namespace SpireVoxel {
 
         [[nodiscard]] static std::optional<std::size_t> GetIndexOfVoxel(glm::ivec3 chunkPosition, glm::ivec3 voxelWorldPosition);
 
-        bool IsCorrupted() const { return CorruptedMemoryCheck != 9238745897238972389; }
+        bool IsCorrupted() const { return CorruptedMemoryCheck != 9238745897238972389 || CorruptedMemoryCheck2 != 12387732823748723; }
 
     };
 } // SpireVoxel
