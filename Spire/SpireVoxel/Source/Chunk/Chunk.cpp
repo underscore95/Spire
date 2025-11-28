@@ -125,30 +125,27 @@ u u u u
         std::vector<VertexData> vertices;
         const glm::u32 type = 1;
 
-        std::array<GreedyMeshingBitmask, SPIRE_VOXEL_NUM_FACES * SPIRE_VOXEL_CHUNK_SIZE> masks;
-
         // slice, a, b are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetVoxelIndex
         // slice is the slice of voxels we are working with
         // row is width, this is always the face axis (e.g. POS_Z/NEG_Z a is Z axis)
         // col is height, this is y unless the face axis is POS_Y/NEG_Y
 
-        for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
-            for (glm::u32 row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
-                for (glm::u32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
-                    for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
-                        glm::uvec3 chunkCoords = GreedyMeshingBitmask::GetChunkCoords(slice, row, col, face);
-                        if (VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] != VOXEL_TYPE_AIR && GetAdjacentVoxelType(*this, chunkCoords, face) == VOXEL_TYPE_AIR) {
-                            masks[face * SPIRE_VOXEL_CHUNK_SIZE + slice].SetBit(row, col); // todo: go across chunk boundaries
-                        }
-                    }
-                }
-            }
-        }
 
         for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
             for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
                 // generate the bitmask
-                GreedyMeshingBitmask &mask = masks[face * SPIRE_VOXEL_CHUNK_SIZE + slice];
+
+                GreedyMeshingBitmask mask;
+
+                for (glm::u32 row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
+                    for (glm::u32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
+                        glm::uvec3 chunkCoords = GreedyMeshingBitmask::GetChunkCoords(slice, row, col, face);
+
+                        if (VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] != VOXEL_TYPE_AIR && GetAdjacentVoxelType(*this, chunkCoords, face) == VOXEL_TYPE_AIR) {
+                            mask.SetBit(row, col); // todo: go across chunk boundaries
+                        }
+                    }
+                }
 
                 // push the faces
                 for (glm::i32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
@@ -179,7 +176,6 @@ u u u u
                 }
             }
         }
-
 
         // for
         // (size_t i =
