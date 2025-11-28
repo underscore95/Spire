@@ -1,18 +1,18 @@
-#include "GreedyMeshingBitmask.h"
+#include "GreedyMeshingGrid.h"
 
 static_assert(SPIRE_VOXEL_CHUNK_SIZE == 64); // required for greedy meshing
 
-void SpireVoxel::GreedyMeshingBitmask::SetBit(glm::u32 row, glm::u32 col) {
-    m_bitmask[col] |= static_cast<glm::u64>(1) << row;
+void SpireVoxel::GreedyMeshingGrid::SetBit(glm::u32 row, glm::u32 col) {
+    m_bits[col] |= static_cast<glm::u64>(1) << row;
 }
 
-bool SpireVoxel::GreedyMeshingBitmask::GetBit(glm::u32 row, glm::u32 col) {
+bool SpireVoxel::GreedyMeshingGrid::GetBit(glm::u32 row, glm::u32 col) const {
     glm::u64 mask = static_cast<glm::u64>(1) << row; // e.g. 000100
-    mask = m_bitmask[col] & mask; // if this is 0, the bit was 0
+    mask = m_bits[col] & mask; // if this is 0, the bit was 0
     return mask != 0;
 }
 
-void SpireVoxel::GreedyMeshingBitmask::SetEmptyVoxels(glm::u32 col, glm::u32 row, glm::u32 height) {
+void SpireVoxel::GreedyMeshingGrid::SetEmptyVoxels(glm::u32 col, glm::u32 row, glm::u32 height) {
     assert(height != 0);
     glm::u64 mask = UINT64_MAX; // this is for height == 64, since normally we'd be setting it to uint64 max + 1
     if (height < SPIRE_VOXEL_CHUNK_SIZE) {
@@ -23,10 +23,10 @@ void SpireVoxel::GreedyMeshingBitmask::SetEmptyVoxels(glm::u32 col, glm::u32 row
     mask = mask << row; // if row == 3: 0011000
     mask = ~mask; // flip the bits: 1100111
 
-    m_bitmask[col] = m_bitmask[col] & mask; // set the voxels to empty
+    m_bits[col] = m_bits[col] & mask; // set the voxels to empty
 }
 
-glm::uvec3 SpireVoxel::GreedyMeshingBitmask::GetChunkCoords(glm::u32 slice, glm::u32 row, glm::u32 col, glm::u32 face) {
+glm::uvec3 SpireVoxel::GreedyMeshingGrid::GetChunkCoords(glm::u32 slice, glm::u32 row, glm::u32 col, glm::u32 face) {
     switch (face) {
         case SPIRE_VOXEL_FACE_POS_Z:
         case SPIRE_VOXEL_FACE_NEG_Z:
@@ -43,9 +43,9 @@ glm::uvec3 SpireVoxel::GreedyMeshingBitmask::GetChunkCoords(glm::u32 slice, glm:
     }
 }
 
-void SpireVoxel::GreedyMeshingBitmask::Print() {
+void SpireVoxel::GreedyMeshingGrid::Print() const {
     std::array<std::string, SPIRE_VOXEL_CHUNK_SIZE> strings;
-    for (std::size_t col = 0; col < m_bitmask.size(); col++) {
+    for (std::size_t col = 0; col < m_bits.size(); col++) {
         for (glm::u32 row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
             strings[col] += GetBit(row, col) ? "1" : "0";
         }

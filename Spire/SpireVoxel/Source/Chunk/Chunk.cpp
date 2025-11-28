@@ -129,9 +129,9 @@ namespace SpireVoxel {
         std::vector<VertexData> vertices;
         const glm::u32 type = 1;
 
-        // slice, a, b are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetVoxelIndex
+        // slice, row, col are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetChunkCoords
         // slice is the slice of voxels we are working with
-        // row is width, this is always the face axis (e.g. POS_Z/NEG_Z a is Z axis)
+        // row is width, this is always the face axis (e.g. POS_Z/NEG_Z row is Z axis)
         // col is height, this is y unless the face axis is POS_Y/NEG_Y
 
         for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {

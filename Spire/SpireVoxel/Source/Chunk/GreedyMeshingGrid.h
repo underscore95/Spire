@@ -8,11 +8,11 @@ namespace SpireVoxel {
     public:
         void SetBit(glm::u32 row, glm::u32 col);
 
-        bool GetBit(glm::u32 row, glm::u32 col);
+        bool GetBit(glm::u32 row, glm::u32 col) const;
 
         void SetEmptyVoxels(glm::u32 col, glm::u32 row, glm::u32 height);
 
-        glm::u64 GetColumn(glm::u32 column) const { return m_bitmask[column]; }
+        glm::u64 GetColumn(glm::u32 column) const { return m_bits[column]; }
 
         // maps slice, a, b coordinates into chunk coords
         [[nodiscard]] static glm::uvec3 GetChunkCoords(glm::u32 slice, glm::u32 row, glm::u32 col, glm::u32 face);
@@ -21,19 +21,19 @@ namespace SpireVoxel {
         // Column is right shifted startingRow bits beforehand, this can be used to ignore some bits
         // startingRow should be the first bit you want counted, e.g. if you have 000110 and want to count trailing 1s, startingRow should be 1
         glm::u64 NumTrailingEmptyVoxels(glm::u32 column, glm::u32 startingRow) const {
-            return std::countr_zero(m_bitmask[column] >> startingRow);
+            return std::countr_zero(m_bits[column] >> startingRow);
         }
 
         glm::u64 NumTrailingPresentVoxels(glm::u32 column, glm::u32 startingRow) const {
-            return std::countr_one(m_bitmask[column] >> startingRow);
+            return std::countr_one(m_bits[column] >> startingRow);
         }
 
-        const std::array<glm::u64, SPIRE_VOXEL_CHUNK_SIZE> &GetBitmask() const { return m_bitmask; }
+        const std::array<glm::u64, SPIRE_VOXEL_CHUNK_SIZE> &GetBitmask() const { return m_bits; }
 
-        void Print();
+        void Print() const;
 
     private:
         static_assert(SPIRE_VOXEL_CHUNK_SIZE == 64); // since u64 used
-        std::array<glm::u64, SPIRE_VOXEL_CHUNK_SIZE> m_bitmask = {}; // each u64 represents a column of voxels
+        std::array<glm::u64, SPIRE_VOXEL_CHUNK_SIZE> m_bits = {}; // each u64 represents a column of voxels
     };
 } // SpireVoxel
