@@ -99,12 +99,23 @@
         "window_height": 720
     },
     {
-        "time_ms": 835.5151,
+        "time_ms": 838.53253,
         "frames": 1000,
         "chunks": 384,
         "world": "Test6",
         "dynamic_state": "static",
         "chunk_gpu_memory": 136829376,
+        "chunk_cpu_memory": 402674688,
+        "window_width": 1280,
+        "window_height": 720
+    },
+    {
+        "time_ms": 5459.8945,
+        "frames": 10,
+        "chunks": 384,
+        "world": "Test6",
+        "dynamic_state": "dynamic",
+        "chunk_gpu_memory": 410706432,
         "chunk_cpu_memory": 402674688,
         "window_width": 1280,
         "window_height": 720
