@@ -33,7 +33,7 @@ namespace SpireVoxel {
 
         void ScheduleFreeAllocation(Allocation allocation);
 
-        Spire::Descriptor GetDescriptor(glm::u32 binding, const std::string &debugName = "Buffer Allocator");
+        Spire::Descriptor GetDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName = "Buffer Allocator");
 
         void Render();
 

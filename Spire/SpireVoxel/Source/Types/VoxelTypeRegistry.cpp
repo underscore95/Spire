@@ -78,7 +78,7 @@ namespace SpireVoxel {
         return Spire::Descriptor{
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = binding,
-            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+            .Stages = VK_SHADER_STAGE_FRAGMENT_BIT,
             .Resources = {{.Buffer = &m_voxelTypesBuffer}},
 #ifndef NDEBUG
             .DebugName = "Voxel Types Buffer"

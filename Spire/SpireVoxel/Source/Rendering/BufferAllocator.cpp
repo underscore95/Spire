@@ -58,11 +58,11 @@ namespace SpireVoxel {
         ScheduleFreeAllocation(allocation.Start);
     }
 
-    Spire::Descriptor BufferAllocator::GetDescriptor(glm::u32 binding, const std::string &debugName) {
+    Spire::Descriptor BufferAllocator::GetDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName) {
         return {
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = binding,
-            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+            .Stages = stages,
             .Resources = {{.Buffer = &m_buffer}},
 #ifndef NDEBUG
             .DebugName = debugName

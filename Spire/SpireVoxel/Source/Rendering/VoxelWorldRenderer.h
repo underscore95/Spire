@@ -44,7 +44,7 @@ namespace SpireVoxel {
         void FreeChunkVoxelDataBuffer(Chunk &chunk);
 
     private:
-        static constexpr glm::u32 MAXIMUM_VERTICES_IN_WORLD = 36 * (SPIRE_VOXEL_CHUNK_VOLUME * 51);
+        static constexpr glm::u32 MAXIMUM_VERTICES_IN_WORLD = 36 * (SPIRE_VOXEL_CHUNK_VOLUME * 16);
         static constexpr glm::u32 MAXIMUM_LOADED_CHUNKS = 384 ;
 
         VoxelWorld &m_world;

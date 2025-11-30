@@ -107,7 +107,7 @@ void GameApplication::RenderUi() const {
         dir = (cameraForward.z > 0) ? "PosZ" : "NegZ";
     }
 
-    ImGui::Text("Facing: %s (%f, %f, %f)", dir, cameraForward.x, cameraForward.y, cameraForward.z);
+    ImGui::Text("Facing: %s (%f, %f, %f) (Enum Value: %d)", dir, cameraForward.x, cameraForward.y, cameraForward.z, DirectionToFace(cameraForward));
 
     glm::vec3 cameraPos = m_camera->GetCamera().GetPosition();
     ImGui::Text("Position %f, %f, %f", cameraPos.x, cameraPos.y, cameraPos.z);

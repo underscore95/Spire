@@ -28,7 +28,7 @@ namespace SpireVoxel {
     }
 
     void VoxelSerializer::ClearAndDeserialize(VoxelWorld &world, const std::filesystem::path &directory) {
-Spire::Timer timer;
+        Spire::Timer timer;
 
         world.UnloadAllChunks();
 
