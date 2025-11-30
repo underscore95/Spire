@@ -151,7 +151,9 @@ namespace SpireVoxel {
                                                          adjacentNegative.y >= 0 &&
                                                          adjacentNegative.z >= 0 &&
                                                          VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentNegative)];
-                        // todo: go across chunk boundaries
+                        // This seems to be getting compiler optimised really heavily
+                        // I tried adding another check and not generating any faces if the adjacent is outside of chunk bounds
+                        // and it reduced generation time by 20%
                         if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentPositiveIsPresent) {
                             grids[0].SetBit(row, col);
                         }
@@ -163,7 +165,7 @@ namespace SpireVoxel {
                 }
 
                 // push the faces
-                for (glm::u32 faceSignIndex = 0; faceSignIndex < 2; faceSignIndex++) { 
+                for (glm::u32 faceSignIndex = 0; faceSignIndex < 2; faceSignIndex++) {
                     GreedyMeshingGrid &grid = grids[faceSignIndex];
                     for (glm::i32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
                         // find the starting row and height of the face
@@ -183,19 +185,15 @@ namespace SpireVoxel {
                         //     mask.Print();
 
                         // push the face
-                        glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face);
-                        PushFace(vertices, type, face, chunkCoords, width, height);
+                        glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
+                        PushFace(vertices, type, face + faceSignIndex, chunkCoords, width, height);
 
                         if (grid.GetColumn(col) != 0) {
                             // we didn't get all the voxels on this row, loop again
                             col--;
                         }
                     }
-
-                    face++; // temporarily increment, so we process negative face after
                 }
-
-                face -= 2; // undo the two temporary increments
             }
         }
 
