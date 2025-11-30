@@ -8,6 +8,10 @@ layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VO
     VertexData data[];
 } in_Vertices;
 
+layout (std430, set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING) readonly buffer ChunkVoxelData {
+    GPUChunkVoxelData datas[];
+} chunkVoxelData;
+
 layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING) readonly buffer VoxelTypesBuffer {
     GPUVoxelType voxelTypes[];
 } voxelTypesBuffer;
@@ -31,8 +35,10 @@ void main()
     ivec3 chunkPos = ivec3(chunkData.ChunkX, chunkData.ChunkY, chunkData.ChunkZ); // position of the chunk in chunk-space, so chunk 1,0,0's minimum x voxel is 64
     vec3 worldPos = vec3(voxelPos) + chunkPos * SPIRE_VOXEL_CHUNK_SIZE; // world position of the vertex
     uint face = UnpackVertexDataFace(vtx.Packed_7X7Y7Z2VertPos3Face);
+    uvec4 possibleVoxelTypes = chunkVoxelData.datas[chunkData.VoxelDataChunkIndex].Data[vtx.VoxelDataIndex / 4];
+    uint voxelType = possibleVoxelTypes[vtx.VoxelDataIndex % 4];
 
     gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);
     texCoord = VoxelVertexPositionToUV(vertexVoxelPos);
-    imageIndex = voxelTypesBuffer.voxelTypes[vtx.VoxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[vtx.VoxelType].VoxelFaceLayout, face);
+    imageIndex = voxelTypesBuffer.voxelTypes[voxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[voxelType].VoxelFaceLayout, face);
 }

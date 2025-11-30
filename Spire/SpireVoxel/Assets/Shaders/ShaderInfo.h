@@ -7,6 +7,7 @@
 #define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET 4
 
 #define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING 0
+#define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING 1
 #define SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING 2
 #define SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING 3
 #define SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING 1
@@ -82,6 +83,7 @@ namespace SpireVoxel {
         SPIRE_INT32_TYPE ChunkX; // allows for 137 billion voxels in each direction
         SPIRE_INT32_TYPE ChunkY;
         SPIRE_INT32_TYPE ChunkZ;
+        SPIRE_UINT32_TYPE VoxelDataChunkIndex;
     };
 
 #ifdef __cplusplus
@@ -212,7 +214,7 @@ namespace SpireVoxel {
 #endif
     // Utility functions to pack and unpack this type are below
     struct VertexData {
-        SPIRE_UINT32_TYPE VoxelType;
+        SPIRE_UINT32_TYPE VoxelDataIndex;
         SPIRE_UINT32_TYPE Packed_7X7Y7Z2VertPos3Face;
     };
 
@@ -255,13 +257,12 @@ namespace SpireVoxel {
 #ifdef __cplusplus
     /*
      * VertexData Spec
-     * uint32 VoxelType; 32 bit integer representing voxel type, where 0 is empty and all other values are runtime-defined.
      * uint32 Packed_7X7Y7Z2VertPos3Face Packed_XYZ; 32 bit integer where the first 7 bits the voxel Z coordinate in the chunk, second 7 bits is the Y coordinate, third 7 bits is the X coordinate,
      *      next 2 bits are VoxelVertexPosition, next 3 bits are voxel face (see SPIRE_VOXEL_NUM_FACES)
      */
 
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE VertexData PackVertexData(
-        SPIRE_UINT32_TYPE voxelType,
+        SPIRE_UINT32_TYPE voxelDataIndex,
         SPIRE_UINT32_TYPE x, SPIRE_UINT32_TYPE y, SPIRE_UINT32_TYPE z,
         VoxelVertexPosition vertexPosition,
         SPIRE_UINT32_TYPE face
@@ -271,7 +272,7 @@ namespace SpireVoxel {
         assert(z <= 64);
         assert(face < SPIRE_VOXEL_NUM_FACES);
         VertexData vertex = {
-            .VoxelType = voxelType,
+            .VoxelDataIndex = voxelDataIndex,
             .Packed_7X7Y7Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (
                                               0xFF & z)
         };
@@ -311,6 +312,22 @@ namespace SpireVoxel {
 #endif
     struct CameraInfo {
         SPIRE_MAT4X4_TYPE ViewProjectionMatrix;
+    };
+
+#ifdef __cplusplus
+}
+#endif
+
+// gpu chunk data
+#ifdef __cplusplus
+namespace SpireVoxel {
+#endif
+    struct GPUChunkVoxelData {
+#ifdef __cplusplus
+        std::array<SPIRE_UINT32_TYPE, SPIRE_VOXEL_CHUNK_VOLUME> Data;
+#else
+        uvec4 Data[SPIRE_VOXEL_CHUNK_VOLUME / 4];
+#endif
     };
 
 #ifdef __cplusplus

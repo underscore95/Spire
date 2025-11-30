@@ -56,8 +56,8 @@ namespace SpireVoxel {
         void HandleProfiling();
 
     public:
-        static constexpr bool IS_PROFILING = true;
-        static constexpr bool RENDER_WIREFRAMES = true;
+        static constexpr bool IS_PROFILING = false;
+        static constexpr bool RENDER_WIREFRAMES = false;
 
     private:
         struct ProfileStrategy {

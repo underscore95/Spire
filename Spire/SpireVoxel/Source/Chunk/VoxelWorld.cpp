@@ -22,7 +22,7 @@ namespace SpireVoxel {
         for (auto chunkPosition : chunkPositions) {
             if (m_chunks.contains(chunkPosition)) continue;
             m_chunks.try_emplace(chunkPosition, new Chunk(chunkPosition, *this)); // this constructs a unique ptr
-            auto& chunk = m_chunks.at(chunkPosition);
+            auto &chunk = m_chunks.at(chunkPosition);
             assert(!chunk->IsCorrupted());
             loadedAnyChunks = true;
         }
@@ -38,6 +38,7 @@ namespace SpireVoxel {
             auto it = m_chunks.find(chunkPosition);
             if (it == m_chunks.end()) continue;
             m_renderer->FreeChunkVertexBuffer(*it->second);
+            m_renderer->FreeChunkVoxelDataBuffer(*it->second);
             m_chunks.erase(it);
             unloadedAnyChunks = true;
         }
@@ -68,11 +69,11 @@ namespace SpireVoxel {
         return m_chunks.size();
     }
 
-    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator VoxelWorld::begin() {
+    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk> >::iterator VoxelWorld::begin() {
         return m_chunks.begin();
     }
 
-    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator VoxelWorld::end() {
+    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk> >::iterator VoxelWorld::end() {
         return m_chunks.end();
     }
 
@@ -95,7 +96,7 @@ namespace SpireVoxel {
     }
 
     glm::u64 VoxelWorld::CalculateGPUMemoryUsageForChunks() const {
-        return m_renderer->m_chunkVertexBufferAllocator.CalculateAllocatedOrPendingMemory();
+        return m_renderer->m_chunkVertexBufferAllocator.CalculateAllocatedOrPendingMemory() + m_renderer->m_chunkVoxelDataBufferAllocator.CalculateAllocatedOrPendingMemory();
     }
 
     glm::u64 VoxelWorld::CalculateCPUMemoryUsageForChunks() const {
@@ -132,9 +133,9 @@ namespace SpireVoxel {
 
     glm::ivec3 VoxelWorld::GetChunkPositionOfVoxel(glm::ivec3 voxelWorldPosition) {
         return {
-            glm::floor(voxelWorldPosition.x / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
-            glm::floor(voxelWorldPosition.y / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
-            glm::floor(voxelWorldPosition.z / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE))
+            glm::floor(static_cast<float>(voxelWorldPosition.x) / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
+            glm::floor(static_cast<float>(voxelWorldPosition.y) / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE)),
+            glm::floor(static_cast<float>(voxelWorldPosition.z) / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE))
         };
     }
 
@@ -146,7 +147,7 @@ namespace SpireVoxel {
     }
 
     glm::uvec3 VoxelWorld::ToChunkSpace(glm::ivec3 worldVoxelPosition) {
-        return glm::uvec3 {
+        return glm::uvec3{
             abs(worldVoxelPosition.x % SPIRE_VOXEL_CHUNK_SIZE),
             abs(worldVoxelPosition.y % SPIRE_VOXEL_CHUNK_SIZE),
             abs(worldVoxelPosition.z % SPIRE_VOXEL_CHUNK_SIZE)

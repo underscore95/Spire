@@ -44,7 +44,7 @@ namespace SpireVoxel {
         [[nodiscard]] std::size_t CalculateAllocatedOrPendingMemory() const;
 
     private:
-        [[nodiscard]] std::optional<BufferAllocator::PendingFree> IsPendingFree(std::size_t start) const;
+        [[nodiscard]] std::optional<PendingFree> IsPendingFree(std::size_t start) const;
 
     private:
         Spire::RenderingManager &m_renderingManager;

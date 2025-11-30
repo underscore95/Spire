@@ -8,8 +8,11 @@ namespace SpireVoxel {
         : m_world(world),
           m_renderingManager(renderingManager),
           m_onWorldEditedDelegate(),
-          m_chunkVertexBufferAllocator(m_renderingManager, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(), sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD) {
+          m_chunkVertexBufferAllocator(m_renderingManager, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(), sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD),
+          m_chunkVoxelDataBufferAllocator(m_renderingManager, sizeof(GPUChunkVoxelData), m_renderingManager.GetSwapchain().GetNumImages(),
+                                          sizeof(GPUChunkVoxelData) * MAXIMUM_LOADED_CHUNKS) {
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD / 1024 / 1024);
+        Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", sizeof(GPUChunkVoxelData) * MAXIMUM_LOADED_CHUNKS / 1024 / 1024);
 
         m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr,
                                                                                         VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT);
@@ -43,6 +46,7 @@ namespace SpireVoxel {
 
     void VoxelWorldRenderer::PushDescriptors(Spire::PerImageDescriptorSetLayout &perFrameSet, Spire::DescriptorSetLayout &chunkVertexBuffersLayout) {
         chunkVertexBuffersLayout.push_back(m_chunkVertexBufferAllocator.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING, "World Vertex Buffer"));
+        chunkVertexBuffersLayout.push_back(m_chunkVoxelDataBufferAllocator.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING, "World Voxel Data Buffer"));
 
         Spire::PerImageDescriptor chunkDatasDescriptor = m_renderingManager.GetDescriptorCreator().CreatePerImageStorageBuffer(
             SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING,
@@ -57,7 +61,7 @@ namespace SpireVoxel {
     void VoxelWorldRenderer::UpdateChunkDatasBuffer() {
         UpdateChunkDataCache();
 
-        for (size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
+        for (std::size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
             m_dirtyChunkDataBuffers[i] = true;
         }
     }
@@ -73,36 +77,67 @@ namespace SpireVoxel {
         for (auto &chunkPos : m_editedChunks) {
             Chunk *chunk = m_world.GetLoadedChunk(chunkPos);
             if (!chunk) continue;
-            const BufferAllocator::Allocation oldAllocation = chunk->Allocation;
-           chunk->Allocation = {};
 
-            std::vector<VertexData> vertexData = chunk->GenerateMesh();
+            // write the new mesh
+            bool wasPreviousAllocation = false; {
+                const BufferAllocator::Allocation oldAllocation = chunk->VertexAllocation;
+                wasPreviousAllocation = oldAllocation.Size > 0;
+                chunk->VertexAllocation = {};
 
-            if (!vertexData.empty()) {
-                std::optional alloc =  m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
-                if (alloc) {
-                    chunk->Allocation = *alloc;
+                std::vector<VertexData> vertexData = chunk->GenerateMesh();
 
-                    // write the mesh into the vertex buffer
-                    m_chunkVertexBufferAllocator.Write(chunk->Allocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
+                if (!vertexData.empty()) {
+                    std::optional alloc = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
+                    if (alloc) {
+                        chunk->VertexAllocation = *alloc;
+
+                        // write the mesh into the vertex buffer
+                        m_chunkVertexBufferAllocator.Write(chunk->VertexAllocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
+                    } else {
+                        Spire::error("Chunk vertex data allocation failed");
+                    }
+                }
+
+                if (oldAllocation.Size > 0) {
+                    m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
+                }
+
+                chunk->NumVertices = vertexData.size();
+            }
+
+            // write the voxel data
+            {
+                const BufferAllocator::Allocation oldAllocation = chunk->VoxelDataAllocation;
+
+                if (chunk->NumVertices > 0) {
+                    std::optional alloc = m_chunkVoxelDataBufferAllocator.Allocate(sizeof(GPUChunkVoxelData));
+                    if (alloc) {
+                        chunk->VoxelDataAllocation = *alloc;
+
+                        // write the voxel data
+                        m_chunkVoxelDataBufferAllocator.Write(chunk->VoxelDataAllocation, chunk->VoxelData.data(), sizeof(GPUChunkVoxelData));
+                    } else {
+                        // allocation failed, need to free the vertex allocation
+                        Spire::error("Chunk voxel data allocation failed, deallocating vertex buffer");
+                        m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk->VertexAllocation);
+                        chunk->VertexAllocation = {};
+                    }
+                }
+
+                if (oldAllocation.Size > 0) {
+                    m_chunkVoxelDataBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
                 }
             }
 
-            if (oldAllocation.Size > 0) {
-                m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
-            }
-
             // write the chunk data
-            chunk->NumVertices = vertexData.size();
-
-            if (oldAllocation.Size == 0) {
+            if (!wasPreviousAllocation) {
                 UpdateChunkDatasBuffer();
                 changes.RecreatePipeline = true;
             } else {
                 glm::u32 chunkIndex = 0;
                 for (auto &[_,c] : m_world) {
                     if (c.get() == chunk) break;
-                    if (c->Allocation.Size == 0) continue;
+                    if (c->VertexAllocation.Size == 0) continue;
                     chunkIndex++;
                 }
 
@@ -129,16 +164,23 @@ namespace SpireVoxel {
         m_latestCachedChunkData.clear();
         for (const auto &[_, chunk] : m_world) {
             auto chunkIndex = static_cast<glm::u32>(m_latestCachedChunkData.size());
-            if (chunk->Allocation.Size == 0) continue;
+            if (chunk->VertexAllocation.Size == 0) continue;
 
             m_latestCachedChunkData.push_back(chunk->GenerateChunkData(chunkIndex));
         }
     }
 
     void VoxelWorldRenderer::FreeChunkVertexBuffer(Chunk &chunk) {
-        if (chunk.Allocation.Size > 0) {
-            m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk.Allocation);
-            chunk.Allocation = {};
+        if (chunk.VertexAllocation.Size > 0) {
+            m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk.VertexAllocation);
+            chunk.VertexAllocation = {};
+        }
+    }
+
+    void VoxelWorldRenderer::FreeChunkVoxelDataBuffer(Chunk &chunk) {
+        if (chunk.VoxelDataAllocation.Size > 0) {
+            m_chunkVoxelDataBufferAllocator.ScheduleFreeAllocation(chunk.VoxelDataAllocation);
+            chunk.VoxelDataAllocation = {};
         }
     }
 } // SpireVoxel
