@@ -33,6 +33,7 @@ namespace SpireVoxel {
         }
 
         m_chunkVertexBufferAllocator.Render();
+        m_chunkVoxelDataBufferAllocator.Render();
     }
 
     DelegateSubscribers<VoxelWorldRenderer::WorldEditRequiredChanges> &VoxelWorldRenderer::GetOnWorldEditSubscribers() {

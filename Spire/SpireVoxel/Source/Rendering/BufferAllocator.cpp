@@ -35,7 +35,7 @@ namespace SpireVoxel {
 
         // no space previously, need to allocate at end
         if (previousAllocationEnd + requestedSize > m_buffer.Size) {
-            Spire::warn("Failed to allocate chunk vertex buffer memory - out of memory! Requested allocation size: {}", requestedSize);
+            Spire::warn("Failed to allocate memory in BufferAllocator - out of memory! Requested allocation size: {}", requestedSize);
             return std::nullopt;
         }
 
