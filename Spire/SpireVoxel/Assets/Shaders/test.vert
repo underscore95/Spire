@@ -31,7 +31,7 @@ void main()
     voxelFace = UnpackVertexDataFace(vtx.Packed_7X7Y7Z2VertPos3Face);
 
     gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);
-    texCoord = VoxelVertexPositionToUV(vertexVoxelPos) * vec2(vtx.Width, vtx.Height);
+    texCoord = VoxelVertexPositionToUV(vertexVoxelPos) * UnpackVertexFaceWidthHeight(vtx.Packed_6Width6Height);
     voxelData = vec3(voxelPos.x, voxelPos.y, voxelPos.z) - FaceToDirection(voxelFace) * 0.5f /*move to the center of the voxel*/;
     voxelDataChunkIndex = chunkData.VoxelDataChunkIndex;
 }
