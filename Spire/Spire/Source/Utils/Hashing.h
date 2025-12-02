@@ -30,3 +30,4 @@ namespace Spire {
 
 // Hash common types
 MAKE_HASHABLE(glm::ivec3, t.x, t.y, t.z);
+MAKE_HASHABLE(glm::uvec3, t.x, t.y, t.z);
