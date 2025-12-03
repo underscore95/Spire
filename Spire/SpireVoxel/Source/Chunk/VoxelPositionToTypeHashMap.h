@@ -15,6 +15,7 @@ namespace SpireVoxel {
         };
 
         // Construct a hash map from unordered_map
+        // map must contain at least one element
         explicit VoxelPositionToTypeHashMap(const std::unordered_map<glm::uvec3, glm::u32> &map);
 
     public:
@@ -29,6 +30,14 @@ namespace SpireVoxel {
         // 0.5 means the used storage is double
         [[nodiscard]] float GetLoadFactor() const;
 
+        [[nodiscard]] glm::u32 GetBucketCount() const;
+
+        [[nodiscard]] glm::u32 GetBucketSize() const;
+
+        [[nodiscard]] std::size_t GetMemoryUsage() const;
+
+        [[nodiscard]] std::size_t GetNumConstructAttempts() const;
+
     private:
         void Construct(const std::unordered_map<glm::uvec3, glm::u32> &map, glm::u32 bucketCount);
 
@@ -36,6 +45,7 @@ namespace SpireVoxel {
 
     private:
         glm::u32 mNumEntries;
+        glm::u32 mNumConstructAttempts = 0;
         std::vector<std::vector<Entry> > mBuckets;
     };
 } // SpireVoxel

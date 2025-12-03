@@ -3,9 +3,12 @@
 #include "../../Assets/Shaders/VoxelDataHashMap.h"
 
 namespace SpireVoxel {
+    constexpr glm::u32 BUCKET_SIZE = 16u;
+
     VoxelPositionToTypeHashMap::VoxelPositionToTypeHashMap(const std::unordered_map<glm::uvec3, glm::u32> &map)
         : mNumEntries(map.size()) {
-        Construct(map, 10);
+        assert(mNumEntries > 0);
+        Construct(map, std::max(1ull, map.size() / (BUCKET_SIZE - 3)));
     }
 
     std::vector<VoxelPositionToTypeHashMap::Entry> VoxelPositionToTypeHashMap::ToSparseVector() const {
@@ -34,7 +37,23 @@ namespace SpireVoxel {
 
     float VoxelPositionToTypeHashMap::GetLoadFactor() const {
         std::size_t capacity = mBuckets.size() * mBuckets[0].size();
-        return static_cast<float>(mNumEntries) / static_cast<float>(capacity); // approx 0.73664826 with 10k random entries
+        return static_cast<float>(mNumEntries) / static_cast<float>(capacity);
+    }
+
+    glm::u32 VoxelPositionToTypeHashMap::GetBucketCount() const {
+        return mBuckets.size();
+    }
+
+    glm::u32 VoxelPositionToTypeHashMap::GetBucketSize() const {
+        return mBuckets[0].size();
+    }
+
+    std::size_t VoxelPositionToTypeHashMap::GetMemoryUsage() const {
+        return sizeof(Entry) * GetBucketCount() * GetBucketSize();
+    }
+
+    std::size_t VoxelPositionToTypeHashMap::GetNumConstructAttempts() const {
+        return mNumConstructAttempts;
     }
 
     bool VoxelPositionToTypeHashMap::Insert(Entry entry, glm::u32 bucketCount, glm::u32 hashFunction) {
@@ -59,12 +78,13 @@ namespace SpireVoxel {
     }
 
     void VoxelPositionToTypeHashMap::Construct(const std::unordered_map<glm::uvec3, glm::u32> &map, glm::u32 bucketCount) {
+        mNumConstructAttempts++;
+
         // initialize
         mBuckets.resize(bucketCount);
-        const glm::u32 bucketSize = glm::max(5u, static_cast<glm::u32>(glm::ceil(static_cast<float>(map.size()) / static_cast<float>(bucketCount))));
 
         for (auto &bucket : mBuckets) {
-            bucket.resize(bucketSize);
+            bucket.resize(BUCKET_SIZE);
             std::ranges::fill(bucket, Entry{
                                   .PosX = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE, .PosY = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE, .PosZ = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE,
                                   .Type = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE

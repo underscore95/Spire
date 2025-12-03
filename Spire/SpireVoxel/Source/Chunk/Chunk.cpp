@@ -1,6 +1,7 @@
 #include "Chunk.h"
 
 #include "GreedyMeshingGrid.h"
+#include "VoxelPositionToTypeHashMap.h"
 #include "VoxelWorld.h"
 
 namespace SpireVoxel {
@@ -47,7 +48,22 @@ namespace SpireVoxel {
         return queryChunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(queryPosition)];
     }
 
-    void PushFace(std::vector<VertexData> &vertices, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) {
+    void Chunk::InsertVoxelData(std::unordered_map<glm::uvec3, glm::u32> &voxelData, glm::uvec3 start, glm::uvec3 dimensions) const {
+        for (glm::u32 x = start.x; x < start.x + dimensions.x; x++) {
+            for (glm::u32 y = start.y; y < start.y + dimensions.y; y++) {
+                for (glm::u32 z = start.z; z < start.z + dimensions.z; z++) {
+                    glm::uvec3 pos = {x, y, z};
+                    if (voxelData.contains(pos)) {
+                        assert(voxelData[pos]==VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(pos)]);
+                    }
+                    voxelData[pos] = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(pos)];
+                }
+            }
+        }
+    }
+
+    void Chunk::PushFace(std::vector<VertexData> &vertices, std::unordered_map<glm::uvec3, glm::u32> &voxelData, glm::u32 face, glm::uvec3 p, glm::u32 width,
+                         glm::u32 height) const {
         assert(width > 0);
         assert(height > 0);
         const glm::u32 w = width;
@@ -60,6 +76,8 @@ namespace SpireVoxel {
                 vertices.push_back(PackVertexData(w, h, p.x + w, p.y + h, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
                 vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 1, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Z));
                 vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
+
+                InsertVoxelData(voxelData, p, {w, h, 1});
                 break;
 
             case SPIRE_VOXEL_FACE_NEG_Z:
@@ -69,6 +87,8 @@ namespace SpireVoxel {
                 vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
                 vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Z));
                 vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Z));
+
+                InsertVoxelData(voxelData, p, {w, h, 1});
                 break;
 
             case SPIRE_VOXEL_FACE_NEG_X:
@@ -78,6 +98,8 @@ namespace SpireVoxel {
                 vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + w, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
                 vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + w, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_X));
                 vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_X));
+
+                InsertVoxelData(voxelData, p, {1, h, w});
                 break;
 
             case SPIRE_VOXEL_FACE_POS_X:
@@ -87,6 +109,8 @@ namespace SpireVoxel {
                 vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
                 vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_X));
                 vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + 0, p.z + w, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_X));
+
+                InsertVoxelData(voxelData, p, {1, h, w});
                 break;
 
             case SPIRE_VOXEL_FACE_POS_Y:
@@ -96,6 +120,8 @@ namespace SpireVoxel {
                 vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
                 vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 1, p.z + h, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Y));
                 vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 1, p.z + h, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Y));
+
+                InsertVoxelData(voxelData, p, {w, 1, h});
                 break;
 
             case SPIRE_VOXEL_FACE_NEG_Y:
@@ -105,6 +131,8 @@ namespace SpireVoxel {
                 vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + h, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
                 vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Y));
                 vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Y));
+
+                InsertVoxelData(voxelData, p, {w, 1, h});
                 break;
             default:
                 assert(false);
@@ -124,8 +152,9 @@ namespace SpireVoxel {
         }
     }
 
-    std::vector<VertexData> Chunk::GenerateMesh() const {
-        std::vector<VertexData> vertices;
+    ChunkMesh Chunk::GenerateMesh() const {
+        ChunkMesh mesh = {};
+        std::unordered_map<glm::uvec3, glm::u32> voxelData;
 
         // slice, row, col are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetChunkCoords
         // slice is the slice of voxels we are working with
@@ -184,7 +213,7 @@ namespace SpireVoxel {
 
                         // push the face
                         glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
-                        PushFace(vertices, face + faceSignIndex, chunkCoords, width, height);
+                        PushFace(mesh.Vertices, voxelData, face + faceSignIndex, chunkCoords, width, height);
 
                         if (grid.GetColumn(col) != 0) {
                             // we didn't get all the voxels on this row, loop again
@@ -195,7 +224,28 @@ namespace SpireVoxel {
             }
         }
 
-        return vertices;
+        if (!voxelData.empty()) {
+            mesh.VoxelDataHashMap = std::make_unique<VoxelPositionToTypeHashMap>(voxelData);
+            constexpr bool LOG_MAP_INFO = true;
+            if (LOG_MAP_INFO) {
+                Spire::info(R"({{
+            "vertices": {},
+            "load_factor": {},
+            "fraction_of_array": {},
+            "bucket_count": {},
+            "bucket_size": {},
+            "num_construct_attempts": {},
+        }},)",
+                            mesh.Vertices.size(),
+                            mesh.VoxelDataHashMap->GetLoadFactor(),
+                            static_cast<float>(sizeof(VoxelData)) / static_cast<float>(mesh.VoxelDataHashMap->GetMemoryUsage()),
+                            mesh.VoxelDataHashMap->GetBucketCount(),
+                            mesh.VoxelDataHashMap->GetBucketSize(),
+                            mesh.VoxelDataHashMap->GetNumConstructAttempts()
+                );
+            }
+        }
+        return mesh;
     }
 
     ChunkData Chunk::GenerateChunkData(glm::u32 chunkIndex) const {

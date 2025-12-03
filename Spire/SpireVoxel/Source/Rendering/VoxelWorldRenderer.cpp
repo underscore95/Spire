@@ -87,15 +87,15 @@ namespace SpireVoxel {
                 wasPreviousAllocation = oldAllocation.Size > 0;
                 chunk->VertexAllocation = {};
 
-                std::vector<VertexData> vertexData = chunk->GenerateMesh();
+              ChunkMesh mesh = chunk->GenerateMesh();
 
-                if (!vertexData.empty()) {
-                    std::optional alloc = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
+                if (!mesh.Vertices.empty()) {
+                    std::optional alloc = m_chunkVertexBufferAllocator.Allocate(mesh.Vertices.size() * sizeof(VertexData));
                     if (alloc) {
                         chunk->VertexAllocation = *alloc;
 
                         // write the mesh into the vertex buffer
-                        m_chunkVertexBufferAllocator.Write(chunk->VertexAllocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
+                        m_chunkVertexBufferAllocator.Write(chunk->VertexAllocation, mesh.Vertices.data(), mesh.Vertices.size() * sizeof(VertexData));
                     } else {
                         Spire::error("Chunk vertex data allocation failed");
                     }
@@ -105,7 +105,7 @@ namespace SpireVoxel {
                     m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
                 }
 
-                chunk->NumVertices = vertexData.size();
+                chunk->NumVertices = mesh.Vertices.size();
             }
 
             // write the voxel data
