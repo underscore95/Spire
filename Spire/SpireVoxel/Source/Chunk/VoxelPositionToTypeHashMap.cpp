@@ -3,12 +3,11 @@
 #include "../../Assets/Shaders/VoxelDataHashMap.h"
 
 namespace SpireVoxel {
-    constexpr glm::u32 BUCKET_SIZE = 16u;
-
     VoxelPositionToTypeHashMap::VoxelPositionToTypeHashMap(const std::unordered_map<glm::uvec3, glm::u32> &map)
         : mNumEntries(map.size()) {
         assert(mNumEntries > 0);
-        Construct(map, std::max(1ull, map.size() / (BUCKET_SIZE - 3)));
+        Construct(map, std::max(1ull, map.size() / (SPIRE_VOXEL_DATA_MAP_BUCKET_SIZE - 3)));
+        static_assert(SPIRE_VOXEL_DATA_MAP_BUCKET_SIZE > 3);
     }
 
     std::vector<VoxelPositionToTypeHashMap::Entry> VoxelPositionToTypeHashMap::ToSparseVector() const {
@@ -84,7 +83,7 @@ namespace SpireVoxel {
         mBuckets.resize(bucketCount);
 
         for (auto &bucket : mBuckets) {
-            bucket.resize(BUCKET_SIZE);
+            bucket.resize(SPIRE_VOXEL_DATA_MAP_BUCKET_SIZE);
             std::ranges::fill(bucket, Entry{
                                   .PosX = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE, .PosY = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE, .PosZ = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE,
                                   .Type = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE

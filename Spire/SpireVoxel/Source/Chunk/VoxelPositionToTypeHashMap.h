@@ -34,6 +34,7 @@ namespace SpireVoxel {
 
         [[nodiscard]] glm::u32 GetBucketSize() const;
 
+        // Number of bytes required to store all the buckets
         [[nodiscard]] std::size_t GetMemoryUsage() const;
 
         [[nodiscard]] std::size_t GetNumConstructAttempts() const;

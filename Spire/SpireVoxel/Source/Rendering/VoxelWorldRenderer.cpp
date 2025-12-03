@@ -1,5 +1,5 @@
 #include "VoxelWorldRenderer.h"
-
+#include "../Assets/Shaders/VoxelDataHashMap.h"
 #include "Chunk/VoxelWorld.h"
 
 namespace SpireVoxel {
@@ -9,10 +9,10 @@ namespace SpireVoxel {
           m_renderingManager(renderingManager),
           m_onWorldEditedDelegate(),
           m_chunkVertexBufferAllocator(m_renderingManager, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(), sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD),
-          m_chunkVoxelDataBufferAllocator(m_renderingManager, sizeof(GPUChunkVoxelData), m_renderingManager.GetSwapchain().GetNumImages(),
-                                          sizeof(GPUChunkVoxelData) * MAXIMUM_LOADED_CHUNKS) {
+          m_chunkVoxelDataBufferAllocator(m_renderingManager, sizeof(VoxelDataHashMapEntry), m_renderingManager.GetSwapchain().GetNumImages(),
+                                          sizeof(VoxelDataHashMapEntry) * MAXIMUM_RENDERED_VOXELS) {
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD / 1024 / 1024);
-        Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", sizeof(GPUChunkVoxelData) * MAXIMUM_LOADED_CHUNKS / 1024 / 1024);
+        Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", sizeof(VoxelDataHashMapEntry) * MAXIMUM_RENDERED_VOXELS / 1024 / 1024);
 
         m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr,
                                                                                         VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT);
@@ -49,7 +49,7 @@ namespace SpireVoxel {
         chunkVertexBuffersLayout.push_back(
             m_chunkVertexBufferAllocator.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING, VK_SHADER_STAGE_VERTEX_BIT, "World Vertex Buffer"));
         chunkVertexBuffersLayout.push_back(
-            m_chunkVoxelDataBufferAllocator.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING, VK_SHADER_STAGE_FRAGMENT_BIT, "World Voxel Data Buffer"));
+            m_chunkVoxelDataBufferAllocator.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_DATA_MAP_ENTRIES, VK_SHADER_STAGE_FRAGMENT_BIT, "World Voxel Data Buffer"));
 
         Spire::PerImageDescriptor chunkDatasDescriptor = m_renderingManager.GetDescriptorCreator().CreatePerImageStorageBuffer(
             SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING,
@@ -81,13 +81,18 @@ namespace SpireVoxel {
             Chunk *chunk = m_world.GetLoadedChunk(chunkPos);
             if (!chunk) continue;
 
+            chunk->VoxelDataMapBucketCount = 0;
+
             // write the new mesh
-            bool wasPreviousAllocation = false; {
+            bool wasPreviousAllocation = false;
+            ChunkMesh mesh;
+
+            {
                 const BufferAllocator::Allocation oldAllocation = chunk->VertexAllocation;
                 wasPreviousAllocation = oldAllocation.Size > 0;
                 chunk->VertexAllocation = {};
 
-              ChunkMesh mesh = chunk->GenerateMesh();
+                mesh = chunk->GenerateMesh();
 
                 if (!mesh.Vertices.empty()) {
                     std::optional alloc = m_chunkVertexBufferAllocator.Allocate(mesh.Vertices.size() * sizeof(VertexData));
@@ -113,12 +118,14 @@ namespace SpireVoxel {
                 const BufferAllocator::Allocation oldAllocation = chunk->VoxelDataAllocation;
 
                 if (chunk->NumVertices > 0) {
-                    std::optional alloc = m_chunkVoxelDataBufferAllocator.Allocate(sizeof(GPUChunkVoxelData));
+                    std::optional alloc = m_chunkVoxelDataBufferAllocator.Allocate(mesh.VoxelDataHashMap->GetMemoryUsage());
                     if (alloc) {
                         chunk->VoxelDataAllocation = *alloc;
+                        chunk->VoxelDataMapBucketCount = mesh.VoxelDataHashMap->GetBucketCount();
 
                         // write the voxel data
-                        m_chunkVoxelDataBufferAllocator.Write(chunk->VoxelDataAllocation, chunk->VoxelData.data(), sizeof(GPUChunkVoxelData));
+                        std::vector data = mesh.VoxelDataHashMap->ToSparseVector();
+                        m_chunkVoxelDataBufferAllocator.Write(chunk->VoxelDataAllocation, data.data(), alloc->Size);
                     } else {
                         // allocation failed, need to free the vertex allocation
                         Spire::error("Chunk voxel data allocation failed, deallocating vertex buffer");

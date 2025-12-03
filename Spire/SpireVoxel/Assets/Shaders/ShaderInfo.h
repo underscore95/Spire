@@ -1,18 +1,23 @@
 // ReSharper disable CppVariableCanBeMadeConstexpr
+
 #ifndef SPIRE_SHADER_BINDINGS
 #define SPIRE_SHADER_BINDINGS
 
+// descriptor sets
 #define SPIRE_SHADER_BINDINGS_CONSTANT_SET 0
 #define SPIRE_SHADER_BINDINGS_PER_FRAME_SET 1 // per frame, so takes 2 and 3 too
 #define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET 4
 
-#define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING 0
-#define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING 1
+// descriptor bindings
 #define SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING 2
-#define SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING 3
 #define SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING 1
+
 #define SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING 0
+#define SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING 3
+
+#define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING 0
 #define SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_DATA_MAP_ENTRIES 4
+// ---
 
 #define SPIRE_SHADER_TEXTURE_COUNT 1
 
@@ -86,10 +91,8 @@ namespace SpireVoxel {
         SPIRE_INT32_TYPE ChunkX; // allows for 137 billion voxels in each direction
         SPIRE_INT32_TYPE ChunkY;
         SPIRE_INT32_TYPE ChunkZ;
-        SPIRE_UINT32_TYPE VoxelDataChunkIndex;
-        SPIRE_UINT32_TYPE VoxelDataMapStartingIndex;
-        SPIRE_UINT32_TYPE VoxelDataMapBucketSize;
-        SPIRE_UINT32_TYPE VoxelDataMapBucketCount;
+        SPIRE_UINT32_TYPE VoxelDataMapStartingIndex; // Index of first entry in GPU hashmap
+        SPIRE_UINT32_TYPE VoxelDataMapBucketCount; // Number of buckets
     };
 
 #ifdef __cplusplus
@@ -330,22 +333,6 @@ namespace SpireVoxel {
 #endif
     struct CameraInfo {
         SPIRE_MAT4X4_TYPE ViewProjectionMatrix;
-    };
-
-#ifdef __cplusplus
-}
-#endif
-
-// gpu chunk data
-#ifdef __cplusplus
-namespace SpireVoxel {
-#endif
-    struct GPUChunkVoxelData {
-#ifdef __cplusplus
-        std::array<SPIRE_UINT32_TYPE, SPIRE_VOXEL_CHUNK_VOLUME> Data;
-#else
-        uvec4 Data[SPIRE_VOXEL_CHUNK_VOLUME / 4];
-#endif
     };
 
 #ifdef __cplusplus

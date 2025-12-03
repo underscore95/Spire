@@ -3,6 +3,7 @@
 #include "GreedyMeshingGrid.h"
 #include "VoxelPositionToTypeHashMap.h"
 #include "VoxelWorld.h"
+#include "../../Assets/Shaders/VoxelDataHashMap.h"
 
 namespace SpireVoxel {
     glm::u32 GetAdjacentVoxelType(const Chunk &chunk, glm::ivec3 position, glm::u32 face) {
@@ -226,7 +227,7 @@ namespace SpireVoxel {
 
         if (!voxelData.empty()) {
             mesh.VoxelDataHashMap = std::make_unique<VoxelPositionToTypeHashMap>(voxelData);
-            constexpr bool LOG_MAP_INFO = true;
+            constexpr bool LOG_MAP_INFO = false;
             if (LOG_MAP_INFO) {
                 Spire::info(R"({{
             "vertices": {},
@@ -250,6 +251,8 @@ namespace SpireVoxel {
 
     ChunkData Chunk::GenerateChunkData(glm::u32 chunkIndex) const {
         assert(NumVertices > 0);
+        assert(VoxelDataMapBucketCount != 0);
+        assert(VoxelDataAllocation.Start / sizeof(VoxelDataHashMapEntry) < UINT32_MAX);
         return {
             .CPU_DrawCommandParams = {
                 .vertexCount = (NumVertices),
@@ -260,7 +263,8 @@ namespace SpireVoxel {
             .ChunkX = ChunkPosition.x,
             .ChunkY = ChunkPosition.y,
             .ChunkZ = ChunkPosition.z,
-            .VoxelDataChunkIndex = static_cast<glm::u32>(VoxelDataAllocation.Start / sizeof(GPUChunkVoxelData))
+            .VoxelDataMapStartingIndex = static_cast<glm::u32>(VoxelDataAllocation.Start / sizeof(VoxelDataHashMapEntry)),
+            .VoxelDataMapBucketCount = VoxelDataMapBucketCount
         };
     }
 

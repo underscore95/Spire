@@ -10,6 +10,7 @@ namespace SpireVoxel {
 
 #define SPIRE_VOXEL_DATA_NUM_HASH_FUNCTIONS 10
 #define SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE 0
+#define SPIRE_VOXEL_DATA_MAP_BUCKET_SIZE 16
 
     // hash coefficients
     SPIRE_KEYWORD_STATIC const SPIRE_UVEC3_TYPE VOXEL_DATA_HASH_COEFFICIENTS[SPIRE_VOXEL_DATA_NUM_HASH_FUNCTIONS] =
@@ -35,8 +36,7 @@ namespace SpireVoxel {
     );
 #endif
 
-    // HashMap buffer
-#ifndef  __cplusplus
+    // HashMap entry
     struct VoxelDataHashMapEntry {
         SPIRE_UINT32_TYPE PosX;
         SPIRE_UINT32_TYPE PosY;
@@ -44,6 +44,10 @@ namespace SpireVoxel {
         SPIRE_UINT32_TYPE VoxelType;
     };
 
+    // HashMap buffer
+#ifndef  __cplusplus
+    // All the entries of all HashMaps are combined into a single buffer
+    // Starting index and bucket count of each HashMap is stored in ChunkData
     layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_DATA_MAP_ENTRIES) readonly buffer VoxelDataHashMapEntriesBuffer {
         VoxelDataHashMapEntry entries[];
     } voxelDataHashMapEntries;
@@ -62,11 +66,11 @@ namespace SpireVoxel {
 
     // GLSL HashMap Query
 #ifndef __cplusplus
-    uint VoxelDataHashMapGet(uint x, uint y, uint z, uint startingMapIndex, uint bucketSize, uint bucketCount) {
+    uint VoxelDataHashMapGet(uint x, uint y, uint z, uint startingMapIndex, uint bucketCount) {
         for (uint hashFunction = 0; hashFunction < SPIRE_VOXEL_DATA_NUM_HASH_FUNCTIONS; hashFunction++) {
             uint bucketIndex = VoxelDataHashMapHash(x, y, z, hashFunction) % bucketCount;
-            uint startingEntryIndex = bucketSize * bucketIndex + startingMapIndex; // first entry in our bucket
-            for (uint entryIndex = startingEntryIndex; entryIndex < startingEntryIndex + bucketSize; entryIndex++) {
+            uint startingEntryIndex = SPIRE_VOXEL_DATA_MAP_BUCKET_SIZE * bucketIndex + startingMapIndex; // first entry in our bucket
+            for (uint entryIndex = startingEntryIndex; entryIndex < startingEntryIndex + SPIRE_VOXEL_DATA_MAP_BUCKET_SIZE; entryIndex++) {
 
                 if (voxelDataHashMapEntries.entries[entryIndex].VoxelType != SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE
                     && voxelDataHashMapEntries.entries[entryIndex].PosX == x
