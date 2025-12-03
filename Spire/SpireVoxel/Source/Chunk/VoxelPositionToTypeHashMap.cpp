@@ -8,7 +8,23 @@ namespace SpireVoxel {
     }
 
     std::vector<glm::i8> VoxelPositionToTypeHashMap::ToBytes() {
-        return {}; // todo
+        glm::u32 numBuckets = mBuckets.size();
+        glm::u32 bucketSize = mBuckets[0].size();
+
+        std::vector<glm::i8> bytes(sizeof(numBuckets) + sizeof(bucketSize) + (numBuckets * bucketSize * sizeof(Entry)));
+        std::size_t writeIndex = 0;
+        memcpy(bytes.data() + writeIndex, &numBuckets, sizeof(numBuckets));
+        writeIndex += sizeof(numBuckets);
+        memcpy(bytes.data() + writeIndex, &bucketSize, sizeof(bucketSize));
+        writeIndex += sizeof(bucketSize);
+
+        for (auto &bucket : mBuckets) {
+            std::size_t dataSize = bucket.size() * sizeof(Entry);
+            memcpy(bytes.data() + writeIndex, bucket.data(), dataSize);
+            writeIndex += dataSize;
+        }
+
+        return bytes;
     }
 
     glm::u32 VoxelPositionToTypeHashMap::Get(glm::uvec3 key) const {
@@ -27,6 +43,29 @@ namespace SpireVoxel {
     float VoxelPositionToTypeHashMap::GetLoadFactor() const {
         std::size_t capacity = mBuckets.size() * mBuckets[0].size();
         return static_cast<float>(mNumEntries) / static_cast<float>(capacity); // approx 0.73664826 with 10k random entries
+    }
+
+    glm::u32 VoxelPositionToTypeHashMap::GetFromBytes(glm::uvec3 key, const std::vector<glm::i8> &bytes) {
+        std::size_t readIndex = 0;
+        glm::u32 numBuckets = *reinterpret_cast<const glm::u32 *>(bytes.data() + readIndex);
+        readIndex += sizeof(numBuckets);
+        glm::u32 bucketSize = *reinterpret_cast<const glm::u32 *>(bytes.data() + readIndex);
+        readIndex += sizeof(bucketSize);
+
+
+        for (std::size_t hashFunction = 0; hashFunction < HASH_COEFFICIENTS.size(); hashFunction++) {
+            glm::u32 bucketIndex = Hash({.PosX = key.x, .PosY = key.y, .PosZ = key.z}, hashFunction) % numBuckets;
+            std::size_t bucketLocation = readIndex + sizeof(Entry) * bucketSize * bucketIndex;
+            auto bucket = reinterpret_cast<const Entry *>(bytes.data() + bucketLocation);
+            for (std::size_t i = 0; i < bucketSize; i++) {
+                const Entry &entry = bucket[i];
+                if (entry.Type != EMPTY_VALUE && entry.PosX == key.x && entry.PosY == key.y && entry.PosZ == key.z) {
+                    return entry.Type;
+                }
+            }
+        }
+
+        return EMPTY_VALUE;
     }
 
     bool VoxelPositionToTypeHashMap::Insert(Entry entry, glm::u32 bucketCount, glm::u32 hashFunction) {
@@ -76,7 +115,7 @@ namespace SpireVoxel {
         }
     }
 
-    glm::u32 VoxelPositionToTypeHashMap::Hash(Entry entry, glm::u32 hashFunction) const {
+    glm::u32 VoxelPositionToTypeHashMap::Hash(Entry entry, glm::u32 hashFunction) {
         return (entry.PosX * HASH_COEFFICIENTS[hashFunction].x) ^ (entry.PosY * HASH_COEFFICIENTS[hashFunction].y) ^ (entry.PosZ * HASH_COEFFICIENTS[hashFunction].z);
     }
 } // SpireVoxel

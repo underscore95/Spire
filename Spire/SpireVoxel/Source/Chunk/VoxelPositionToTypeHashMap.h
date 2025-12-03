@@ -25,9 +25,16 @@ namespace SpireVoxel {
         std::vector<glm::i8> ToBytes();
 
         // Lookup value return EMPTY_VALUE if key doesn't exist
-        glm::u32 Get(glm::uvec3 key) const;
+        [[nodiscard]] glm::u32 Get(glm::uvec3 key) const;
 
-float GetLoadFactor() const;
+        // 0-1 range, how memory efficient are we
+        // 1 means the used storage is equal to the amount of memory if you just stored keys and values in an array
+        // 0.5 means the used storage is double
+        [[nodiscard]] float GetLoadFactor() const;
+
+    public:
+        // CPU implementation not really necessary but easier to test and debug
+        [[nodiscard]] static glm::u32 GetFromBytes(glm::uvec3 key, const std::vector<glm::i8> &bytes);
 
     public:
         static constexpr glm::u32 EMPTY_VALUE = 0;
@@ -49,7 +56,7 @@ float GetLoadFactor() const;
 
         bool Insert(Entry entry, glm::u32 bucketCount, glm::u32 hashFunction = 0);
 
-        glm::u32 Hash(Entry entry, glm::u32 hashFunction) const;
+        [[nodiscard]] static glm::u32 Hash(Entry entry, glm::u32 hashFunction);
 
     private:
         glm::u32 mNumEntries;

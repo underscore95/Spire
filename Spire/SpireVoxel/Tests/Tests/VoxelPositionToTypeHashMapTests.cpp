@@ -20,15 +20,18 @@ TEST(VoxelPositionToTypeHashMap, TestA) {
 
     // Construct hash map
     SpireVoxel::VoxelPositionToTypeHashMap hashMap(m);
+    std::vector<glm::i8> bytes = hashMap.ToBytes();
 
     // Test present
     for (const auto &[key, val] : m) {
         EXPECT_EQ(hashMap.Get(key), val);
+        EXPECT_EQ(hashMap.Get(key), SpireVoxel::VoxelPositionToTypeHashMap::GetFromBytes(key, bytes));
     }
 
     // Test non-present
     for (int i = 0; i < 100; i++) {
         glm::uvec3 key(dist(rng), dist(rng), dist(rng));
         EXPECT_EQ(hashMap.Get(key) != SpireVoxel::VoxelPositionToTypeHashMap::EMPTY_VALUE, m.contains(key));
+        EXPECT_EQ(hashMap.Get(key), SpireVoxel::VoxelPositionToTypeHashMap::GetFromBytes(key, bytes));
     }
 }
