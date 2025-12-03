@@ -238,7 +238,7 @@ namespace SpireVoxel {
         }},)",
                             mesh.Vertices.size(),
                             mesh.VoxelDataHashMap->GetLoadFactor(),
-                            static_cast<float>(sizeof(VoxelData)) / static_cast<float>(mesh.VoxelDataHashMap->GetMemoryUsage()),
+                            static_cast<float>(mesh.VoxelDataHashMap->GetMemoryUsage()) / static_cast<float>(sizeof(VoxelData)),
                             mesh.VoxelDataHashMap->GetBucketCount(),
                             mesh.VoxelDataHashMap->GetBucketSize(),
                             mesh.VoxelDataHashMap->GetNumConstructAttempts()
