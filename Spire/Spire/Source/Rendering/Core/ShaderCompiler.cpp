@@ -281,12 +281,7 @@ namespace Spire {
                 actualPath.clear();
             actualPath += includedPath;
 
-            // Check for recursive includes
-            if (!parsed.FilePaths.insert(actualPath).second) {
-                std::unique_lock lock(s_loggingMutex);
-                error("Recursively including {}", actualPath);
-                return {};
-            }
+            parsed.FilePaths.insert(actualPath);
 
             // Get the included source
             std::string includedSource;

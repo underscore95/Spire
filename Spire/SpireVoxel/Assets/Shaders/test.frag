@@ -3,6 +3,7 @@
 
 #include "PushConstants.glsl"
 #include "ShaderInfo.h"
+#include "VoxelDataHashMap.h"
 
 layout (location = 0) in vec2 uv;
 layout (location = 1) in vec3 voxelData;

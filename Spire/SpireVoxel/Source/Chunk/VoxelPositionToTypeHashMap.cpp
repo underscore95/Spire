@@ -8,28 +8,19 @@ namespace SpireVoxel {
         Construct(map, 10);
     }
 
-    std::vector<glm::i8> VoxelPositionToTypeHashMap::ToBytes() {
-        glm::u32 numBuckets = mBuckets.size();
-        glm::u32 bucketSize = mBuckets[0].size();
-
-        std::vector<glm::i8> bytes(sizeof(numBuckets) + sizeof(bucketSize) + (numBuckets * bucketSize * sizeof(Entry)));
-        std::size_t writeIndex = 0;
-        memcpy(bytes.data() + writeIndex, &numBuckets, sizeof(numBuckets));
-        writeIndex += sizeof(numBuckets);
-        memcpy(bytes.data() + writeIndex, &bucketSize, sizeof(bucketSize));
-        writeIndex += sizeof(bucketSize);
-
-        for (auto &bucket : mBuckets) {
-            std::size_t dataSize = bucket.size() * sizeof(Entry);
-            memcpy(bytes.data() + writeIndex, bucket.data(), dataSize);
-            writeIndex += dataSize;
+    std::vector<VoxelPositionToTypeHashMap::Entry> VoxelPositionToTypeHashMap::ToSparseVector() const {
+        std::vector<Entry> entries;
+        entries.reserve(mNumEntries);
+        for (const auto &bucket : mBuckets) {
+            for (const Entry &entry : bucket) {
+                entries.push_back(entry);
+            }
         }
-
-        return bytes;
+        return entries;
     }
 
     glm::u32 VoxelPositionToTypeHashMap::Get(glm::uvec3 key) const {
-        for (std::size_t hashFunction = 0; hashFunction < VOXEL_DATA_HASH_COEFFICIENTS.size(); hashFunction++) {
+        for (std::size_t hashFunction = 0; hashFunction < SPIRE_VOXEL_DATA_NUM_HASH_FUNCTIONS; hashFunction++) {
             glm::u32 bucketIndex = VoxelDataHashMapHash(key.x, key.y, key.z, hashFunction) % mBuckets.size();
             auto &bucket = mBuckets[bucketIndex];
             for (const Entry &entry : bucket) {
@@ -46,31 +37,8 @@ namespace SpireVoxel {
         return static_cast<float>(mNumEntries) / static_cast<float>(capacity); // approx 0.73664826 with 10k random entries
     }
 
-    glm::u32 VoxelPositionToTypeHashMap::GetFromBytes(glm::uvec3 key, const std::vector<glm::i8> &bytes) {
-        std::size_t readIndex = 0;
-        glm::u32 numBuckets = *reinterpret_cast<const glm::u32 *>(bytes.data() + readIndex);
-        readIndex += sizeof(numBuckets);
-        glm::u32 bucketSize = *reinterpret_cast<const glm::u32 *>(bytes.data() + readIndex);
-        readIndex += sizeof(bucketSize);
-
-
-        for (std::size_t hashFunction = 0; hashFunction < VOXEL_DATA_HASH_COEFFICIENTS.size(); hashFunction++) {
-            glm::u32 bucketIndex = VoxelDataHashMapHash(key.x, key.y, key.z, hashFunction) % numBuckets;
-            std::size_t bucketLocation = readIndex + sizeof(Entry) * bucketSize * bucketIndex;
-            auto bucket = reinterpret_cast<const Entry *>(bytes.data() + bucketLocation);
-            for (std::size_t i = 0; i < bucketSize; i++) {
-                const Entry &entry = bucket[i];
-                if (entry.Type != SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE && entry.PosX == key.x && entry.PosY == key.y && entry.PosZ == key.z) {
-                    return entry.Type;
-                }
-            }
-        }
-
-        return SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE;
-    }
-
     bool VoxelPositionToTypeHashMap::Insert(Entry entry, glm::u32 bucketCount, glm::u32 hashFunction) {
-        if (hashFunction >= VOXEL_DATA_HASH_COEFFICIENTS.size()) return false; // invalid function
+        if (hashFunction >= SPIRE_VOXEL_DATA_NUM_HASH_FUNCTIONS) return false; // invalid function
 
         glm::u32 bucketIndex = VoxelDataHashMapHash(entry.PosX, entry.PosY, entry.PosZ, hashFunction) % bucketCount;
         auto &bucket = mBuckets[bucketIndex];

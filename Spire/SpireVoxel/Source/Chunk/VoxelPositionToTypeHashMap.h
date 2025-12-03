@@ -18,11 +18,8 @@ namespace SpireVoxel {
         explicit VoxelPositionToTypeHashMap(const std::unordered_map<glm::uvec3, glm::u32> &map);
 
     public:
-        // Convert the hash map to bytes in a way that can be reconstructed on GPU
-        // uint32 - number of buckets
-        // uint32 - bucket size
-        // all the buckets are laid out sequentially in memory, with each bucket being an array of Entry
-        std::vector<glm::i8> ToBytes();
+        // Convert to a vector, may contain entries with empty type
+        [[nodiscard]] std::vector<Entry> ToSparseVector() const;
 
         // Lookup value return EMPTY_VALUE if key doesn't exist
         [[nodiscard]] glm::u32 Get(glm::uvec3 key) const;
@@ -31,10 +28,6 @@ namespace SpireVoxel {
         // 1 means the used storage is equal to the amount of memory if you just stored keys and values in an array
         // 0.5 means the used storage is double
         [[nodiscard]] float GetLoadFactor() const;
-
-    public:
-        // CPU implementation not really necessary but easier to test and debug
-        [[nodiscard]] static glm::u32 GetFromBytes(glm::uvec3 key, const std::vector<glm::i8> &bytes);
 
     private:
         void Construct(const std::unordered_map<glm::uvec3, glm::u32> &map, glm::u32 bucketCount);

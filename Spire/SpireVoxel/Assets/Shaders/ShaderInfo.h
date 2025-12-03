@@ -12,6 +12,7 @@
 #define SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING 3
 #define SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING 1
 #define SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING 0
+#define SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_DATA_MAP_ENTRIES 4
 
 #define SPIRE_SHADER_TEXTURE_COUNT 1
 
@@ -86,6 +87,9 @@ namespace SpireVoxel {
         SPIRE_INT32_TYPE ChunkY;
         SPIRE_INT32_TYPE ChunkZ;
         SPIRE_UINT32_TYPE VoxelDataChunkIndex;
+        SPIRE_UINT32_TYPE VoxelDataMapStartingIndex;
+        SPIRE_UINT32_TYPE VoxelDataMapBucketSize;
+        SPIRE_UINT32_TYPE VoxelDataMapBucketCount;
     };
 
 #ifdef __cplusplus
