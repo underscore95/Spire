@@ -1,10 +1,11 @@
 #include "VoxelPositionToTypeHashMap.h"
 
+#include "../../Assets/Shaders/VoxelDataHashMap.h"
+
 namespace SpireVoxel {
     VoxelPositionToTypeHashMap::VoxelPositionToTypeHashMap(const std::unordered_map<glm::uvec3, glm::u32> &map)
         : mNumEntries(map.size()) {
         Construct(map, 10);
-        Spire::info("{}", GetLoadFactor());
     }
 
     std::vector<glm::i8> VoxelPositionToTypeHashMap::ToBytes() {
@@ -28,16 +29,16 @@ namespace SpireVoxel {
     }
 
     glm::u32 VoxelPositionToTypeHashMap::Get(glm::uvec3 key) const {
-        for (std::size_t hashFunction = 0; hashFunction < HASH_COEFFICIENTS.size(); hashFunction++) {
-            glm::u32 bucketIndex = Hash({.PosX = key.x, .PosY = key.y, .PosZ = key.z}, hashFunction) % mBuckets.size();
+        for (std::size_t hashFunction = 0; hashFunction < VOXEL_DATA_HASH_COEFFICIENTS.size(); hashFunction++) {
+            glm::u32 bucketIndex = VoxelDataHashMapHash(key.x, key.y, key.z, hashFunction) % mBuckets.size();
             auto &bucket = mBuckets[bucketIndex];
             for (const Entry &entry : bucket) {
-                if (entry.Type != EMPTY_VALUE && entry.PosX == key.x && entry.PosY == key.y && entry.PosZ == key.z) {
+                if (entry.Type != SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE && entry.PosX == key.x && entry.PosY == key.y && entry.PosZ == key.z) {
                     return entry.Type;
                 }
             }
         }
-        return EMPTY_VALUE;
+        return SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE;
     }
 
     float VoxelPositionToTypeHashMap::GetLoadFactor() const {
@@ -53,31 +54,31 @@ namespace SpireVoxel {
         readIndex += sizeof(bucketSize);
 
 
-        for (std::size_t hashFunction = 0; hashFunction < HASH_COEFFICIENTS.size(); hashFunction++) {
-            glm::u32 bucketIndex = Hash({.PosX = key.x, .PosY = key.y, .PosZ = key.z}, hashFunction) % numBuckets;
+        for (std::size_t hashFunction = 0; hashFunction < VOXEL_DATA_HASH_COEFFICIENTS.size(); hashFunction++) {
+            glm::u32 bucketIndex = VoxelDataHashMapHash(key.x, key.y, key.z, hashFunction) % numBuckets;
             std::size_t bucketLocation = readIndex + sizeof(Entry) * bucketSize * bucketIndex;
             auto bucket = reinterpret_cast<const Entry *>(bytes.data() + bucketLocation);
             for (std::size_t i = 0; i < bucketSize; i++) {
                 const Entry &entry = bucket[i];
-                if (entry.Type != EMPTY_VALUE && entry.PosX == key.x && entry.PosY == key.y && entry.PosZ == key.z) {
+                if (entry.Type != SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE && entry.PosX == key.x && entry.PosY == key.y && entry.PosZ == key.z) {
                     return entry.Type;
                 }
             }
         }
 
-        return EMPTY_VALUE;
+        return SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE;
     }
 
     bool VoxelPositionToTypeHashMap::Insert(Entry entry, glm::u32 bucketCount, glm::u32 hashFunction) {
-        if (hashFunction >= HASH_COEFFICIENTS.size()) return false; // invalid function
+        if (hashFunction >= VOXEL_DATA_HASH_COEFFICIENTS.size()) return false; // invalid function
 
-        glm::u32 bucketIndex = Hash(entry, hashFunction) % bucketCount;
+        glm::u32 bucketIndex = VoxelDataHashMapHash(entry.PosX, entry.PosY, entry.PosZ, hashFunction) % bucketCount;
         auto &bucket = mBuckets[bucketIndex];
 
         // insert into bucket
-        for (std::size_t i = 0; i < bucket.size(); i++) {
-            if (bucket[i].Type == EMPTY_VALUE) {
-                bucket[i] = entry;
+        for (auto &bucketEntry : bucket) {
+            if (bucketEntry.Type == SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE) {
+                bucketEntry = entry;
                 return true;
             }
         }
@@ -96,26 +97,25 @@ namespace SpireVoxel {
 
         for (auto &bucket : mBuckets) {
             bucket.resize(bucketSize);
-            std::ranges::fill(bucket, Entry{.PosX = EMPTY_VALUE, .PosY = EMPTY_VALUE, .PosZ = EMPTY_VALUE, .Type = EMPTY_VALUE});
+            std::ranges::fill(bucket, Entry{
+                                  .PosX = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE, .PosY = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE, .PosZ = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE,
+                                  .Type = SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE
+                              });
         }
 
         // insert values
         for (const auto &[key, val] : map) {
-            assert(val != EMPTY_VALUE);
+            assert(val != SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE);
             bool inserted = Insert({.PosX = key.x, .PosY = key.y, .PosZ = key.z, .Type = val}, bucketCount);
 
             // failed to find a free spot in the bucket
             if (!inserted) {
                 assert(bucketCount < map.size());
-                glm::u32 newBucketCount = bucketCount * 1.25;
+                auto newBucketCount = static_cast<glm::u32>(static_cast<float>(bucketCount) * 1.25);
                 Spire::warn("Failed to construct map with {} elements and {} buckets, retrying with {} buckets", map.size(), bucketCount, newBucketCount);
                 Construct(map, newBucketCount);
                 return;
             }
         }
-    }
-
-    glm::u32 VoxelPositionToTypeHashMap::Hash(Entry entry, glm::u32 hashFunction) {
-        return (entry.PosX * HASH_COEFFICIENTS[hashFunction].x) ^ (entry.PosY * HASH_COEFFICIENTS[hashFunction].y) ^ (entry.PosZ * HASH_COEFFICIENTS[hashFunction].z);
     }
 } // SpireVoxel

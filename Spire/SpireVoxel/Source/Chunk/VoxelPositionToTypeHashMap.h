@@ -36,27 +36,10 @@ namespace SpireVoxel {
         // CPU implementation not really necessary but easier to test and debug
         [[nodiscard]] static glm::u32 GetFromBytes(glm::uvec3 key, const std::vector<glm::i8> &bytes);
 
-    public:
-        static constexpr glm::u32 EMPTY_VALUE = 0;
-        static constexpr std::array<glm::uvec3, 10> HASH_COEFFICIENTS = {
-            glm::uvec3{1061060661, 855378910, 3502893387},
-            glm::uvec3{2383498209, 1644277160, 2749756682},
-            glm::uvec3{671433660, 814371953, 3950429538},
-            glm::uvec3{1934605449, 3143018405, 2436686234},
-            glm::uvec3{41216935, 2734168707, 2265436213},
-            glm::uvec3{2965107964, 3434689208, 2616134055},
-            glm::uvec3{816425089, 1132258741, 1382123267},
-            glm::uvec3{373591499, 1250552626, 497653521},
-            glm::uvec3{1892588271, 3869359181, 4038477593},
-            glm::uvec3{3867437441, 2157261722, 3688971228},
-        };
-
     private:
         void Construct(const std::unordered_map<glm::uvec3, glm::u32> &map, glm::u32 bucketCount);
 
         bool Insert(Entry entry, glm::u32 bucketCount, glm::u32 hashFunction = 0);
-
-        [[nodiscard]] static glm::u32 Hash(Entry entry, glm::u32 hashFunction);
 
     private:
         glm::u32 mNumEntries;

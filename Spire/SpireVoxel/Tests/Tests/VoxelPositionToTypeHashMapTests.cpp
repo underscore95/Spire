@@ -1,6 +1,7 @@
 #include "EngineIncludes.h"
 #include <gtest/gtest.h>
 #include "TestHelpers.h"
+#include "../../Assets/Shaders/VoxelDataHashMap.h"
 #include "Chunk/VoxelPositionToTypeHashMap.h"
 
 TEST(VoxelPositionToTypeHashMap, TestA) {
@@ -14,7 +15,7 @@ TEST(VoxelPositionToTypeHashMap, TestA) {
     for (int i = 0; i < 100; i++) {
         glm::uvec3 key(dist(rng), dist(rng), dist(rng));
         glm::u32 value = dist(rng);
-        if (value == SpireVoxel::VoxelPositionToTypeHashMap::EMPTY_VALUE) value++;
+        if (value == SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE) value++;
         m.emplace(key, value);
     }
 
@@ -31,7 +32,7 @@ TEST(VoxelPositionToTypeHashMap, TestA) {
     // Test non-present
     for (int i = 0; i < 100; i++) {
         glm::uvec3 key(dist(rng), dist(rng), dist(rng));
-        EXPECT_EQ(hashMap.Get(key) != SpireVoxel::VoxelPositionToTypeHashMap::EMPTY_VALUE, m.contains(key));
+        EXPECT_EQ(hashMap.Get(key) != SPIRE_VOXEL_DATA_EMPTY_VOXEL_TYPE, m.contains(key));
         EXPECT_EQ(hashMap.Get(key), SpireVoxel::VoxelPositionToTypeHashMap::GetFromBytes(key, bytes));
     }
 }
