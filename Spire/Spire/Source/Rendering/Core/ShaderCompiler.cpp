@@ -142,6 +142,7 @@ namespace Spire {
 
         glslang_shader_t *shader = glslang_shader_create(&input);
 
+
         if (!glslang_shader_preprocess(shader, &input)) {
             std::unique_lock lock(s_loggingMutex);
             error("GLSL preprocessing failed\n{}\n{}\n{}",
@@ -171,7 +172,33 @@ namespace Spire {
             return false;
         }
 
-        glslang_program_SPIRV_generate(program, stage);
+        // options
+        glslang_spv_options_t options = {
+            .generate_debug_info = false,
+            .strip_debug_info = true,
+            .disable_optimizer = false,
+            .optimize_size = true,
+            .disassemble = false,
+            .validate = false,
+            .emit_nonsemantic_shader_debug_info = false,
+            .emit_nonsemantic_shader_debug_source = false,
+            .compile_only = false,
+            .optimize_allow_expanded_id_bound = true
+        };
+
+#ifndef NDEBUG
+        options.validate = true;
+#endif
+
+#ifdef INCLUDE_SHADER_DEBUG_SYMBOLS
+        options.generate_debug_info = true;
+        options.strip_debug_info = false;
+        options.emit_nonsemantic_shader_debug_info = true;
+        options.emit_nonsemantic_shader_debug_source = true;
+        options.optimize_allow_expanded_id_bound = true;
+#endif
+
+        glslang_program_SPIRV_generate_with_options(program, stage, &options);
 
         ShaderModule.Initialize(program);
 
