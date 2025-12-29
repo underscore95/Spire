@@ -17,8 +17,6 @@ layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_VOXEL_SHADER_
 layout (location = 0) out vec2 texCoord;
 layout (location = 1) out vec3 voxelData;
 layout (location = 2) flat out uint voxelFace;
-layout (location = 3) flat out uint voxelDataStartingMapIndex;
-layout (location = 4) flat out uint voxelDataBucketCount;
 
 void main()
 {
@@ -34,6 +32,4 @@ void main()
     gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);
     texCoord = VoxelVertexPositionToUV(vertexVoxelPos) * UnpackVertexFaceWidthHeight(vtx.Packed_6Width6Height);
     voxelData = vec3(voxelPos.x, voxelPos.y, voxelPos.z) - FaceToDirection(voxelFace) * 0.5f /*move to the center of the voxel*/;
-    voxelDataStartingMapIndex = chunkData.VoxelDataMapStartingIndex;
-    voxelDataBucketCount = chunkData.VoxelDataMapBucketCount;
 }

@@ -41,7 +41,6 @@ namespace SpireVoxel {
         void UpdateChunkDataCache();
 
         void FreeChunkVertexBuffer(Chunk &chunk);
-        void FreeChunkVoxelDataBuffer(Chunk &chunk);
 
     private:
         static constexpr glm::u32 MAXIMUM_VERTICES_IN_WORLD = 36 * (SPIRE_VOXEL_CHUNK_VOLUME * 48);
@@ -53,7 +52,6 @@ namespace SpireVoxel {
         Spire::RenderingManager &m_renderingManager;
         Delegate<WorldEditRequiredChanges> m_onWorldEditedDelegate;
         BufferAllocator m_chunkVertexBufferAllocator;
-        BufferAllocator m_chunkVoxelDataBufferAllocator;
         std::unique_ptr<Spire::PerImageBuffer> m_chunkDatasBuffer;
         std::vector<bool> m_dirtyChunkDataBuffers; // if {true,false,false} it means we need to update buffer 0 on swapchain image index 0
         std::vector<ChunkData> m_latestCachedChunkData;

@@ -91,8 +91,6 @@ namespace SpireVoxel {
         SPIRE_INT32_TYPE ChunkX; // allows for 137 billion voxels in each direction
         SPIRE_INT32_TYPE ChunkY;
         SPIRE_INT32_TYPE ChunkZ;
-        SPIRE_UINT32_TYPE VoxelDataMapStartingIndex; // Index of first entry in GPU hashmap
-        SPIRE_UINT32_TYPE VoxelDataMapBucketCount; // Number of buckets
     };
 
 #ifdef __cplusplus

@@ -4,7 +4,6 @@
 
 #include "../Rendering/BufferAllocator.h"
 #include "EngineIncludes.h"
-#include "VoxelPositionToTypeHashMap.h"
 #include "../../Assets/Shaders/ShaderInfo.h"
 
 namespace SpireVoxel {
@@ -16,7 +15,6 @@ namespace SpireVoxel {
 
     struct ChunkMesh {
         std::vector<VertexData> Vertices;
-        std::unique_ptr<VoxelPositionToTypeHashMap> VoxelDataHashMap;
     };
 
     struct Chunk {
@@ -27,9 +25,7 @@ namespace SpireVoxel {
         std::bitset<SPIRE_VOXEL_CHUNK_VOLUME> VoxelBits{}; // 1 = voxel is present, 0 = voxel is empty
         std::uint64_t CorruptedMemoryCheck2 = 12387732823748723; // This value will be changed if something overruns when editing VoxelBits
         BufferAllocator::Allocation VertexAllocation = {};
-        BufferAllocator::Allocation VoxelDataAllocation = {};
         glm::u32 NumVertices;
-        glm::u32 VoxelDataMapBucketCount = 0;
 
         void SetVoxel(glm::u32 index, glm::u32 type);
 

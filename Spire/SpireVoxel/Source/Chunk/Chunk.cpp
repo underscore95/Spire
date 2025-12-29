@@ -1,9 +1,7 @@
 #include "Chunk.h"
 
 #include "GreedyMeshingGrid.h"
-#include "VoxelPositionToTypeHashMap.h"
 #include "VoxelWorld.h"
-#include "../../Assets/Shaders/VoxelDataHashMap.h"
 
 namespace SpireVoxel {
     glm::u32 GetAdjacentVoxelType(const Chunk &chunk, glm::ivec3 position, glm::u32 face) {
@@ -210,7 +208,6 @@ namespace SpireVoxel {
                             grid.SetEmptyVoxels(col + width, row, height); // absorb the new column
                             width++;
                         }
-                        //     mask.Print();
 
                         // push the face
                         glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
@@ -224,35 +221,11 @@ namespace SpireVoxel {
                 }
             }
         }
-
-        if (!voxelData.empty()) {
-            mesh.VoxelDataHashMap = std::make_unique<VoxelPositionToTypeHashMap>(voxelData);
-            constexpr bool LOG_MAP_INFO = false;
-            if (LOG_MAP_INFO) {
-                Spire::info(R"({{
-            "vertices": {},
-            "load_factor": {},
-            "fraction_of_array": {},
-            "bucket_count": {},
-            "bucket_size": {},
-            "num_construct_attempts": {},
-        }},)",
-                            mesh.Vertices.size(),
-                            mesh.VoxelDataHashMap->GetLoadFactor(),
-                            static_cast<float>(mesh.VoxelDataHashMap->GetMemoryUsage()) / static_cast<float>(sizeof(VoxelData)),
-                            mesh.VoxelDataHashMap->GetBucketCount(),
-                            mesh.VoxelDataHashMap->GetBucketSize(),
-                            mesh.VoxelDataHashMap->GetNumConstructAttempts()
-                );
-            }
-        }
         return mesh;
     }
 
     ChunkData Chunk::GenerateChunkData(glm::u32 chunkIndex) const {
         assert(NumVertices > 0);
-        assert(VoxelDataMapBucketCount != 0);
-        assert(VoxelDataAllocation.Start / sizeof(VoxelDataHashMapEntry) < UINT32_MAX);
         return {
             .CPU_DrawCommandParams = {
                 .vertexCount = (NumVertices),
@@ -263,8 +236,6 @@ namespace SpireVoxel {
             .ChunkX = ChunkPosition.x,
             .ChunkY = ChunkPosition.y,
             .ChunkZ = ChunkPosition.z,
-            .VoxelDataMapStartingIndex = static_cast<glm::u32>(VoxelDataAllocation.Start / sizeof(VoxelDataHashMapEntry)),
-            .VoxelDataMapBucketCount = VoxelDataMapBucketCount
         };
     }
 

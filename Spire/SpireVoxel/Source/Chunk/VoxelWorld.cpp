@@ -38,7 +38,6 @@ namespace SpireVoxel {
             auto it = m_chunks.find(chunkPosition);
             if (it == m_chunks.end()) continue;
             m_renderer->FreeChunkVertexBuffer(*it->second);
-            m_renderer->FreeChunkVoxelDataBuffer(*it->second);
             m_chunks.erase(it);
             unloadedAnyChunks = true;
         }
@@ -96,7 +95,7 @@ namespace SpireVoxel {
     }
 
     glm::u64 VoxelWorld::CalculateGPUMemoryUsageForChunks() const {
-        return m_renderer->m_chunkVertexBufferAllocator.CalculateAllocatedOrPendingMemory() + m_renderer->m_chunkVoxelDataBufferAllocator.CalculateAllocatedOrPendingMemory();
+        return m_renderer->m_chunkVertexBufferAllocator.CalculateAllocatedOrPendingMemory();
     }
 
     glm::u64 VoxelWorld::CalculateCPUMemoryUsageForChunks() const {
