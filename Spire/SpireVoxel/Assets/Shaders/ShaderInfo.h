@@ -223,6 +223,7 @@ namespace SpireVoxel {
     struct VertexData {
         SPIRE_UINT32_TYPE Packed_6Width6Height;
         SPIRE_UINT32_TYPE Packed_7X7Y7Z2VertPos3Face;
+        SPIRE_UINT32_TYPE VoxelType;
     };
 
     // voxel vertex positions
@@ -288,7 +289,8 @@ namespace SpireVoxel {
         VertexData vertex = {
             .Packed_6Width6Height = ((MAX_SIX_BIT_VALUE & height) << 6) | (MAX_SIX_BIT_VALUE & width),
             .Packed_7X7Y7Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (
-                                              0xFF & z)
+                                              0xFF & z),
+            .VoxelType = 1
         };
 
         return vertex;

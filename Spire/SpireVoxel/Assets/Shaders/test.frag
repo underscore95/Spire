@@ -5,8 +5,8 @@
 #include "ShaderInfo.h"
 
 layout (location = 0) in vec2 uv;
-layout (location = 1) in vec3 voxelData;
 layout (location = 2) flat in uint voxelFace;
+layout (location = 3) flat in uint voxelType;
 
 layout(location = 0) out vec4 out_Color;
 
@@ -17,8 +17,6 @@ layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_B
 } voxelTypesBuffer;
 
 void main() {
-    uint voxelType = 1;
-
     uint imageIndex = voxelTypesBuffer.voxelTypes[voxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[voxelType].VoxelFaceLayout, voxelFace);
 
     out_Color = texture(texSampler[imageIndex], uv);

@@ -43,7 +43,7 @@ namespace SpireVoxel {
         void FreeChunkVertexBuffer(Chunk &chunk);
 
     private:
-        static constexpr glm::u32 MAXIMUM_VERTICES_IN_WORLD = 36 * (SPIRE_VOXEL_CHUNK_VOLUME * 48);
+        static constexpr glm::u32 MAXIMUM_VERTICES_IN_WORLD = 36 * (SPIRE_VOXEL_CHUNK_VOLUME * 24);
         static constexpr glm::u32 MAXIMUM_LOADED_CHUNKS = 384 * 3;
         static constexpr glm::u32 MAXIMUM_RENDERED_VOXELS = MAXIMUM_VERTICES_IN_WORLD / 8; // maximum amount of voxels where at least 1 face is rendered
 
