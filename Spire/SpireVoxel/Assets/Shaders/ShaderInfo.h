@@ -275,7 +275,8 @@ namespace SpireVoxel {
         SPIRE_UINT32_TYPE height, // 1-64 range
         SPIRE_UINT32_TYPE x, SPIRE_UINT32_TYPE y, SPIRE_UINT32_TYPE z, // 0-64 range
         VoxelVertexPosition vertexPosition,
-        SPIRE_UINT32_TYPE face
+        SPIRE_UINT32_TYPE face,
+        SPIRE_UINT32_TYPE voxelType
     ) {
         assert(x <= 64);
         assert(y <= 64);
@@ -283,6 +284,7 @@ namespace SpireVoxel {
         assert(width <= 64 && width > 0);
         assert(height <= 64 && height > 0);
         assert(face < SPIRE_VOXEL_NUM_FACES);
+        assert(voxelType > 0);
         width--;
         height--;
         const SPIRE_UINT32_TYPE MAX_SIX_BIT_VALUE = 63;
@@ -290,7 +292,7 @@ namespace SpireVoxel {
             .Packed_6Width6Height = ((MAX_SIX_BIT_VALUE & height) << 6) | (MAX_SIX_BIT_VALUE & width),
             .Packed_7X7Y7Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (
                                               0xFF & z),
-            .VoxelType = 1
+            .VoxelType = voxelType
         };
 
         return vertex;
