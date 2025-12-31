@@ -89,15 +89,24 @@ namespace Spire {
     }
 
     void BufferManager::UpdateBuffer(const VulkanBuffer &buffer, const void *data, std::size_t size, std::size_t offset) const {
+        // TODO use vmaCopyMemoryToAllocation
         assert(size + offset <= buffer.Size);
         void *pMem = nullptr;
         VkResult res = vmaMapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation, &pMem);
         if (res != VK_SUCCESS) {
-            error("Failed to update buffer memory with size {} bytes", size);
+            error("Failed to update buffer memory with size {} bytes ({} bytes starting at {} being read)", buffer.Size, size, offset);
             return;
         }
         memcpy(static_cast<char *>(pMem) + offset, data, size);
         vmaUnmapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation);
+    }
+
+    void BufferManager::ReadBuffer(const VulkanBuffer &buffer, void *out) const {
+        VkResult res = vmaCopyAllocationToMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation, 0, out, buffer.Size);
+        if (res != VK_SUCCESS) {
+            error("Failed to update read buffer memory with size {} bytes", buffer.Size);
+            return;
+        }
     }
 
     bool BufferManager::HasBufferManagerBeenDestroyed() {

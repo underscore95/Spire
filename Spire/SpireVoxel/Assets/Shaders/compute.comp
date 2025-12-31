@@ -1,18 +1,24 @@
-#version 450
-
+#version 460
 #extension GL_KHR_vulkan_glsl : enable
 
-layout(local_size_x = 64, local_size_y = 6, local_size_z = 1) in;
+#include "ShaderInfo.h"
 
-layout(set = 0, binding = 0) buffer OutBuf {
-    uint outData[];
-};
+layout (set = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_VOXEL_DATA_INPUT) readonly buffer ChunkVoxelData {
+    GPUChunkVoxelData data;
+} chunkVoxelData;
+
+layout (set = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_OUTPUT) buffer Output {
+    GreedyMeshOutput datas[SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES];
+} greedyMeshOutput;
+
+layout (local_size_x = SPIRE_VOXEL_CHUNK_SIZE, local_size_y = SPIRE_VOXEL_NUM_FACES, local_size_z = 1) in;
+
 
 void main() {
-    uvec3 gid = gl_GlobalInvocationID;
+    uvec3 gid = gl_LocalInvocationID;
     uint slice = gid.x;
-    uint lane  = gid.y;
+    uint face  = gid.y;
 
-    uint index = slice * 6u + lane;
-    outData[index] = slice + lane;
+    uint meshIndex = face * SPIRE_VOXEL_CHUNK_SIZE + slice;
+    greedyMeshOutput.datas[meshIndex].NumVertices = meshIndex;
 }

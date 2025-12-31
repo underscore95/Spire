@@ -73,7 +73,7 @@ namespace SpireVoxel {
         // create shader
         Spire::ShaderCompiler compiler(rm.GetDevice());
         Spire::ShaderCompiler::Options options = {
-            .OptimiseSize = false // This causes the compiler to crash for this shader? Related to gl_GlobalInvocationID
+            .OptimiseSize = true // This causes the compiler to crash for this shader? Related to gl_GlobalInvocationID
         };
         VkShaderModule shader = compiler.CreateShaderModule(std::format("{}/Shaders/GreedyMeshing.comp", ASSETS_DIRECTORY), options);
 
@@ -105,7 +105,7 @@ namespace SpireVoxel {
         );
 
         glm::u32 layoutIndex = layouts.Push(layout);
-        assert(layoutIndex== SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET);
+        assert(layoutIndex == SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET);
         Spire::DescriptorManager descriptorManager(rm, layouts, VK_PIPELINE_BIND_POINT_COMPUTE);
 
         // setup pipeline
@@ -128,14 +128,20 @@ namespace SpireVoxel {
         Spire::info("Compute shader ran in {} ms", timer.MillisSinceStart());
         timer.Restart();
 
+        rm.GetBufferManager().ReadBufferElements(outputBuffer, shaderOutput);
+        Spire::info("Read shader output in {} ms", timer.MillisSinceStart());
+        timer.Restart();
+
         // merge output into a single vector
         std::vector<VertexData> vertices;
         for (const GreedyMeshOutput &output : shaderOutput) {
+            Spire::info("num: {}", output.NumVertices);
             for (int i = 0; i < output.NumVertices; i++) {
-                vertices.push_back(output.Vertices[i]);
+             //   vertices.push_back(output.Vertices[i]);
             }
         }
 
+        Spire::info("num verticeS: {}",vertices.size());
         Spire::info("Merged shader output in {} ms", timer.MillisSinceStart());
         timer.Restart();
 

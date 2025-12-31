@@ -1,7 +1,6 @@
 #include "ComputePipeline.h"
 
 #include "Utils/Log.h"
-
 namespace Spire
 {
     ComputePipeline::ComputePipeline(

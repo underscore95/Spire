@@ -1,5 +1,7 @@
 #pragma once
+
 #include "pch.h"
+#include "VulkanBuffer.h"
 
 namespace Spire {
     class PerImageBuffer;
@@ -31,6 +33,18 @@ namespace Spire {
                                                                            VkBufferUsageFlags extraUsageFlags = 0);
 
         void UpdateBuffer(const VulkanBuffer &buffer, const void *data, std::size_t size, std::size_t offset = 0) const;
+
+        // Read elements from buffer into vector, resizes vector if necessary, sync
+        template<typename T>
+        void ReadBufferElements(const VulkanBuffer &buffer, std::vector<T> &vector) const {
+            assert(buffer.ElementSize == sizeof(T));
+            // this assert could be removed:
+            assert(buffer.Count > 0);
+            vector.reserve(buffer.Count);
+            ReadBuffer(buffer, vector.data());
+        }
+
+        void ReadBuffer(const VulkanBuffer &buffer, void *out) const;
 
     public:
         static bool HasBufferManagerBeenDestroyed();
