@@ -47,71 +47,6 @@ namespace SpireVoxel {
         return queryChunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(queryPosition)];
     }
 
-    void PushFace(std::vector<VertexData> &vertices, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) {
-        assert(width > 0);
-        assert(height > 0);
-        const glm::u32 w = width;
-        const glm::u32 h = height;
-        switch (face) {
-            case SPIRE_VOXEL_FACE_POS_Z:
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + 1, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + h, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + h, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 1, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
-                break;
-
-            case SPIRE_VOXEL_FACE_NEG_Z:
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + h, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Z));
-                break;
-
-            case SPIRE_VOXEL_FACE_NEG_X:
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + w, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + w, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + w, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_X));
-                break;
-
-            case SPIRE_VOXEL_FACE_POS_X:
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + 0, p.z + w, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + h, p.z + w, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + 0, p.z + w, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_X));
-                break;
-
-            case SPIRE_VOXEL_FACE_POS_Y:
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 1, p.z + h, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 1, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 1, p.z + h, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 1, p.z + h, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Y));
-                break;
-
-            case SPIRE_VOXEL_FACE_NEG_Y:
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + h, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + h, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + h, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Y));
-                break;
-            default:
-                assert(false);
-                break;
-        }
-    }
-
     void Chunk::SetVoxel(glm::u32 index, glm::u32 type) {
         VoxelData[index] = type;
         VoxelBits[index] = static_cast<bool>(type);
@@ -124,76 +59,85 @@ namespace SpireVoxel {
         }
     }
 
-    std::vector<VertexData> Chunk::GenerateMesh() const {
+    std::vector<VertexData> Chunk::GenerateMesh(Spire::RenderingManager &rm) const {
+        Spire::Timer timer;
+
+        // create buffers
+        Spire::VulkanBuffer voxelDataBuffer = rm.GetBufferManager().CreateStorageBuffer(VoxelData.data(), sizeof(VoxelData[0]) * VoxelData.size(), sizeof(VoxelData[0]));
+        std::vector<GreedyMeshOutput> shaderOutput(SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_NUM_FACES);
+        Spire::VulkanBuffer outputBuffer = rm.GetBufferManager().CreateStorageBuffer(shaderOutput.data(), sizeof(GreedyMeshOutput) * shaderOutput.size(), sizeof(GreedyMeshOutput));
+
+        Spire::info("Created compute buffers in {} ms", timer.MillisSinceStart());
+        timer.Restart();
+
+        // create shader
+        Spire::ShaderCompiler compiler(rm.GetDevice());
+        Spire::ShaderCompiler::Options options = {
+            .OptimiseSize = false // This causes the compiler to crash for this shader? Related to gl_GlobalInvocationID
+        };
+        VkShaderModule shader = compiler.CreateShaderModule(std::format("{}/Shaders/GreedyMeshing.comp", ASSETS_DIRECTORY), options);
+
+        // descriptors
+        Spire::DescriptorSetLayoutList layouts(rm.GetSwapchain().GetNumImages());
+        Spire::DescriptorSetLayout layout;
+        layout.push_back(
+            Spire::Descriptor{
+                .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .Binding = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_VOXEL_DATA_INPUT,
+                .Stages = VK_SHADER_STAGE_COMPUTE_BIT,
+                .Resources = {{.Buffer = &voxelDataBuffer}},
+#ifndef NDEBUG
+                .DebugName = std::format("Voxel Data Compute"),
+#endif
+            }
+        );
+
+        layout.push_back(
+            Spire::Descriptor{
+                .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .Binding = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_OUTPUT,
+                .Stages = VK_SHADER_STAGE_COMPUTE_BIT,
+                .Resources = {{.Buffer = &outputBuffer}},
+#ifndef NDEBUG
+                .DebugName = std::format("Voxel Output Compute"),
+#endif
+            }
+        );
+
+        glm::u32 layoutIndex = layouts.Push(layout);
+        assert(layoutIndex== SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET);
+        Spire::DescriptorManager descriptorManager(rm, layouts, VK_PIPELINE_BIND_POINT_COMPUTE);
+
+        // setup pipeline
+        Spire::ComputePipeline pipeline(rm.GetDevice(), shader, descriptorManager, rm, 0);
+
+        Spire::info("Compute pipeline setup in {} ms", timer.MillisSinceStart());
+        timer.Restart();
+
+        // run
+        VkCommandBuffer cmdBuffer;
+        rm.GetCommandManager().CreateCommandBuffers(1, &cmdBuffer);
+        rm.GetCommandManager().BeginCommandBuffer(cmdBuffer, VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
+        descriptorManager.CmdBind(cmdBuffer, UINT32_MAX, pipeline.GetLayout(),SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET,SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET);
+        pipeline.CmdBindTo(cmdBuffer);
+        pipeline.CmdDispatch(cmdBuffer, 1, 1, 1);
+        rm.GetCommandManager().EndCommandBuffer(cmdBuffer);
+        rm.GetQueue().SubmitImmediate(cmdBuffer);
+        rm.GetQueue().WaitIdle();
+
+        Spire::info("Compute shader ran in {} ms", timer.MillisSinceStart());
+        timer.Restart();
+
+        // merge output into a single vector
         std::vector<VertexData> vertices;
-
-        // slice, row, col are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetChunkCoords
-        // slice is the slice of voxels we are working with
-        // POS_Z/NEG_Z col is X axis, row is Y axis, slice is Z
-
-        for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face += 2) {
-            for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
-                // generate the grid
-                std::array<GreedyMeshingGrid, 2> grids;
-
-                for (glm::u32 row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
-                    for (glm::u32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
-                        glm::ivec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face);
-                        glm::ivec3 adjacentPositive = chunkCoords + FaceToDirection(face);
-                        glm::ivec3 adjacentNegative = chunkCoords - FaceToDirection(face);
-                        bool adjacentPositiveIsPresent = adjacentPositive.x < SPIRE_VOXEL_CHUNK_SIZE &&
-                                                         adjacentPositive.y < SPIRE_VOXEL_CHUNK_SIZE &&
-                                                         adjacentPositive.z < SPIRE_VOXEL_CHUNK_SIZE &&
-                                                         VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentPositive)];
-                        bool adjacentNegativeIsPresent = adjacentNegative.x >= 0 &&
-                                                         adjacentNegative.y >= 0 &&
-                                                         adjacentNegative.z >= 0 &&
-                                                         VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentNegative)];
-                        // This seems to be getting compiler optimised really heavily
-                        // I tried adding another check and not generating any faces if the adjacent is outside of chunk bounds
-                        // and it reduced generation time by 20%
-                        if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentPositiveIsPresent) {
-                            grids[0].SetBit(row, col);
-                        }
-
-                        if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentNegativeIsPresent) {
-                            grids[1].SetBit(row, col);
-                        }
-                    }
-                }
-
-                // push the faces
-                for (glm::u32 faceSignIndex = 0; faceSignIndex < 2; faceSignIndex++) {
-                    GreedyMeshingGrid &grid = grids[faceSignIndex];
-                    for (glm::i32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
-                        // find the starting row and height of the face
-                        if (grid.GetColumn(col) == 0) continue;
-                        glm::u32 row = grid.NumTrailingEmptyVoxels(col, 0);
-                        glm::u32 height = grid.NumTrailingPresentVoxels(col, row);
-
-                        // absorb faces
-                        grid.SetEmptyVoxels(col, row, height);
-
-                        // move as far right as we can
-                        glm::u32 width = 1;
-                        while (col + width < SPIRE_VOXEL_CHUNK_SIZE && grid.NumTrailingPresentVoxels(col + width, row) >= height) {
-                            grid.SetEmptyVoxels(col + width, row, height); // absorb the new column
-                            width++;
-                        }
-                        //     mask.Print();
-
-                        // push the face
-                        glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
-                        PushFace(vertices, face + faceSignIndex, chunkCoords, width, height);
-
-                        if (grid.GetColumn(col) != 0) {
-                            // we didn't get all the voxels on this row, loop again
-                            col--;
-                        }
-                    }
-                }
+        for (const GreedyMeshOutput &output : shaderOutput) {
+            for (int i = 0; i < output.NumVertices; i++) {
+                vertices.push_back(output.Vertices[i]);
             }
         }
+
+        Spire::info("Merged shader output in {} ms", timer.MillisSinceStart());
+        timer.Restart();
 
         return vertices;
     }

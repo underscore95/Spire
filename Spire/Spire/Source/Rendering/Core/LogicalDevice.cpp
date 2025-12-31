@@ -77,6 +77,7 @@ namespace Spire {
         deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
         deviceFeatures2.pNext = &indexingFeatures;
         deviceFeatures2.features.multiDrawIndirect = VK_TRUE;
+        deviceFeatures2.features.shaderInt64 = VK_TRUE;
 
         // device features
         deviceFeatures2.features.geometryShader = VK_TRUE;

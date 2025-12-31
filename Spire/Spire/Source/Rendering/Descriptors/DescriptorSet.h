@@ -33,11 +33,11 @@ namespace Spire
             return raw;
         }
 
-        void CmdBind(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, glm::u32 firstSet) const
+        void CmdBind(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, glm::u32 firstSet, VkPipelineBindPoint bindPoint) const
         {
             vkCmdBindDescriptorSets(
                 commandBuffer,
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                bindPoint,
                 pipelineLayout,
                 firstSet,
                 1,

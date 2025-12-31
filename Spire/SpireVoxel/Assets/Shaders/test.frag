@@ -21,16 +21,14 @@ layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_B
     GPUVoxelType voxelTypes[];
 } voxelTypesBuffer;
 
-#define UVEC4_LENGTH 4
-
 uint roundToUint(float x) {
     return uint(floor(x));
 }
 
 void main() {
     uint voxelDataIndex = SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(roundToUint(voxelData.x), roundToUint(voxelData.y), roundToUint(voxelData.z));
-    uvec4 possibleVoxelTypes = chunkVoxelData.datas[voxelDataChunkIndex].Data[voxelDataIndex / UVEC4_LENGTH];
-    uint voxelType = possibleVoxelTypes[voxelDataIndex % UVEC4_LENGTH];
+    uvec4 possibleVoxelTypes = chunkVoxelData.datas[voxelDataChunkIndex].Data[voxelDataIndex / SPIRE_UVEC4_LENGTH];
+    uint voxelType = possibleVoxelTypes[voxelDataIndex % SPIRE_UVEC4_LENGTH];
 
     uint imageIndex = voxelTypesBuffer.voxelTypes[voxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[voxelType].VoxelFaceLayout, voxelFace);
 

@@ -23,7 +23,8 @@ namespace Spire {
 
     static bool CompileShader(const VkDevice &device, glslang_stage_t stage,
                               const char *pShaderCode,
-                              CompiledShader &ShaderModule) {
+                              CompiledShader &ShaderModule,
+                              ShaderCompiler::Options shaderOptions) {
 #pragma region defaultResource
         // From: https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/%2B/HEAD/glslang/ResourceLimits/ResourceLimits.cpp
         constexpr glslang_resource_t defaultResource = {
@@ -176,8 +177,8 @@ namespace Spire {
         glslang_spv_options_t options = {
             .generate_debug_info = false,
             .strip_debug_info = true,
-            .disable_optimizer = false,
-            .optimize_size = true,
+            .disable_optimizer = !shaderOptions.Optimise,
+            .optimize_size = shaderOptions.OptimiseSize,
             .disassemble = false,
             .validate = false,
             .emit_nonsemantic_shader_debug_info = false,
@@ -354,10 +355,10 @@ namespace Spire {
         glslang_finalize_process();
     }
 
-    void ShaderCompiler::CreateShaderModuleAsync(VkShaderModule *out, const std::string &fileName) {
+    void ShaderCompiler::CreateShaderModuleAsync(VkShaderModule *out, const std::string &fileName,Options options) {
         ++m_currentTasks;
-        std::thread([this, out, fileName] {
-            VkShaderModule result = CreateShaderModule(fileName);
+        std::thread([this, out, fileName,options] {
+            VkShaderModule result = CreateShaderModule(fileName,options);
             if (out) *out = result;
 
             --m_currentTasks;
@@ -370,7 +371,7 @@ namespace Spire {
         m_waitForTasksCompleteCv.wait(lock, [&] { return m_currentTasks == 0; });
     }
 
-    VkShaderModule ShaderCompiler::CreateShaderModule(const std::string &fileName) const {
+    VkShaderModule ShaderCompiler::CreateShaderModule(const std::string &fileName,Options options) const {
         std::filesystem::path compiledShader = fileName;
         compiledShader += ".spv";
 
@@ -396,7 +397,7 @@ namespace Spire {
         }
 
         VkShaderModule shader = (m_alwaysCompileFromSource || compileFromText)
-                                    ? CreateShaderModuleFromSource(fileName, parsed.FullSource)
+                                    ? CreateShaderModuleFromSource(fileName, parsed.FullSource, options)
                                     : CreateShaderModuleFromBinaryFile(compiledShader.string());
         std::unique_lock lock(s_loggingMutex);
         info("{} shader '{}'", shader == VK_NULL_HANDLE ? "Failed to compile" : "Successfully compiled",
@@ -430,14 +431,15 @@ namespace Spire {
 
     // ReSharper disable once CppDFAConstantFunctionResult
     VkShaderModule ShaderCompiler::CreateShaderModuleFromSource(const std::string &fileName,
-                                                                const std::string &shaderSource) const {
+                                                                const std::string &shaderSource,
+                                                                Options options) const {
         CompiledShader shaderModule;
 
         glslang_stage_t shaderStage = ShaderStageFromFilename(fileName.c_str());
 
         VkShaderModule ret = nullptr;
 
-        bool success = CompileShader(m_device, shaderStage, shaderSource.c_str(), shaderModule);
+        bool success = CompileShader(m_device, shaderStage, shaderSource.c_str(), shaderModule,options);
 
         if (success) {
             ret = shaderModule.ShaderModule;

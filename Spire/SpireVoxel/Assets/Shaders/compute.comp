@@ -1,7 +1,18 @@
 #version 450
 
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+#extension GL_KHR_vulkan_glsl : enable
+
+layout(local_size_x = 64, local_size_y = 6, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) buffer OutBuf {
+    uint outData[];
+};
 
 void main() {
+    uvec3 gid = gl_GlobalInvocationID;
+    uint slice = gid.x;
+    uint lane  = gid.y;
 
+    uint index = slice * 6u + lane;
+    outData[index] = slice + lane;
 }

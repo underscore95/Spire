@@ -31,6 +31,7 @@ add_library(SpireVoxel STATIC
         Source/Utils/IVoxelCamera.h
         Source/Chunk/GreedyMeshingGrid.h
         Source/Chunk/GreedyMeshingGrid.cpp
+        Assets/Shaders/GreedyMeshing.comp
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

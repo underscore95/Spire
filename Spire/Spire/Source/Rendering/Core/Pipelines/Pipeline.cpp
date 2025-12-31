@@ -75,6 +75,13 @@ namespace Spire {
             .pPushConstantRanges = &pushConstantRange
         };
 
+        if (m_pushConstantSize == 0) {
+            // having a 0 size push constant range isn't valid, so just don't add a push constant range
+            // https://vulkan.lunarg.com/doc/view/1.4.321.1/windows/antora/spec/latest/chapters/descriptorsets.html#VUID-VkPushConstantRange-size-00296
+            pipelineLayoutInfo.pushConstantRangeCount = 0;
+            pipelineLayoutInfo.pPushConstantRanges = nullptr;
+        }
+
         VkResult res = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
         if (res != VK_SUCCESS) {
             error("Failed to create vulkan pipeline layout");

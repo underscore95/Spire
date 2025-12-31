@@ -11,9 +11,11 @@
 namespace Spire {
     DescriptorManager::DescriptorManager(
         RenderingManager &renderingManager,
-        const DescriptorSetLayoutList &layouts
+        const DescriptorSetLayoutList &layouts,
+        VkPipelineBindPoint bindPoint
     ) : m_renderingManager(renderingManager),
-        m_layouts(layouts) {
+        m_layouts(layouts),
+        m_bindPoint(bindPoint) {
         m_pool = std::make_unique<DescriptorPool>(m_renderingManager);
 
         m_descriptorSets = m_pool->Allocate(layouts);
@@ -37,9 +39,12 @@ namespace Spire {
     void DescriptorManager::CmdBind(VkCommandBuffer commandBuffer, glm::u32 currentSwapchainImage,
                                     VkPipelineLayout pipelineLayout, glm::u32 setIndex,
                                     glm::u32 shaderSetIndex) const {
-        assert(setIndex == shaderSetIndex); // this assert can be removed, i'm just curious why shader set index and set index would be different?
+        // this assert can be removed, i'm just curious why shader set index and set index would be different?
+        assert(setIndex == shaderSetIndex);
+        // currentSwapchainImage is allowed to be invalid as long as a per image set isn't being used
+        assert(!m_layouts.IsSetPerImage(setIndex) || currentSwapchainImage < m_renderingManager.GetSwapchain().GetNumImages());
         glm::u32 offset = m_layouts.IsSetPerImage(setIndex) ? currentSwapchainImage : 0;
-        m_descriptorSets[setIndex + offset].CmdBind(commandBuffer, pipelineLayout, shaderSetIndex);
+        m_descriptorSets[setIndex + offset].CmdBind(commandBuffer, pipelineLayout, shaderSetIndex, m_bindPoint);
     }
 
     void DescriptorManager::WriteDescriptor(glm::u32 setIndex, const Descriptor &descriptor) {

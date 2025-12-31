@@ -87,7 +87,7 @@ namespace SpireVoxel {
                 wasPreviousAllocation = oldAllocation.Size > 0;
                 chunk->VertexAllocation = {};
 
-                std::vector<VertexData> vertexData = chunk->GenerateMesh();
+                std::vector<VertexData> vertexData = chunk->GenerateMesh(m_renderingManager);
 
                 if (!vertexData.empty()) {
                     std::optional alloc = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));

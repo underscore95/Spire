@@ -28,7 +28,7 @@ namespace SpireVoxel {
         void SetVoxel(glm::u32 index, glm::u32 type);
         void SetVoxels(glm::u32 startIndex, glm::u32 endIndex, glm::u32 type);
 
-        [[nodiscard]] std::vector<VertexData> GenerateMesh() const;
+        [[nodiscard]] std::vector<VertexData> GenerateMesh(Spire::RenderingManager &renderingManager) const;
 
         [[nodiscard]] ChunkData GenerateChunkData(glm::u32 chunkIndex) const;
 
