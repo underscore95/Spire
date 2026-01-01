@@ -126,6 +126,11 @@ namespace SpireVoxel {
 
     std::vector<VertexData> Chunk::GenerateMesh(Spire::RenderingManager &rm) const {
         static float irrelevantMillis = 0;
+        static float runMillis = 0;
+        static float readMillis = 0;
+        static float mergeMillis = 0;
+        static int numChunks = 0;
+        numChunks++;
         Spire::Timer timer;
 
         // create buffers
@@ -139,7 +144,7 @@ namespace SpireVoxel {
         Spire::VulkanBuffer copyBuffer = rm.GetBufferManager().CreateBuffer(outputBuffer.Size, copyBufferUsage, copyBufferProperties, outputBuffer.ElementSize);
 
         Spire::info("Created compute buffers in {} ms", timer.MillisSinceStart());
-        irrelevantMillis+=timer.MillisSinceStart();
+        irrelevantMillis += timer.MillisSinceStart();
         timer.Restart();
 
         // create shader
@@ -184,7 +189,7 @@ namespace SpireVoxel {
         Spire::ComputePipeline pipeline(rm.GetDevice(), shader, descriptorManager, rm, 0);
 
         Spire::info("Compute pipeline setup in {} ms", timer.MillisSinceStart());
-        irrelevantMillis+=timer.MillisSinceStart();
+        irrelevantMillis += timer.MillisSinceStart();
         timer.Restart();
 
         // run
@@ -199,11 +204,13 @@ namespace SpireVoxel {
         rm.GetQueue().WaitIdle();
 
         Spire::info("Compute shader ran in {} ms", timer.MillisSinceStart());
+        runMillis += timer.MillisSinceStart();
         timer.Restart();
 
-        rm.GetBufferManager().CopyBuffer(copyBuffer.Buffer,outputBuffer.Buffer,copyBuffer.Size);
+        rm.GetBufferManager().CopyBuffer(copyBuffer.Buffer, outputBuffer.Buffer, copyBuffer.Size);
         rm.GetBufferManager().ReadBufferElements(copyBuffer, shaderOutput);
         Spire::info("Read shader output in {} ms", timer.MillisSinceStart());
+        readMillis += timer.MillisSinceStart();
         timer.Restart();
 
         // greedy mesh on our grids
@@ -241,9 +248,18 @@ namespace SpireVoxel {
         }
 
         Spire::info("Merged shader output in {} ms", timer.MillisSinceStart());
-        timer.Restart();
-        Spire::info("irrelevant millis {}",irrelevantMillis);
+        mergeMillis += timer.MillisSinceStart();
 
+        Spire::info("irrelevant millis {}", irrelevantMillis);
+        Spire::info("run millis {}", runMillis);
+        Spire::info("read millis {}", readMillis);
+        Spire::info("merge millis {}", mergeMillis);
+        Spire::info("all millis {}", runMillis + readMillis + mergeMillis);
+
+        Spire::info("run millis average: {}", runMillis / static_cast<float>(numChunks));
+        Spire::info("read millis average: {}", readMillis / static_cast<float>(numChunks));
+        Spire::info("merge millis average: {}", mergeMillis / static_cast<float>(numChunks));
+        Spire::info("all millis average: {}", (runMillis + readMillis + mergeMillis) / static_cast<float>(numChunks));
         return vertices;
     }
 
