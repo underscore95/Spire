@@ -57,7 +57,7 @@ namespace Spire {
         m_numAllocatedBuffers--;
     }
 
-    std::unique_ptr<PerImageBuffer> BufferManager::CreateUniformBuffers(std::size_t bufferSize, bool isTransferDest) {
+    std::unique_ptr<PerImageBuffer> BufferManager::CreateUniformBuffers(std::size_t bufferSize, std::size_t elementSize, bool isTransferDest) {
         std::vector<VulkanBuffer> buffers;
         buffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
 
@@ -67,7 +67,7 @@ namespace Spire {
                                                  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
         for (int i = 0; i < buffers.size(); ++i) {
-            buffers[i] = CreateBuffer(bufferSize, usage, memoryProperties);
+            buffers[i] = CreateBuffer(bufferSize, usage, memoryProperties, elementSize);
         }
 
         return std::unique_ptr<PerImageBuffer>(new PerImageBuffer(*this, buffers));
@@ -109,6 +109,17 @@ namespace Spire {
         }
     }
 
+    void BufferManager::CmdCopyBuffer(VkCommandBuffer commandBuffer, const VulkanBuffer &source, const VulkanBuffer &dest) {
+        assert(source.Size <= dest.Size);
+        assert(source.ElementSize == dest.ElementSize);
+        VkBufferCopy bufferCopy = {
+            .srcOffset = 0,
+            .dstOffset = 0,
+            .size = source.ElementSize
+        };
+        vkCmdCopyBuffer(commandBuffer, source.Buffer, dest.Buffer, 1, &bufferCopy);
+    }
+
     bool BufferManager::HasBufferManagerBeenDestroyed() {
         return s_isDestroyed;
     }
@@ -135,15 +146,16 @@ namespace Spire {
     VulkanBuffer BufferManager::CreateBufferWithData(VkDeviceSize size, VkBufferUsageFlags usage,
                                                      VkMemoryPropertyFlags properties, const void *data,
                                                      glm::u32 elementSize) {
+        const std::size_t TEMP_SIZE = 1;
         // create the final buffer
-        VulkanBuffer buffer = CreateBuffer(size, usage, properties);
+        VulkanBuffer buffer = CreateBuffer(size, usage, properties, TEMP_SIZE); // size overwritten later
 
         if (data) {
             // create the staging buffer
             VkBufferUsageFlags stagingUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
             VkMemoryPropertyFlags stagingProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                                       VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-            VulkanBuffer stagingBuffer = CreateBuffer(size, stagingUsage, stagingProperties);
+            VulkanBuffer stagingBuffer = CreateBuffer(size, stagingUsage, stagingProperties, TEMP_SIZE); // buffer deleted so don't care about size
 
             // copy vertices into staging buffer
             UpdateBuffer(stagingBuffer, data, size);
@@ -166,10 +178,14 @@ namespace Spire {
     }
 
     VulkanBuffer BufferManager::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-                                             VkMemoryPropertyFlags properties) {
+                                             VkMemoryPropertyFlags properties, std::size_t elementSize) {
         assert(size != 0);
         VulkanBuffer buffer;
         buffer.Size = size;
+        buffer.ElementSize = elementSize;
+        assert(elementSize>0);
+        buffer.Count = size / elementSize;
+        assert(size % elementSize == 0);
 
         VkBufferCreateInfo vbCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,

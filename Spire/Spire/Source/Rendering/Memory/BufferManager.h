@@ -27,7 +27,7 @@ namespace Spire {
 
         void DestroyBuffer(const VulkanBuffer &buffer);
 
-        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateUniformBuffers(std::size_t bufferSize, bool isTransferDest = false);
+        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateUniformBuffers(std::size_t bufferSize, std::size_t elementSize, bool isTransferDest = false);
 
         [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateStorageBuffers(std::size_t bufferSize, std::size_t numElements, const void *data,
                                                                            VkBufferUsageFlags extraUsageFlags = 0);
@@ -46,17 +46,19 @@ namespace Spire {
 
         void ReadBuffer(const VulkanBuffer &buffer, void *out) const;
 
+        void CmdCopyBuffer(VkCommandBuffer commandBuffer, const VulkanBuffer& source, const VulkanBuffer & dest);
+        void CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const;
+
+        [[nodiscard]] VulkanBuffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::size_t elementSize);
+
     public:
         static bool HasBufferManagerBeenDestroyed();
 
     private:
-        void CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const;
 
         // data can be nullptr which means initial data is undefined and call is basically equivalent to create buffer
         [[nodiscard]] VulkanBuffer CreateBufferWithData(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
                                                         const void *data, glm::u32 elementSize);
-
-        [[nodiscard]] VulkanBuffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 
     private:
         const glm::u32 INVALID_MEMORY_TYPE_INDEX = -1; // overflow

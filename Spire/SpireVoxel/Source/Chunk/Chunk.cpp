@@ -59,7 +59,7 @@ namespace SpireVoxel {
         }
     }
 
-      void PushFace(std::vector<VertexData> &vertices, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) {
+    void PushFace(std::vector<VertexData> &vertices, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) {
         assert(width > 0);
         assert(height > 0);
         const glm::u32 w = width;
@@ -125,14 +125,21 @@ namespace SpireVoxel {
     }
 
     std::vector<VertexData> Chunk::GenerateMesh(Spire::RenderingManager &rm) const {
+        static float irrelevantMillis = 0;
         Spire::Timer timer;
 
         // create buffers
         Spire::VulkanBuffer voxelDataBuffer = rm.GetBufferManager().CreateStorageBuffer(VoxelData.data(), sizeof(VoxelData[0]) * VoxelData.size(), sizeof(VoxelData[0]));
         std::vector<glm::u64> shaderOutput(SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES);
-        Spire::VulkanBuffer outputBuffer = rm.GetBufferManager().CreateStorageBuffer(shaderOutput.data(), sizeof(shaderOutput[0]) * shaderOutput.size(), sizeof(shaderOutput[0]));
+        Spire::VulkanBuffer outputBuffer = rm.GetBufferManager().CreateStorageBuffer(shaderOutput.data(), sizeof(shaderOutput[0]) * shaderOutput.size(), sizeof(shaderOutput[0]),
+                                                                                     true, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+        // output buffer will be copied since faster
+        VkBufferUsageFlags copyBufferUsage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        VkMemoryPropertyFlags copyBufferProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+        Spire::VulkanBuffer copyBuffer = rm.GetBufferManager().CreateBuffer(outputBuffer.Size, copyBufferUsage, copyBufferProperties, outputBuffer.ElementSize);
 
         Spire::info("Created compute buffers in {} ms", timer.MillisSinceStart());
+        irrelevantMillis+=timer.MillisSinceStart();
         timer.Restart();
 
         // create shader
@@ -177,6 +184,7 @@ namespace SpireVoxel {
         Spire::ComputePipeline pipeline(rm.GetDevice(), shader, descriptorManager, rm, 0);
 
         Spire::info("Compute pipeline setup in {} ms", timer.MillisSinceStart());
+        irrelevantMillis+=timer.MillisSinceStart();
         timer.Restart();
 
         // run
@@ -193,7 +201,8 @@ namespace SpireVoxel {
         Spire::info("Compute shader ran in {} ms", timer.MillisSinceStart());
         timer.Restart();
 
-        rm.GetBufferManager().ReadBufferElements(outputBuffer, shaderOutput);
+        rm.GetBufferManager().CopyBuffer(copyBuffer.Buffer,outputBuffer.Buffer,copyBuffer.Size);
+        rm.GetBufferManager().ReadBufferElements(copyBuffer, shaderOutput);
         Spire::info("Read shader output in {} ms", timer.MillisSinceStart());
         timer.Restart();
 
@@ -201,7 +210,7 @@ namespace SpireVoxel {
         std::vector<VertexData> vertices;
         for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
             for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
-                GreedyMeshingGrid grid(shaderOutput, GreedyGridGetGridStartingIndex(face,slice) );
+                GreedyMeshingGrid grid(shaderOutput, GreedyGridGetGridStartingIndex(face, slice));
                 for (glm::i32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
                     // find the starting row and height of the face
                     if (grid.GetColumn(col) == 0) continue;
@@ -220,8 +229,8 @@ namespace SpireVoxel {
                     //     mask.Print();
 
                     // push the face
-                    glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face );
-                    PushFace(vertices, face , chunkCoords, width, height);
+                    glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face);
+                    PushFace(vertices, face, chunkCoords, width, height);
 
                     if (grid.GetColumn(col) != 0) {
                         // we didn't get all the voxels on this row, loop again
@@ -231,9 +240,9 @@ namespace SpireVoxel {
             }
         }
 
-        Spire::info("num vertices: {}",vertices.size());
         Spire::info("Merged shader output in {} ms", timer.MillisSinceStart());
         timer.Restart();
+        Spire::info("irrelevant millis {}",irrelevantMillis);
 
         return vertices;
     }

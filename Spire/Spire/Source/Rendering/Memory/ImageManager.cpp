@@ -181,7 +181,7 @@ namespace Spire {
         VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
         auto &bufferManager = m_renderingManager.GetBufferManager();
-        VulkanBuffer stagingBuffer = bufferManager.CreateBuffer(imageSize, usage, memoryProperties);
+        VulkanBuffer stagingBuffer = bufferManager.CreateBuffer(imageSize, usage, memoryProperties, imageSize);
         bufferManager.UpdateBuffer(stagingBuffer, loadedImage.Data, imageSize);
 
         TransitionImageLayout(image.Image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
