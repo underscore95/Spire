@@ -6,6 +6,12 @@
 namespace SpireVoxel {
     class GreedyMeshingGrid {
     public:
+        GreedyMeshingGrid() = default;
+
+        // Copy SPIRE_VOXEL_CHUNK_SIZE elements from source starting at index into the grid to start
+        GreedyMeshingGrid(const std::vector<glm::u64> &source, std::size_t index);
+
+    public:
         void SetBit(glm::u32 row, glm::u32 col);
 
         bool GetBit(glm::u32 row, glm::u32 col) const;

@@ -9,31 +9,14 @@ layout (set = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET, binding = SPIRE_VO
 } chunkVoxelData;
 
 layout (set = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_OUTPUT) buffer Output {
-    GreedyMeshOutput datas[SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES];
+    uint64_t grid[SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES];
 } greedyMeshOutput;
 
 layout (local_size_x = SPIRE_VOXEL_CHUNK_SIZE, local_size_y = SPIRE_VOXEL_NUM_FACES, local_size_z = 1) in;
 
-const uint64_t UINT64_MAX = 0xfffffffffffffffful;
 const uint64_t UINT64_ONE = uint64_t(1);
 
-void GreedyGridSetBit(uint64_t grid[SPIRE_VOXEL_CHUNK_SIZE], uint row, uint col) {
-    grid[col] |= UINT64_ONE << uint64_t(row);
-}
-
-void GreedyGridSetEmptyVoxels(uint64_t grid[SPIRE_VOXEL_CHUNK_SIZE], uint col, uint row, uint height) {
-    uint64_t mask = UINT64_MAX;// this is for height == 64, since normally we'd be setting it to uint64 max + 1
-    if (height < SPIRE_VOXEL_CHUNK_SIZE) {
-        // todo: could a uint128 be used as the mask so we don't need an if statement?
-        mask = UINT64_ONE << height;// if height == 2: 0000100
-        mask--;// 0000011
-    }
-    mask = mask << row;// if row == 3: 0011000
-    mask = ~mask;// flip the bits: 1100111
-
-    grid[col] = grid[col] & mask;// set the voxels to empty
-}
-
+// convert slice, row, col, face into chunk coords (0 to 63)
 uvec3 GreedyGridGetChunkCoords(uint slice, uint row, uint col, uint face) {
     if (face == SPIRE_VOXEL_FACE_POS_Z || face == SPIRE_VOXEL_FACE_NEG_Z) {
         return uvec3(col, row, slice);
@@ -44,151 +27,29 @@ uvec3 GreedyGridGetChunkCoords(uint slice, uint row, uint col, uint face) {
     }
 }
 
-// https://registry.khronos.org/OpenGL-Refpages/gl4/html/findLSB.xhtml
-uint GreedyGridNumTrailingEmptyVoxels(uint64_t grid[SPIRE_VOXEL_CHUNK_SIZE], uint col, uint startingRow) {
-    uint64_t bits = grid[col] >> startingRow;
-    int num = int(findLSB(bits));
-    if (num == -1) return 64;
-    return num;
-
-    //    // handle each half separately, since no count zeroes for uint64
-    //    uint lowBits = uint(bits);
-    //    int numLow = findLSB(lowBits);
-    //    if (numLow != -1) return numLow;
-    //
-    //    // if numLow is -1, that means lowBits is 0 so our first one will be in the high bits
-    //    uint highBits = uint(bits >> 32);
-    //    int numHigh = findLSB(highBits);
-    //    if (numHigh != -1) return numHigh + 32; // offset since the first 32 bits were 0
-    //    return 64; // mimic std::countr_zero behaviour, which would return 64, TODO: though in practice unnecessary
-}
-
-uint GreedyGridNumTrailingPresentVoxels(uint64_t grid[SPIRE_VOXEL_CHUNK_SIZE], uint col, uint startingRow) {
-    uint64_t bits = grid[col] >> startingRow;
-    int num = int(findLSB(~bits));
-    if (num == -1) return 64;
-    return num;
-
-    //    // handle each half separately, since no count zeroes for uint64
-    //    uint lowBits = uint(bits);
-    //    int numLow = findLSB(~lowBits); // NOT here since looking for 1s
-    //    if (numLow != -1) return numLow;
-    //
-    //    // if numLow is -1, that means lowBits is 0 so our first one will be in the high bits
-    //    uint highBits = uint(bits >> 32);
-    //    int numHigh = findLSB(~highBits); // NOT here since looking for 1s
-    //    if (numHigh != -1) return numHigh + 32; // offset since the first 32 bits were 0
-    //
-    //    return 64; // mimic std::countr_one behaviour, which would return 64, TODO: though in practice unnecessary
-}
-
 uint getVoxelType(uint voxelDataIndex) {
     uvec4 possibleVoxelTypes = chunkVoxelData.data.Data[voxelDataIndex / SPIRE_UVEC4_LENGTH];
     return possibleVoxelTypes[voxelDataIndex % SPIRE_UVEC4_LENGTH];
 }
 
 void main() {
-    uint slice = gl_LocalInvocationID.x;
-    uint face = gl_LocalInvocationID.y;
+    const uint slice = gl_LocalInvocationID.x;
+    const uint face = gl_LocalInvocationID.y;
+    const uint index = GreedyGridGetGridStartingIndex(face, slice);
 
-    uint64_t grid[SPIRE_VOXEL_CHUNK_SIZE];
-
-    bool noBitsSet=true;//debug
     for (uint row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
         for (uint col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
             ivec3 chunkCoords = ivec3(GreedyGridGetChunkCoords(slice, row, col, face));
             ivec3 adjacentPositive = chunkCoords + FaceToDirection(face);
+
             bool adjacentPositiveIsPresent = adjacentPositive.x < SPIRE_VOXEL_CHUNK_SIZE
             &&    adjacentPositive.y < SPIRE_VOXEL_CHUNK_SIZE
             &&  adjacentPositive.z < SPIRE_VOXEL_CHUNK_SIZE
             &&  getVoxelType(SPIRE_VOXEL_POSITION_TO_INDEX(adjacentPositive)) != 0;
+
             if (getVoxelType(SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)) != 0 && !adjacentPositiveIsPresent) {
-                GreedyGridSetBit(grid, row, col);
-                noBitsSet=false;
+                greedyMeshOutput.grid[index + col] |= UINT64_ONE << uint64_t(row);// set bit
             }
         }
     }
-
-    // push the faces
-    GreedyMeshOutput mesh;
-    mesh.NumVertices = 0;
-
-    for (uint col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
-        if (noBitsSet) {
-            mesh.NumVertices=2398;break;//debug
-        }
-        // find the starting row and height of the face
-        if (grid[col] == 0) {
-            continue;
-        }
-
-        uint row = GreedyGridNumTrailingEmptyVoxels(grid, col, 0);
-        uint height = GreedyGridNumTrailingPresentVoxels(grid, col, row);
-
-        // absorb faces
-        GreedyGridSetEmptyVoxels(grid, col, row, height);
-
-        // move as far right as we can
-        uint width = 1;
-        while (col + width < SPIRE_VOXEL_CHUNK_SIZE && GreedyGridNumTrailingPresentVoxels(grid, col + width, row) >= height) {
-            GreedyGridSetEmptyVoxels(grid, col + width, row, height);// absorb the new column
-            width++;
-        }
-
-        // push the face
-        uvec3 chunkCoords = GreedyGridGetChunkCoords(slice, row, col, face);
-        if (face == SPIRE_VOXEL_FACE_POS_Z) {
-            mesh.Vertices[mesh.NumVertices + 0] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 1, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_POS_Z);
-            mesh.Vertices[mesh.NumVertices + 1] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + height, chunkCoords.z + 1, SPIRE_VOXEL_VERTEX_POSITION_THREE, SPIRE_VOXEL_FACE_POS_Z);
-            mesh.Vertices[mesh.NumVertices + 2] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + height, chunkCoords.z + 1, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_POS_Z);
-            mesh.Vertices[mesh.NumVertices + 3] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + height, chunkCoords.z + 1, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_POS_Z);
-            mesh.Vertices[mesh.NumVertices + 4] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + 1, SPIRE_VOXEL_VERTEX_POSITION_ONE, SPIRE_VOXEL_FACE_POS_Z);
-            mesh.Vertices[mesh.NumVertices + 5] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 1, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_POS_Z);
-        } else if (face == SPIRE_VOXEL_FACE_NEG_Z) {
-            mesh.Vertices[mesh.NumVertices + 0] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_NEG_Z);
-            mesh.Vertices[mesh.NumVertices + 1] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + height, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_THREE, SPIRE_VOXEL_FACE_NEG_Z);
-            mesh.Vertices[mesh.NumVertices + 2] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + height, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_NEG_Z);
-            mesh.Vertices[mesh.NumVertices + 3] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + height, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_NEG_Z);
-            mesh.Vertices[mesh.NumVertices + 4] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ONE, SPIRE_VOXEL_FACE_NEG_Z);
-            mesh.Vertices[mesh.NumVertices + 5] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_NEG_Z);
-        } else if (face == SPIRE_VOXEL_FACE_NEG_X) {
-            mesh.Vertices[mesh.NumVertices + 0] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_NEG_X);
-            mesh.Vertices[mesh.NumVertices + 1] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + height, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_THREE, SPIRE_VOXEL_FACE_NEG_X);
-            mesh.Vertices[mesh.NumVertices + 2] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + height, chunkCoords.z + width, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_NEG_X);
-            mesh.Vertices[mesh.NumVertices + 3] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + height, chunkCoords.z + width, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_NEG_X);
-            mesh.Vertices[mesh.NumVertices + 4] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + width, SPIRE_VOXEL_VERTEX_POSITION_ONE, SPIRE_VOXEL_FACE_NEG_X);
-            mesh.Vertices[mesh.NumVertices + 5] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_NEG_X);
-        } else if (face == SPIRE_VOXEL_FACE_POS_X) {
-            mesh.Vertices[mesh.NumVertices + 0] = PackVertexData(width, height, chunkCoords.x + 1, chunkCoords.y + 0, chunkCoords.z + width, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_POS_X);
-            mesh.Vertices[mesh.NumVertices + 1] = PackVertexData(width, height, chunkCoords.x + 1, chunkCoords.y + height, chunkCoords.z + width, SPIRE_VOXEL_VERTEX_POSITION_THREE, SPIRE_VOXEL_FACE_POS_X);
-            mesh.Vertices[mesh.NumVertices + 2] = PackVertexData(width, height, chunkCoords.x + 1, chunkCoords.y + height, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_POS_X);
-            mesh.Vertices[mesh.NumVertices + 3] = PackVertexData(width, height, chunkCoords.x + 1, chunkCoords.y + height, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_POS_X);
-            mesh.Vertices[mesh.NumVertices + 4] = PackVertexData(width, height, chunkCoords.x + 1, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ONE, SPIRE_VOXEL_FACE_POS_X);
-            mesh.Vertices[mesh.NumVertices + 5] = PackVertexData(width, height, chunkCoords.x + 1, chunkCoords.y + 0, chunkCoords.z + width, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_POS_X);
-        } else if (face == SPIRE_VOXEL_FACE_POS_Y) {
-            mesh.Vertices[mesh.NumVertices + 0] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 1, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_POS_Y);
-            mesh.Vertices[mesh.NumVertices + 1] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 1, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_THREE, SPIRE_VOXEL_FACE_POS_Y);
-            mesh.Vertices[mesh.NumVertices + 2] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 1, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_POS_Y);
-            mesh.Vertices[mesh.NumVertices + 3] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 1, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_POS_Y);
-            mesh.Vertices[mesh.NumVertices + 4] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 1, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_ONE, SPIRE_VOXEL_FACE_POS_Y);
-            mesh.Vertices[mesh.NumVertices + 5] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 1, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_POS_Y);
-        } else if (face == SPIRE_VOXEL_FACE_NEG_Y) {
-            mesh.Vertices[mesh.NumVertices + 0] =PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_NEG_Y);
-            mesh.Vertices[mesh.NumVertices + 1] =PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_THREE, SPIRE_VOXEL_FACE_NEG_Y);
-            mesh.Vertices[mesh.NumVertices + 2] =PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_NEG_Y);
-            mesh.Vertices[mesh.NumVertices + 3] =PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_NEG_Y);
-            mesh.Vertices[mesh.NumVertices + 4] =PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ONE, SPIRE_VOXEL_FACE_NEG_Y);
-            mesh.Vertices[mesh.NumVertices + 5] =PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_NEG_Y);
-        }
-
-        mesh.NumVertices += 6;
-
-        if (grid[col] != 0) {
-            // we didn't get all the voxels on this row, loop again
-            col--;
-        }
-    }
-
-    const uint meshIndex = face * SPIRE_VOXEL_CHUNK_SIZE + slice;
-    greedyMeshOutput.datas[meshIndex] = mesh;
 }

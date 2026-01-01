@@ -230,21 +230,15 @@ namespace SpireVoxel {
 
     // voxel vertex positions
 #define SPIRE_NUM_VOXEL_VERTEX_POSITIONS 4
-
-    // uv 0, 0
-#define SPIRE_VOXEL_VERTEX_POSITION_ZERO 0
-
-    // uv 1, 0
-#define SPIRE_VOXEL_VERTEX_POSITION_ONE 1
-
-    // uv 1, 1
-#define SPIRE_VOXEL_VERTEX_POSITION_TWO 2
-
-    // uv 0, 1
-#define SPIRE_VOXEL_VERTEX_POSITION_THREE 3
-
 #ifdef __cplusplus
-#define SPIRE_VOXEL_VERTEX_POSITION_TYPE glm::u32
+    enum class VoxelVertexPosition : SPIRE_UINT32_TYPE {
+        ZERO, // uv 0, 0
+        ONE, // uv 1, 0
+        TWO, // uv 1, 1
+        THREE // uv 0, 1
+    };
+
+#define SPIRE_VOXEL_VERTEX_POSITION_TYPE VoxelVertexPosition
 #else
 #define SPIRE_VOXEL_VERTEX_POSITION_TYPE uint
 #endif
@@ -285,6 +279,7 @@ namespace SpireVoxel {
         SPIRE_VOXEL_VERTEX_POSITION_TYPE vertexPosition,
         SPIRE_UINT32_TYPE face
     ) {
+        SPIRE_UINT32_TYPE vertexPositionRaw;
 #ifdef __cplusplus
         assert(x <= 64);
         assert(y <= 64);
@@ -293,6 +288,9 @@ namespace SpireVoxel {
         assert(height <= 64 && height > 0);
         assert(face < SPIRE_VOXEL_NUM_FACES);
         static_assert(sizeof(VertexData) == 8);
+        vertexPositionRaw = static_cast<SPIRE_UINT32_TYPE>(vertexPosition);
+#else
+        vertexPositionRaw = vertexPosition;
 #endif
         width--;
         height--;
@@ -302,7 +300,7 @@ namespace SpireVoxel {
         const SPIRE_UINT32_TYPE xFF = 255;
         VertexData vertex;
         vertex.Packed_6Width6Height = ((MAX_SIX_BIT_VALUE & height) << 6) | (MAX_SIX_BIT_VALUE & width);
-        vertex.Packed_7X7Y7Z2VertPos3Face = ((b111 & face) << 23) | ((b11 & vertexPosition) << 21) | ((xFF & x) << 14)
+        vertex.Packed_7X7Y7Z2VertPos3Face = ((b111 & face) << 23) | ((b11 & vertexPositionRaw) << 21) | ((xFF & x) << 14)
                                             | ((xFF & y) << 7) | (xFF & z);
 
         return vertex;
@@ -362,12 +360,11 @@ namespace SpireVoxel {
 #endif
     };
 
+    // Greedy meshing
+    SPIRE_KEYWORD_INLINE SPIRE_KEYWORD_NODISCARD SPIRE_UINT32_TYPE GreedyGridGetGridStartingIndex(SPIRE_UINT32_TYPE face, SPIRE_UINT32_TYPE slice) {
+        return (face * SPIRE_VOXEL_CHUNK_SIZE + slice) * SPIRE_VOXEL_CHUNK_SIZE;
+    }
 
-    // greedy meshing
-    struct GreedyMeshOutput {
-        SPIRE_UINT32_TYPE NumVertices;
-        VertexData Vertices[SPIRE_VOXEL_CHUNK_AREA];
-    };
 #ifdef __cplusplus
 }
 #endif

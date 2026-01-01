@@ -2,6 +2,13 @@
 
 static_assert(SPIRE_VOXEL_CHUNK_SIZE == 64); // required for greedy meshing
 
+SpireVoxel::GreedyMeshingGrid::GreedyMeshingGrid(
+    const std::vector<glm::u64> &source,
+    std::size_t index) {
+    assert(index + SPIRE_VOXEL_CHUNK_SIZE < source.size());
+    memcpy(m_bits.data(), &source[index],SPIRE_VOXEL_CHUNK_SIZE * sizeof(source[index]));
+}
+
 void SpireVoxel::GreedyMeshingGrid::SetBit(glm::u32 row, glm::u32 col) {
     m_bits[col] |= static_cast<glm::u64>(1) << row;
 }
