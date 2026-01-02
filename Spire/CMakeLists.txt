@@ -28,7 +28,7 @@ if (${INCLUDE_DEBUG_SYMBOLS} EQUAL 1)
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG")
 
     add_compile_definitions(INCLUDE_SHADER_DEBUG_SYMBOLS)
-endif ()
+endif()
 
 add_subdirectory(Spire)
 add_subdirectory(SpireVoxel)

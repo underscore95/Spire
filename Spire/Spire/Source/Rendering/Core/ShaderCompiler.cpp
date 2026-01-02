@@ -194,9 +194,6 @@ namespace Spire {
 #ifdef INCLUDE_SHADER_DEBUG_SYMBOLS
         options.generate_debug_info = true;
         options.strip_debug_info = false;
-        options.emit_nonsemantic_shader_debug_info = true;
-        options.emit_nonsemantic_shader_debug_source = true;
-        options.optimize_allow_expanded_id_bound = true;
 #endif
 
         glslang_program_SPIRV_generate_with_options(program, stage, &options);
