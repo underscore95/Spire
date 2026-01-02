@@ -1,5 +1,4 @@
 #version 460
-#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 #extension GL_KHR_vulkan_glsl : enable
 
 #include "ShaderInfo.h"
@@ -9,12 +8,10 @@ layout (set = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET, binding = SPIRE_VO
 } chunkVoxelData;
 
 layout (set = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_OUTPUT) buffer Output {
-    uint64_t grid[SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES];
+    uint grid[SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES * 2];// multiply by 2 because we pass in uint64
 } greedyMeshOutput;
 
 layout (local_size_x = SPIRE_VOXEL_CHUNK_SIZE, local_size_y = SPIRE_VOXEL_NUM_FACES, local_size_z = 1) in;
-
-const uint64_t UINT64_ONE = uint64_t(1);
 
 // convert slice, row, col, face into chunk coords (0 to 63)
 uvec3 GreedyGridGetChunkCoords(uint slice, uint row, uint col, uint face) {
@@ -35,7 +32,7 @@ uint getVoxelType(uint voxelDataIndex) {
 void main() {
     const uint slice = gl_LocalInvocationID.x;
     const uint face = gl_LocalInvocationID.y;
-    const uint index = GreedyGridGetGridStartingIndex(face, slice);
+    const uint index = GreedyGridGetGridStartingIndex(face, slice) * 2;
 
     for (uint row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
         for (uint col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
@@ -48,7 +45,13 @@ void main() {
             &&  getVoxelType(SPIRE_VOXEL_POSITION_TO_INDEX(adjacentPositive)) != 0;
 
             if (getVoxelType(SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)) != 0 && !adjacentPositiveIsPresent) {
-                greedyMeshOutput.grid[index + col] |= UINT64_ONE << uint64_t(row);// set bit
+                // set bit, we use 32 bit since it is faster
+                // this if statement can be optimised out by the compiler by splitting the row loop into two
+                if (row < 32) {
+                    greedyMeshOutput.grid[index + col * 2 + 0] |= (1u << row); // higher bits
+                } else {
+                    greedyMeshOutput.grid[index + col * 2 + 1] |= (1u << (row - 32)); // lower bits
+                }
             }
         }
     }
