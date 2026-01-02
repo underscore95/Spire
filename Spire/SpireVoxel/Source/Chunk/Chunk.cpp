@@ -60,6 +60,9 @@ namespace SpireVoxel {
     }
 
     std::vector<VertexData> Chunk::GenerateMesh(Spire::RenderingManager &rm) const {
+        static float runMillis=0;
+        static float readMillis=0;
+        static float mergeMillis=0;
         Spire::Timer timer;
 
         // create buffers
@@ -73,7 +76,8 @@ namespace SpireVoxel {
         // create shader
         Spire::ShaderCompiler compiler(rm.GetDevice());
         Spire::ShaderCompiler::Options options = {
-            .OptimiseSize = true // This causes the compiler to crash for this shader? Related to gl_GlobalInvocationID
+            .Optimise = false,
+            .OptimiseSize = false
         };
         VkShaderModule shader = compiler.CreateShaderModule(std::format("{}/Shaders/GreedyMeshing.comp", ASSETS_DIRECTORY), options);
 
@@ -126,25 +130,30 @@ namespace SpireVoxel {
         rm.GetQueue().WaitIdle();
 
         Spire::info("Compute shader ran in {} ms", timer.MillisSinceStart());
+        runMillis+=timer.MillisSinceStart();
         timer.Restart();
 
         rm.GetBufferManager().ReadBufferElements(outputBuffer, shaderOutput);
         Spire::info("Read shader output in {} ms", timer.MillisSinceStart());
+        readMillis+=timer.MillisSinceStart();
         timer.Restart();
 
         // merge output into a single vector
         std::vector<VertexData> vertices;
         for (const GreedyMeshOutput &output : shaderOutput) {
-            Spire::info("num: {}", output.NumVertices);
+          //  Spire::info("num: {}", output.NumVertices);
             for (int i = 0; i < output.NumVertices; i++) {
-             //   vertices.push_back(output.Vertices[i]);
+             vertices.push_back(output.Vertices[i]);
             }
         }
 
-        Spire::info("num verticeS: {}",vertices.size());
+   //     Spire::info("num verticeS: {}",vertices.size());
         Spire::info("Merged shader output in {} ms", timer.MillisSinceStart());
+        mergeMillis+=timer.MillisSinceStart();
         timer.Restart();
-
+        static int numChunks=0;
+        numChunks++;
+Spire::info("total run: {} read: {} merge: {} (millis), total chunks {}",runMillis,readMillis,mergeMillis,numChunks);
         return vertices;
     }
 

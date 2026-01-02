@@ -115,7 +115,7 @@ void main() {
 
     for (uint col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
         if (noBitsSet) {
-            mesh.NumVertices=2398;break;//debug
+          //  mesh.NumVertices=2398;break;//debug
         }
         // find the starting row and height of the face
         if (grid[col] == 0) {
