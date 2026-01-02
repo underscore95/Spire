@@ -207,6 +207,7 @@ namespace SpireVoxel {
         runMillis += timer.MillisSinceStart();
         timer.Restart();
 
+        // Read
         rm.GetBufferManager().CopyBuffer(copyBuffer.Buffer, outputBuffer.Buffer, copyBuffer.Size);
         rm.GetBufferManager().ReadBufferElements(copyBuffer, shaderOutput);
         Spire::info("Read shader output in {} ms", timer.MillisSinceStart());
@@ -217,7 +218,8 @@ namespace SpireVoxel {
         std::vector<VertexData> vertices;
         for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
             for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
-                GreedyMeshingGrid grid(shaderOutput, GreedyGridGetGridStartingIndex(face, slice));
+                assert(GreedyGridGetGridStartingIndex(face, slice) + SPIRE_VOXEL_CHUNK_SIZE <= shaderOutput.size());
+                GreedyMeshingGrid grid(&shaderOutput[GreedyGridGetGridStartingIndex(face, slice)]);
                 for (glm::i32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
                     // find the starting row and height of the face
                     if (grid.GetColumn(col) == 0) continue;
