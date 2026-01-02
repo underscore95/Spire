@@ -12,6 +12,23 @@
 namespace Spire {
     bool s_isDestroyed = false;
 
+    BufferManager::MappedMemory::MappedMemory(RenderingManager &rm, const VulkanBuffer &buffer)
+        : Size(buffer.Size),
+          m_buffer(buffer),
+          m_renderingManager(rm) {
+        VkResult res = vmaMapMemory(rm.GetAllocatorWrapper().GetAllocator(), buffer.Allocation, &Memory);
+        if (res != VK_SUCCESS) {
+            error("Failed to map buffer memory with size {} bytes", buffer.Size);
+            Memory = nullptr;
+        }
+    }
+
+    BufferManager::MappedMemory::~MappedMemory() {
+        if (Memory) {
+            vmaUnmapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), m_buffer.Allocation);
+        }
+    }
+
     BufferManager::BufferManager(RenderingManager &renderingManager)
         : m_renderingManager(renderingManager) {
         m_renderingManager.GetCommandManager().CreateCommandBuffers(1, &m_copyCommandBuffer);
@@ -217,5 +234,9 @@ namespace Spire {
 
         assert(buffer.Size != 0);
         return buffer;
+    }
+
+    BufferManager::MappedMemory BufferManager::Map(const VulkanBuffer &buffer) const {
+        return std::move(MappedMemory{m_renderingManager,buffer});
     }
 }

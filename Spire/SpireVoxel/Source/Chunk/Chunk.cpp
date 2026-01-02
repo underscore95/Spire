@@ -127,7 +127,6 @@ namespace SpireVoxel {
     std::vector<VertexData> Chunk::GenerateMesh(Spire::RenderingManager &rm) const {
         static float irrelevantMillis = 0;
         static float runMillis = 0;
-        static float readMillis = 0;
         static float mergeMillis = 0;
         static int numChunks = 0;
         numChunks++;
@@ -135,8 +134,9 @@ namespace SpireVoxel {
 
         // create buffers
         Spire::VulkanBuffer voxelDataBuffer = rm.GetBufferManager().CreateStorageBuffer(VoxelData.data(), sizeof(VoxelData[0]) * VoxelData.size(), sizeof(VoxelData[0]));
-        std::vector<glm::u64> shaderOutput(SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES);
-        Spire::VulkanBuffer outputBuffer = rm.GetBufferManager().CreateStorageBuffer(shaderOutput.data(), sizeof(shaderOutput[0]) * shaderOutput.size(), sizeof(shaderOutput[0]),
+        //  std::vector<glm::u64> shaderOutput(SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES);
+        const glm::u64 SHADER_OUTPUT_NUM_ELEMENTS = SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES;
+        Spire::VulkanBuffer outputBuffer = rm.GetBufferManager().CreateStorageBuffer(nullptr, sizeof(glm::u64) * SHADER_OUTPUT_NUM_ELEMENTS, sizeof(glm::u64),
                                                                                      true, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
         // output buffer will be copied since faster
         VkBufferUsageFlags copyBufferUsage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -208,16 +208,19 @@ namespace SpireVoxel {
         timer.Restart();
 
         rm.GetBufferManager().CopyBuffer(copyBuffer.Buffer, outputBuffer.Buffer, copyBuffer.Size);
-        rm.GetBufferManager().ReadBufferElements(copyBuffer, shaderOutput);
-        Spire::info("Read shader output in {} ms", timer.MillisSinceStart());
-        readMillis += timer.MillisSinceStart();
-        timer.Restart();
+        //  rm.GetBufferManager().ReadBufferElements(copyBuffer, shaderOutput);
+        //  Spire::info("Read shader output in {} ms", timer.MillisSinceStart());
+        //   readMillis += timer.MillisSinceStart();
+        // timer.Restart();
+        Spire::BufferManager::MappedMemory mappedMemory = rm.GetBufferManager().Map(copyBuffer);
 
         // greedy mesh on our grids
         std::vector<VertexData> vertices;
         for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
             for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
-                GreedyMeshingGrid grid(shaderOutput, GreedyGridGetGridStartingIndex(face, slice));
+                glm::u64 *gridBits = &mappedMemory.GetMemory<glm::u64>()[GreedyGridGetGridStartingIndex(face, slice)];
+                assert(GreedyGridGetGridStartingIndex(face, slice) + SPIRE_VOXEL_CHUNK_SIZE <= shaderOutput.size());
+                GreedyMeshingGrid grid(gridBits);
                 for (glm::i32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
                     // find the starting row and height of the face
                     if (grid.GetColumn(col) == 0) continue;
@@ -233,7 +236,6 @@ namespace SpireVoxel {
                         grid.SetEmptyVoxels(col + width, row, height); // absorb the new column
                         width++;
                     }
-                    //     mask.Print();
 
                     // push the face
                     glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face);
@@ -252,14 +254,12 @@ namespace SpireVoxel {
 
         Spire::info("irrelevant millis {}", irrelevantMillis);
         Spire::info("run millis {}", runMillis);
-        Spire::info("read millis {}", readMillis);
         Spire::info("merge millis {}", mergeMillis);
-        Spire::info("all millis {}", runMillis + readMillis + mergeMillis);
+        Spire::info("all millis {}", runMillis + mergeMillis);
 
         Spire::info("run millis average: {}", runMillis / static_cast<float>(numChunks));
-        Spire::info("read millis average: {}", readMillis / static_cast<float>(numChunks));
         Spire::info("merge millis average: {}", mergeMillis / static_cast<float>(numChunks));
-        Spire::info("all millis average: {}", (runMillis + readMillis + mergeMillis) / static_cast<float>(numChunks));
+        Spire::info("all millis average: {}", (runMillis + mergeMillis) / static_cast<float>(numChunks));
         return vertices;
     }
 

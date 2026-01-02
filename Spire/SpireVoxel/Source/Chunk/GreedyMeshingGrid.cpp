@@ -1,12 +1,6 @@
 #include "GreedyMeshingGrid.h"
 
-static_assert(SPIRE_VOXEL_CHUNK_SIZE == 64); // required for greedy meshing
-
-SpireVoxel::GreedyMeshingGrid::GreedyMeshingGrid(
-    const std::vector<glm::u64> &source,
-    std::size_t index) {
-    assert(index + SPIRE_VOXEL_CHUNK_SIZE < source.size());
-    memcpy(m_bits.data(), &source[index],SPIRE_VOXEL_CHUNK_SIZE * sizeof(source[index]));
+SpireVoxel::GreedyMeshingGrid::GreedyMeshingGrid(glm::u64 *bits) :m_bits(bits){
 }
 
 void SpireVoxel::GreedyMeshingGrid::SetBit(glm::u32 row, glm::u32 col) {
@@ -52,7 +46,7 @@ glm::uvec3 SpireVoxel::GreedyMeshingGrid::GetChunkCoords(glm::u32 slice, glm::u3
 
 void SpireVoxel::GreedyMeshingGrid::Print() const {
     std::array<std::string, SPIRE_VOXEL_CHUNK_SIZE> strings;
-    for (std::size_t col = 0; col < m_bits.size(); col++) {
+    for (std::size_t col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
         for (glm::u32 row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
             strings[col] += GetBit(row, col) ? "1" : "0";
         }

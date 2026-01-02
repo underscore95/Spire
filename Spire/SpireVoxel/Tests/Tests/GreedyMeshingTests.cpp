@@ -1,11 +1,11 @@
 #include "EngineIncludes.h"
 #include "../Assets/Shaders/ShaderInfo.h"
 #include <gtest/gtest.h>
-#include "TestHelpers.h"
 #include "Chunk/GreedyMeshingGrid.h"
 
 TEST(TestSettingBits, GreedyMeshingTests) {
-    SpireVoxel::GreedyMeshingGrid mask;
+    std::array<glm::u64, SPIRE_VOXEL_CHUNK_SIZE> bits{};
+    SpireVoxel::GreedyMeshingGrid mask(bits.data());
     mask.SetBit(0, 0);
 
     EXPECT_EQ(mask.GetColumn(0), 1);
@@ -17,7 +17,9 @@ TEST(TestSettingBits, GreedyMeshingTests) {
 }
 
 TEST(TestGettingBits, GreedyMeshingTests) {
-    SpireVoxel::GreedyMeshingGrid mask;
+    std::array<glm::u64, SPIRE_VOXEL_CHUNK_SIZE> bits{};
+    SpireVoxel::GreedyMeshingGrid mask(bits.data());
+
     EXPECT_FALSE(mask.GetBit(0, 0));
     EXPECT_FALSE(mask.GetBit(3, 0));
     EXPECT_FALSE(mask.GetBit(8, 19));
@@ -32,7 +34,8 @@ TEST(TestGettingBits, GreedyMeshingTests) {
 }
 
 TEST(TestTrailingVoxelsA, GreedyMeshingTests) {
-    SpireVoxel::GreedyMeshingGrid mask;
+    std::array<glm::u64, SPIRE_VOXEL_CHUNK_SIZE> bits{};
+    SpireVoxel::GreedyMeshingGrid mask(bits.data());
     EXPECT_EQ(mask.NumTrailingPresentVoxels(0, 0), 0);
 
     mask.SetBit(0, 0);
@@ -48,7 +51,8 @@ TEST(TestTrailingVoxelsA, GreedyMeshingTests) {
 }
 
 TEST(TestTrailingVoxelsB, GreedyMeshingTests) {
-    SpireVoxel::GreedyMeshingGrid mask;
+    std::array<glm::u64, SPIRE_VOXEL_CHUNK_SIZE> bits{};
+    SpireVoxel::GreedyMeshingGrid mask(bits.data());
 
     for (int i = 1; i < SPIRE_VOXEL_CHUNK_SIZE; i++) {
         mask.SetBit(i, 0);

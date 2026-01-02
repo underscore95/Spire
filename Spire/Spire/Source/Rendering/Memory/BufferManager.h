@@ -12,10 +12,35 @@ namespace Spire {
         friend class ImageManager;
 
     public:
+        class MappedMemory {
+            friend class BufferManager;
+
+        private:
+            explicit MappedMemory(RenderingManager &rm, const VulkanBuffer &buffer);
+
+        public:
+            ~MappedMemory();
+
+        public:
+            void *Memory; // Pointer to the mapped memory, you can write but not resize
+            const std::size_t Size; // Size of mapped memory
+
+            // Cast the memory pointer, does not change bits
+            // Only valid if the buffer already contains T objects or T is trivially constructable
+            template<typename T>
+            T *GetMemory() { return reinterpret_cast<T *>(Memory); }
+
+        private:
+            VulkanBuffer m_buffer;
+            RenderingManager &m_renderingManager;
+        };
+
+    public:
         explicit BufferManager(RenderingManager &renderingManager);
 
         ~BufferManager();
 
+    public:
         // Create an index buffer, indexTypeSize determines type of indices, either sizeof(std::uint32_t) or sizeof(std::uint16_t) or sizeof(std::uint8_t)
         [[nodiscard]] VulkanBuffer CreateIndexBuffer(glm::u32 indexTypeSize, const void *indices, std::size_t numIndices);
 
@@ -46,16 +71,18 @@ namespace Spire {
 
         void ReadBuffer(const VulkanBuffer &buffer, void *out) const;
 
-        void CmdCopyBuffer(VkCommandBuffer commandBuffer, const VulkanBuffer& source, const VulkanBuffer & dest);
+        void CmdCopyBuffer(VkCommandBuffer commandBuffer, const VulkanBuffer &source, const VulkanBuffer &dest);
+
         void CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size) const;
 
         [[nodiscard]] VulkanBuffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::size_t elementSize);
+
+        [[nodiscard]] MappedMemory Map(const VulkanBuffer &buffer) const;
 
     public:
         static bool HasBufferManagerBeenDestroyed();
 
     private:
-
         // data can be nullptr which means initial data is undefined and call is basically equivalent to create buffer
         [[nodiscard]] VulkanBuffer CreateBufferWithData(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
                                                         const void *data, glm::u32 elementSize);
