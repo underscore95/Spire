@@ -149,10 +149,7 @@ namespace SpireVoxel {
 
         // create shader
         Spire::ShaderCompiler compiler(rm.GetDevice());
-        Spire::ShaderCompiler::Options options = {
-            .OptimiseSize = true // This causes the compiler to crash for this shader? Related to gl_GlobalInvocationID
-        };
-        VkShaderModule shader = compiler.CreateShaderModule(std::format("{}/Shaders/GreedyMeshing.comp", ASSETS_DIRECTORY), options);
+        VkShaderModule shader = compiler.CreateShaderModule(std::format("{}/Shaders/GreedyMeshing.comp", ASSETS_DIRECTORY));
 
         // descriptors
         Spire::DescriptorSetLayoutList layouts(rm.GetSwapchain().GetNumImages());
