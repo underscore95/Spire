@@ -11,7 +11,8 @@ namespace SpireVoxel {
     GPUChunkMesher::~GPUChunkMesher() {
     }
 
-    std::future<std::vector<VertexData> > GPUChunkMesher::Mesh(Chunk &chunk) {
+    std::future<std::vector<VertexData> > GPUChunkMesher::Mesh(const std::shared_ptr<Chunk> &chunk) {
+        std::future<std::vector<VertexData> > future = std::async(std::launch::async, [this, chunk] {
             auto &rm = m_renderingManager;
 
             static float irrelevantMillis = 0;
@@ -23,8 +24,8 @@ namespace SpireVoxel {
             Spire::Timer timer;
 
             // create buffers
-            Spire::VulkanBuffer voxelDataBuffer = rm.GetBufferManager().CreateStorageBuffer(chunk.VoxelData.data(), sizeof(chunk.VoxelData[0]) * chunk.VoxelData.size(),
-                                                                                            sizeof(chunk.VoxelData[0]));
+            Spire::VulkanBuffer voxelDataBuffer = rm.GetBufferManager().CreateStorageBuffer(chunk->VoxelData.data(), sizeof(chunk->VoxelData[0]) * chunk->VoxelData.size(),
+                                                                                            sizeof(chunk->VoxelData[0]));
             std::vector<glm::u64> shaderOutput(SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES);
             Spire::VulkanBuffer outputBuffer = rm.GetBufferManager().CreateStorageBuffer(shaderOutput.data(), sizeof(shaderOutput[0]) * shaderOutput.size(),
                                                                                          sizeof(shaderOutput[0]),
@@ -91,6 +92,9 @@ namespace SpireVoxel {
             rm.GetQueue().SubmitImmediate(cmdBuffer);
             rm.GetQueue().WaitIdle();
 
+            // Free command buffer
+            rm.GetCommandManager().FreeCommandBuffers(1, &cmdBuffer);
+
             Spire::info("Compute shader ran in {} ms", timer.MillisSinceStart());
             runMillis += timer.MillisSinceStart();
             timer.Restart();
@@ -151,7 +155,6 @@ namespace SpireVoxel {
             Spire::info("merge millis average: {}", mergeMillis / static_cast<float>(numChunks));
             Spire::info("all millis average: {}", (runMillis + readMillis + mergeMillis) / static_cast<float>(numChunks));
 
-        std::future<std::vector<VertexData> > future = std::async(std::launch::async, [this, vertices] {
             return vertices;
         });
 

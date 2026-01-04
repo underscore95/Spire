@@ -12,7 +12,7 @@ namespace SpireVoxel {
 
     public:
         // Mesh a chunk
-        [[nodiscard]] virtual std::future<std::vector<VertexData> > Mesh(Chunk &chunk) = 0;
+        [[nodiscard]] virtual std::future<std::vector<VertexData> > Mesh(const std::shared_ptr<Chunk> &chunk) = 0;
 
         // How much load is this mesher under?
         // Lower values mean the mesher is more likely to be assigned work

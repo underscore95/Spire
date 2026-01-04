@@ -10,7 +10,7 @@ namespace SpireVoxel {
         ~GPUChunkMesher() override;
 
     public:
-        [[nodiscard]] std::future<std::vector<VertexData> > Mesh(Chunk &chunk) override;
+        [[nodiscard]] std::future<std::vector<VertexData> > Mesh(const std::shared_ptr<Chunk>& chunk) override;
 
         [[nodiscard]] float GetLoad() override {
             return 1; /*todo*/

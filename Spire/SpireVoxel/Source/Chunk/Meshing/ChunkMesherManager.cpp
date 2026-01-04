@@ -26,7 +26,7 @@ namespace SpireVoxel {
 
             m_currentlyMeshing.insert(chunk);
 
-            callback(FindOptimalMesher().Mesh(*chunk).get(), MeshResult::Success);
+            callback(FindOptimalMesher().Mesh(chunk).get(), MeshResult::Success);
         }
     }
 
