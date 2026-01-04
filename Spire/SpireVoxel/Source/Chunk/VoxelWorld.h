@@ -20,17 +20,17 @@ namespace SpireVoxel {
 
         void UnloadChunks(const std::vector<glm::ivec3> &chunkPositions);
 
-        [[nodiscard]] Chunk *GetLoadedChunk(glm::ivec3 chunkPosition);
+        [[nodiscard]] std::shared_ptr<Chunk> GetLoadedChunk(glm::ivec3 chunkPosition);
 
-        [[nodiscard]] const Chunk *GetLoadedChunk(glm::ivec3 chunkPosition) const;
+        [[nodiscard]] const std::shared_ptr<Chunk> GetLoadedChunk(glm::ivec3 chunkPosition) const;
 
         [[nodiscard]] bool IsLoaded(const Chunk &chunk);
 
         [[nodiscard]] std::size_t NumLoadedChunks() const;
 
-        std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator begin();
+        std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>>::iterator begin();
 
-        std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>::iterator end();
+        std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>>::iterator end();
 
         [[nodiscard]] std::uint32_t GetNumLoadedChunks() const;
 
@@ -58,7 +58,7 @@ namespace SpireVoxel {
 
     private:
         // https://en.cppreference.com/w/cpp/container/unordered_map.html - always iterates in the same order if the map hasnt been changed
-        std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>> m_chunks;
+        std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>> m_chunks;
         std::unique_ptr<VoxelWorldRenderer> m_renderer;
     };
 } // SpireVoxel

@@ -9,7 +9,7 @@ namespace SpireVoxel {
 
     void CuboidVoxelEdit::Apply(VoxelWorld &world) {
         for (const auto &edit : m_edits) {
-            Chunk *chunk = world.GetLoadedChunk(edit.ChunkPosition);
+            Chunk *chunk = world.GetLoadedChunk(edit.ChunkPosition).get();
             if (!chunk) {
                 Spire::warn("Failed to set part of a cuboid in chunk {} {} {} because it wasn't loaded", edit.ChunkPosition.x, edit.ChunkPosition.y, edit.ChunkPosition.z);
                 continue;
@@ -31,7 +31,7 @@ namespace SpireVoxel {
         }
 
         for (const auto &chunkPos : m_affectedChunkMeshes) {
-            Chunk *chunk = world.GetLoadedChunk(chunkPos);
+            Chunk *chunk = world.GetLoadedChunk(chunkPos).get();
             if (chunk) {
                 NotifyChunkEdit(world, *chunk);
             }

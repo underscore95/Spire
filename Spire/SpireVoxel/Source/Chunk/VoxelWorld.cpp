@@ -48,20 +48,20 @@ namespace SpireVoxel {
         }
     }
 
-    Chunk *VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) {
+    std::shared_ptr<Chunk> VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) {
         auto it = m_chunks.find(chunkPosition);
-        return it != m_chunks.end() ? it->second.get() : nullptr;
+        return it != m_chunks.end() ? it->second : nullptr;
     }
 
-    const Chunk *VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) const {
+    const std::shared_ptr<Chunk> VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) const {
         auto it = m_chunks.find(chunkPosition);
-        return it != m_chunks.end() ? it->second.get() : nullptr;
+        return it != m_chunks.end() ? it->second : nullptr;
     }
 
     bool VoxelWorld::IsLoaded(const Chunk &chunk) {
-        Chunk *loaded = GetLoadedChunk(chunk.ChunkPosition);
+        std::shared_ptr<Chunk> loaded = GetLoadedChunk(chunk.ChunkPosition);
         if (!loaded) return false;
-        assert(loaded == &chunk); // make sure there isn't two chunks at the same position
+        assert(loaded.get() == &chunk); // make sure there isn't two chunks at the same position
         return true;
     }
 
@@ -69,11 +69,11 @@ namespace SpireVoxel {
         return m_chunks.size();
     }
 
-    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk> >::iterator VoxelWorld::begin() {
+    std::unordered_map<glm::ivec3, std::shared_ptr<Chunk> >::iterator VoxelWorld::begin() {
         return m_chunks.begin();
     }
 
-    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk> >::iterator VoxelWorld::end() {
+    std::unordered_map<glm::ivec3, std::shared_ptr<Chunk> >::iterator VoxelWorld::end() {
         return m_chunks.end();
     }
 
@@ -115,7 +115,7 @@ namespace SpireVoxel {
         glm::ivec3 chunkPos = GetChunkPositionOfVoxel(worldPosition);
         glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
 
-        const Chunk *chunk = GetLoadedChunk(chunkPos);
+        std::shared_ptr chunk = GetLoadedChunk(chunkPos);
         return chunk ? chunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(positionInChunk)] : VOXEL_TYPE_AIR;
     }
 
@@ -123,12 +123,12 @@ namespace SpireVoxel {
         glm::ivec3 chunkPos = GetChunkPositionOfVoxel(worldPosition);
         glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
 
-        Chunk *chunk = GetLoadedChunk(chunkPos);
+        std::shared_ptr chunk = GetLoadedChunk(chunkPos);
         if (chunk) {
             chunk->SetVoxel(SPIRE_VOXEL_POSITION_TO_INDEX(positionInChunk), voxelType);
             m_renderer->NotifyChunkEdited(*chunk);
         }
-        return chunk;
+        return chunk != nullptr;
     }
 
     glm::ivec3 VoxelWorld::GetChunkPositionOfVoxel(glm::ivec3 voxelWorldPosition) {

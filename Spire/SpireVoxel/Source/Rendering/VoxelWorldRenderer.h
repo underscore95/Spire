@@ -2,6 +2,7 @@
 
 #include "VoxelRenderer.h"
 #include "Chunk/Chunk.h"
+#include "Chunk/Meshing/ChunkMesherManager.h"
 
 namespace SpireVoxel {
     class VoxelWorld;
@@ -13,6 +14,16 @@ namespace SpireVoxel {
         struct WorldEditRequiredChanges {
             bool RecreatePipeline;
             bool RecreateOnlyCommandBuffers;
+
+            WorldEditRequiredChanges &operator|=(const WorldEditRequiredChanges &other) {
+                RecreatePipeline |= other.RecreatePipeline;
+                RecreateOnlyCommandBuffers |= other.RecreateOnlyCommandBuffers;
+                return *this;
+            }
+
+            [[nodiscard]] bool IsAnyChanges() const {
+                return RecreatePipeline | RecreatePipeline;
+            }
         };
 
         explicit VoxelWorldRenderer(
@@ -35,12 +46,15 @@ namespace SpireVoxel {
 
         void HandleChunkEdits();
 
+        WorldEditRequiredChanges UpdateMesh(Chunk &chunk, const std::vector<VertexData> &mesh);
+
     private:
         void NotifyChunkLoadedOrUnloaded();
 
         void UpdateChunkDataCache();
 
         void FreeChunkVertexBuffer(Chunk &chunk);
+
         void FreeChunkVoxelDataBuffer(Chunk &chunk);
 
     private:
@@ -57,5 +71,7 @@ namespace SpireVoxel {
         std::vector<bool> m_dirtyChunkDataBuffers; // if {true,false,false} it means we need to update buffer 0 on swapchain image index 0
         std::vector<ChunkData> m_latestCachedChunkData;
         std::unordered_set<glm::ivec3> m_editedChunks;
+        std::unique_ptr<ChunkMesherManager> m_mesher;
+        std::unordered_map<std::shared_ptr<Chunk>, std::vector<VertexData> > m_remeshedChunks; // chunks that have been remeshed and we need to upload the new mesh
     };
 } // SpireVoxel

@@ -31,7 +31,7 @@ void GameApplication::Update() {
     m_camera->Update();
     RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), m_camera->GetCamera().GetForward(), 10);
     if (hit) {
-        Chunk *chunkOfHitVoxel = m_voxelRenderer->GetWorld().GetLoadedChunk(VoxelWorld::GetChunkPositionOfVoxel(hit.VoxelPosition));
+        Chunk *chunkOfHitVoxel = m_voxelRenderer->GetWorld().GetLoadedChunk(VoxelWorld::GetChunkPositionOfVoxel(hit.VoxelPosition)).get();
 
         if (m_engine->GetWindow().IsKeyPressed(GLFW_KEY_L) && chunkOfHitVoxel) {
             glm::ivec3 adjacentVoxel = hit.VoxelPosition + FaceToDirection(hit.Face);

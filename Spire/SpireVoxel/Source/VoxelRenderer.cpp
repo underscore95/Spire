@@ -53,7 +53,6 @@ namespace SpireVoxel {
         } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test6");
 
 
-
         m_timeSinceBeginProfiling.Restart();
     }
 

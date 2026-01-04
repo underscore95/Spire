@@ -25,6 +25,8 @@
 #include <random>
 #include <bit>
 #include <bitset>
+#include <future>
+#include <queue>
 
 // vulkan
 #include <vulkan/vulkan_core.h>

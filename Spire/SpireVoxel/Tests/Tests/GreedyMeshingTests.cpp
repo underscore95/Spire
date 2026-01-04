@@ -1,7 +1,7 @@
 #include "EngineIncludes.h"
 #include "../Assets/Shaders/ShaderInfo.h"
 #include <gtest/gtest.h>
-#include "Chunk/GreedyMeshingGrid.h"
+#include "../../Source/Chunk/Meshing/GreedyMeshingGrid.h"
 
 TEST(TestSettingBits, GreedyMeshingTests) {
     std::array<glm::u64, SPIRE_VOXEL_CHUNK_SIZE> bits{};
