@@ -24,6 +24,9 @@ namespace Spire
 
         void SubmitImmediate(VkCommandBuffer commandBuffer) const;
 
+        // Submit and trigger a fence
+        void Submit(VkCommandBuffer commandBuffer, VkFence fence) const;
+
         void SubmitRenderCommand(VkCommandBuffer commandBuffer);
         void SubmitRenderCommands(glm::u32 count, VkCommandBuffer* commandBuffers);
 

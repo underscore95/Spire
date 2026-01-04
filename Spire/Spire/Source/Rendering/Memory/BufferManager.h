@@ -64,6 +64,6 @@ namespace Spire {
         const glm::u32 INVALID_MEMORY_TYPE_INDEX = -1; // overflow
         RenderingManager &m_renderingManager;
         VkCommandBuffer m_copyCommandBuffer;
-        glm::u32 m_numAllocatedBuffers = 0;
+        std::atomic_uint32_t m_numAllocatedBuffers = 0;
     };
 }

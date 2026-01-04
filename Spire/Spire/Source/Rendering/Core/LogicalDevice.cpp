@@ -57,10 +57,17 @@ namespace Spire {
             return;
         }
 
+        // sync2
+        VkPhysicalDeviceSynchronization2Features synchronization2 = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
+            .pNext = VK_NULL_HANDLE,
+            .synchronization2 = VK_TRUE
+        };
+
         // dynamic rendering
         VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-            .pNext = nullptr,
+            .pNext = &synchronization2,
             .dynamicRendering = VK_TRUE
         };
 
@@ -77,8 +84,6 @@ namespace Spire {
         deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
         deviceFeatures2.pNext = &indexingFeatures;
         deviceFeatures2.features.multiDrawIndirect = VK_TRUE;
-
-        // device features
         deviceFeatures2.features.geometryShader = VK_TRUE;
         deviceFeatures2.features.tessellationShader = VK_TRUE;
 #ifndef NDEBUG

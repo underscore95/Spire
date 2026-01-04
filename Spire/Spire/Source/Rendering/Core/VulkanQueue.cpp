@@ -96,6 +96,25 @@ namespace Spire {
         }
     }
 
+    void VulkanQueue::Submit(VkCommandBuffer commandBuffer, VkFence fence) const {
+        VkSubmitInfo submitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .pNext = nullptr,
+            .waitSemaphoreCount = 0,
+            .pWaitSemaphores = VK_NULL_HANDLE,
+            .pWaitDstStageMask = VK_NULL_HANDLE,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &commandBuffer,
+            .signalSemaphoreCount = 0,
+            .pSignalSemaphores = VK_NULL_HANDLE
+        };
+
+        VkResult res = vkQueueSubmit(m_queue, 1, &submitInfo, fence);
+        if (res != VK_SUCCESS) {
+            error("Failed to submit commands to queue with fence");
+        }
+    }
+
     void VulkanQueue::SubmitRenderCommand(VkCommandBuffer commandBuffer) {
         SubmitRenderCommands(1, &commandBuffer);
     }

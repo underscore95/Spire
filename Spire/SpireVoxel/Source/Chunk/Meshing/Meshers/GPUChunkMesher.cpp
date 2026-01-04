@@ -2,6 +2,7 @@
 
 #include "Chunk/Chunk.h"
 #include "../GreedyMeshingGrid.h"
+#include "Rendering/Memory/VulkanAllocator.h"
 
 namespace SpireVoxel {
     GPUChunkMesher::GPUChunkMesher(Spire::RenderingManager &renderingManager)
@@ -17,7 +18,6 @@ namespace SpireVoxel {
 
             static float irrelevantMillis = 0;
             static float runMillis = 0;
-            static float readMillis = 0;
             static float mergeMillis = 0;
             static int numChunks = 0;
             numChunks++;
@@ -29,7 +29,7 @@ namespace SpireVoxel {
             std::vector<glm::u64> shaderOutput(SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_NUM_FACES);
             Spire::VulkanBuffer outputBuffer = rm.GetBufferManager().CreateStorageBuffer(shaderOutput.data(), sizeof(shaderOutput[0]) * shaderOutput.size(),
                                                                                          sizeof(shaderOutput[0]),
-                                                                                         true, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+                                                                                         true, VK_MEMORY_PROPERTY_HOST_CACHED_BIT /*  |VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT */);
             // output buffer will be copied since faster
             VkBufferUsageFlags copyBufferUsage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
             VkMemoryPropertyFlags copyBufferProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
@@ -81,30 +81,75 @@ namespace SpireVoxel {
             irrelevantMillis += timer.MillisSinceStart();
             timer.Restart();
 
+            // create fences
+            VkFence fence;
+            VkFenceCreateInfo fenceInfo{
+                .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO
+            };
+            vkCreateFence(rm.GetDevice(), &fenceInfo, nullptr, &fence);
+
             // run
             VkCommandBuffer cmdBuffer;
             rm.GetCommandManager().CreateCommandBuffers(1, &cmdBuffer);
-            rm.GetCommandManager().BeginCommandBuffer(cmdBuffer, VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
-            descriptorManager.CmdBind(cmdBuffer, UINT32_MAX, pipeline.GetLayout(),SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET,SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET);
+            rm.GetCommandManager().BeginCommandBuffer(cmdBuffer, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+            descriptorManager.CmdBind(
+                cmdBuffer,
+                UINT32_MAX,
+                pipeline.GetLayout(),
+                SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET,
+                SPIRE_VOXEL_SHADER_BINDINGS_GREEDY_MESHING_SET
+            );
+
             pipeline.CmdBindTo(cmdBuffer);
             pipeline.CmdDispatch(cmdBuffer, 1, 1, 1);
+
+            VkBufferMemoryBarrier2 computeToTransfer = {
+                .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
+                .srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+                .srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT,
+                .dstStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+                .dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .buffer = outputBuffer.Buffer,
+                .offset = 0,
+                .size = VK_WHOLE_SIZE
+            };
+
+            VkDependencyInfo dependencyInfo = {
+                .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                .pNext = VK_NULL_HANDLE,
+                .dependencyFlags = 0,
+                .memoryBarrierCount = 0,
+                .pMemoryBarriers = VK_NULL_HANDLE,
+                .bufferMemoryBarrierCount = 1,
+                .pBufferMemoryBarriers = &computeToTransfer,
+                .imageMemoryBarrierCount = 0,
+                .pImageMemoryBarriers = VK_NULL_HANDLE
+            };
+
+            vkCmdPipelineBarrier2(cmdBuffer, &dependencyInfo);
+
+            rm.GetBufferManager().CmdCopyBuffer(cmdBuffer, outputBuffer, copyBuffer);
             rm.GetCommandManager().EndCommandBuffer(cmdBuffer);
-            rm.GetQueue().SubmitImmediate(cmdBuffer);
-            rm.GetQueue().WaitIdle();
+            rm.GetQueue().Submit(cmdBuffer, fence);
+            vkWaitForFences(rm.GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
 
-            // Free command buffer
-            rm.GetCommandManager().FreeCommandBuffers(1, &cmdBuffer);
+            // Read buffer into vector
+            rm.GetBufferManager().ReadBufferElements(copyBuffer, shaderOutput);
 
-            Spire::info("Compute shader ran in {} ms", timer.MillisSinceStart());
+            Spire::info("Compute + copy ran in {} ms", timer.MillisSinceStart());
             runMillis += timer.MillisSinceStart();
             timer.Restart();
 
-            // Read
-            rm.GetBufferManager().CopyBuffer(copyBuffer.Buffer, outputBuffer.Buffer, copyBuffer.Size);
-            rm.GetBufferManager().ReadBufferElements(copyBuffer, shaderOutput);
-            Spire::info("Read shader output in {} ms", timer.MillisSinceStart());
-            readMillis += timer.MillisSinceStart();
-            timer.Restart();
+            // Free resources
+            vkDestroyFence(rm.GetDevice(), fence, nullptr);
+            m_renderingManager.GetBufferManager().DestroyBuffer(outputBuffer);
+            m_renderingManager.GetBufferManager().DestroyBuffer(copyBuffer);
+            m_renderingManager.GetBufferManager().DestroyBuffer(voxelDataBuffer);
+            vkDestroyShaderModule(rm.GetDevice(), shader, nullptr);
+            rm.GetCommandManager().FreeCommandBuffers(1, &cmdBuffer);
 
             // greedy mesh on our grids
             std::vector<VertexData> vertices;
@@ -127,7 +172,6 @@ namespace SpireVoxel {
                             grid.SetEmptyVoxels(col + width, row, height); // absorb the new column
                             width++;
                         }
-                        //     mask.Print();
 
                         // push the face
                         glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face);
@@ -146,14 +190,10 @@ namespace SpireVoxel {
 
             Spire::info("irrelevant millis {}", irrelevantMillis);
             Spire::info("run millis {}", runMillis);
-            Spire::info("read millis {}", readMillis);
             Spire::info("merge millis {}", mergeMillis);
-            Spire::info("all millis {}", runMillis + readMillis + mergeMillis);
 
             Spire::info("run millis average: {}", runMillis / static_cast<float>(numChunks));
-            Spire::info("read millis average: {}", readMillis / static_cast<float>(numChunks));
             Spire::info("merge millis average: {}", mergeMillis / static_cast<float>(numChunks));
-            Spire::info("all millis average: {}", (runMillis + readMillis + mergeMillis) / static_cast<float>(numChunks));
 
             return vertices;
         });

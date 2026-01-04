@@ -67,6 +67,8 @@ namespace SpireVoxel {
         m_oldCommandBuffers.Update();
 
         HandleProfiling();
+
+   //     BasicVoxelEdit({{0,0,0},1}).Apply(*m_world);
     }
 
     VkCommandBuffer VoxelRenderer::Render(glm::u32 imageIndex) const {
