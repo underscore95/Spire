@@ -104,6 +104,15 @@ namespace SpireVoxel {
             pipeline.CmdBindTo(cmdBuffer);
             pipeline.CmdDispatch(cmdBuffer, 1, 1, 1);
 
+            VkMemoryBarrier2 fullBarrier = {
+                .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
+                .pNext = VK_NULL_HANDLE,
+                .srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT | VK_PIPELINE_STAGE_2_HOST_BIT,
+                .srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT,
+                .dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT | VK_PIPELINE_STAGE_2_HOST_BIT,
+                .dstAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT
+            };
+
             VkBufferMemoryBarrier2 computeToTransfer = {
                 .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
                 .srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
@@ -121,10 +130,10 @@ namespace SpireVoxel {
                 .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
                 .pNext = VK_NULL_HANDLE,
                 .dependencyFlags = 0,
-                .memoryBarrierCount = 0,
-                .pMemoryBarriers = VK_NULL_HANDLE,
-                .bufferMemoryBarrierCount = 1,
-                .pBufferMemoryBarriers = &computeToTransfer,
+                .memoryBarrierCount = 1,
+                .pMemoryBarriers = &fullBarrier,
+                //    .bufferMemoryBarrierCount = 1,
+                //   .pBufferMemoryBarriers = &computeToTransfer,
                 .imageMemoryBarrierCount = 0,
                 .pImageMemoryBarriers = VK_NULL_HANDLE
             };
@@ -132,9 +141,39 @@ namespace SpireVoxel {
             vkCmdPipelineBarrier2(cmdBuffer, &dependencyInfo);
 
             rm.GetBufferManager().CmdCopyBuffer(cmdBuffer, outputBuffer, copyBuffer);
+
+            VkBufferMemoryBarrier2 barrier = {
+                .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
+                .srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+                .srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT,
+                .dstStageMask = VK_PIPELINE_STAGE_2_HOST_BIT,
+                .dstAccessMask = VK_ACCESS_2_HOST_READ_BIT,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .buffer = copyBuffer.Buffer,
+                .offset = 0,
+                .size = VK_WHOLE_SIZE
+            };
+
+            VkDependencyInfo dependencyInfo2 = {
+                .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                .pNext = VK_NULL_HANDLE,
+                .dependencyFlags = 0,
+                .memoryBarrierCount = 1,
+                .pMemoryBarriers = &fullBarrier,
+                //   .bufferMemoryBarrierCount = 1,
+                //  .pBufferMemoryBarriers = &barrier,
+                .imageMemoryBarrierCount = 0,
+                .pImageMemoryBarriers = VK_NULL_HANDLE
+            };
+            vkCmdPipelineBarrier2(cmdBuffer, &dependencyInfo2);
+
             rm.GetCommandManager().EndCommandBuffer(cmdBuffer);
             rm.GetQueue().Submit(cmdBuffer, fence);
             vkWaitForFences(rm.GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
+
+            // rm.GetBufferManager().CopyBuffer(copyBuffer.Buffer,outputBuffer.Buffer,copyBuffer.Size);
+            //  rm.GetQueue().WaitIdle();
 
             // Read buffer into vector
             rm.GetBufferManager().ReadBufferElements(copyBuffer, shaderOutput);
