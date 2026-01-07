@@ -107,6 +107,15 @@ void GameApplication::RenderUi() const {
         dir = (cameraForward.z > 0) ? "PosZ" : "NegZ";
     }
 
+    if (ImGui::Button("Remesh All Chunks")) {
+        MergedVoxelEdit edit;
+        for (auto &[_,chunk] : m_voxelRenderer->GetWorld()) {
+            glm::u32 newVoxelType = chunk->VoxelData[0] == 0 ? 1 : 0;
+            edit.With(BasicVoxelEdit{{{chunk->ChunkPosition * SPIRE_VOXEL_CHUNK_SIZE}, newVoxelType}});
+        }
+        edit.Apply(m_voxelRenderer->GetWorld());
+    }
+
     ImGui::Text("Facing: %s (%f, %f, %f) (Enum Value: %d)", dir, cameraForward.x, cameraForward.y, cameraForward.z, DirectionToFace(cameraForward));
 
     glm::vec3 cameraPos = m_camera->GetCamera().GetPosition();
