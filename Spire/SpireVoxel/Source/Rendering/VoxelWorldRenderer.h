@@ -22,7 +22,7 @@ namespace SpireVoxel {
             }
 
             [[nodiscard]] bool IsAnyChanges() const {
-                return RecreatePipeline | RecreatePipeline;
+                return RecreatePipeline | RecreateOnlyCommandBuffers;
             }
         };
 
