@@ -2,6 +2,7 @@
 
 #include "Chunk/VoxelWorld.h"
 #include "Chunk/meshing/ChunkMesher.h"
+#include "Rendering/Memory/BufferManager.h"
 
 namespace SpireVoxel {
     VoxelWorldRenderer::VoxelWorldRenderer(VoxelWorld &world,
@@ -95,16 +96,18 @@ namespace SpireVoxel {
 
         if (meshingChunks.empty()) return;
 
+        Spire::BufferManager::MappedMemory voxelDataMemory = m_chunkVoxelDataBufferAllocator.MapMemory();
+
         for (auto &[chunk, meshFuture] : meshingChunks) {
             m_editedChunks.erase(chunk->ChunkPosition);
-            UploadChunkMesh(*chunk, meshFuture);
+            UploadChunkMesh(*chunk, meshFuture, voxelDataMemory);
         }
 
         UpdateChunkDatasBuffer();
         m_onWorldEditedDelegate.Broadcast(changes);
     }
 
-    void VoxelWorldRenderer::UploadChunkMesh(Chunk &chunk, std::future<ChunkMesh> &meshFuture) {
+    void VoxelWorldRenderer::UploadChunkMesh(Chunk &chunk, std::future<ChunkMesh> &meshFuture, Spire::BufferManager::MappedMemory& voxelDataMemory) {
         // write the new mesh
         {
             const BufferAllocator::Allocation oldAllocation = chunk.VertexAllocation;
@@ -142,7 +145,7 @@ namespace SpireVoxel {
                     chunk.VoxelDataAllocation = *alloc;
 
                     // write the voxel data
-                    m_chunkVoxelDataBufferAllocator.Write(chunk.VoxelDataAllocation, chunk.VoxelData.data(), sizeof(GPUChunkVoxelData));
+                    memcpy(static_cast<char *>(voxelDataMemory.Memory) + chunk.VoxelDataAllocation.Start, chunk.VoxelData.data(), sizeof(GPUChunkVoxelData));
                 } else {
                     // allocation failed, need to free the vertex allocation
                     Spire::error("Chunk voxel data allocation failed, deallocating vertex buffer");
