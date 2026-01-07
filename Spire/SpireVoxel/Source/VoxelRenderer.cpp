@@ -71,8 +71,6 @@ namespace SpireVoxel {
 
     void VoxelRenderer::Update() {
         m_currentFrame++;
-        m_oldDescriptors.Update();
-        m_oldPipelines.Update();
         m_oldCommandBuffers.Update();
 
         HandleProfiling();
@@ -149,9 +147,7 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::SetupDescriptors() {
-        if (m_descriptorManager) {
-            m_oldDescriptors.Push(std::move(m_descriptorManager), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
-        }
+        assert(!m_descriptorManager);
 
         DescriptorSetLayoutList layouts(m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
 
@@ -183,10 +179,7 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::SetupGraphicsPipeline() {
-        if (m_graphicsPipeline) {
-            m_oldPipelines.Push(std::move(m_graphicsPipeline), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
-        }
-
+     assert(!m_graphicsPipeline);
         auto &rm = m_engine.GetRenderingManager();
 
         m_graphicsPipeline = std::make_unique<GraphicsPipeline>(
