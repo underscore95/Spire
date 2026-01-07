@@ -6,6 +6,9 @@ namespace SpireVoxel {
     ChunkMesher::ChunkMesher() : m_numCPUThreads(std::thread::hardware_concurrency()) {
         if (m_numCPUThreads == 0) {
             m_numCPUThreads = 8; // Failed to detect number of cores, 8 is a safe assumption
+            Spire::info("Failed to detect number of threads to use, defaulting to {}", m_numCPUThreads);
+        } else {
+            Spire::info("Using {} threads to mesh chunks", m_numCPUThreads);
         }
     }
 
