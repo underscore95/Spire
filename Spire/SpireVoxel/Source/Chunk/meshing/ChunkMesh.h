@@ -7,6 +7,10 @@ namespace SpireVoxel {
 
     // Represents a generated chunk mesh while it is still CPU side awaiting upload to GPU
     struct ChunkMesh {
+        DISABLE_COPY(ChunkMesh)
+        DEFAULT_MOVE(ChunkMesh)
+        ChunkMesh() = default;
+
         std::vector<VertexData> Vertices;
     };
 } // SpireVoxel

@@ -7,6 +7,10 @@
 #include "../../Assets/Shaders/ShaderInfo.h"
 
 namespace SpireVoxel {
+    struct ChunkMesh;
+}
+
+namespace SpireVoxel {
     class VoxelWorld;
 }
 
@@ -26,9 +30,10 @@ namespace SpireVoxel {
         glm::u32 NumVertices;
 
         void SetVoxel(glm::u32 index, glm::u32 type);
+
         void SetVoxels(glm::u32 startIndex, glm::u32 endIndex, glm::u32 type);
 
-        [[nodiscard]] std::vector<VertexData> GenerateMesh() const;
+        [[nodiscard]] ChunkMesh GenerateMesh() const;
 
         [[nodiscard]] ChunkData GenerateChunkData(glm::u32 chunkIndex) const;
 
@@ -37,6 +42,5 @@ namespace SpireVoxel {
         [[nodiscard]] static std::optional<std::size_t> GetIndexOfVoxel(glm::ivec3 chunkPosition, glm::ivec3 voxelWorldPosition);
 
         [[nodiscard]] bool IsCorrupted() const { return CorruptedMemoryCheck != 9238745897238972389 || CorruptedMemoryCheck2 != 12387732823748723; }
-
     };
 } // SpireVoxel

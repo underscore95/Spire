@@ -2,6 +2,7 @@
 
 #include "meshing/GreedyMeshingGrid.h"
 #include "VoxelWorld.h"
+#include "meshing/ChunkMesh.h"
 
 namespace SpireVoxel {
     glm::u32 GetAdjacentVoxelType(const Chunk &chunk, glm::ivec3 position, glm::u32 face) {
@@ -124,8 +125,8 @@ namespace SpireVoxel {
         }
     }
 
-    std::vector<VertexData> Chunk::GenerateMesh() const {
-        std::vector<VertexData> vertices;
+    ChunkMesh Chunk::GenerateMesh() const {
+        ChunkMesh mesh;
 
         // slice, row, col are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetChunkCoords
         // slice is the slice of voxels we are working with
@@ -180,11 +181,10 @@ namespace SpireVoxel {
                             grid.SetEmptyVoxels(col + width, row, height); // absorb the new column
                             width++;
                         }
-                        //     mask.Print();
 
                         // push the face
                         glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
-                        PushFace(vertices, face + faceSignIndex, chunkCoords, width, height);
+                        PushFace(mesh.Vertices, face + faceSignIndex, chunkCoords, width, height);
 
                         if (grid.GetColumn(col) != 0) {
                             // we didn't get all the voxels on this row, loop again
@@ -195,7 +195,7 @@ namespace SpireVoxel {
             }
         }
 
-        return vertices;
+        return mesh;
     }
 
     ChunkData Chunk::GenerateChunkData(glm::u32 chunkIndex) const {

@@ -11,9 +11,7 @@ namespace SpireVoxel {
 
     std::future<ChunkMesh> ChunkMesher::Mesh(Chunk &chunk) const {
         return std::async(std::launch::async, [this, &chunk] {
-            return ChunkMesh{
-                .Vertices = chunk.GenerateMesh()
-            };
+            return chunk.GenerateMesh();
         });
     }
 
