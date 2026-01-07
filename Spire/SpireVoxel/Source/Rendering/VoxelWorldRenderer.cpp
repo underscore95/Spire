@@ -1,6 +1,7 @@
 #include "VoxelWorldRenderer.h"
 
 #include "Chunk/VoxelWorld.h"
+#include "Chunk/meshing/ChunkMesher.h"
 
 namespace SpireVoxel {
     VoxelWorldRenderer::VoxelWorldRenderer(VoxelWorld &world,
@@ -19,6 +20,8 @@ namespace SpireVoxel {
         Spire::info("Allocated {} kb buffer for each swapchain image on GPU to store chunk datas", sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS / 1024);
 
         m_dirtyChunkDataBuffers.resize(renderingManager.GetSwapchain().GetNumImages());
+
+        m_chunkMesher = std::make_unique<ChunkMesher>();
     }
 
     void VoxelWorldRenderer::Render(glm::u32 swapchainImageIndex) {
@@ -36,7 +39,7 @@ namespace SpireVoxel {
         m_chunkVoxelDataBufferAllocator.Render();
     }
 
-    DelegateSubscribers<VoxelWorldRenderer::WorldEditRequiredChanges> &VoxelWorldRenderer::GetOnWorldEditSubscribers() {
+    DelegateSubscribers<WorldEditRequiredChanges> &VoxelWorldRenderer::GetOnWorldEditSubscribers() {
         return m_onWorldEditedDelegate;
     }
 
@@ -77,85 +80,105 @@ namespace SpireVoxel {
 
     void VoxelWorldRenderer::HandleChunkEdits() {
         WorldEditRequiredChanges changes = {false, false};
-        for (auto &chunkPos : m_editedChunks) {
+
+        std::unordered_map<Chunk *, std::future<ChunkMesh> > meshingChunks;
+
+        for (const auto &chunkPos : m_editedChunks) {
             Chunk *chunk = m_world.GetLoadedChunk(chunkPos);
             if (!chunk) continue;
 
-            // write the new mesh
-            bool wasPreviousAllocation = false; {
-                const BufferAllocator::Allocation oldAllocation = chunk->VertexAllocation;
-                wasPreviousAllocation = oldAllocation.Size > 0;
-                chunk->VertexAllocation = {};
+            meshingChunks[chunk] = m_chunkMesher->Mesh(*chunk);
 
-                std::vector<VertexData> vertexData = chunk->GenerateMesh();
-
-                if (!vertexData.empty()) {
-                    std::optional alloc = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
-                    if (alloc) {
-                        chunk->VertexAllocation = *alloc;
-
-                        // write the mesh into the vertex buffer
-                        m_chunkVertexBufferAllocator.Write(chunk->VertexAllocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
-                    } else {
-                        Spire::error("Chunk vertex data allocation failed");
-                    }
-                }
-
-                if (oldAllocation.Size > 0) {
-                    m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
-                }
-
-                chunk->NumVertices = vertexData.size();
-            }
-
-            // write the voxel data
-            {
-                const BufferAllocator::Allocation oldAllocation = chunk->VoxelDataAllocation;
-
-                if (chunk->NumVertices > 0) {
-                    std::optional alloc = m_chunkVoxelDataBufferAllocator.Allocate(sizeof(GPUChunkVoxelData));
-                    if (alloc) {
-                        chunk->VoxelDataAllocation = *alloc;
-
-                        // write the voxel data
-                        m_chunkVoxelDataBufferAllocator.Write(chunk->VoxelDataAllocation, chunk->VoxelData.data(), sizeof(GPUChunkVoxelData));
-                    } else {
-                        // allocation failed, need to free the vertex allocation
-                        Spire::error("Chunk voxel data allocation failed, deallocating vertex buffer");
-                        m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk->VertexAllocation);
-                        chunk->VertexAllocation = {};
-                    }
-                }
-
-                if (oldAllocation.Size > 0) {
-                    m_chunkVoxelDataBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
-                }
-            }
-
-            // write the chunk data
-            if (!wasPreviousAllocation) {
-                UpdateChunkDatasBuffer();
-                changes.RecreatePipeline = true;
-            } else {
-                glm::u32 chunkIndex = 0;
-                for (auto &[_,c] : m_world) {
-                    if (c.get() == chunk) break;
-                    if (c->VertexAllocation.Size == 0) continue;
-                    chunkIndex++;
-                }
-
-                m_latestCachedChunkData[chunkIndex] = chunk->GenerateChunkData(chunkIndex);
-                for (std::size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
-                    m_dirtyChunkDataBuffers[i] = true;
-                }
-            }
+            // If profiling, we want to remesh as much as possible
+            if (!VoxelRenderer::IS_PROFILING && meshingChunks.size() >= m_chunkMesher->GetMaxChunksMeshedPerFrame()) break;
         }
 
-        if (!m_editedChunks.empty()) {
+        if (meshingChunks.empty()) return;
+
+        for (auto &[chunk,meshFuture] : meshingChunks) {
+            m_editedChunks.erase(chunk->ChunkPosition);
+            changes |= UploadChunkMesh(*chunk, meshFuture);
+        }
+
+        if (!changes.IsAnyChanges()) {
             changes.RecreateOnlyCommandBuffers = true;
-            m_onWorldEditedDelegate.Broadcast(changes);
-            m_editedChunks.clear();
         }
+
+        m_onWorldEditedDelegate.Broadcast(changes);
+    }
+
+    WorldEditRequiredChanges VoxelWorldRenderer::UploadChunkMesh(Chunk &chunk, std::future<ChunkMesh> &meshFuture) {
+        WorldEditRequiredChanges changes = {false, false};
+
+        bool wasPreviousAllocation = false;
+        // write the new mesh
+        {
+            const BufferAllocator::Allocation oldAllocation = chunk.VertexAllocation;
+            wasPreviousAllocation = oldAllocation.Size > 0;
+            chunk.VertexAllocation = {};
+
+            std::vector<VertexData> vertexData = meshFuture.get().Vertices;
+
+            if (!vertexData.empty()) {
+                std::optional alloc = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
+                if (alloc) {
+                    chunk.VertexAllocation = *alloc;
+
+                    // write the mesh into the vertex buffer
+                    m_chunkVertexBufferAllocator.Write(chunk.VertexAllocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
+                } else {
+                    Spire::error("Chunk vertex data allocation failed");
+                }
+            }
+
+            if (oldAllocation.Size > 0) {
+                m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
+            }
+
+            chunk.NumVertices = vertexData.size();
+        }
+
+        // write the voxel data
+        {
+            const BufferAllocator::Allocation oldAllocation = chunk.VoxelDataAllocation;
+
+            if (chunk.NumVertices > 0) {
+                std::optional alloc = m_chunkVoxelDataBufferAllocator.Allocate(sizeof(GPUChunkVoxelData));
+                if (alloc) {
+                    chunk.VoxelDataAllocation = *alloc;
+
+                    // write the voxel data
+                    m_chunkVoxelDataBufferAllocator.Write(chunk.VoxelDataAllocation, chunk.VoxelData.data(), sizeof(GPUChunkVoxelData));
+                } else {
+                    // allocation failed, need to free the vertex allocation
+                    Spire::error("Chunk voxel data allocation failed, deallocating vertex buffer");
+                    m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk.VertexAllocation);
+                    chunk.VertexAllocation = {};
+                }
+            }
+
+            if (oldAllocation.Size > 0) {
+                m_chunkVoxelDataBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
+            }
+        }
+        // write the chunk data
+        if (!wasPreviousAllocation) {
+            UpdateChunkDatasBuffer();
+            changes.RecreatePipeline = true;
+        } else if (chunk.NumVertices > 0) {
+            glm::u32 chunkIndex = 0;
+            for (auto &[_,c] : m_world) {
+                if (c.get() == &chunk) break;
+                if (c->VertexAllocation.Size == 0) continue;
+                chunkIndex++;
+            }
+
+            m_latestCachedChunkData[chunkIndex] = chunk.GenerateChunkData(chunkIndex);
+            for (std::size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
+                m_dirtyChunkDataBuffers[i] = true;
+            }
+        }
+        return changes;
     }
 
     void VoxelWorldRenderer::NotifyChunkLoadedOrUnloaded() {

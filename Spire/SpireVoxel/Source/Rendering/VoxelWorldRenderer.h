@@ -2,6 +2,9 @@
 
 #include "VoxelRenderer.h"
 #include "Chunk/Chunk.h"
+#include "Chunk/meshing/ChunkMesh.h"
+#include "Chunk/meshing/ChunkMesher.h"
+#include "Chunk/meshing/WorldEditRequiredChanges.h"
 
 namespace SpireVoxel {
     class VoxelWorld;
@@ -10,11 +13,6 @@ namespace SpireVoxel {
         friend class VoxelWorld;
 
     public:
-        struct WorldEditRequiredChanges {
-            bool RecreatePipeline;
-            bool RecreateOnlyCommandBuffers;
-        };
-
         explicit VoxelWorldRenderer(
             VoxelWorld &world,
             Spire::RenderingManager &renderingManager
@@ -36,11 +34,14 @@ namespace SpireVoxel {
         void HandleChunkEdits();
 
     private:
+        WorldEditRequiredChanges UploadChunkMesh(Chunk &chunk, std::future<ChunkMesh> &meshFuture);
+
         void NotifyChunkLoadedOrUnloaded();
 
         void UpdateChunkDataCache();
 
         void FreeChunkVertexBuffer(Chunk &chunk);
+
         void FreeChunkVoxelDataBuffer(Chunk &chunk);
 
     private:
@@ -57,5 +58,6 @@ namespace SpireVoxel {
         std::vector<bool> m_dirtyChunkDataBuffers; // if {true,false,false} it means we need to update buffer 0 on swapchain image index 0
         std::vector<ChunkData> m_latestCachedChunkData;
         std::unordered_set<glm::ivec3> m_editedChunks;
+        std::unique_ptr<ChunkMesher> m_chunkMesher;
     };
 } // SpireVoxel

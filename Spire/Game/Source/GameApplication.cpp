@@ -1,6 +1,7 @@
 #include "GameApplication.h"
 #include "../../Libs/glfw/include/GLFW/glfw3.h"
 #include "GameCamera.h"
+#include "Serialisation/VoxelSerializer.h"
 #include "Utils/RaycastUtils.h"
 
 using namespace Spire;
@@ -95,6 +96,19 @@ void GameApplication::RenderUi() const {
         );
     }
     ImGui::Text("Targeted Voxel: %s", targetedVoxelStr.c_str());
+
+    if (ImGui::Button("Load Test6")) {
+        VoxelSerializer::ClearAndDeserialize(m_voxelRenderer->GetWorld(), std::filesystem::path("Worlds") / "Test6");
+    }
+
+    if (ImGui::Button("Remesh All Chunks")) {
+        MergedVoxelEdit edit;
+        for (auto &[_,chunk] : m_voxelRenderer->GetWorld()) {
+            glm::u32 newVoxelType = chunk->VoxelData[0] == 0 ? 1 : 0;
+            edit.With(BasicVoxelEdit{{chunk->ChunkPosition * SPIRE_VOXEL_CHUNK_SIZE}, newVoxelType});
+        }
+        edit.Apply(m_voxelRenderer->GetWorld());
+    }
 
     glm::vec3 cameraForward = glm::normalize(m_camera->GetCamera().GetForward());
 

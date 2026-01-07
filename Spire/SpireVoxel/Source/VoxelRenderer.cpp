@@ -35,7 +35,7 @@ namespace SpireVoxel {
 
         // World
         m_world = std::make_unique<VoxelWorld>(rm);
-        m_worldEditCallback = m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this](VoxelWorldRenderer::WorldEditRequiredChanges changes) {
+        m_worldEditCallback = m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this](WorldEditRequiredChanges changes) {
             if (changes.RecreatePipeline) {
                 // Takes 1.6ms on my PC
                 SetupDescriptors();

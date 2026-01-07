@@ -1,7 +1,7 @@
 #pragma once
 
 #include "EngineIncludes.h"
-#include "../../Assets/Shaders/ShaderInfo.h"
+#include "../../../Assets/Shaders/ShaderInfo.h"
 
 namespace SpireVoxel {
     class GreedyMeshingGrid {

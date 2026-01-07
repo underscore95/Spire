@@ -1,6 +1,6 @@
 #include "Chunk.h"
 
-#include "GreedyMeshingGrid.h"
+#include "meshing/GreedyMeshingGrid.h"
 #include "VoxelWorld.h"
 
 namespace SpireVoxel {
