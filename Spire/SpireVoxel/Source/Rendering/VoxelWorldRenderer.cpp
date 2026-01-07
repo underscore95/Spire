@@ -101,7 +101,6 @@ namespace SpireVoxel {
         }
 
         UpdateChunkDatasBuffer();
-
         m_onWorldEditedDelegate.Broadcast(changes);
     }
 
