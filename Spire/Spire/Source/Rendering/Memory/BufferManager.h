@@ -26,11 +26,6 @@ namespace Spire {
             void *Memory; // Pointer to the mapped memory, you can write but not resize
             const std::size_t Size; // Size of mapped memory
 
-            // Cast the memory pointer, does not change bits
-            // Only valid if the buffer already contains T objects or T is trivially constructable
-            template<typename T>
-            T *GetMemory() { return reinterpret_cast<T *>(Memory); }
-
         private:
             VulkanBuffer m_buffer;
             RenderingManager &m_renderingManager;

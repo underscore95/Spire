@@ -39,6 +39,9 @@ namespace SpireVoxel {
 
         void Write(Allocation allocation, const void *data, std::size_t size) const;
 
+        // Map memory, alternative to Write()
+        [[nodiscard]] Spire::BufferManager::MappedMemory MapMemory() const;
+
         // How much memory is either allocated or pending free
         // this is bufferSize - availableMemory
         [[nodiscard]] std::size_t CalculateAllocatedOrPendingMemory() const;

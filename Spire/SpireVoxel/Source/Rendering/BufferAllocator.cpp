@@ -118,6 +118,10 @@ namespace SpireVoxel {
         return allocated;
     }
 
+    Spire::BufferManager::MappedMemory BufferAllocator::MapMemory() const {
+        return m_renderingManager.GetBufferManager().Map(m_buffer);
+    }
+
     std::optional<BufferAllocator::PendingFree> BufferAllocator::IsPendingFree(std::size_t start) const {
         for (auto &pending : m_allocationsPendingFree) {
             if (pending.AllocationStart == start) {
