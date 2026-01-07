@@ -20,8 +20,7 @@ namespace Spire {
         };
 
         std::vector deviceExtensions = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-            VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
         };
 
         DynamicRenderingSupport dynamicRenderingSupport = GetDynamicRenderingSupport(deviceManager, vulkanVersion);
@@ -77,6 +76,7 @@ namespace Spire {
         deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
         deviceFeatures2.pNext = &indexingFeatures;
         deviceFeatures2.features.multiDrawIndirect = VK_TRUE;
+        deviceFeatures2.features.drawIndirectFirstInstance = VK_TRUE;
 
         // device features
         deviceFeatures2.features.geometryShader = VK_TRUE;

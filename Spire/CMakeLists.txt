@@ -30,6 +30,9 @@ if (${INCLUDE_DEBUG_SYMBOLS} EQUAL 1)
     add_compile_definitions(INCLUDE_SHADER_DEBUG_SYMBOLS)
 endif ()
 
+# add_compile_definitions(SPIRE_VULKAN_SYNC2_VALIDATION)
+# add_compile_definitions(SPIRE_VULKAN_PERFORMANCE_DEBUG_LOGS)
+
 add_subdirectory(Spire)
 add_subdirectory(SpireVoxel)
 add_subdirectory(Game)
