@@ -104,6 +104,9 @@ namespace SpireVoxel {
             changes.RecreateOnlyCommandBuffers = true;
         }
 
+        if (changes.RecreatePipeline) {
+            UpdateChunkDatasBuffer();
+        }
         m_onWorldEditedDelegate.Broadcast(changes);
     }
 
@@ -164,7 +167,7 @@ namespace SpireVoxel {
         }
         // write the chunk data
         if (!wasPreviousAllocation || chunk.NumVertices == 0) {
-            UpdateChunkDatasBuffer();
+          //  UpdateChunkDatasBuffer();
             changes.RecreatePipeline = true;
         } else if (chunk.NumVertices > 0) {
             glm::u32 chunkIndex = 0;
@@ -174,6 +177,7 @@ namespace SpireVoxel {
                 chunkIndex++;
             }
 
+            if (m_latestCachedChunkData.size() <= chunkIndex) m_latestCachedChunkData.resize(chunkIndex + 1);
             m_latestCachedChunkData[chunkIndex] = chunk.GenerateChunkData(chunkIndex);
             for (std::size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
                 m_dirtyChunkDataBuffers[i] = true;
