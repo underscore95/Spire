@@ -6,16 +6,22 @@
 namespace SpireVoxel {
     ChunkMesherManager::ChunkMesherManager(Spire::RenderingManager &renderingManager) {
         m_meshers.push_back(std::make_unique<GPUChunkMesher>(renderingManager));
+
+        for (auto &mesher : m_meshers) {
+            mesher->Init();
+        }
     }
 
     void ChunkMesherManager::Update() {
+        // Begin meshing
         for (std::size_t i = 0; i < m_queue.size(); i++) {
             std::shared_ptr<Chunk> chunk = m_queue[i].Chunk;
 
             if (m_currentlyMeshing.contains(chunk)) continue; // but maybe there has been changes since, so we will need to mesh again, but do it later
 
             Callback callback = std::move(m_queue[i].Callback);
-            m_queue.erase(m_queue.begin() + i);
+            m_queue[i] = m_queue.back();
+            m_queue.pop_back();
             i--;
 
             if (!chunk) {
@@ -24,10 +30,23 @@ namespace SpireVoxel {
                 continue;
             }
 
-            m_currentlyMeshing.insert(chunk);
-
-            callback(FindOptimalMesher().Mesh(chunk).get(), MeshResult::Success);
+            // Find mesher
+            for (auto &mesher : m_meshers) {
+                if (mesher->GetLoad() < 0) continue;
+                std::optional threadIdOpt = mesher->LockThreadId();
+                if (!threadIdOpt) continue;
+                std::future future = std::async(std::launch::async, [this, chunk,threadIdOpt, &mesher] { return mesher->Mesh(chunk, threadIdOpt.value()); });
+                m_currentlyMeshing[chunk] = {std::move(callback), std::move(future)};
+                break;
+            }
         }
+
+        // Wait until meshing complete
+        for (auto &[_,processingChunk] : m_currentlyMeshing) {
+            processingChunk.Callback(processingChunk.Future.get(), MeshResult::Success);
+        }
+        Spire::info("Meshed {} this frame", m_currentlyMeshing.size());
+        m_currentlyMeshing.clear();
     }
 
     void ChunkMesherManager::Mesh(const std::shared_ptr<Chunk> &chunk, const Callback &callback) {
@@ -38,9 +57,5 @@ namespace SpireVoxel {
             }
         }
         m_queue.push_back({chunk, callback});
-    }
-
-    ChunkMesher &ChunkMesherManager::FindOptimalMesher() const {
-        return *m_meshers[0];
     }
 } // SpireVoxel

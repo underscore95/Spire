@@ -50,7 +50,7 @@ namespace SpireVoxel {
         if (IS_PROFILING) {
             VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
-        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test3");
+        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test1");
 
 
         m_timeSinceBeginProfiling.Restart();
@@ -68,7 +68,7 @@ namespace SpireVoxel {
 
         HandleProfiling();
 
-   //     BasicVoxelEdit({{0,0,0},1}).Apply(*m_world);
+    //  BasicVoxelEdit({{0,0,0},1}).Apply(*m_world);
     }
 
     VkCommandBuffer VoxelRenderer::Render(glm::u32 imageIndex) const {

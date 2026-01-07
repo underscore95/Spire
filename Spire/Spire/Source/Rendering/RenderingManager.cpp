@@ -231,22 +231,9 @@ namespace Spire {
             .apiVersion = m_instanceVersion.RawVersion
         };
 
-        std::array<VkValidationFeatureEnableEXT, 1> enables = {
-            VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT
-        };
-
-        VkValidationFeaturesEXT validationFeatures = {
-            .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
-            .pNext = VK_NULL_HANDLE,
-            .enabledValidationFeatureCount = enables.size(),
-            .pEnabledValidationFeatures = enables.data(),
-            .disabledValidationFeatureCount = 0,
-            .pDisabledValidationFeatures = VK_NULL_HANDLE
-        };
-
         VkInstanceCreateInfo createInfo = {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-            .pNext = &validationFeatures,
+            .pNext = VK_NULL_HANDLE,
             .flags = 0, // reserved for future use. Must be zero
             .pApplicationInfo = &AppInfo,
             .enabledLayerCount = static_cast<glm::u32>(layers.size()),

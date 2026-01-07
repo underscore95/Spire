@@ -115,7 +115,7 @@ namespace Spire {
         VkBufferCopy bufferCopy = {
             .srcOffset = 0,
             .dstOffset = 0,
-            .size = source.ElementSize
+            .size = source.Size
         };
         vkCmdCopyBuffer(commandBuffer, source.Buffer, dest.Buffer, 1, &bufferCopy);
     }

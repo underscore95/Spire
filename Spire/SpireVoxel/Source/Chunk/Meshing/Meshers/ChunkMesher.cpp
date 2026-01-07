@@ -1,6 +1,30 @@
 #include "ChunkMesher.h"
 
 namespace SpireVoxel {
+    void ChunkMesher::Init() {
+        std::unique_lock<std::mutex> lock;
+        m_threadIdLocks.resize(GetMaxParallelisation(), false);
+        OnInit();
+        m_initialized = true;
+    }
+
+    std::vector<VertexData> ChunkMesher::Mesh(const std::shared_ptr<Chunk> &chunk, glm::u32 threadId) {
+        assert(m_initialized);
+        assert(m_numChunksProcessing + 1 <= GetMaxParallelisation());
+        assert(threadId < GetMaxParallelisation());
+        std::unique_lock<std::mutex> lock;
+        m_numChunksProcessing++;
+        std::vector<VertexData> mesh = GenerateMesh(chunk, threadId);
+        m_threadIdLocks[threadId] = false;
+        m_numChunksProcessing--;
+        return std::move(mesh);
+    }
+
+    glm::u32 ChunkMesher::GetNumChunksProcessing() const {
+        std::unique_lock<std::mutex> lock;
+        return m_numChunksProcessing;
+    }
+
     void ChunkMesher::PushFace(std::vector<VertexData> &vertices, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) {
         assert(width > 0);
         assert(height > 0);
@@ -64,5 +88,16 @@ namespace SpireVoxel {
                 assert(false);
                 break;
         }
+    }
+
+    std::optional<glm::u32> ChunkMesher::LockThreadId() {
+        std::unique_lock<std::mutex> lock;
+        for (glm::u32 i = 0; i < m_threadIdLocks.size(); i++) {
+            if (!m_threadIdLocks[i]) {
+                m_threadIdLocks[i] = true; // lock it
+                return i;
+            }
+        }
+        return std::nullopt;
     }
 } // SpireVoxel
