@@ -141,6 +141,7 @@ namespace SpireVoxel {
         // write the voxel data
         {
             const BufferAllocator::Allocation oldAllocation = chunk.VoxelDataAllocation;
+            chunk.VoxelDataAllocation = {};
 
             if (chunk.NumVertices > 0) {
                 std::optional alloc = m_chunkVoxelDataBufferAllocator.Allocate(sizeof(GPUChunkVoxelData));
@@ -162,7 +163,7 @@ namespace SpireVoxel {
             }
         }
         // write the chunk data
-        if (!wasPreviousAllocation) {
+        if (!wasPreviousAllocation || chunk.NumVertices == 0) {
             UpdateChunkDatasBuffer();
             changes.RecreatePipeline = true;
         } else if (chunk.NumVertices > 0) {
