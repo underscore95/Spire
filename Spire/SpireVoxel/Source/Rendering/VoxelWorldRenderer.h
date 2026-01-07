@@ -34,7 +34,7 @@ namespace SpireVoxel {
         void HandleChunkEdits();
 
     private:
-        WorldEditRequiredChanges UploadChunkMesh(Chunk &chunk, std::future<ChunkMesh> &meshFuture);
+        void UploadChunkMesh(Chunk &chunk, std::future<ChunkMesh> &meshFuture);
 
         void NotifyChunkLoadedOrUnloaded();
 

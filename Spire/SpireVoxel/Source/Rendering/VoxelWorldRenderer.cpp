@@ -79,7 +79,7 @@ namespace SpireVoxel {
     }
 
     void VoxelWorldRenderer::HandleChunkEdits() {
-        WorldEditRequiredChanges changes = {false, false};
+        WorldEditRequiredChanges changes = {true};
 
         std::unordered_map<Chunk *, std::future<ChunkMesh> > meshingChunks;
 
@@ -95,29 +95,20 @@ namespace SpireVoxel {
 
         if (meshingChunks.empty()) return;
 
-        for (auto &[chunk,meshFuture] : meshingChunks) {
+        for (auto &[chunk, meshFuture] : meshingChunks) {
             m_editedChunks.erase(chunk->ChunkPosition);
-            changes |= UploadChunkMesh(*chunk, meshFuture);
+            UploadChunkMesh(*chunk, meshFuture);
         }
 
-        if (!changes.IsAnyChanges()) {
-            changes.RecreateOnlyCommandBuffers = true;
-        }
+        UpdateChunkDatasBuffer();
 
-        if (changes.RecreatePipeline) {
-            UpdateChunkDatasBuffer();
-        }
         m_onWorldEditedDelegate.Broadcast(changes);
     }
 
-    WorldEditRequiredChanges VoxelWorldRenderer::UploadChunkMesh(Chunk &chunk, std::future<ChunkMesh> &meshFuture) {
-        WorldEditRequiredChanges changes = {false, false};
-
-        bool wasPreviousAllocation = false;
+    void VoxelWorldRenderer::UploadChunkMesh(Chunk &chunk, std::future<ChunkMesh> &meshFuture) {
         // write the new mesh
         {
             const BufferAllocator::Allocation oldAllocation = chunk.VertexAllocation;
-            wasPreviousAllocation = oldAllocation.Size > 0;
             chunk.VertexAllocation = {};
 
             std::vector<VertexData> vertexData = meshFuture.get().Vertices;
@@ -165,30 +156,11 @@ namespace SpireVoxel {
                 m_chunkVoxelDataBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
             }
         }
-        // write the chunk data
-        if (!wasPreviousAllocation || chunk.NumVertices == 0) {
-          //  UpdateChunkDatasBuffer();
-            changes.RecreatePipeline = true;
-        } else if (chunk.NumVertices > 0) {
-            glm::u32 chunkIndex = 0;
-            for (auto &[_,c] : m_world) {
-                if (c.get() == &chunk) break;
-                if (c->VertexAllocation.Size == 0) continue;
-                chunkIndex++;
-            }
-
-            if (m_latestCachedChunkData.size() <= chunkIndex) m_latestCachedChunkData.resize(chunkIndex + 1);
-            m_latestCachedChunkData[chunkIndex] = chunk.GenerateChunkData(chunkIndex);
-            for (std::size_t i = 0; i < m_dirtyChunkDataBuffers.size(); i++) {
-                m_dirtyChunkDataBuffers[i] = true;
-            }
-        }
-        return changes;
     }
 
     void VoxelWorldRenderer::NotifyChunkLoadedOrUnloaded() {
         UpdateChunkDatasBuffer();
-        m_onWorldEditedDelegate.Broadcast({true, false});
+        m_onWorldEditedDelegate.Broadcast({true});
     }
 
     void VoxelWorldRenderer::UpdateChunkDataCache() {

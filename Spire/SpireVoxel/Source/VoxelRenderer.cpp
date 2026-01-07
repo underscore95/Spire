@@ -14,7 +14,7 @@
 using namespace Spire;
 
 namespace SpireVoxel {
-    VoxelRenderer::VoxelRenderer(Engine &engine, IVoxelCamera& camera)
+    VoxelRenderer::VoxelRenderer(Engine &engine, IVoxelCamera &camera)
         : m_engine(engine), m_camera(camera) {
         auto &rm = m_engine.GetRenderingManager();
 
@@ -35,16 +35,14 @@ namespace SpireVoxel {
 
         // World
         m_world = std::make_unique<VoxelWorld>(rm);
+        SetupDescriptors();
+        SetupGraphicsPipeline();
+        CreateAndRecordCommandBuffers();
+
         m_worldEditCallback = m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this](WorldEditRequiredChanges changes) {
-            if (changes.RecreatePipeline) {
-                // Takes 1.6ms on my PC
-                SetupDescriptors();
-                SetupGraphicsPipeline();
+            if (changes.RecreateCommandBuffers) {
                 CreateAndRecordCommandBuffers();
-            } else if (changes.RecreateOnlyCommandBuffers) {
-                CreateAndRecordCommandBuffers();
-            } else
-                assert(false);
+            }
         });
 
         if (IS_PROFILING) {
@@ -52,16 +50,16 @@ namespace SpireVoxel {
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
         } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test6");
 
-         m_world->LoadChunk({0,0,-1});
-         m_world->LoadChunk({0,0,0});
-         BasicVoxelEdit({
-             BasicVoxelEdit::Edit{{0,0,0},2},
-             BasicVoxelEdit::Edit{{3,0,1},1},
-             BasicVoxelEdit::Edit{{2,0,0},1},
-             BasicVoxelEdit::Edit{{3,0,0},2},
-             BasicVoxelEdit::Edit{{5,0,5},2},
-             BasicVoxelEdit::Edit{{0,0,-15},2},
-           }  ).Apply(*m_world);
+        m_world->LoadChunk({0, 0, -1});
+        m_world->LoadChunk({0, 0, 0});
+        BasicVoxelEdit({
+            BasicVoxelEdit::Edit{{0, 0, 0}, 2},
+            BasicVoxelEdit::Edit{{3, 0, 1}, 1},
+            BasicVoxelEdit::Edit{{2, 0, 0}, 1},
+            BasicVoxelEdit::Edit{{3, 0, 0}, 2},
+            BasicVoxelEdit::Edit{{5, 0, 5}, 2},
+            BasicVoxelEdit::Edit{{0, 0, -15}, 2},
+        }).Apply(*m_world);
         m_world->GetRenderer().HandleChunkEdits();
 
         m_timeSinceBeginProfiling.Restart();
