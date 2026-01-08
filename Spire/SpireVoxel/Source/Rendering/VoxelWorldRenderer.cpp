@@ -3,6 +3,7 @@
 #include "Chunk/VoxelWorld.h"
 #include "Chunk/meshing/ChunkMesher.h"
 #include "Rendering/Memory/BufferManager.h"
+#include "Utils/ThreadPool.h"
 
 namespace SpireVoxel {
     VoxelWorldRenderer::VoxelWorldRenderer(VoxelWorld &world,
@@ -86,7 +87,7 @@ namespace SpireVoxel {
 
         std::unordered_map<Chunk *, std::future<ChunkMesh> > meshingChunks;
 
-        Spire::Timer timer;
+        // submit mesh tasks to thread pool
         for (const auto &chunkPos : m_editedChunks) {
             Chunk *chunk = m_world.GetLoadedChunk(chunkPos);
             if (!chunk) continue;
@@ -97,27 +98,46 @@ namespace SpireVoxel {
             if (!VoxelRenderer::IS_PROFILING && meshingChunks.size() >= m_chunkMesher->GetMaxChunksMeshedPerFrame()) break;
         }
 
+        // wait for meshing to complete then move meshingChunks into meshedChunks
         if (meshingChunks.empty()) return;
-        Spire::info("{} ms" , timer.MillisSinceStart());
+        std::vector<std::future<void> > meshUploadFutures;
+        std::unordered_map<Chunk *, ChunkMesh> meshedChunks;
+        meshedChunks.reserve(meshingChunks.size());
 
         Spire::BufferManager::MappedMemory voxelDataMemory = m_chunkVoxelDataBufferAllocator.MapMemory();
+        Spire::BufferManager::MappedMemory vertexBufferMemory = m_chunkVertexBufferAllocator.MapMemory();
 
         for (auto &[chunk, meshFuture] : meshingChunks) {
+            meshedChunks[chunk] = meshFuture.get();
+        }
+        meshingChunks.clear();
+
+        // Upload meshed chunks to GPU
+        for (auto &[chunk, meshFuture] : meshedChunks) {
             m_editedChunks.erase(chunk->ChunkPosition);
-            UploadChunkMesh(*chunk, meshFuture, voxelDataMemory);
+            UploadChunkMesh(*chunk, meshFuture, voxelDataMemory, vertexBufferMemory, meshUploadFutures);
+        }
+
+        // Wait for upload tasks to complete
+        for (auto &future : meshUploadFutures) {
+            future.wait();
         }
 
         UpdateChunkDatasBuffer();
         m_onWorldEditedDelegate.Broadcast(changes);
     }
 
-    void VoxelWorldRenderer::UploadChunkMesh(Chunk &chunk, std::future<ChunkMesh> &meshFuture, Spire::BufferManager::MappedMemory& voxelDataMemory) {
+    void VoxelWorldRenderer::UploadChunkMesh(Chunk &chunk,
+                                             ChunkMesh &mesh,
+                                             Spire::BufferManager::MappedMemory &voxelDataMemory,
+                                             Spire::BufferManager::MappedMemory &chunkVertexBufferMemory,
+                                             std::vector<std::future<void> > &futures) {
         // write the new mesh
         {
             const BufferAllocator::Allocation oldAllocation = chunk.VertexAllocation;
             chunk.VertexAllocation = {};
 
-            std::vector<VertexData> vertexData = meshFuture.get().Vertices;
+            const std::vector<VertexData> &vertexData = mesh.Vertices;
 
             if (!vertexData.empty()) {
                 std::optional alloc = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
@@ -125,7 +145,10 @@ namespace SpireVoxel {
                     chunk.VertexAllocation = *alloc;
 
                     // write the mesh into the vertex buffer
-                    m_chunkVertexBufferAllocator.Write(chunk.VertexAllocation, vertexData.data(), vertexData.size() * sizeof(VertexData));
+                    futures.push_back(
+                        Spire::ThreadPool::Instance().submit_task([&chunk,&chunkVertexBufferMemory, &vertexData] {
+                            memcpy(static_cast<char *>(chunkVertexBufferMemory.Memory) + chunk.VertexAllocation.Start, vertexData.data(), vertexData.size() * sizeof(VertexData));
+                        }));
                 } else {
                     Spire::error("Chunk vertex data allocation failed");
                 }
@@ -148,8 +171,10 @@ namespace SpireVoxel {
                 if (alloc) {
                     chunk.VoxelDataAllocation = *alloc;
 
-                    // write the voxel data
-                    memcpy(static_cast<char *>(voxelDataMemory.Memory) + chunk.VoxelDataAllocation.Start, chunk.VoxelData.data(), sizeof(GPUChunkVoxelData));
+                    // write the voxel data async
+                    futures.push_back(Spire::ThreadPool::Instance().submit_task([&voxelDataMemory, &chunk]() {
+                        memcpy(static_cast<char *>(voxelDataMemory.Memory) + chunk.VoxelDataAllocation.Start, chunk.VoxelData.data(), sizeof(GPUChunkVoxelData));
+                    }));
                 } else {
                     // allocation failed, need to free the vertex allocation
                     Spire::error("Chunk voxel data allocation failed, deallocating vertex buffer");

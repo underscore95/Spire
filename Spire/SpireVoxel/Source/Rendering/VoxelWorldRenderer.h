@@ -34,7 +34,15 @@ namespace SpireVoxel {
         void HandleChunkEdits();
 
     private:
-        void UploadChunkMesh(Chunk &chunk, std::future<ChunkMesh> &meshFuture, Spire::BufferManager::MappedMemory &voxelDataMemory);
+        // Upload chunk mesh to GPU
+        // voxelDataMemory - mapped memory for m_chunkVoxelDataBufferAllocator
+        // chunkVertexBufferMemory - mapped memory for m_chunkVertexBufferAllocator
+        // futures - some steps are parallelized, void futures will be pushed to this vector and the function is only complete once all futures return.
+        // Until futures haven't returned:
+        // chunk, chunkVertexBufferMemory, mesh, and voxelDataMemory must be kept alive
+        // the chunks vertex buffer and voxel data allocations must not be changed
+        void UploadChunkMesh(Chunk &chunk, ChunkMesh& mesh, Spire::BufferManager::MappedMemory &voxelDataMemory, Spire::BufferManager::MappedMemory &chunkVertexBufferMemory, std::vector<std
+                             ::future<void>> &futures);
 
         void NotifyChunkLoadedOrUnloaded();
 
