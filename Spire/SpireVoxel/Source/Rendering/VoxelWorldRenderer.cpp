@@ -86,6 +86,7 @@ namespace SpireVoxel {
 
         std::unordered_map<Chunk *, std::future<ChunkMesh> > meshingChunks;
 
+        Spire::Timer timer;
         for (const auto &chunkPos : m_editedChunks) {
             Chunk *chunk = m_world.GetLoadedChunk(chunkPos);
             if (!chunk) continue;
@@ -97,6 +98,7 @@ namespace SpireVoxel {
         }
 
         if (meshingChunks.empty()) return;
+        Spire::info("{} ms" , timer.MillisSinceStart());
 
         Spire::BufferManager::MappedMemory voxelDataMemory = m_chunkVoxelDataBufferAllocator.MapMemory();
 

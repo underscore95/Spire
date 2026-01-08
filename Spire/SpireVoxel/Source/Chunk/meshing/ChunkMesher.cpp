@@ -1,6 +1,7 @@
 #include "ChunkMesher.h"
 
 #include "Chunk/Chunk.h"
+#include "Utils/ThreadPool.h"
 
 namespace SpireVoxel {
     ChunkMesher::ChunkMesher() : m_numCPUThreads(std::thread::hardware_concurrency()) {
@@ -13,7 +14,7 @@ namespace SpireVoxel {
     }
 
     std::future<ChunkMesh> ChunkMesher::Mesh(Chunk &chunk) const {
-        return std::async(std::launch::async, [this, &chunk] {
+        return Spire::ThreadPool::Instance().submit_task([this, &chunk] {
             return chunk.GenerateMesh();
         });
     }

@@ -30,3 +30,6 @@
 [submodule "Spire/Libs/assimp"]
     path = Spire/Libs/assimp
     url = https://github.com/assimp/assimp.git
+[submodule "Spire/Libs/thread-pool"]
+	path = Spire/Libs/thread-pool
+	url = https://github.com/bshoshany/thread-pool.git
