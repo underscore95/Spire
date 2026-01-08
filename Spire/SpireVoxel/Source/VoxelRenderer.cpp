@@ -39,10 +39,8 @@ namespace SpireVoxel {
         SetupGraphicsPipeline();
         CreateAndRecordCommandBuffers();
 
-        m_worldEditCallback = m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this](WorldEditRequiredChanges changes) {
-            if (changes.RecreateCommandBuffers) {
-                CreateAndRecordCommandBuffers();
-            }
+        m_worldEditCallback = m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this]() {
+            CreateAndRecordCommandBuffers();
         });
 
         if (IS_PROFILING) {
@@ -179,7 +177,7 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::SetupGraphicsPipeline() {
-     assert(!m_graphicsPipeline);
+        assert(!m_graphicsPipeline);
         auto &rm = m_engine.GetRenderingManager();
 
         m_graphicsPipeline = std::make_unique<GraphicsPipeline>(

@@ -4,7 +4,6 @@
 #include "Chunk/Chunk.h"
 #include "Chunk/meshing/ChunkMesh.h"
 #include "Chunk/meshing/ChunkMesher.h"
-#include "Chunk/meshing/WorldEditRequiredChanges.h"
 
 namespace SpireVoxel {
     class VoxelWorld;
@@ -21,7 +20,7 @@ namespace SpireVoxel {
     public:
         void Render(glm::u32 swapchainImageIndex);
 
-        DelegateSubscribers<WorldEditRequiredChanges> &GetOnWorldEditSubscribers();
+        DelegateSubscribers<> &GetOnWorldEditSubscribers();
 
         void CmdRender(glm::u32 swapchainImage, VkCommandBuffer commandBuffer) const;
 
@@ -29,20 +28,12 @@ namespace SpireVoxel {
 
         void UpdateChunkDatasBuffer();
 
-        void NotifyChunkEdited(Chunk &chunk);
+        void NotifyChunkEdited(const Chunk &chunk);
 
         void HandleChunkEdits();
 
     private:
-        // Upload chunk mesh to GPU
-        // voxelDataMemory - mapped memory for m_chunkVoxelDataBufferAllocator
-        // chunkVertexBufferMemory - mapped memory for m_chunkVertexBufferAllocator
-        // futures - some steps are parallelized, void futures will be pushed to this vector and the function is only complete once all futures return.
-        // Until futures haven't returned:
-        // chunk, chunkVertexBufferMemory, mesh, and voxelDataMemory must be kept alive
-        // the chunks vertex buffer and voxel data allocations must not be changed
-        void UploadChunkMesh(Chunk &chunk, ChunkMesh& mesh, Spire::BufferManager::MappedMemory &voxelDataMemory, Spire::BufferManager::MappedMemory &chunkVertexBufferMemory, std::vector<std
-                             ::future<void>> &futures);
+
 
         void NotifyChunkLoadedOrUnloaded();
 
@@ -59,7 +50,7 @@ namespace SpireVoxel {
         VoxelWorld &m_world;
 
         Spire::RenderingManager &m_renderingManager;
-        Delegate<WorldEditRequiredChanges> m_onWorldEditedDelegate;
+        Delegate<> m_onWorldEditedDelegate;
         BufferAllocator m_chunkVertexBufferAllocator;
         BufferAllocator m_chunkVoxelDataBufferAllocator;
         std::unique_ptr<Spire::PerImageBuffer> m_chunkDatasBuffer;
