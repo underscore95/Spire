@@ -1,5 +1,7 @@
 #pragma once
 #include "pch.h"
+#include "VulkanBuffer.h"
+#include "Utils/MacroDisableCopy.h"
 
 namespace Spire {
     class PerImageBuffer;
@@ -10,10 +12,31 @@ namespace Spire {
         friend class ImageManager;
 
     public:
+        class MappedMemory {
+            friend class BufferManager;
+
+        private:
+            DISABLE_COPY_AND_MOVE(MappedMemory);
+            explicit MappedMemory(RenderingManager &rm, const VulkanBuffer &buffer);
+
+        public:
+            ~MappedMemory();
+
+        public:
+            void *Memory; // Pointer to the mapped memory, you can write but not resize
+            const std::size_t Size; // Size of mapped memory
+
+        private:
+            VulkanBuffer m_buffer;
+            RenderingManager &m_renderingManager;
+        };
+
+    public:
         explicit BufferManager(RenderingManager &renderingManager);
 
         ~BufferManager();
 
+    public:
         // Create an index buffer, indexTypeSize determines type of indices, either sizeof(std::uint32_t) or sizeof(std::uint16_t) or sizeof(std::uint8_t)
         [[nodiscard]] VulkanBuffer CreateIndexBuffer(glm::u32 indexTypeSize, const void *indices, std::size_t numIndices);
 
@@ -31,6 +54,9 @@ namespace Spire {
                                                                            VkBufferUsageFlags extraUsageFlags = 0);
 
         void UpdateBuffer(const VulkanBuffer &buffer, const void *data, std::size_t size, std::size_t offset = 0) const;
+
+        // Map memory, automatically unmap memory on destroy (uploads to gpu)
+        [[nodiscard]] MappedMemory Map(const VulkanBuffer &buffer) const;
 
     public:
         static bool HasBufferManagerBeenDestroyed();

@@ -23,6 +23,9 @@
 #include <map>
 #include <span>
 #include <random>
+#include <bit>
+#include <bitset>
+#include <future>
 
 // vulkan
 #include <vulkan/vulkan_core.h>

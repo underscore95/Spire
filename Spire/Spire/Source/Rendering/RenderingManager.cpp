@@ -231,9 +231,27 @@ namespace Spire {
             .apiVersion = m_instanceVersion.RawVersion
         };
 
+        std::vector enables = {
+            VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
+            VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_RESERVE_BINDING_SLOT_EXT,
+            VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT,
+#ifdef SPIRE_VULKAN_SYNC2_VALIDATION
+            VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT
+#endif
+        };
+
+        VkValidationFeaturesEXT validationFeatures = {
+            .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+            .pNext = VK_NULL_HANDLE,
+            .enabledValidationFeatureCount = static_cast<glm::u32>(enables.size()),
+            .pEnabledValidationFeatures = enables.empty() ? nullptr : enables.data(),
+            .disabledValidationFeatureCount = 0,
+            .pDisabledValidationFeatures = VK_NULL_HANDLE
+        };
+
         VkInstanceCreateInfo createInfo = {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-            .pNext = nullptr,
+            .pNext = &validationFeatures,
             .flags = 0, // reserved for future use. Must be zero
             .pApplicationInfo = &AppInfo,
             .enabledLayerCount = static_cast<glm::u32>(layers.size()),

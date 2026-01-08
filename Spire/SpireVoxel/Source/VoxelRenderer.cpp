@@ -3,6 +3,7 @@
 
 #include "../Assets/Shaders/ShaderInfo.h"
 #include "Chunk/VoxelWorld.h"
+#include "Edits/BasicVoxelEdit.h"
 #include "Rendering/VoxelWorldRenderer.h"
 #include "Serialisation/VoxelSerializer.h"
 #include "Types/VoxelImageManager.h"
@@ -13,7 +14,7 @@
 using namespace Spire;
 
 namespace SpireVoxel {
-    VoxelRenderer::VoxelRenderer(Engine &engine, IVoxelCamera& camera)
+    VoxelRenderer::VoxelRenderer(Engine &engine, IVoxelCamera &camera)
         : m_engine(engine), m_camera(camera) {
         auto &rm = m_engine.GetRenderingManager();
 
@@ -34,45 +35,29 @@ namespace SpireVoxel {
 
         // World
         m_world = std::make_unique<VoxelWorld>(rm);
-        m_worldEditCallback = m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this](VoxelWorldRenderer::WorldEditRequiredChanges changes) {
-            if (changes.RecreatePipeline) {
-                // Takes 1.6ms on my PC
-                SetupDescriptors();
-                SetupGraphicsPipeline();
-                CreateAndRecordCommandBuffers();
-            } else if (changes.RecreateOnlyCommandBuffers) {
-                CreateAndRecordCommandBuffers();
-            } else
-                assert(false);
-        });
+        SetupDescriptors();
+        SetupGraphicsPipeline();
+        CreateAndRecordCommandBuffers();
 
-        // load 3x1x3 chunks around 0,0,0
-        m_world->LoadChunks({
-            {-1, 0, -1},
-            {-1, 0, 0},
-            {-1, 0, 1},
-            {0, 0, -1},
-            {0, 0, 0},
-            {0, 0, 1},
-            {1, 0, -1},
-            {1, 0, 0},
-            {1, 0, 1},
+        m_worldEditCallback = m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this]() {
+            CreateAndRecordCommandBuffers();
         });
-
-        // Update world
-        for (auto &[chunkPos, chunk] : *m_world) {
-            assert(!chunk->IsCorrupted());
-            chunk->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(0, 0, 0)] = 1;
-            assert(!chunk->IsCorrupted());
-            m_world->GetRenderer().NotifyChunkEdited(*chunk);
-            m_world->GetRenderer().HandleChunkEdits();
-        }
 
         if (IS_PROFILING) {
             VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
             info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
-        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test1");
+        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test6");
 
+        m_world->LoadChunk({0, 0, -1});
+        m_world->LoadChunk({0, 0, 0});
+        BasicVoxelEdit({
+            BasicVoxelEdit::Edit{{0, 0, 0}, 2},
+            BasicVoxelEdit::Edit{{3, 0, 1}, 1},
+            BasicVoxelEdit::Edit{{2, 0, 0}, 1},
+            BasicVoxelEdit::Edit{{3, 0, 0}, 2},
+            BasicVoxelEdit::Edit{{5, 0, 5}, 2},
+            BasicVoxelEdit::Edit{{0, 0, -15}, 2},
+        }).Apply(*m_world);
         m_world->GetRenderer().HandleChunkEdits();
 
         m_timeSinceBeginProfiling.Restart();
@@ -84,8 +69,6 @@ namespace SpireVoxel {
 
     void VoxelRenderer::Update() {
         m_currentFrame++;
-        m_oldDescriptors.Update();
-        m_oldPipelines.Update();
         m_oldCommandBuffers.Update();
 
         HandleProfiling();
@@ -162,9 +145,7 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::SetupDescriptors() {
-        if (m_descriptorManager) {
-            m_oldDescriptors.Push(std::move(m_descriptorManager), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
-        }
+        assert(!m_descriptorManager);
 
         DescriptorSetLayoutList layouts(m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
 
@@ -196,10 +177,7 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::SetupGraphicsPipeline() {
-        if (m_graphicsPipeline) {
-            m_oldPipelines.Push(std::move(m_graphicsPipeline), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
-        }
-
+        assert(!m_graphicsPipeline);
         auto &rm = m_engine.GetRenderingManager();
 
         m_graphicsPipeline = std::make_unique<GraphicsPipeline>(

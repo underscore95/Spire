@@ -11,5 +11,8 @@ TEST(TestDirectionToFaceA, FaceUtilsTests) {
     EXPECT_EQ(SpireVoxel::DirectionToFace(glm::vec3(0.3,0,0.31)), SPIRE_VOXEL_FACE_POS_Z);
     EXPECT_EQ(SpireVoxel::DirectionToFace(glm::vec3(0.3,40,-312)), SPIRE_VOXEL_FACE_NEG_Z);
     EXPECT_EQ(SpireVoxel::DirectionToFace(glm::vec3(0.3,-40,-312)), SPIRE_VOXEL_FACE_NEG_Z);
+
+#ifndef NDEBUG
     EXPECT_DEATH(auto _ = SpireVoxel::DirectionToFace(glm::vec3(0,0,0));, "");
+#endif
 }

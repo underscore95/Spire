@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 
 project(Spire)
 
-set(SPIRE_VERSION "1.10.3")
+set(SPIRE_VERSION "1.11.0")
 add_compile_definitions(SPIRE_VERSION="${SPIRE_VERSION}")
 
 set(LIBS_DIRECTORY ${CMAKE_SOURCE_DIR}/Libs)
@@ -26,7 +26,12 @@ if (${INCLUDE_DEBUG_SYMBOLS} EQUAL 1)
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Zi")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG")
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG")
+
+    add_compile_definitions(INCLUDE_SHADER_DEBUG_SYMBOLS)
 endif ()
+
+# add_compile_definitions(SPIRE_VULKAN_SYNC2_VALIDATION)
+# add_compile_definitions(SPIRE_VULKAN_PERFORMANCE_DEBUG_LOGS)
 
 add_subdirectory(Spire)
 add_subdirectory(SpireVoxel)

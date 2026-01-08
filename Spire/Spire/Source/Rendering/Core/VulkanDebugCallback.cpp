@@ -68,6 +68,10 @@ namespace Spire {
         const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
         [[maybe_unused]] void *pUserData
     ) {
+#ifndef SPIRE_VULKAN_PERFORMANCE_DEBUG_LOGS
+        if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) return VK_FALSE;
+#endif
+
         // Build string
         std::string objectStr;
         for (glm::u32 i = 0; i < pCallbackData->objectCount; i++) {

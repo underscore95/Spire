@@ -91,6 +91,8 @@ add_library(Spire STATIC
         Source/Utils/CommandBufferVector.h
         Source/Utils/Random.cpp
         Source/Utils/Random.h
+        Source/Utils/ThreadPool.cpp
+        Source/Utils/ThreadPool.h
 )
 
 target_precompile_headers(Spire PUBLIC "Source/pch.h")
@@ -149,6 +151,11 @@ target_include_directories(Spire PUBLIC
 # stb
 target_include_directories(Spire PRIVATE
         ${LIBS_DIRECTORY}/stb/stb
+)
+
+# thread-pool
+target_include_directories(Spire PUBLIC
+        ${LIBS_DIRECTORY}/thread-pool/include
 )
 
 # Copy the dlls

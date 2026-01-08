@@ -35,7 +35,7 @@ namespace SpireVoxel {
 
         // no space previously, need to allocate at end
         if (previousAllocationEnd + requestedSize > m_buffer.Size) {
-            Spire::warn("Failed to allocate chunk vertex buffer memory - out of memory! Requested allocation size: {}", requestedSize);
+            Spire::warn("Failed to allocate memory in BufferAllocator - out of memory! Requested allocation size: {}", requestedSize);
             return std::nullopt;
         }
 
@@ -58,11 +58,11 @@ namespace SpireVoxel {
         ScheduleFreeAllocation(allocation.Start);
     }
 
-    Spire::Descriptor BufferAllocator::GetDescriptor(glm::u32 binding, const std::string &debugName) {
+    Spire::Descriptor BufferAllocator::GetDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName) {
         return {
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = binding,
-            .Stages = VK_SHADER_STAGE_VERTEX_BIT,
+            .Stages = stages,
             .Resources = {{.Buffer = &m_buffer}},
 #ifndef NDEBUG
             .DebugName = debugName
@@ -116,6 +116,10 @@ namespace SpireVoxel {
         }
 
         return allocated;
+    }
+
+    Spire::BufferManager::MappedMemory BufferAllocator::MapMemory() const {
+        return m_renderingManager.GetBufferManager().Map(m_buffer);
     }
 
     std::optional<BufferAllocator::PendingFree> BufferAllocator::IsPendingFree(std::size_t start) const {

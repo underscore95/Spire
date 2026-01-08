@@ -33,18 +33,21 @@ namespace SpireVoxel {
 
         void ScheduleFreeAllocation(Allocation allocation);
 
-        Spire::Descriptor GetDescriptor(glm::u32 binding, const std::string &debugName = "Buffer Allocator");
+        Spire::Descriptor GetDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName = "Buffer Allocator");
 
         void Render();
 
         void Write(Allocation allocation, const void *data, std::size_t size) const;
+
+        // Map memory, alternative to Write()
+        [[nodiscard]] Spire::BufferManager::MappedMemory MapMemory() const;
 
         // How much memory is either allocated or pending free
         // this is bufferSize - availableMemory
         [[nodiscard]] std::size_t CalculateAllocatedOrPendingMemory() const;
 
     private:
-        [[nodiscard]] std::optional<BufferAllocator::PendingFree> IsPendingFree(std::size_t start) const;
+        [[nodiscard]] std::optional<PendingFree> IsPendingFree(std::size_t start) const;
 
     private:
         Spire::RenderingManager &m_renderingManager;

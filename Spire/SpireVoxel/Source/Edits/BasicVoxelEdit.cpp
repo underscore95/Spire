@@ -9,6 +9,9 @@ namespace SpireVoxel {
         : m_edits({edit}) {
     }
 
+    BasicVoxelEdit::BasicVoxelEdit(glm::ivec3 position, glm::u32 type) : m_edits({{position, type}}) {
+    }
+
     void BasicVoxelEdit::Apply(VoxelWorld &world) {
         for (const auto &edit : m_edits) {
             Chunk *chunk = world.GetLoadedChunk(world.GetChunkPositionOfVoxel(edit.Position));
@@ -20,7 +23,7 @@ namespace SpireVoxel {
 
             std::optional<std::size_t> index = Chunk::GetIndexOfVoxel(chunk->ChunkPosition, edit.Position);
             assert(index);
-            chunk->VoxelData[index.value()] = edit.Type;
+            chunk->SetVoxel(index.value(), edit.Type);
             NotifyChunkEdit(world, *chunk);
         }
     }

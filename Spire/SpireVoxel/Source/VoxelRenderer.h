@@ -27,7 +27,7 @@ namespace SpireVoxel {
 
     class VoxelRenderer {
     public:
-        explicit VoxelRenderer(Spire::Engine &engine, IVoxelCamera& camera);
+        explicit VoxelRenderer(Spire::Engine &engine, IVoxelCamera &camera);
 
         ~VoxelRenderer();
 
@@ -56,7 +56,11 @@ namespace SpireVoxel {
         void HandleProfiling();
 
     public:
-        static constexpr bool IS_PROFILING = true;
+#ifndef NDEBUG
+        static constexpr bool IS_PROFILING = false; // debug
+#else
+        static constexpr bool IS_PROFILING = true; // release
+#endif
         static constexpr bool RENDER_WIREFRAMES = false;
 
     private:
@@ -88,8 +92,6 @@ namespace SpireVoxel {
         std::unique_ptr<Spire::DescriptorManager> m_descriptorManager;
         IVoxelCamera &m_camera;
         std::unique_ptr<VoxelWorld> m_world;
-        Spire::FrameDeleter<std::unique_ptr<Spire::GraphicsPipeline> > m_oldPipelines;
-        Spire::FrameDeleter<std::unique_ptr<Spire::DescriptorManager> > m_oldDescriptors;
         Spire::FrameDeleter<std::unique_ptr<Spire::CommandBufferVector> > m_oldCommandBuffers;
         Spire::Timer m_timeSinceBeginProfiling;
         glm::u64 m_currentFrame = 0;
