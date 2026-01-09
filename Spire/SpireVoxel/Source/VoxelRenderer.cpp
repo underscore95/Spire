@@ -44,8 +44,8 @@ namespace SpireVoxel {
         });
 
         if (IS_PROFILING) {
-            VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / WORLD_NAME);
-            info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), WORLD_NAME);
+            VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / PROFILE_WORLD_NAME);
+            info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), PROFILE_WORLD_NAME);
         } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test6");
 
         m_world->LoadChunk({0, 0, -1});
@@ -235,7 +235,7 @@ namespace SpireVoxel {
         if constexpr (!IS_PROFILING) return;
         if (m_profileStrategyIndex >= PROFILE_STRATEGIES.size()) return;
         if (m_currentFrame == 1) {
-            info("Profiling... (world: {})", WORLD_NAME);
+            info("Profiling... (world: {})", PROFILE_WORLD_NAME);
 #ifndef NDEBUG
             warn("Profiling in debug mode, results will be inaccurate!");
 #endif
@@ -264,7 +264,7 @@ namespace SpireVoxel {
                 m_timeSinceBeginProfiling.MillisSinceStart(),
                 profileStrategy.FramesToProfile,
                 m_world->NumLoadedChunks(),
-                WORLD_NAME,
+                PROFILE_WORLD_NAME,
                 profileStrategy.Dynamic,
                 m_world->CalculateGPUMemoryUsageForChunks(),
                 m_world->CalculateCPUMemoryUsageForChunks(),

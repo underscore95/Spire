@@ -73,7 +73,7 @@ namespace SpireVoxel {
             glm::u64 FramesToProfile;
         };
 
-        static constexpr const char *WORLD_NAME = "Test6";
+        static constexpr const char *PROFILE_WORLD_NAME = "Test6";
 
         static constexpr ProfileStrategy PROFILE_STATIC = {ProfileStrategy::STATIC, 10000};
         static constexpr ProfileStrategy PROFILE_STATIC_1000 = {ProfileStrategy::STATIC, 1000};
