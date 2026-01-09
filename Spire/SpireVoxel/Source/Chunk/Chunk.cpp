@@ -125,38 +125,49 @@ namespace SpireVoxel {
         }
     }
 
-    ChunkMesh Chunk::GenerateMesh() const {
+    ChunkMesh Chunk::GenerateMesh(const VoxelWorld &world) const {
         ChunkMesh mesh;
 
         // slice, row, col are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetChunkCoords
-        // slice is the slice of voxels we are working with
-        // POS_Z/NEG_Z col is X axis, row is Y axis, slice is Z
+        // slice is the slice of voxel faces we are working with
+        // row, col are 2d coordinates in that slice
+        // for POS_Z/NEG_Z: col is X axis, row is Y axis, slice is Z
 
         for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face += 2) {
+            // here face is the positive direction, we handle positive and negative at the same time since it results in less memory accesses
+            const Chunk *adjacentPositiveChunk = world.GetLoadedChunk(ChunkPosition + FaceToDirection(face));
+            const Chunk *adjacentNegativeChunk = world.GetLoadedChunk(ChunkPosition - FaceToDirection(face));
+
             for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
                 // generate the grid
-                std::array<GreedyMeshingGrid, 2> grids;
+                std::array<GreedyMeshingGrid, 2> grids; // one for positive one for negative
 
                 for (glm::u32 row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
                     for (glm::u32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
                         glm::ivec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face);
+
+                        // Positive
                         glm::ivec3 adjacentPositive = chunkCoords + FaceToDirection(face);
-                        glm::ivec3 adjacentNegative = chunkCoords - FaceToDirection(face);
-                        bool adjacentPositiveIsPresent = adjacentPositive.x < SPIRE_VOXEL_CHUNK_SIZE &&
-                                                         adjacentPositive.y < SPIRE_VOXEL_CHUNK_SIZE &&
-                                                         adjacentPositive.z < SPIRE_VOXEL_CHUNK_SIZE &&
-                                                         VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentPositive)];
-                        bool adjacentNegativeIsPresent = adjacentNegative.x >= 0 &&
-                                                         adjacentNegative.y >= 0 &&
-                                                         adjacentNegative.z >= 0 &&
-                                                         VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentNegative)];
-                        // This seems to be getting compiler optimised really heavily
-                        // I tried adding another check and not generating any faces if the adjacent is outside of chunk bounds
-                        // and it reduced generation time by 20%
+                        const bool isPositiveInThisChunk = adjacentPositive.x < SPIRE_VOXEL_CHUNK_SIZE &&
+                                                           adjacentPositive.y < SPIRE_VOXEL_CHUNK_SIZE
+                                                           && adjacentPositive.z < SPIRE_VOXEL_CHUNK_SIZE;
+                        bool adjacentPositiveIsPresent = isPositiveInThisChunk && VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentPositive)];
+                        if (!isPositiveInThisChunk && adjacentPositiveChunk) {
+                            adjacentPositive -= FaceToDirection(face) * SPIRE_VOXEL_CHUNK_SIZE; // bring to 0-63 range
+                            adjacentPositiveIsPresent = adjacentPositiveChunk->VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentPositive)];
+                        }
                         if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentPositiveIsPresent) {
                             grids[0].SetBit(row, col);
                         }
 
+                        // Negative
+                        glm::ivec3 adjacentNegative = chunkCoords - FaceToDirection(face);
+                        const bool isNegativeInThisChunk = adjacentNegative.x >= 0 && adjacentNegative.y >= 0 && adjacentNegative.z >= 0;
+                        bool adjacentNegativeIsPresent = isNegativeInThisChunk && VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentNegative)];
+                        if (!isNegativeInThisChunk && adjacentNegativeChunk) {
+                            adjacentNegative += FaceToDirection(face) * SPIRE_VOXEL_CHUNK_SIZE; // bring to 0-63 range
+                            adjacentNegativeIsPresent = adjacentNegativeChunk->VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentNegative)];
+                        }
                         if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentNegativeIsPresent) {
                             grids[1].SetBit(row, col);
                         }

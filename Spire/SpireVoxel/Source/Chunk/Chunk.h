@@ -33,7 +33,8 @@ namespace SpireVoxel {
 
         void SetVoxels(glm::u32 startIndex, glm::u32 endIndex, glm::u32 type);
 
-        [[nodiscard]] ChunkMesh GenerateMesh() const;
+        // Ideally this would be in ChunkMesher but moving it there increases mesh time (Test6 10 frames) from ~1500ms to ~1700ms, maybe caching issue?
+        [[nodiscard]] ChunkMesh GenerateMesh(const VoxelWorld &world) const;
 
         [[nodiscard]] ChunkData GenerateChunkData(glm::u32 chunkIndex) const;
 

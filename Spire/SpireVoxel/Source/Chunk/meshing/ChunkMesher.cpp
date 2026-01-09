@@ -65,7 +65,7 @@ namespace SpireVoxel {
 
     std::future<ChunkMesh> ChunkMesher::Mesh(Chunk &chunk) const {
         return Spire::ThreadPool::Instance().submit_task([this, &chunk] {
-            return chunk.GenerateMesh();
+            return chunk.GenerateMesh(m_world);
         });
     }
 
