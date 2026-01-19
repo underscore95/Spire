@@ -7,7 +7,7 @@ namespace SpireVoxel {
     public:
         struct Edit {
             glm::ivec3 Position;
-            glm::u32 Type;
+            VoxelType Type;
         };
 
     public:
@@ -15,7 +15,7 @@ namespace SpireVoxel {
 
         explicit BasicVoxelEdit(const Edit &edit);
 
-        explicit BasicVoxelEdit(glm::ivec3 position, glm::u32 type);
+        explicit BasicVoxelEdit(glm::ivec3 position, VoxelType type);
 
     public:
         void Apply(VoxelWorld &world) override;

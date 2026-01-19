@@ -9,7 +9,7 @@ namespace SpireVoxel {
         : m_edits({edit}) {
     }
 
-    BasicVoxelEdit::BasicVoxelEdit(glm::ivec3 position, glm::u32 type) : m_edits({{position, type}}) {
+    BasicVoxelEdit::BasicVoxelEdit(glm::ivec3 position, VoxelType type) : m_edits({{position, type}}) {
     }
 
     void BasicVoxelEdit::Apply(VoxelWorld &world) {

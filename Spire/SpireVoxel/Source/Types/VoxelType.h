@@ -3,7 +3,7 @@
 #include "EngineIncludes.h"
 
 namespace SpireVoxel {
-    struct VoxelType {
+    struct VoxelTypeInfo {
         glm::u32 Id;
         std::vector<std::string> Textures;
         glm::u32 VoxelFaceLayout;

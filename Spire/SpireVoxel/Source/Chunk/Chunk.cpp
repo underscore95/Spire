@@ -5,7 +5,7 @@
 #include "meshing/ChunkMesh.h"
 
 namespace SpireVoxel {
-    glm::u32 GetAdjacentVoxelType(const Chunk &chunk, glm::ivec3 position, glm::u32 face) {
+    VoxelType GetAdjacentVoxelType(const Chunk &chunk, glm::ivec3 position, glm::u32 face) {
         glm::ivec3 queryChunkPosition = chunk.ChunkPosition;
         glm::ivec3 queryPosition = position + FaceToDirection(face);
 
@@ -113,15 +113,18 @@ namespace SpireVoxel {
         }
     }
 
-    void Chunk::SetVoxel(glm::u32 index, glm::u32 type) {
+    void Chunk::SetVoxel(glm::u32 index, VoxelType type) {
         VoxelData[index] = type;
         VoxelBits[index] = static_cast<bool>(type);
     }
 
-    void Chunk::SetVoxels(glm::u32 startIndex, glm::u32 endIndex, glm::u32 type) {
-        std::fill(VoxelData.data() + startIndex, VoxelData.data() + endIndex, type);
-        for (; startIndex <= endIndex; startIndex++) {
-            VoxelBits[startIndex] = static_cast<bool>(type); // todo: can we do this in a single write?
+    void Chunk::SetVoxels(glm::u32 startIndex, glm::u32 endIndex, VoxelType type) {
+        std::fill(VoxelData.data() + startIndex,
+                  VoxelData.data() + endIndex,
+                  type);
+
+        for (glm::u32 i = startIndex; i < endIndex; ++i) {
+            VoxelBits[i] = static_cast<bool>(type);
         }
     }
 

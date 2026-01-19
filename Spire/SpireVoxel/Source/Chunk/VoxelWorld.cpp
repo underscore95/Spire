@@ -112,7 +112,7 @@ namespace SpireVoxel {
         return GetVoxelAt(worldPosition) != VOXEL_TYPE_AIR;
     }
 
-    glm::u32 VoxelWorld::GetVoxelAt(glm::ivec3 worldPosition) const {
+    VoxelType VoxelWorld::GetVoxelAt(glm::ivec3 worldPosition) const {
         glm::ivec3 chunkPos = GetChunkPositionOfVoxel(worldPosition);
         glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
 
@@ -120,7 +120,7 @@ namespace SpireVoxel {
         return chunk ? chunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(positionInChunk)] : VOXEL_TYPE_AIR;
     }
 
-    bool VoxelWorld::TrySetVoxelAt(glm::ivec3 worldPosition, glm::u32 voxelType) {
+    bool VoxelWorld::TrySetVoxelAt(glm::ivec3 worldPosition, VoxelType voxelType) {
         glm::ivec3 chunkPos = GetChunkPositionOfVoxel(worldPosition);
         glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
 

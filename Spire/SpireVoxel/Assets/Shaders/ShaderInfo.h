@@ -31,6 +31,16 @@
 
 #define SPIRE_VOXEL_POSITION_TO_INDEX(pos) SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(pos.x, pos.y, pos.z)
 
+#define SPIRE_VOXEL_UINT16_MAX 65535u
+
+#define SPIRE_VOXEL_UNPACK_VOXEL_TYPE(doubleVoxelType, index) \
+    (((index) % 2) == 0 ? (doubleVoxelType) & SPIRE_VOXEL_UINT16_MAX : (doubleVoxelType) >> 16)
+
+#define SPIRE_VOXEL_PACK_VOXEL_TYPE(existingType, index, newType) \
+    (((index) % 2) == 0 ? \
+    (((existingType) & (SPIRE_VOXEL_UINT16_MAX << 16)) | ((newType) & SPIRE_VOXEL_UINT16_MAX)) : \
+    (((existingType) & SPIRE_VOXEL_UINT16_MAX) | (((newType) & SPIRE_VOXEL_UINT16_MAX) << 16)))
+
 // types
 #ifdef __cplusplus
 #define SPIRE_UINT32_TYPE glm::uint32
@@ -269,7 +279,7 @@ namespace SpireVoxel {
         SPIRE_UINT32_TYPE height, // 1-64 range
         SPIRE_UINT32_TYPE x, SPIRE_UINT32_TYPE y, SPIRE_UINT32_TYPE z, // 0-64 range
         VoxelVertexPosition vertexPosition,
-        SPIRE_UINT32_TYPE face
+        glm::u16 face
     ) {
         assert(x <= 64);
         assert(y <= 64);
@@ -338,7 +348,7 @@ namespace SpireVoxel {
 #endif
     struct GPUChunkVoxelData {
 #ifdef __cplusplus
-        std::array<SPIRE_UINT32_TYPE, SPIRE_VOXEL_CHUNK_VOLUME> Data;
+        std::array<SPIRE_UINT32_TYPE, SPIRE_VOXEL_CHUNK_VOLUME / 2> Data; // Divided by 2 because we use uint16 types
 #else
         uvec4 Data[SPIRE_VOXEL_CHUNK_VOLUME / 4];
 #endif

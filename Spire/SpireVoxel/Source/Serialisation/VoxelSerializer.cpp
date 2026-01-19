@@ -34,49 +34,75 @@ namespace SpireVoxel {
 
         if (!std::filesystem::exists(directory)) return;
 
+        bool migratedAny = false;
         std::unordered_set<glm::ivec3> loadedChunks;
+
         for (const auto &entry : std::filesystem::directory_iterator(directory)) {
             if (std::filesystem::is_directory(entry)) continue;
             if (Spire::FileIO::GetLowerCaseFileExtension(entry.path()) != ".sprc") continue;
 
             std::ifstream file(entry.path(), std::ios_base::binary);
+            if (!file) continue;
 
-            // read identifier
             std::remove_const_t<decltype(HEADER_IDENTIFIER)> identifier;
             if (!file.read(identifier.data(), identifier.size()) || identifier != HEADER_IDENTIFIER) {
-                std::string identifierString;
-                for (auto &c : identifier) identifierString.push_back(c);
-                Spire::error("Failed to read .sprc file - invalid identifier {}", identifierString);
+                Spire::error("Failed to read .sprc file - invalid identifier {}", entry.path().string());
                 continue;
             }
 
-            // version
-            std::remove_const_t<decltype(VERSION)> version{};
-            if (!file.read(reinterpret_cast<char *>(&version), sizeof(VERSION)) || version > VERSION) {
+            std::uint32_t version{};
+            if (!file.read(reinterpret_cast<char *>(&version), sizeof(version)) || version > VERSION) {
                 Spire::error("Failed to read version of {}", entry.path().string());
                 continue;
             }
 
-            // chunk pos
-            glm::ivec3 chunkPos = {};
+            glm::ivec3 chunkPos{};
             if (!file.read(reinterpret_cast<char *>(&chunkPos), sizeof(chunkPos))) {
                 Spire::error("Failed to read chunk position of {}", entry.path().string());
                 continue;
             }
 
             if (loadedChunks.contains(chunkPos)) {
-                Spire::error("World at directory {} contains multiple files for chunk {}, {}, {}", entry.path().string(), chunkPos.x, chunkPos.y,
-                             chunkPos.z);
+                Spire::error(
+                    "World at directory {} contains multiple files for chunk {}, {}, {}",
+                    directory.string(), chunkPos.x, chunkPos.y, chunkPos.z
+                );
                 continue;
             }
             loadedChunks.insert(chunkPos);
 
             Chunk &chunk = world.LoadChunk(chunkPos);
             assert(!chunk.IsCorrupted());
-            if (!file.read(reinterpret_cast<char *>(chunk.VoxelData.data()), chunk.VoxelData.size() * sizeof(chunk.VoxelData[0]))) {
-                Spire::error("Failed to read chunk voxel data of {} (chunk {})", entry.path().string(), chunkPos.x, chunkPos.y, chunkPos.z);
-                continue;
+
+            if (version < VOXEL_TYPE_U32_TO_U16_VERSION) {
+                Spire::info("Migrating chunk {} {} {} from voxel u32 to u16",
+                            chunkPos.x, chunkPos.y, chunkPos.z);
+
+                std::vector<std::uint32_t> legacy(chunk.VoxelData.size());
+                if (!file.read(reinterpret_cast<char *>(legacy.data()), legacy.size() * sizeof(glm::u32))) {
+                    Spire::error("Failed to read legacy voxel data of {}", entry.path().string());
+                    continue;
+                }
+
+                std::fill(chunk.VoxelData.begin(), chunk.VoxelData.end(), 0);
+
+                for (std::size_t i = 0; i < legacy.size(); ++i) {
+                    static_assert(sizeof(chunk.VoxelData[0]) == sizeof(glm::u16));
+                    chunk.VoxelData[i] = legacy[i];
+                }
+
+                migratedAny = true;
+            } else {
+                if (!file.read(reinterpret_cast<char *>(chunk.VoxelData.data()),
+                               chunk.VoxelData.size() * sizeof(chunk.VoxelData[0]))) {
+                    Spire::error(
+                        "Failed to read chunk voxel data of {} (chunk {} {} {})",
+                        entry.path().string(), chunkPos.x, chunkPos.y, chunkPos.z
+                    );
+                    continue;
+                }
             }
+
             chunk.RegenerateVoxelBits();
             assert(!chunk.IsCorrupted());
 
@@ -88,6 +114,12 @@ namespace SpireVoxel {
         }
 
         world.GetRenderer().HandleChunkEdits();
+
+        if (migratedAny) {
+            Spire::info("Migrated world to latest voxel format, rewriting chunk files");
+            //      Serialize(world, directory);
+        }
+
         Spire::info("Deserialized world in {} ms", timer.MillisSinceStart());
     }
 } // SpireVoxel

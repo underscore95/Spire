@@ -10,7 +10,7 @@ namespace SpireVoxel {
             glm::uvec3 RectSize;
         };
 
-        CuboidVoxelEdit(glm::ivec3 origin, glm::uvec3 size, glm::u32 voxelType);
+        CuboidVoxelEdit(glm::ivec3 origin, glm::uvec3 size, VoxelType voxelType);
 
     public:
         void Apply(VoxelWorld &world) override;
@@ -20,7 +20,7 @@ namespace SpireVoxel {
         static std::vector<Edit> GenerateEdits(glm::ivec3 origin, glm::uvec3 size);
 
     private:
-        glm::u32 m_voxelType;
+        VoxelType m_voxelType;
         std::vector<Edit> m_edits;
         std::unordered_set<glm::ivec3> m_affectedChunkMeshes;
     };
