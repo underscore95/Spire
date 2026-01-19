@@ -8,16 +8,16 @@ namespace SpireVoxel {
         friend class VoxelTypeRegistry;
 
     public:
-        explicit RegisteredVoxelType(const VoxelType &type) : m_type(type) {
+        explicit RegisteredVoxelType(const VoxelTypeInfo &type) : m_type(type) {
         }
 
     public:
         std::vector<Spire::VulkanImage> Images;
         glm::u32 FirstImageIndex = UINT32_MAX;
 
-        [[nodiscard]] const VoxelType &GetType() const { return m_type; }
+        [[nodiscard]] const VoxelTypeInfo &GetType() const { return m_type; }
 
     private:
-        VoxelType m_type;
+        VoxelTypeInfo m_type;
     };
 } // SpireVoxel

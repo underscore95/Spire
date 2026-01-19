@@ -15,7 +15,8 @@ namespace SpireVoxel {
         // Unload all chunks in a world. Load all chunks in a directory. Directory does not need to exist.
         static void ClearAndDeserialize(VoxelWorld &world, const std::filesystem::path &directory);
 
-        static constexpr std::uint32_t VERSION = 1;
+        static constexpr std::uint32_t VERSION = 2;
+        static constexpr std::uint32_t VOXEL_TYPE_U32_TO_U16_VERSION = 2; // this version changes voxel types from u32 to u16
 
     private:
         static constexpr std::array<char, 10> HEADER_IDENTIFIER{'S', 'P', 'R', 'V', 'X', 'L', 'C', 'H', 'N', 'K'};

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EngineIncludes.h"
+#include "VoxelType.h"
 
 namespace SpireVoxel {
     class VoxelWorldRenderer;
@@ -46,9 +47,9 @@ namespace SpireVoxel {
         // returns false if the voxel is air or the chunk is not loaded
         [[nodiscard]] bool IsVoxelAt(glm::ivec3 worldPosition) const;
 
-        glm::u32 GetVoxelAt(glm::ivec3 worldPosition) const;
+        VoxelType GetVoxelAt(glm::ivec3 worldPosition) const;
 
-        bool TrySetVoxelAt(glm::ivec3 worldPosition, glm::u32 voxelType);
+        bool TrySetVoxelAt(glm::ivec3 worldPosition, VoxelType voxelType);
 
         [[nodiscard]] static glm::ivec3 GetChunkPositionOfVoxel(glm::ivec3 voxelWorldPosition);
 

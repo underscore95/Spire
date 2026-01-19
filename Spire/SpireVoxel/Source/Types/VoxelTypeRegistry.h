@@ -15,9 +15,9 @@ namespace SpireVoxel {
         ~VoxelTypeRegistry();
 
     public:
-        void RegisterType(VoxelType type);
+        void RegisterType(VoxelTypeInfo type);
 
-        void RegisterTypes(const std::vector<VoxelType> &types);
+        void RegisterTypes(const std::vector<VoxelTypeInfo> &types);
 
         std::vector<RegisteredVoxelType>::iterator begin();
 

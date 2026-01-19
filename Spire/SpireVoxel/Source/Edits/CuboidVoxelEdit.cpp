@@ -1,7 +1,7 @@
 #include "CuboidVoxelEdit.h"
 
 namespace SpireVoxel {
-    CuboidVoxelEdit::CuboidVoxelEdit(glm::ivec3 origin, glm::uvec3 size, glm::u32 voxelType)
+    CuboidVoxelEdit::CuboidVoxelEdit(glm::ivec3 origin, glm::uvec3 size, VoxelType voxelType)
         : m_voxelType(voxelType),
           m_edits(GenerateEdits(origin, size)),
           m_affectedChunkMeshes(CalculateAffectedChunkMeshes(m_edits)) {
@@ -22,7 +22,7 @@ namespace SpireVoxel {
                     std::size_t endIndex = SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(x, y, edit.RectOrigin.z + edit.RectSize.z);
                     assert(edit.RectOrigin.z + edit.RectSize.z - 1 < SPIRE_VOXEL_CHUNK_SIZE);
                     assert(startIndex < endIndex);
-                    assert(endIndex < chunk->VoxelData.size());
+                    assert(endIndex <= chunk->VoxelData.size());
                     assert(!chunk->IsCorrupted());
                     chunk->SetVoxels(startIndex, endIndex, m_voxelType);
                     assert(!chunk->IsCorrupted());
@@ -55,8 +55,8 @@ namespace SpireVoxel {
 
     std::vector<CuboidVoxelEdit::Edit> CuboidVoxelEdit::GenerateEdits(glm::ivec3 origin, glm::uvec3 size) {
         glm::ivec3 originChunkPos = VoxelWorld::GetChunkPositionOfVoxel(origin);
-        glm::ivec3 endWorldVoxel = origin + glm::ivec3(size);
-        glm::ivec3 endChunkPos = VoxelWorld::GetChunkPositionOfVoxel(origin + glm::ivec3(size));
+        glm::ivec3 endWorldVoxel = origin + glm::ivec3(size) - glm::ivec3(1);
+        glm::ivec3 endChunkPos = VoxelWorld::GetChunkPositionOfVoxel(origin + glm::ivec3(size) - glm::ivec3(1));
 
         std::vector<Edit> edits;
 
@@ -80,11 +80,17 @@ namespace SpireVoxel {
                     // same as above but for end voxel
                     glm::ivec3 endVoxelInThisChunk = endWorldVoxel - edit.ChunkPosition * SPIRE_VOXEL_CHUNK_SIZE;
                     edit.RectSize = {SPIRE_VOXEL_CHUNK_SIZE - 1,SPIRE_VOXEL_CHUNK_SIZE - 1, SPIRE_VOXEL_CHUNK_SIZE - 1};
-                    glm::ivec3 endVoxelOfThisChunk = VoxelWorld::GetWorldVoxelPositionInChunk(edit.ChunkPosition,
-                                                                                              {SPIRE_VOXEL_CHUNK_SIZE - 1,SPIRE_VOXEL_CHUNK_SIZE - 1, SPIRE_VOXEL_CHUNK_SIZE - 1});
-                    edit.RectSize.x = endVoxelOfThisChunk.x <= endWorldVoxel.x ? SPIRE_VOXEL_CHUNK_SIZE - edit.RectOrigin.x : endVoxelInThisChunk.x - edit.RectOrigin.x;
-                    edit.RectSize.y = endVoxelOfThisChunk.y <= endWorldVoxel.y ? SPIRE_VOXEL_CHUNK_SIZE - edit.RectOrigin.y : endVoxelInThisChunk.y - edit.RectOrigin.y;
-                    edit.RectSize.z = endVoxelOfThisChunk.z <= endWorldVoxel.z ? SPIRE_VOXEL_CHUNK_SIZE - edit.RectOrigin.z : endVoxelInThisChunk.z - edit.RectOrigin.z;
+                    glm::ivec3 endVoxelOfThisChunk = VoxelWorld::GetWorldVoxelPositionInChunk(edit.ChunkPosition, {
+                                                                                                  SPIRE_VOXEL_CHUNK_SIZE - 1,SPIRE_VOXEL_CHUNK_SIZE - 1, SPIRE_VOXEL_CHUNK_SIZE - 1
+                                                                                              });
+                    glm::ivec3 rectSize;
+                    rectSize.x = endVoxelOfThisChunk.x <= endWorldVoxel.x ? SPIRE_VOXEL_CHUNK_SIZE - edit.RectOrigin.x : endVoxelInThisChunk.x - edit.RectOrigin.x;
+                    rectSize.y = endVoxelOfThisChunk.y <= endWorldVoxel.y ? SPIRE_VOXEL_CHUNK_SIZE - edit.RectOrigin.y : endVoxelInThisChunk.y - edit.RectOrigin.y;
+                    rectSize.z = endVoxelOfThisChunk.z <= endWorldVoxel.z ? SPIRE_VOXEL_CHUNK_SIZE - edit.RectOrigin.z : endVoxelInThisChunk.z - edit.RectOrigin.z;
+                    while (rectSize.x < 0) rectSize.x += 64;
+                    while (rectSize.y < 0) rectSize.y += 64;
+                    while (rectSize.z < 0) rectSize.z += 64;
+                    edit.RectSize = rectSize;
                     assert(edit.RectOrigin.x + edit.RectSize.x <= SPIRE_VOXEL_CHUNK_SIZE);
                     assert(edit.RectOrigin.y + edit.RectSize.y <= SPIRE_VOXEL_CHUNK_SIZE);
                     assert(edit.RectOrigin.z + edit.RectSize.z <= SPIRE_VOXEL_CHUNK_SIZE);

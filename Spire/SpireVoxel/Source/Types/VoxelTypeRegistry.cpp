@@ -15,7 +15,7 @@ namespace SpireVoxel {
         DestroyVoxelTypesBuffer();
     }
 
-    void VoxelTypeRegistry::RegisterType(VoxelType type) {
+    void VoxelTypeRegistry::RegisterType(VoxelTypeInfo type) {
         RegisterTypes({type});
     }
 
@@ -32,12 +32,12 @@ namespace SpireVoxel {
         return {};
     }
 
-    void VoxelTypeRegistry::RegisterTypes(const std::vector<VoxelType> &types) {
+    void VoxelTypeRegistry::RegisterTypes(const std::vector<VoxelTypeInfo> &types) {
         assert(m_voxelTypes.empty()); // may work but modifying a second time is untested
 
         std::vector<RegisteredVoxelType> removed;
 
-        for (const VoxelType &type : types) {
+        for (const VoxelTypeInfo &type : types) {
             assert(type.Id != VOXEL_TYPE_AIR);
 
             std::optional<RegisteredVoxelType> oldType = RemoveVoxelTypeFromVectorMayReorder(type.Id, m_voxelTypes);

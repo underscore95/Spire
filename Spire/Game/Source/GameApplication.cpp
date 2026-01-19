@@ -18,7 +18,7 @@ void GameApplication::Start(Engine &engine) {
     m_camera = std::make_unique<GameCamera>(engine);
     auto tempWorld = std::make_unique<VoxelWorld>(engine.GetRenderingManager(), Profiling::IS_PROFILING);
     m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine, *m_camera, std::move(tempWorld), [](VoxelTypeRegistry &voxelTypeRegistry) {
-        voxelTypeRegistry.RegisterTypes(std::vector<VoxelType>{
+        voxelTypeRegistry.RegisterTypes(std::vector<VoxelTypeInfo>{
             {
                 1, {
                     std::string(GetAssetsDirectory()) + "/grass_top.png",
@@ -39,17 +39,22 @@ void GameApplication::Start(Engine &engine) {
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
     } else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
 
-    world.LoadChunk({0, 0, -1});
-    world.LoadChunk({0, 0, 0});
-    BasicVoxelEdit({
-        BasicVoxelEdit::Edit{{0, 0, 0}, 2},
-        BasicVoxelEdit::Edit{{3, 0, 1}, 1},
-        BasicVoxelEdit::Edit{{2, 0, 0}, 1},
-        BasicVoxelEdit::Edit{{3, 0, 0}, 2},
-        BasicVoxelEdit::Edit{{5, 0, 5}, 2},
-        BasicVoxelEdit::Edit{{0, 0, -15}, 2},
-    }).Apply(world);
-    world.GetRenderer().HandleChunkEdits();
+    //world.LoadChunk({0, 0, -1});
+    //world.LoadChunk({0, 0, 0});
+    // BasicVoxelEdit({
+    //     BasicVoxelEdit::Edit{{0, 0, 0}, 2},
+    //     BasicVoxelEdit::Edit{{3, 0, 1}, 1},
+    //     BasicVoxelEdit::Edit{{2, 0, 0}, 1},
+    //     BasicVoxelEdit::Edit{{3, 0, 0}, 2},
+    //     BasicVoxelEdit::Edit{{5, 0, 5}, 2},
+    //     BasicVoxelEdit::Edit{{0, 0, -15}, 2},
+    // }).Apply(world);
+
+  //  CuboidVoxelEdit({0, 0, 0}, {64, 64, 64}, 1).Apply(world);
+  // world.GetRenderer().HandleChunkEdits();
+  //   for (VoxelType voxelType : world.GetLoadedChunk({0, 0, 0})->VoxelData) {
+  //       assert(voxelType == 1);
+  //   }
 
     m_profiling = std::make_unique<Profiling>(*m_engine, *m_voxelRenderer);
 }
@@ -141,7 +146,7 @@ void GameApplication::RenderUi() const {
     if (ImGui::Button("Remesh All Chunks")) {
         MergedVoxelEdit edit;
         for (auto &[_,chunk] : m_voxelRenderer->GetWorld()) {
-            glm::u32 newVoxelType = chunk->VoxelData[0] == 0 ? 1 : 0;
+            VoxelType newVoxelType = chunk->VoxelData[0] == 0 ? 1 : 0;
             edit.With(BasicVoxelEdit{{chunk->ChunkPosition * SPIRE_VOXEL_CHUNK_SIZE}, newVoxelType});
         }
         edit.Apply(m_voxelRenderer->GetWorld());

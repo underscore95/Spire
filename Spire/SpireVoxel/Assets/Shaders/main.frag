@@ -21,7 +21,8 @@ layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_B
     GPUVoxelType voxelTypes[];
 } voxelTypesBuffer;
 
-#define UVEC4_LENGTH 4
+#define UVEC4_LENGTH 4u
+#define NUM_TYPES_PER_INT 2u // 2 voxel types (u16) in a u32
 
 uint roundToUint(float x) {
     return uint(floor(x));
@@ -29,9 +30,19 @@ uint roundToUint(float x) {
 
 void main() {
     uint voxelDataIndex = SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(roundToUint(voxelData.x), roundToUint(voxelData.y), roundToUint(voxelData.z));
-    uvec4 possibleVoxelTypes = chunkVoxelData.datas[voxelDataChunkIndex].Data[voxelDataIndex / UVEC4_LENGTH];
-    uint voxelType = possibleVoxelTypes[voxelDataIndex % UVEC4_LENGTH];
 
+    uint uvec4Index = voxelDataIndex / (UVEC4_LENGTH * NUM_TYPES_PER_INT);
+    uint uintIndex  = (voxelDataIndex / NUM_TYPES_PER_INT) % UVEC4_LENGTH;
+    uint halfIndex  = voxelDataIndex % NUM_TYPES_PER_INT;
+
+    uint packed = chunkVoxelData.datas[voxelDataChunkIndex].Data[uvec4Index][uintIndex];
+
+    uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packed, voxelDataIndex);
+
+    if (voxelType == 0) {
+        out_Color = vec4(1, voxelType == 0 ? 1 : 0, 0, 1);
+        return;
+    }
     uint imageIndex = voxelTypesBuffer.voxelTypes[voxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[voxelType].VoxelFaceLayout, voxelFace);
 
     out_Color = texture(texSampler[imageIndex], uv);
