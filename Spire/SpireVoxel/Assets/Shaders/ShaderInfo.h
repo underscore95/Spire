@@ -350,7 +350,7 @@ namespace SpireVoxel {
 #ifdef __cplusplus
         std::array<SPIRE_UINT32_TYPE, SPIRE_VOXEL_CHUNK_VOLUME / 2> Data; // Divided by 2 because we use uint16 types
 #else
-        uvec4 Data[SPIRE_VOXEL_CHUNK_VOLUME / 4];
+        uvec4 Data[SPIRE_VOXEL_CHUNK_VOLUME / 4 / 2];
 #endif
     };
 

@@ -56,8 +56,8 @@ void GameApplication::Start(Engine &engine) {
     //     BasicVoxelEdit::Edit{{0, 0, -15}, 2},
     // }).Apply(world);
 
- //   CuboidVoxelEdit({0, 0, 0}, {64, 64, 64}, 1).Apply(world);
-  //  world.GetRenderer().HandleChunkEdits();
+   CuboidVoxelEdit({0, 0, 0}, {64, 64, 64}, 1).Apply(world);
+  world.GetRenderer().HandleChunkEdits();
     for (VoxelType voxelType : world.GetLoadedChunk({0, 0, 0})->VoxelData) {
         assert(voxelType == 1);
     }
