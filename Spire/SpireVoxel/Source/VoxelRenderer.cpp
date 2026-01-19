@@ -28,8 +28,8 @@ namespace SpireVoxel {
         shaderCompileTimer.Restart();
         ShaderCompiler compiler(rm.GetDevice());
         info("Created shader compiler");
-        compiler.CreateShaderModuleAsync(&m_vertexShader, std::format("{}/Shaders/test.vert", ASSETS_DIRECTORY));
-        compiler.CreateShaderModuleAsync(&m_fragmentShader, std::format("{}/Shaders/test.frag", ASSETS_DIRECTORY));
+        compiler.CreateShaderModuleAsync(&m_vertexShader, std::format("{}/Shaders/main.vert", ASSETS_DIRECTORY));
+        compiler.CreateShaderModuleAsync(&m_fragmentShader, std::format("{}/Shaders/main.frag", ASSETS_DIRECTORY));
         compiler.Await();
         assert(m_vertexShader != VK_NULL_HANDLE);
         assert(m_fragmentShader != VK_NULL_HANDLE);
