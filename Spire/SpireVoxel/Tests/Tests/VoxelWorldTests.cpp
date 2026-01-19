@@ -4,14 +4,14 @@
 
 #include "Chunk/VoxelWorld.h"
 
-TEST(TestGetChunkPositionOfVoxel, VertexWorldTests) {
+TEST(VertexWorldTests, TestGetChunkPositionOfVoxel) {
     EXPECT_EQ(glm::ivec3(0,0,0), SpireVoxel::VoxelWorld::GetChunkPositionOfVoxel(glm::ivec3{0,0,0}));
     EXPECT_EQ(glm::ivec3(0,0,0), SpireVoxel::VoxelWorld::GetChunkPositionOfVoxel(glm::ivec3{4,0,0}));
     EXPECT_EQ(glm::ivec3(-1,0,0), SpireVoxel::VoxelWorld::GetChunkPositionOfVoxel(glm::ivec3{-1,0,0}));
     EXPECT_EQ(glm::ivec3(0,1,1), SpireVoxel::VoxelWorld::GetChunkPositionOfVoxel(glm::ivec3{0, SPIRE_VOXEL_CHUNK_SIZE, SPIRE_VOXEL_CHUNK_SIZE + 13}));
 }
 
-TEST(TestGetWorldVoxelPositionInChunk, VertexWorldTests) {
+TEST(VertexWorldTests, TestGetWorldVoxelPositionInChunk) {
     EXPECT_EQ(glm::ivec3(0,0,0), SpireVoxel::VoxelWorld::GetWorldVoxelPositionInChunk({0,0,0}, {0, 0, 0}));
     EXPECT_EQ(glm::ivec3(0,5,0), SpireVoxel::VoxelWorld::GetWorldVoxelPositionInChunk({0,0,0}, {0, 5, 0}));
     EXPECT_EQ(glm::ivec3(0,5 + SPIRE_VOXEL_CHUNK_SIZE,0), SpireVoxel::VoxelWorld::GetWorldVoxelPositionInChunk({0,1,0}, {0, 5 , 0}));

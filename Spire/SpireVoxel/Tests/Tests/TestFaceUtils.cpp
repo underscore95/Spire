@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 #include "TestHelpers.h"
 
-TEST(TestDirectionToFaceA, FaceUtilsTests) {
+TEST(FaceUtilsTests, TestDirectionToFaceA) {
     EXPECT_EQ(SpireVoxel::DirectionToFace(glm::vec3(0.3,0,0)), SPIRE_VOXEL_FACE_POS_X);
     EXPECT_EQ(SpireVoxel::DirectionToFace(glm::vec3(-1.3,0,0)), SPIRE_VOXEL_FACE_NEG_X);
     EXPECT_EQ(SpireVoxel::DirectionToFace(glm::vec3(0.3,1,0)), SPIRE_VOXEL_FACE_POS_Y);

@@ -6,7 +6,7 @@
 #include "Edits/CuboidVoxelEdit.h"
 #include "TestHelpers.h"
 
-TEST(TestCuboidEditsA, VoxelEditTests) {
+TEST(VoxelEditTests, TestCuboidEditsA) {
     std::vector edits = SpireVoxel::CuboidVoxelEdit::GenerateEdits({0, 0, 0}, {3, 5, 2});
     EXPECT_EQ(edits.size(), 1);
     EXPECT_IVEC3_EQ(edits[0].ChunkPosition, glm::ivec3(0,0,0));
@@ -14,7 +14,7 @@ TEST(TestCuboidEditsA, VoxelEditTests) {
     EXPECT_UVEC3_EQ(edits[0].RectSize, glm::uvec3(3,5,2));
 }
 
-TEST(TestCuboidEditsB, VoxelEditTests) {
+TEST(VoxelEditTests, TestCuboidEditsB) {
     std::vector edits = SpireVoxel::CuboidVoxelEdit::GenerateEdits({-1, 0, 0}, {3, 5, 2});
     EXPECT_EQ(edits.size(), 2);
     EXPECT_IVEC3_EQ(edits[0].ChunkPosition, glm::ivec3(-1,0,0));
@@ -25,7 +25,7 @@ TEST(TestCuboidEditsB, VoxelEditTests) {
     EXPECT_UVEC3_EQ(edits[1].RectSize, glm::uvec3(2,5, 2));
 }
 
-TEST(TestCuboidEditsC, VoxelEditTests) {
+TEST(VoxelEditTests, TestCuboidEditsC) {
     std::vector edits = SpireVoxel::CuboidVoxelEdit::GenerateEdits({-1, -1, 0}, {3, 5, 6});
     EXPECT_EQ(edits.size(), 4);
     EXPECT_IVEC3_EQ(edits[0].ChunkPosition, glm::ivec3(-1,-1,0));
@@ -45,7 +45,7 @@ TEST(TestCuboidEditsC, VoxelEditTests) {
     EXPECT_UVEC3_EQ(edits[3].RectSize, glm::uvec3(2,4, 6));
 }
 
-TEST(TestCalculateAffectedChunkMeshesA, VoxelEditTests) {
+TEST(VoxelEditTests, TestCalculateAffectedChunkMeshesA) {
     std::vector<SpireVoxel::CuboidVoxelEdit::Edit> edits = {
 {{0,0,0}, {0,0,0}, {SPIRE_VOXEL_CHUNK_SIZE, 1,5}}
     };
