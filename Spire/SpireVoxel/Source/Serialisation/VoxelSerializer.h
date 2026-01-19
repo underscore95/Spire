@@ -5,7 +5,7 @@
 namespace SpireVoxel {
     class VoxelWorld;
 
-    // See documentation for format spec
+    // See documentation (root directory of repo) for format spec
     class VoxelSerializer {
     public:
         // Serialize the chunks into a directory, overwrites any existing chunks but if an existing chunk doesn't exist in the new world it is not overwritten.

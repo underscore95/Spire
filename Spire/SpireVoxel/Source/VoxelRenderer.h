@@ -7,7 +7,7 @@
 #include "Utils/FrameDeleter.h"
 
 namespace SpireVoxel {
-    const char* GetAssetsDirectory();
+    const char *GetAssetsDirectory();
 
     class IVoxelCamera;
     class VoxelImageManager;
@@ -23,8 +23,10 @@ namespace SpireVoxel {
         ~VoxelRenderer();
 
     public:
+        // Call this once per frame
         void Update();
 
+        // Call this once per frame
         [[nodiscard]] VkCommandBuffer Render(glm::u32 imageIndex) const;
 
         void OnWindowResize();
@@ -58,6 +60,7 @@ namespace SpireVoxel {
         std::unique_ptr<Spire::DescriptorManager> m_descriptorManager;
         IVoxelCamera &m_camera;
         std::unique_ptr<VoxelWorld> m_world;
+        // need to keep old command buffers around until previous frames are no longer using them
         Spire::FrameDeleter<std::unique_ptr<Spire::CommandBufferVector> > m_oldCommandBuffers;
         glm::u64 m_currentFrame = 0;
         int m_worldEditCallback;

@@ -4,6 +4,8 @@
 #include "../../../Assets/Shaders/ShaderInfo.h"
 
 namespace SpireVoxel {
+
+    // Wrapper for bitwise operations when greedy meshing
     class GreedyMeshingGrid {
     public:
         void SetBit(glm::u32 row, glm::u32 col);

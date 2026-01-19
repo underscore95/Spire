@@ -3,7 +3,7 @@
 #include "GameCamera.h"
 #include "Profiling.h"
 #include "Serialisation/VoxelSerializer.h"
-#include "Types/VoxelType.h"
+#include "Types/VoxelTypeInfo.h"
 #include "Types/VoxelTypeRegistry.h"
 #include "Utils/RaycastUtils.h"
 

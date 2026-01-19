@@ -5,6 +5,7 @@ namespace SpireVoxel {
     template<typename T>
     concept VoxelEditType = std::is_base_of_v<IVoxelEdit, T>;
 
+    // Combines multiple IVoxelEdit into a single edit
     class MergedVoxelEdit final : public IVoxelEdit {
     public:
         explicit MergedVoxelEdit(std::vector<std::unique_ptr<IVoxelEdit> > &&edits);

@@ -8,6 +8,7 @@
 namespace SpireVoxel {
     class VoxelWorld;
 
+    // Handles rendering of a VoxelWorld
     class VoxelWorldRenderer {
         friend class VoxelWorld;
 
@@ -19,23 +20,25 @@ namespace SpireVoxel {
         );
 
     public:
+        // Call once per frame
         void Render(glm::u32 swapchainImageIndex);
 
         DelegateSubscribers<> &GetOnWorldEditSubscribers();
 
+        // Record draw commands
         void CmdRender(glm::u32 swapchainImage, VkCommandBuffer commandBuffer) const;
 
         void PushDescriptors(Spire::PerImageDescriptorSetLayout &perFrameSet, Spire::DescriptorSetLayout &chunkVertexBuffersLayout);
 
+        // Update chunk data buffer, needs to be called whenever a chunk is loaded or unloaded
         void UpdateChunkDatasBuffer();
 
+        // Replicate edits to chunks to the GPU
         void NotifyChunkEdited(const Chunk &chunk);
 
         void HandleChunkEdits();
 
     private:
-
-
         void NotifyChunkLoadedOrUnloaded();
 
         void UpdateChunkDataCache();
@@ -53,9 +56,13 @@ namespace SpireVoxel {
         Spire::RenderingManager &m_renderingManager;
         Delegate<> m_onWorldEditedDelegate;
         BufferAllocator m_chunkVertexBufferAllocator;
+        // stores types of voxels
         BufferAllocator m_chunkVoxelDataBufferAllocator;
+        // see ChunkData
         std::unique_ptr<Spire::PerImageBuffer> m_chunkDatasBuffer;
-        std::vector<bool> m_dirtyChunkDataBuffers; // if {true,false,false} it means we need to update buffer 0 on swapchain image index 0
+        // if {true,false,false} it means we need to update buffer 0 on swapchain image index 0
+        // so next time frame % num swapchain images == 0, we'll upload the new data
+        std::vector<bool> m_dirtyChunkDataBuffers;
         std::vector<ChunkData> m_latestCachedChunkData;
         std::unordered_set<glm::ivec3> m_editedChunks;
         std::unique_ptr<ChunkMesher> m_chunkMesher;

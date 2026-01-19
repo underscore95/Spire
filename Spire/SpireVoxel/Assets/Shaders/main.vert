@@ -4,20 +4,23 @@
 #include "PushConstants.glsl"
 #include "ShaderInfo.h"
 
+// Vertex buffer
 layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING) readonly buffer Vertices {
     VertexData data[];
 } in_Vertices;
 
+// Camera matrices
 layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING) readonly uniform CameraBuffer { CameraInfo cameraInfo; } cameraBuffer;
 
+// Information about all chunks
 layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING) readonly buffer ChunkDataBuffer {
     ChunkData chunkDatas[];
 } chunkDataBuffer;
 
-layout (location = 0) out vec2 texCoord;
-layout (location = 1) out vec3 voxelData;
-layout (location = 2) flat out uint voxelDataChunkIndex;
-layout (location = 3) flat out uint voxelFace;
+layout (location = 0) out vec2 texCoord; // texture coordinate of the vertex
+layout (location = 1) out vec3 voxelData; // voxel coordinate in world space
+layout (location = 2) flat out uint voxelDataChunkIndex; // Index of the current chunk
+layout (location = 3) flat out uint voxelFace; // What face is this vertex part of
 
 void main()
 {

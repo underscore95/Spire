@@ -18,6 +18,7 @@ namespace SpireVoxel {
 namespace SpireVoxel {
     static constexpr int VOXEL_TYPE_AIR = 0;
 
+    // Represents a 64^3 chunk of a world
     struct Chunk {
         glm::ivec3 ChunkPosition;
         VoxelWorld &World;

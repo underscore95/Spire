@@ -14,7 +14,7 @@ add_library(SpireVoxel STATIC
         Source/Rendering/VoxelWorldRenderer.h
         Source/Types/VoxelTypeRegistry.cpp
         Source/Types/VoxelTypeRegistry.h
-        Source/Types/VoxelType.h
+        Source/Types/VoxelTypeInfo.h
         Source/Types/RegisteredVoxelType.h
         Source/Types/VoxelImageManager.cpp
         Source/Types/VoxelImageManager.h

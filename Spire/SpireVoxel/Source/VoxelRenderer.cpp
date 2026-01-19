@@ -7,7 +7,7 @@
 #include "Rendering/VoxelWorldRenderer.h"
 #include "Serialisation/VoxelSerializer.h"
 #include "Types/VoxelImageManager.h"
-#include "Types/VoxelType.h"
+#include "Types/VoxelTypeInfo.h"
 #include "Types/VoxelTypeRegistry.h"
 #include "Utils/IVoxelCamera.h"
 

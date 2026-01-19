@@ -5,6 +5,8 @@
 namespace SpireVoxel {
     class VoxelWorld;
 
+    // Voxel raycast utility
+    // traverses the voxel world until it hits a voxel
     class RaycastUtils {
     public:
         RaycastUtils() = delete;

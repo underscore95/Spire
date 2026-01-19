@@ -5,6 +5,8 @@
 #include "EngineIncludes.h"
 
 namespace SpireVoxel {
+    // Instead of using a million buffers, use a single buffer and allocate sub ranges to different buffers
+    // allocations are freed only after inflight frames are no longer using data
     class BufferAllocator {
     public:
         struct Allocation {
@@ -27,8 +29,10 @@ namespace SpireVoxel {
         ~BufferAllocator();
 
     public:
+        // Allocate new memory if there is space
         std::optional<Allocation> Allocate(std::size_t requestedSize);
 
+        // Free an allocation once it is no longer needed
         void ScheduleFreeAllocation(std::size_t start);
 
         void ScheduleFreeAllocation(Allocation allocation);
@@ -37,9 +41,10 @@ namespace SpireVoxel {
 
         void Render();
 
+        // Write to allocated memory
         void Write(Allocation allocation, const void *data, std::size_t size) const;
 
-        // Map memory, alternative to Write()
+        // Map memory, alternative to Write(), write to yourAllocation.Start
         [[nodiscard]] Spire::BufferManager::MappedMemory MapMemory() const;
 
         // How much memory is either allocated or pending free

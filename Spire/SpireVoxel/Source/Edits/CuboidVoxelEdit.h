@@ -2,6 +2,9 @@
 #include "IVoxelEdit.h"
 
 namespace SpireVoxel {
+
+    // Can only edit voxels in loaded chunks
+    // Optimised memory writes if editing memory-contiguous voxels
     class CuboidVoxelEdit : public IVoxelEdit {
     public:
         struct Edit {

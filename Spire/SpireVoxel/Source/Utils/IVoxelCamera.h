@@ -9,6 +9,8 @@ namespace SpireVoxel {
         glm::u32 ImageIndex;
     };
 
+    // Camera for voxel renderer
+    // you can use Spire camera or your own
     class IVoxelCamera {
     public:
         virtual ~IVoxelCamera() = default;

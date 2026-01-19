@@ -1,9 +1,11 @@
 #pragma once
-#include "VoxelType.h"
+#include "VoxelTypeInfo.h"
 
 namespace SpireVoxel {
     class VoxelTypeRegistry;
 
+    // Represents a voxel type that has been registered
+    // See VoxelTypeInfo and GPUVoxelType
     class RegisteredVoxelType {
         friend class VoxelTypeRegistry;
 

@@ -11,6 +11,7 @@ namespace Spire {
 namespace SpireVoxel {
     class VoxelTypeRegistry;
 
+    // Handles all the images for registered voxel types
     class VoxelImageManager {
     public:
         explicit VoxelImageManager(Spire::RenderingManager &renderingManager,

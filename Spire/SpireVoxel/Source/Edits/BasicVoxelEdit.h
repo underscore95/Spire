@@ -3,6 +3,8 @@
 #include "IVoxelEdit.h"
 
 namespace SpireVoxel {
+
+    // Basic edit that changes 1 or more voxels to 1 or more voxel types
     class BasicVoxelEdit : public IVoxelEdit {
     public:
         struct Edit {

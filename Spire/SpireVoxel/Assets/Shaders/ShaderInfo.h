@@ -2,6 +2,7 @@
 #ifndef SPIRE_SHADER_BINDINGS
 #define SPIRE_SHADER_BINDINGS
 
+// Descriptor and descriptor set bindings
 #define SPIRE_SHADER_BINDINGS_CONSTANT_SET 0
 #define SPIRE_SHADER_BINDINGS_PER_FRAME_SET 1 // per frame, so takes 2 and 3 too
 #define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET 4
@@ -13,12 +14,14 @@
 #define SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING 1
 #define SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING 0
 
+// Constants
 #define SPIRE_SHADER_TEXTURE_COUNT 1
 
 #define SPIRE_VOXEL_CHUNK_SIZE 64
 #define SPIRE_VOXEL_CHUNK_AREA (SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_SIZE)
 #define SPIRE_VOXEL_CHUNK_VOLUME (SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_CHUNK_SIZE)
 
+// Map from 3D index to 1D index
 #define SPIRE_VOXEL_INDEX_TO_POSITION(positionType, index) \
     positionType( \
         (index) / SPIRE_VOXEL_CHUNK_AREA, \
@@ -31,6 +34,7 @@
 
 #define SPIRE_VOXEL_POSITION_TO_INDEX(pos) SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(pos.x, pos.y, pos.z)
 
+// GPU doesn't have uint16, these macros unpack the uint16 from a uint32
 #define SPIRE_VOXEL_UINT16_MAX 65535u
 
 #define SPIRE_VOXEL_UNPACK_VOXEL_TYPE(doubleVoxelType, index) \
@@ -90,11 +94,16 @@ static_assert(sizeof(VkDrawIndirectCommand) == 16);
 #ifdef __cplusplus
 namespace SpireVoxel {
 #endif
+    // Chunk data, this exists on both CPU and GPU
     struct ChunkData {
+        // Stores indirect draw command params, shader doesn't need to read this (but vulkan reads it)
         SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(CPU_DrawCommandParams);
+        // Chunk coordinates
         SPIRE_INT32_TYPE ChunkX; // allows for 137 billion voxels in each direction
         SPIRE_INT32_TYPE ChunkY;
         SPIRE_INT32_TYPE ChunkZ;
+        // Voxel data buffer contains all voxel data for the whole world, this index is where the latest data
+        // for this chunk is
         SPIRE_UINT32_TYPE VoxelDataChunkIndex;
     };
 
@@ -116,6 +125,7 @@ namespace SpireVoxel {
 #define SPIRE_VOXEL_FACE_NEG_Z 5
 
 #ifdef __cplusplus
+    // Convert face enum to a string
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE const char *FaceToString(SPIRE_UINT32_TYPE face) {
         static constexpr std::array<const char *, SPIRE_VOXEL_NUM_FACES> faces = {
             "PosX",
@@ -144,6 +154,7 @@ namespace SpireVoxel {
         return face == SPIRE_VOXEL_FACE_POS_Z || face == SPIRE_VOXEL_FACE_NEG_Z;
     }
 
+    // Convert from face enum to a normalised direction vector
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_IVEC3_TYPE FaceToDirection(SPIRE_UINT32_TYPE face) {
         if (face == SPIRE_VOXEL_FACE_POS_X) return SPIRE_IVEC3_TYPE(1, 0, 0);
         if (face == SPIRE_VOXEL_FACE_NEG_X) return SPIRE_IVEC3_TYPE(-1, 0, 0);
@@ -157,6 +168,7 @@ namespace SpireVoxel {
         return SPIRE_IVEC3_TYPE(0, 0, 0);
     }
 
+    // Convert from a direction to a face enum
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE DirectionToFace(SPIRE_VEC3_TYPE direction) {
 #ifdef __cplusplus
         assert(direction.x != 0 || direction.y != 0 || direction.z != 0);
@@ -173,7 +185,7 @@ namespace SpireVoxel {
         return direction.z > 0 ? SPIRE_VOXEL_FACE_POS_Z : SPIRE_VOXEL_FACE_NEG_Z;
     }
 
-    // face layout
+  // Voxel Type Face Layout
 #define SPIRE_VOXEL_LAYOUT_ALL_SAME 0 // all sides use image 0 (e.g. dirt)
 #define SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT 1 // top uses image 0, bottom uses image 1, sides use image 2 (e.g. grass)
 
@@ -210,9 +222,14 @@ namespace SpireVoxel {
 // voxel type
 #ifdef __cplusplus
 namespace SpireVoxel {
+    // Represents a registered voxel type on GPU, e.g. grass, dirt, etc
 #endif
     struct GPUVoxelType {
+        // Each type uses one or more textures, all textures are stored in a big array
+        // This is the index into the array of the first texture
         SPIRE_UINT32_TYPE FirstTextureIndex;
+        // See "Voxel Type Face Layout" comment, this decides how many textures are used by this voxel type
+        // and what faces map to what textures (e.g. grass has a green top texture, grass/dirt transition texture on sides, and dirt texture on bottom
         SPIRE_UINT32_TYPE VoxelFaceLayout;
     };
 
@@ -334,6 +351,7 @@ namespace SpireVoxel {
 #ifdef __cplusplus
 namespace SpireVoxel {
 #endif
+    // Stores camera matrices
     struct CameraInfo {
         SPIRE_MAT4X4_TYPE ViewProjectionMatrix;
     };
@@ -346,6 +364,7 @@ namespace SpireVoxel {
 #ifdef __cplusplus
 namespace SpireVoxel {
 #endif
+    // Equivalent to Chunk#VoxelData, this is the GPU struct and also used for copying from CPU to GPU
     struct GPUChunkVoxelData {
 #ifdef __cplusplus
         std::array<SPIRE_UINT32_TYPE, SPIRE_VOXEL_CHUNK_VOLUME / 2> Data; // Divided by 2 because we use uint16 types

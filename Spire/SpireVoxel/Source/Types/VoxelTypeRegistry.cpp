@@ -1,7 +1,7 @@
 #include "VoxelTypeRegistry.h"
 
 #include "RegisteredVoxelType.h"
-#include "VoxelType.h"
+#include "VoxelTypeInfo.h"
 #include "Chunk/Chunk.h"
 
 namespace SpireVoxel {
