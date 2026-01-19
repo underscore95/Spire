@@ -37,13 +37,7 @@ void GameApplication::Start(Engine &engine) {
     if (Profiling::IS_PROFILING) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
-    } else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test2");
-
-    int i = 0;
-    for (VoxelType voxelType : world.GetLoadedChunk({0, 0, 0})->VoxelData) {
-        assert(voxelType == 1);
-        i++;
-    }
+    } else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
 
     //world.LoadChunk({0, 0, -1});
     //world.LoadChunk({0, 0, 0});
@@ -56,11 +50,11 @@ void GameApplication::Start(Engine &engine) {
     //     BasicVoxelEdit::Edit{{0, 0, -15}, 2},
     // }).Apply(world);
 
-   CuboidVoxelEdit({0, 0, 0}, {64, 64, 64}, 1).Apply(world);
-  world.GetRenderer().HandleChunkEdits();
-    for (VoxelType voxelType : world.GetLoadedChunk({0, 0, 0})->VoxelData) {
-        assert(voxelType == 1);
-    }
+  //  CuboidVoxelEdit({0, 0, 0}, {64, 64, 64}, 1).Apply(world);
+  // world.GetRenderer().HandleChunkEdits();
+  //   for (VoxelType voxelType : world.GetLoadedChunk({0, 0, 0})->VoxelData) {
+  //       assert(voxelType == 1);
+  //   }
 
     m_profiling = std::make_unique<Profiling>(*m_engine, *m_voxelRenderer);
 }

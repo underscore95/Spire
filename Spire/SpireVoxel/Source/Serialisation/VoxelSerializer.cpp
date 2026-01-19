@@ -75,9 +75,6 @@ namespace SpireVoxel {
             assert(!chunk.IsCorrupted());
 
             if (version < VOXEL_TYPE_U32_TO_U16_VERSION) {
-                Spire::info("Migrating chunk {} {} {} from voxel u32 to u16",
-                            chunkPos.x, chunkPos.y, chunkPos.z);
-
                 std::vector<std::uint32_t> legacy(chunk.VoxelData.size());
                 if (!file.read(reinterpret_cast<char *>(legacy.data()), legacy.size() * sizeof(glm::u32))) {
                     Spire::error("Failed to read legacy voxel data of {}", entry.path().string());
@@ -117,7 +114,7 @@ namespace SpireVoxel {
 
         if (migratedAny) {
             Spire::info("Migrated world to latest voxel format, rewriting chunk files");
-            //      Serialize(world, directory);
+            Serialize(world, directory);
         }
 
         Spire::info("Deserialized world in {} ms", timer.MillisSinceStart());
