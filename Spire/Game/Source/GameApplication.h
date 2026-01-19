@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Profiling.h"
 #include "SpireVoxelRenderer.h"
 
 class GameCamera;
@@ -28,9 +29,10 @@ public:
     void OnWindowResize() const override;
 
 private:
-    Spire::Engine *m_engine;
+    Spire::Engine *m_engine = nullptr;
     std::unique_ptr<GameCamera> m_camera;
     std::unique_ptr<SpireVoxel::VoxelRenderer> m_voxelRenderer;
+    std::unique_ptr<Profiling> m_profiling;
     glm::u32 m_frame = 0;
     glm::u32 m_swapchainImageIndex = 0;
 };

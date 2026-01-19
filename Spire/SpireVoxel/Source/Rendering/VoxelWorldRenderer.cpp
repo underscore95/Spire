@@ -7,7 +7,8 @@
 
 namespace SpireVoxel {
     VoxelWorldRenderer::VoxelWorldRenderer(VoxelWorld &world,
-                                           Spire::RenderingManager &renderingManager)
+                                           Spire::RenderingManager &renderingManager,
+                                           bool isProfilingMeshing)
         : m_world(world),
           m_renderingManager(renderingManager),
           m_onWorldEditedDelegate(),
@@ -23,7 +24,7 @@ namespace SpireVoxel {
 
         m_dirtyChunkDataBuffers.resize(renderingManager.GetSwapchain().GetNumImages());
 
-        m_chunkMesher = std::make_unique<ChunkMesher>(m_world, m_chunkVertexBufferAllocator, m_chunkVoxelDataBufferAllocator);
+        m_chunkMesher = std::make_unique<ChunkMesher>(m_world, m_chunkVertexBufferAllocator, m_chunkVoxelDataBufferAllocator, isProfilingMeshing);
     }
 
     void VoxelWorldRenderer::Render(glm::u32 swapchainImageIndex) {

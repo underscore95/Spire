@@ -14,8 +14,13 @@
 using namespace Spire;
 
 namespace SpireVoxel {
-    VoxelRenderer::VoxelRenderer(Engine &engine, IVoxelCamera &camera)
-        : m_engine(engine), m_camera(camera) {
+    const char * GetAssetsDirectory() {
+        return ASSETS_DIRECTORY;
+    }
+
+    VoxelRenderer::VoxelRenderer(Engine &engine, IVoxelCamera &camera, std::unique_ptr<VoxelWorld> world,
+                                 const std::function<void(VoxelTypeRegistry &)> &registerVoxelTypesFunc)
+        : m_engine(engine), m_camera(camera), m_world(std::move(world)) {
         auto &rm = m_engine.GetRenderingManager();
 
         // Shaders
@@ -31,10 +36,11 @@ namespace SpireVoxel {
         info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
         // Voxel types
-        RegisterVoxelTypes();
+        m_voxelTypeRegistry = std::make_unique<VoxelTypeRegistry>(m_engine.GetRenderingManager());
+        m_voxelImageManager = std::make_unique<VoxelImageManager>(m_engine.GetRenderingManager(), *m_voxelTypeRegistry, SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING);
+        registerVoxelTypesFunc(*m_voxelTypeRegistry);
 
         // World
-        m_world = std::make_unique<VoxelWorld>(rm);
         SetupDescriptors();
         SetupGraphicsPipeline();
         CreateAndRecordCommandBuffers();
@@ -42,25 +48,6 @@ namespace SpireVoxel {
         m_worldEditCallback = m_world->GetRenderer().GetOnWorldEditSubscribers().AddCallback([this]() {
             CreateAndRecordCommandBuffers();
         });
-
-        if (IS_PROFILING) {
-            VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / PROFILE_WORLD_NAME);
-            info("Loaded {} chunks from world file {}", m_world->NumLoadedChunks(), PROFILE_WORLD_NAME);
-        } else VoxelSerializer::ClearAndDeserialize(*m_world, std::filesystem::path("Worlds") / "Test6");
-
-        m_world->LoadChunk({0, 0, -1});
-        m_world->LoadChunk({0, 0, 0});
-        BasicVoxelEdit({
-            BasicVoxelEdit::Edit{{0, 0, 0}, 2},
-            BasicVoxelEdit::Edit{{3, 0, 1}, 1},
-            BasicVoxelEdit::Edit{{2, 0, 0}, 1},
-            BasicVoxelEdit::Edit{{3, 0, 0}, 2},
-            BasicVoxelEdit::Edit{{5, 0, 5}, 2},
-            BasicVoxelEdit::Edit{{0, 0, -15}, 2},
-        }).Apply(*m_world);
-        m_world->GetRenderer().HandleChunkEdits();
-
-        m_timeSinceBeginProfiling.Restart();
     }
 
     VoxelRenderer::~VoxelRenderer() {
@@ -70,8 +57,6 @@ namespace SpireVoxel {
     void VoxelRenderer::Update() {
         m_currentFrame++;
         m_oldCommandBuffers.Update();
-
-        HandleProfiling();
     }
 
     VkCommandBuffer VoxelRenderer::Render(glm::u32 imageIndex) const {
@@ -94,6 +79,10 @@ namespace SpireVoxel {
 
     VoxelWorld &VoxelRenderer::GetWorld() const {
         return *m_world;
+    }
+
+    glm::u64 VoxelRenderer::GetCurrentFrame() const {
+        return m_currentFrame;
     }
 
     void VoxelRenderer::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const {
@@ -212,72 +201,5 @@ namespace SpireVoxel {
         vkDestroyShaderModule(rm.GetDevice(), m_vertexShader, nullptr);
         vkDestroyShaderModule(rm.GetDevice(), m_fragmentShader, nullptr);
         info("Destroyed shaders");
-    }
-
-    void VoxelRenderer::RegisterVoxelTypes() {
-        m_voxelTypeRegistry = std::make_unique<VoxelTypeRegistry>(m_engine.GetRenderingManager());
-        m_voxelImageManager = std::make_unique<VoxelImageManager>(m_engine.GetRenderingManager(), *m_voxelTypeRegistry, SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING);
-
-        m_voxelTypeRegistry->RegisterTypes(std::vector<VoxelType>{
-            {
-                1, {
-                    std::string(ASSETS_DIRECTORY) + "/grass_top.png",
-                    std::string(ASSETS_DIRECTORY) + "/dirt.png",
-                    std::string(ASSETS_DIRECTORY) + "/grass_side.png"
-                },
-                SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
-            },
-            {2, {std::string(ASSETS_DIRECTORY) + "/dirt.png"}, SPIRE_VOXEL_LAYOUT_ALL_SAME},
-        });
-    }
-
-    void VoxelRenderer::HandleProfiling() {
-        if constexpr (!IS_PROFILING) return;
-        if (m_profileStrategyIndex >= PROFILE_STRATEGIES.size()) return;
-        if (m_currentFrame == 1) {
-            info("Profiling... (world: {})", PROFILE_WORLD_NAME);
-#ifndef NDEBUG
-            warn("Profiling in debug mode, results will be inaccurate!");
-#endif
-        }
-
-        const ProfileStrategy &profileStrategy = PROFILE_STRATEGIES[m_profileStrategyIndex];
-
-        glm::u32 profileEndFrame = profileStrategy.FramesToProfile;
-        for (std::size_t i = 0; i < m_profileStrategyIndex; i++) {
-            profileEndFrame += PROFILE_STRATEGIES[i].FramesToProfile;
-        }
-
-        if (profileStrategy.Dynamic == ProfileStrategy::DYNAMIC) {
-            for (auto &[_,chunk] : *m_world) {
-                chunk->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(1, 1, 1)] = chunk->VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(1, 1, 1)] == 0 ? 1 : 0;
-                m_world->GetRenderer().NotifyChunkEdited(*chunk);
-            }
-        } else {
-            assert(profileStrategy.Dynamic == ProfileStrategy::STATIC);
-        }
-
-        if (m_currentFrame == profileEndFrame) {
-            m_profileStrategyIndex++;
-            m_profileJson += std::format(
-                R"({{"time_ms": {}, "frames": {}, "chunks": {}, "world": "{}", "dynamic_state": "{}", "chunk_gpu_memory": {}, "chunk_cpu_memory": {}, "window_width": {}, "window_height": {}}}, )",
-                m_timeSinceBeginProfiling.MillisSinceStart(),
-                profileStrategy.FramesToProfile,
-                m_world->NumLoadedChunks(),
-                PROFILE_WORLD_NAME,
-                profileStrategy.Dynamic,
-                m_world->CalculateGPUMemoryUsageForChunks(),
-                m_world->CalculateCPUMemoryUsageForChunks(),
-                m_engine.GetWindow().GetDimensions().x,
-                m_engine.GetWindow().GetDimensions().y
-            );
-            m_timeSinceBeginProfiling.Restart();
-
-            if (m_profileStrategyIndex >= PROFILE_STRATEGIES.size()) {
-                info("Finished profiling! {}", m_profileJson);
-            } else {
-                info("Using profile strategy index {}...", m_profileStrategyIndex);
-            }
-        }
     }
 } // SpireVoxel

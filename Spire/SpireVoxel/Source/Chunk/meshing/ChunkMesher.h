@@ -11,7 +11,10 @@ namespace SpireVoxel {
 
     class ChunkMesher {
     public:
-        ChunkMesher(VoxelWorld &world, BufferAllocator &chunkVertexBufferAllocator, BufferAllocator &chunkVoxelDataBufferAllocator);
+        ChunkMesher(VoxelWorld &world,
+                    BufferAllocator &chunkVertexBufferAllocator,
+                    BufferAllocator &chunkVoxelDataBufferAllocator,
+                    bool isProfilingMeshing);
 
     public:
         // Return true if something was remeshed
@@ -37,5 +40,6 @@ namespace SpireVoxel {
         VoxelWorld &m_world;
         BufferAllocator &m_chunkVertexBufferAllocator;
         BufferAllocator &m_chunkVoxelDataBufferAllocator;
+        bool m_isProfilingMeshing;
     };
 } // SpireVoxel

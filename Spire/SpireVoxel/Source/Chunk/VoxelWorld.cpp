@@ -3,8 +3,9 @@
 #include "Rendering/VoxelWorldRenderer.h"
 
 namespace SpireVoxel {
-    VoxelWorld::VoxelWorld(Spire::RenderingManager &renderingManager) {
-        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, renderingManager);
+    VoxelWorld::VoxelWorld(Spire::RenderingManager &renderingManager,
+                           bool isProfilingMeshing) {
+        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, renderingManager, isProfilingMeshing);
     }
 
     Chunk &VoxelWorld::LoadChunk(glm::ivec3 chunkPosition) {

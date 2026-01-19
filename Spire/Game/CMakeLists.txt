@@ -5,6 +5,8 @@ add_executable(Game
         Source/GameApplication.h
         Source/GameCamera.cpp
         Source/GameCamera.h
+        Source/Profiling.cpp
+        Source/Profiling.h
 )
 
 target_include_directories(Game PRIVATE "Source/")

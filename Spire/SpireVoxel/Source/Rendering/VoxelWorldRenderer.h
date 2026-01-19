@@ -14,7 +14,8 @@ namespace SpireVoxel {
     public:
         explicit VoxelWorldRenderer(
             VoxelWorld &world,
-            Spire::RenderingManager &renderingManager
+            Spire::RenderingManager &renderingManager,
+            bool isProfilingMeshing
         );
 
     public:

@@ -1,22 +1,57 @@
 #include "GameApplication.h"
 #include "../../Libs/glfw/include/GLFW/glfw3.h"
 #include "GameCamera.h"
+#include "Profiling.h"
 #include "Serialisation/VoxelSerializer.h"
+#include "Types/VoxelType.h"
+#include "Types/VoxelTypeRegistry.h"
 #include "Utils/RaycastUtils.h"
 
 using namespace Spire;
 using namespace SpireVoxel;
 
-GameApplication::GameApplication() {
-}
+GameApplication::GameApplication() = default;
 
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
 
     m_camera = std::make_unique<GameCamera>(engine);
-    m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine, *m_camera);
+    auto tempWorld = std::make_unique<VoxelWorld>(engine.GetRenderingManager(), Profiling::IS_PROFILING);
+    m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine, *m_camera, std::move(tempWorld), [](VoxelTypeRegistry &voxelTypeRegistry) {
+        voxelTypeRegistry.RegisterTypes(std::vector<VoxelType>{
+            {
+                1, {
+                    std::string(GetAssetsDirectory()) + "/grass_top.png",
+                    std::string(GetAssetsDirectory()) + "/dirt.png",
+                    std::string(GetAssetsDirectory()) + "/grass_side.png"
+                },
+                SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
+            },
+            {2, {std::string(GetAssetsDirectory()) + "/dirt.png"}, SPIRE_VOXEL_LAYOUT_ALL_SAME},
+        });
+    });
+    VoxelWorld &world = m_voxelRenderer->GetWorld();
 
     m_voxelRenderer->GetWorld().GetRenderer().HandleChunkEdits();
+
+    if (Profiling::IS_PROFILING) {
+        VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
+        info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
+    } else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
+
+    world.LoadChunk({0, 0, -1});
+    world.LoadChunk({0, 0, 0});
+    BasicVoxelEdit({
+        BasicVoxelEdit::Edit{{0, 0, 0}, 2},
+        BasicVoxelEdit::Edit{{3, 0, 1}, 1},
+        BasicVoxelEdit::Edit{{2, 0, 0}, 1},
+        BasicVoxelEdit::Edit{{3, 0, 0}, 2},
+        BasicVoxelEdit::Edit{{5, 0, 5}, 2},
+        BasicVoxelEdit::Edit{{0, 0, -15}, 2},
+    }).Apply(world);
+    world.GetRenderer().HandleChunkEdits();
+
+    m_profiling = std::make_unique<Profiling>(*m_engine, *m_voxelRenderer);
 }
 
 GameApplication::~GameApplication() {
@@ -29,6 +64,8 @@ void GameApplication::Cleanup() {
 
 void GameApplication::Update() {
     m_voxelRenderer->Update();
+    m_profiling->Update();
+
     m_camera->Update();
     RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), m_camera->GetCamera().GetForward(), 10);
     if (hit) {

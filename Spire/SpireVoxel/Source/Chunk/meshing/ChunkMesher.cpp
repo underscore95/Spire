@@ -8,11 +8,13 @@
 namespace SpireVoxel {
     ChunkMesher::ChunkMesher(VoxelWorld &world,
                              BufferAllocator &chunkVertexBufferAllocator,
-                             BufferAllocator &chunkVoxelDataBufferAllocator)
+                             BufferAllocator &chunkVoxelDataBufferAllocator,
+                             bool isProfilingMeshing)
         : m_numCPUThreads(std::thread::hardware_concurrency()),
           m_world(world),
           m_chunkVertexBufferAllocator(chunkVertexBufferAllocator),
-          m_chunkVoxelDataBufferAllocator(chunkVoxelDataBufferAllocator) {
+          m_chunkVoxelDataBufferAllocator(chunkVoxelDataBufferAllocator),
+          m_isProfilingMeshing(isProfilingMeshing) {
         if (m_numCPUThreads == 0) {
             m_numCPUThreads = 8; // Failed to detect number of cores, 8 is a safe assumption
             Spire::info("Failed to detect number of threads to use, defaulting to {}", m_numCPUThreads);
@@ -32,7 +34,7 @@ namespace SpireVoxel {
             meshingChunks[chunk] = Mesh(*chunk);
 
             // If profiling, we want to remesh as much as possible
-            if (!VoxelRenderer::IS_PROFILING && meshingChunks.size() >= m_numCPUThreads) break;
+            if (!m_isProfilingMeshing && meshingChunks.size() >= m_numCPUThreads) break;
         }
 
         // wait for meshing to complete then move meshingChunks into meshedChunks
