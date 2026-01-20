@@ -203,9 +203,12 @@ namespace SpireVoxel {
         return m_buffers[0].Count;
     }
 
-    std::unique_ptr<BufferAllocator::MappedMemory> BufferAllocator::MapMemory() {
+    std::shared_ptr<BufferAllocator::MappedMemory> BufferAllocator::MapMemory() {
         std::unique_lock lock(m_mutex);
-        return std::unique_ptr<MappedMemory>(new MappedMemory(*this));
+        assert(!m_mappedMemory.lock());
+        auto mappedMemory = std::shared_ptr<MappedMemory>(new MappedMemory(*this));
+        m_mappedMemory = mappedMemory;
+        return mappedMemory;
     }
 
     std::optional<BufferAllocator::PendingFree> BufferAllocator::IsPendingFree(AllocationLocation location) {
