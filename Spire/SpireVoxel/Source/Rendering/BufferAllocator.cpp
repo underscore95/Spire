@@ -66,6 +66,7 @@ namespace SpireVoxel {
     }
 
     BufferAllocator::~BufferAllocator() {
+        std::unique_lock lock(m_mutex);
         *m_allocatorValid = false;
         for (const auto &buffer : m_buffers) {
             m_renderingManager.GetBufferManager().DestroyBuffer(buffer);
@@ -73,6 +74,7 @@ namespace SpireVoxel {
     }
 
     std::optional<BufferAllocator::Allocation> BufferAllocator::Allocate(std::size_t requestedSize) {
+        std::unique_lock lock(m_mutex);
         m_allocationsMade++;
 
         for (std::size_t allocationIndex = 0; allocationIndex < m_buffers.size(); allocationIndex++) {
@@ -112,18 +114,21 @@ namespace SpireVoxel {
     }
 
     void BufferAllocator::ScheduleFreeAllocation(AllocationLocation location) {
+        std::unique_lock lock(m_mutex);
         assert(m_allocations.contains(location));
         m_pendingFreesMade++;
         m_allocationsPendingFree.push_back({location, m_numSwapchainImages - 1});
     }
 
     void BufferAllocator::ScheduleFreeAllocation(Allocation allocation) {
+        std::unique_lock lock(m_mutex);
         assert(m_allocations.contains(allocation.Location));
         assert(m_allocations[allocation.Location] == allocation.Size);
         ScheduleFreeAllocation(allocation.Location);
     }
 
-    Spire::Descriptor BufferAllocator::CreateDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName) const {
+    Spire::Descriptor BufferAllocator::CreateDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName) {
+        std::unique_lock lock(m_mutex);
         Spire::Descriptor descriptor = {
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = binding,
@@ -142,6 +147,7 @@ namespace SpireVoxel {
     }
 
     void BufferAllocator::Render() {
+        std::unique_lock lock(m_mutex);
         for (size_t i = 0; i < m_allocationsPendingFree.size(); i++) {
             while (i < m_allocationsPendingFree.size() && m_allocationsPendingFree[i].FramesUntilFreed == 0) {
                 // free it
@@ -159,13 +165,15 @@ namespace SpireVoxel {
         }
     }
 
-    void BufferAllocator::Write(const Allocation &allocation, const void *data, std::size_t size) const {
+    void BufferAllocator::Write(const Allocation &allocation, const void *data, std::size_t size) {
+        std::unique_lock lock(m_mutex);
         assert(m_allocations.contains(allocation.Location));
         assert(allocation.Size >= size);
         m_renderingManager.GetBufferManager().UpdateBuffer(m_buffers[allocation.Location.AllocationIndex], data, size, allocation.Location.Start);
     }
 
-    glm::u64 BufferAllocator::CalculateAllocatedOrPendingMemory() const {
+    glm::u64 BufferAllocator::CalculateAllocatedOrPendingMemory() {
+        std::unique_lock lock(m_mutex);
         constexpr bool LOG_ALLOCATIONS = false;
 
         glm::u64 allocated = 0;
@@ -195,11 +203,13 @@ namespace SpireVoxel {
         return m_buffers[0].Count;
     }
 
-    std::unique_ptr<BufferAllocator::MappedMemory> BufferAllocator::MapMemory() const {
+    std::unique_ptr<BufferAllocator::MappedMemory> BufferAllocator::MapMemory() {
+        std::unique_lock lock(m_mutex);
         return std::unique_ptr<MappedMemory>(new MappedMemory(*this));
     }
 
-    std::optional<BufferAllocator::PendingFree> BufferAllocator::IsPendingFree(AllocationLocation location) const {
+    std::optional<BufferAllocator::PendingFree> BufferAllocator::IsPendingFree(AllocationLocation location) {
+        std::unique_lock lock(m_mutex);
         for (auto &pending : m_allocationsPendingFree) {
             if (pending.Location == location) {
                 return {pending};

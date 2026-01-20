@@ -1,6 +1,4 @@
 #pragma once
-#include <complex.h>
-#include <vector>
 
 #include "EngineIncludes.h"
 
@@ -80,24 +78,24 @@ namespace SpireVoxel {
 
         void ScheduleFreeAllocation(Allocation allocation);
 
-        [[nodiscard]] Spire::Descriptor CreateDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName = "Buffer Allocator") const;
+        [[nodiscard]] Spire::Descriptor CreateDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName = "Buffer Allocator") ;
 
         void Render();
 
         // Write to allocated memory
-        void Write(const Allocation &allocation, const void *data, std::size_t size) const;
+        void Write(const Allocation &allocation, const void *data, std::size_t size) ;
 
         // Map memory, alternative to Write(), write to yourAllocation.Start
-        [[nodiscard]] std::unique_ptr<MappedMemory> MapMemory() const;
+        [[nodiscard]] std::unique_ptr<MappedMemory> MapMemory() ;
 
         // How much memory is either allocated or pending free
         // this is bufferSize - availableMemory
-        [[nodiscard]] std::size_t CalculateAllocatedOrPendingMemory() const;
+        [[nodiscard]] std::size_t CalculateAllocatedOrPendingMemory() ;
 
        [[nodiscard]] glm::u32 GetMaxElementsPerInternalBuffer() const;
 
     private:
-        [[nodiscard]] std::optional<PendingFree> IsPendingFree(AllocationLocation location) const;
+        [[nodiscard]] std::optional<PendingFree> IsPendingFree(AllocationLocation location) ;
 
     private:
         Spire::RenderingManager &m_renderingManager;
@@ -110,6 +108,7 @@ namespace SpireVoxel {
         glm::u32 m_pendingFreesMade = 0;
         glm::u32 m_finishedFreesMade = 0;
         std::shared_ptr<bool> m_allocatorValid = std::make_shared<bool>(true); // set to false when destroyed
+        std::mutex m_mutex;
     };
 } // SpireVoxel
 
