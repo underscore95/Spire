@@ -26,7 +26,7 @@ layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_B
 } voxelTypesBuffer;
 
 #define UVEC4_LENGTH 4u
-#define NUM_TYPES_PER_INT 2u // 2 voxel types (u16) in a u32
+#define NUM_TYPES_PER_INT 2u// 2 voxel types (u16) in a u32
 
 uint roundToUint(float x) {
     return uint(floor(x));
@@ -44,11 +44,12 @@ void main() {
 
     uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packed, voxelDataIndex);
 
-    // Debug
+#ifndef NDEBUG
     if (voxelType == 0) {
         out_Color = vec4(1, voxelType == 0 ? 1 : 0, 0, 1);
         return;
     }
+#endif
 
     // Get the image to use
     uint imageIndex = voxelTypesBuffer.voxelTypes[voxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[voxelType].VoxelFaceLayout, voxelFace);

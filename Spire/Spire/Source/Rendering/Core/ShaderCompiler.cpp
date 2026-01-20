@@ -335,8 +335,21 @@ namespace Spire {
             parsed.FullSource.replace(pos, includeLineEnd - pos, includedSource);
         }
 
-        // Remove excessive white space
+        // NDEBUG shader def
+#ifdef NDEBUG
+        {
+            auto &s = parsed.FullSource;
 
+            auto versionPos = s.find("#version");
+            if (versionPos != std::string::npos) {
+                auto eol = s.find('\n', versionPos);
+                if (eol != std::string::npos)
+                    s.insert(eol + 1, "#define NDEBUG\n");
+            } else {
+                s.insert(0, "#define NDEBUG\n");
+            }
+        }
+#endif
 
         parsed.Success = true;
         return parsed;

@@ -78,13 +78,9 @@ namespace SpireVoxel {
         return m_chunks.end();
     }
 
-    std::uint32_t VoxelWorld::GetNumLoadedChunks() const {
-        return m_chunks.size();
-    }
-
     void VoxelWorld::UnloadAllChunks() {
         std::vector<glm::ivec3> loadedChunks;
-        loadedChunks.reserve(GetNumLoadedChunks());
+        loadedChunks.reserve(NumLoadedChunks());
         for (auto &[chunkPos, _] : m_chunks) {
             loadedChunks.push_back(chunkPos);
         }

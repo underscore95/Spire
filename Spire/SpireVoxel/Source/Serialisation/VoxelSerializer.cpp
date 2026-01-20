@@ -24,7 +24,7 @@ namespace SpireVoxel {
             file.close();
         }
 
-        Spire::info("Saved {} chunks to {}", world.GetNumLoadedChunks(), directory.string());
+        Spire::info("Saved {} chunks to {}", world.NumLoadedChunks(), directory.string());
     }
 
     void VoxelSerializer::ClearAndDeserialize(VoxelWorld &world, const std::filesystem::path &directory) {
