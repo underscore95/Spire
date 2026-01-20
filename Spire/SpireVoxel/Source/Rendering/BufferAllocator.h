@@ -94,6 +94,8 @@ namespace SpireVoxel {
         // this is bufferSize - availableMemory
         [[nodiscard]] std::size_t CalculateAllocatedOrPendingMemory() const;
 
+       [[nodiscard]] glm::u32 GetMaxElementsPerInternalBuffer() const;
+
     private:
         [[nodiscard]] std::optional<PendingFree> IsPendingFree(AllocationLocation location) const;
 

@@ -57,7 +57,8 @@ namespace SpireVoxel {
         chunkVertexBuffersLayout.push_back(
             m_chunkVertexBufferAllocator.CreateDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING, VK_SHADER_STAGE_VERTEX_BIT, "World Vertex Buffer"));
         chunkVertexBuffersLayout.push_back(
-            m_chunkVoxelDataBufferAllocator.CreateDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING, VK_SHADER_STAGE_FRAGMENT_BIT, "World Voxel Data Buffer"));
+            m_chunkVoxelDataBufferAllocator.
+            CreateDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING, VK_SHADER_STAGE_FRAGMENT_BIT, "World Voxel Data Buffer"));
 
         Spire::PerImageDescriptor chunkDatasDescriptor = m_renderingManager.GetDescriptorCreator().CreatePerImageStorageBuffer(
             SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING,
@@ -101,7 +102,7 @@ namespace SpireVoxel {
             auto chunkIndex = static_cast<glm::u32>(m_latestCachedChunkData.size());
             if (chunk->VertexAllocation.Size == 0) continue;
 
-            m_latestCachedChunkData.push_back(chunk->GenerateChunkData(chunkIndex));
+            m_latestCachedChunkData.push_back(chunk->GenerateChunkData(chunkIndex, m_chunkVertexBufferAllocator.GetMaxElementsPerInternalBuffer()));
         }
     }
 

@@ -42,14 +42,20 @@ namespace SpireVoxel {
             Spire::info("Maximum SSBO Size: {} MB", maxBufferSize / 1024 / 1024);
             hasLoggedMaxSSBOSize = true;
         }
+        // TODO remove:
+        Spire::warn("Overriding max SSBO size to 64 MB for testing");
+        maxBufferSize = 64 * 1024 * 1024;
 
         std::size_t maxElementsPerBuffer = maxBufferSize / elementSize;
+        assert(maxElementsPerBuffer <= UINT32_MAX);
+
         std::size_t numElements = allocatorSize / elementSize;
         std::size_t buffersNeeded = glm::ceil(static_cast<double>(numElements) / static_cast<double>(maxElementsPerBuffer));
         std::size_t numElementsInLastBuffer = numElements % maxElementsPerBuffer;
+        if (numElementsInLastBuffer == 0) numElementsInLastBuffer = maxElementsPerBuffer;
 
         for (std::size_t i = 0; i < buffersNeeded - 1; i++) {
-            m_buffers.push_back(m_renderingManager.GetBufferManager().CreateStorageBuffer(nullptr, maxBufferSize, elementSize));
+            m_buffers.push_back(m_renderingManager.GetBufferManager().CreateStorageBuffer(nullptr, maxElementsPerBuffer * elementSize, elementSize));
         }
         m_buffers.push_back(m_renderingManager.GetBufferManager().CreateStorageBuffer(nullptr, numElementsInLastBuffer * elementSize, elementSize));
 
@@ -60,7 +66,6 @@ namespace SpireVoxel {
             assert(buffer.Size % elementSize == 0);
         }
         assert(totalSize == allocatorSize);
-        assert(m_buffers.size() == 1);
     }
 
     BufferAllocator::~BufferAllocator() {
@@ -187,6 +192,10 @@ namespace SpireVoxel {
         }
 
         return allocated;
+    }
+
+    glm::u32 BufferAllocator::GetMaxElementsPerInternalBuffer() const {
+        return m_buffers[0].Count;
     }
 
     std::unique_ptr<BufferAllocator::MappedMemory> BufferAllocator::MapMemory() const {
