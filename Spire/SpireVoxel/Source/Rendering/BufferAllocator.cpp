@@ -42,9 +42,6 @@ namespace SpireVoxel {
             Spire::info("Maximum SSBO Size: {} MB", maxBufferSize / 1024 / 1024);
             hasLoggedMaxSSBOSize = true;
         }
-        // TODO remove:
-        Spire::warn("Overriding max SSBO size to 64 MB for testing");
-        maxBufferSize = 64 * 1024 * 1024;
 
         std::size_t maxElementsPerBuffer = maxBufferSize / elementSize;
         assert(maxElementsPerBuffer <= UINT32_MAX);
