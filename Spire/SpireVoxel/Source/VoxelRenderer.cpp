@@ -72,7 +72,9 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::OnWindowResize() {
+        m_descriptorManager.reset();
         SetupDescriptors();
+        m_graphicsPipeline.reset();
         SetupGraphicsPipeline();
         CreateAndRecordCommandBuffers();
     }
