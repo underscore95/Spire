@@ -207,13 +207,13 @@ namespace SpireVoxel {
             .CPU_DrawCommandParams = {
                 .vertexCount = (NumVertices),
                 .instanceCount = 1,
-                .firstVertex = static_cast<glm::u32>(VertexAllocation.Start / sizeof(VertexData)),
+                .firstVertex = static_cast<glm::u32>(VertexAllocation.Location.Start / sizeof(VertexData)),
                 .firstInstance = chunkIndex
             },
             .ChunkX = ChunkPosition.x,
             .ChunkY = ChunkPosition.y,
             .ChunkZ = ChunkPosition.z,
-            .VoxelDataChunkIndex = static_cast<glm::u32>(VoxelDataAllocation.Start / sizeof(GPUChunkVoxelData))
+            .VoxelDataChunkIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.Start / sizeof(GPUChunkVoxelData))
         };
     }
 

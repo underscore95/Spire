@@ -17,6 +17,7 @@ namespace Spire
         VkPhysicalDeviceFeatures Features;
         VkFormat DepthFormat;
         std::vector<VkExtensionProperties> Extensions;
+        VkPhysicalDeviceLimits Limits;
     };
 
     class RenderingDeviceManager

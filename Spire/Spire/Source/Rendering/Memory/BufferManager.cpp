@@ -119,8 +119,8 @@ namespace Spire {
         vmaUnmapMemory(m_renderingManager.GetAllocatorWrapper().GetAllocator(), buffer.Allocation);
     }
 
-    BufferManager::MappedMemory BufferManager::Map(const VulkanBuffer &buffer) const {
-        return MappedMemory(m_renderingManager, buffer);
+    std::unique_ptr<BufferManager::MappedMemory> BufferManager::Map(const VulkanBuffer &buffer) const {
+        return std::unique_ptr<MappedMemory>(new MappedMemory(m_renderingManager, buffer));
     }
 
     bool BufferManager::HasBufferManagerBeenDestroyed() {
