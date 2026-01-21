@@ -15,9 +15,9 @@ namespace SpireVoxel {
           m_renderingManager(renderingManager),
           m_onWorldEditedDelegate(),
           m_chunkVertexBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(),
-                                       sizeof(VertexData) * (1024 * 1024 * 16), 1),
+                                       sizeof(VertexData) * (1024 * 1024 * 32), 1),
           m_chunkVoxelDataBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(GPUChunkVoxelData), m_renderingManager.GetSwapchain().GetNumImages(),
-                                          sizeof(GPUChunkVoxelData) * 128, 1) {
+                                          sizeof(GPUChunkVoxelData) * 1024, 1) {
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", m_chunkVertexBufferAllocator.GetTotalSize() / 1024 / 1024);
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", m_chunkVoxelDataBufferAllocator.GetTotalSize() / 1024 / 1024);
 
