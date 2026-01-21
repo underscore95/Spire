@@ -2,6 +2,7 @@
 
 #include "ChunkMesh.h"
 #include "EngineIncludes.h"
+#include "Rendering/BufferAllocator.h"
 
 namespace SpireVoxel {
     class VoxelWorld;
@@ -31,9 +32,8 @@ namespace SpireVoxel {
         // Until futures haven't returned:
         // chunk, chunkVertexBufferMemory, mesh, and voxelDataMemory must be kept alive
         // the chunks vertex buffer and voxel data allocations must not be changed
-        void UploadChunkMesh(Chunk &chunk, ChunkMesh &mesh, Spire::BufferManager::MappedMemory &voxelDataMemory, Spire::BufferManager::MappedMemory &chunkVertexBufferMemory,
-                             std::vector<std
-                                 ::future<void> > &futures) const;
+        void UploadChunkMesh(Chunk &chunk, ChunkMesh &mesh, BufferAllocator::MappedMemory &voxelDataMemory, BufferAllocator::MappedMemory &chunkVertexBufferMemory,
+                             std::vector<std::future<void>> &futures) const;
 
     private:
         glm::u32 m_numCPUThreads;

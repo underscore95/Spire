@@ -105,7 +105,7 @@ namespace Spire {
         vkUpdateDescriptorSets(m_device, m_writeDescriptorSets.size(), m_writeDescriptorSets.data(), 0, nullptr);
     }
 
-    bool DescriptorSetsUpdater::IsBuffer(VkDescriptorType resourceType) const {
+    bool DescriptorSetsUpdater::IsBuffer(VkDescriptorType resourceType) {
         switch (resourceType) {
             case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
             case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
@@ -115,7 +115,7 @@ namespace Spire {
         }
     }
 
-    bool DescriptorSetsUpdater::IsImageSampler(VkDescriptorType resourceType) const {
+    bool DescriptorSetsUpdater::IsImageSampler(VkDescriptorType resourceType) {
         switch (resourceType) {
             case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
                 return true;
@@ -124,7 +124,7 @@ namespace Spire {
         }
     }
 
-    bool DescriptorSetsUpdater::IsSupportedResourceType(VkDescriptorType resourceType) const {
+    bool DescriptorSetsUpdater::IsSupportedResourceType(VkDescriptorType resourceType) {
         return IsBuffer(resourceType) || IsImageSampler(resourceType);
     }
 }

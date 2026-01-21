@@ -35,6 +35,7 @@ add_library(SpireVoxel STATIC
         Source/Chunk/meshing/ChunkMesher.h
         Source/Chunk/meshing/ChunkMesh.h
         Source/Chunk/VoxelType.h
+        Assets/Shaders/PushConstants.h
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

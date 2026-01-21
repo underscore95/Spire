@@ -56,7 +56,7 @@ namespace Spire {
         void UpdateBuffer(const VulkanBuffer &buffer, const void *data, std::size_t size, std::size_t offset = 0) const;
 
         // Map memory, automatically unmap memory on destroy (uploads to gpu)
-        [[nodiscard]] MappedMemory Map(const VulkanBuffer &buffer) const;
+        [[nodiscard]] std::unique_ptr<MappedMemory> Map(const VulkanBuffer &buffer) const;
 
     public:
         static bool HasBufferManagerBeenDestroyed();

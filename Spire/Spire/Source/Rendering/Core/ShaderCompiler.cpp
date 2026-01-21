@@ -281,7 +281,7 @@ namespace Spire {
 
         // Find and replace #includes
         size_t pos = 0;
-        while ((pos = parsed.FullSource.find("\n#include ", pos)) != std::string::npos) {
+        while ((pos = parsed.FullSource.find("#include")) != std::string::npos) {
             // Get the path
             size_t quoteStart = parsed.FullSource.find('"', pos);
             if (quoteStart == std::string::npos) {
@@ -308,13 +308,6 @@ namespace Spire {
                 actualPath.clear();
             actualPath += includedPath;
 
-            // Check for recursive includes
-            if (!parsed.FilePaths.insert(actualPath).second) {
-                std::unique_lock lock(s_loggingMutex);
-                error("Recursively including {}", actualPath);
-                return {};
-            }
-
             // Get the included source
             std::string includedSource;
             if (!FileIO::ReadFile(actualPath.c_str(), includedSource)) {
@@ -322,8 +315,12 @@ namespace Spire {
                 error("Failed to read file {} when creating shader from text", actualPath);
                 return {};
             }
-            includedSource += "\n";
+
+
             // If an included source doesn't end with a new line and a preprocessor command is on the next line it will break, this fixes it
+            if (includedSource.empty() || (includedSource.back() != '\n' && includedSource.back() != '\r')) {
+                includedSource += '\n';
+            }
 
             // Replace the #include line with the included source
             size_t includeLineEnd = parsed.FullSource.find('\n', quoteEnd);

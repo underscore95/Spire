@@ -19,6 +19,8 @@ namespace Spire {
 
 // Makes a struct hashable by combining the hashes of its members
 // Must be used in the global namespace
+// You must pass in the type name (+ any namespaces etc) and then all the fields each prefixed with t.
+// for example: MAKE_HASHABLE(glm::ivec3, t.x, t.y, t.z);
 #define MAKE_HASHABLE(type, ...) \
     template<> struct std::hash<type> {\
         std::size_t operator()(const type &t) const {\

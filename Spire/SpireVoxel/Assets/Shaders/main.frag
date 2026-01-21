@@ -1,14 +1,15 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier : require
 
-#include "PushConstants.glsl"
 #include "ShaderInfo.h"
+#include "PushConstants.h"
 
 // See vertex shader for input documentation
 layout (location = 0) in vec2 uv;
 layout (location = 1) in vec3 voxelData;
 layout (location = 2) flat in uint voxelDataChunkIndex;
 layout (location = 3) flat in uint voxelFace;
+layout (location = 4) flat in uint voxelDataAllocationIndex;
 
 layout(location = 0) out vec4 out_Color;
 
@@ -18,7 +19,7 @@ layout(set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_BI
 // The types of all the voxels in the current world
 layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING) readonly buffer ChunkVoxelData {
     GPUChunkVoxelData datas[];
-} chunkVoxelData;
+} chunkVoxelData[];
 
 // Information about all registered voxel types
 layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING) readonly buffer VoxelTypesBuffer {
@@ -40,7 +41,7 @@ void main() {
     uint uintIndex  = (voxelDataIndex / NUM_TYPES_PER_INT) % UVEC4_LENGTH;
     uint halfIndex  = voxelDataIndex % NUM_TYPES_PER_INT;
 
-    uint packed = chunkVoxelData.datas[voxelDataChunkIndex].Data[uvec4Index][uintIndex];
+    uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[voxelDataChunkIndex].Data[uvec4Index][uintIndex];
 
     uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packed, voxelDataIndex);
 

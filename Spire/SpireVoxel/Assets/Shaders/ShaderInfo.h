@@ -105,6 +105,9 @@ namespace SpireVoxel {
         // Voxel data buffer contains all voxel data for the whole world, this index is where the latest data
         // for this chunk is
         SPIRE_UINT32_TYPE VoxelDataChunkIndex;
+        SPIRE_UINT32_TYPE VoxelDataAllocationIndex;
+        // What buffer is this chunks vertices stored in?
+        SPIRE_UINT32_TYPE VertexBufferIndex;
     };
 
 #ifdef __cplusplus

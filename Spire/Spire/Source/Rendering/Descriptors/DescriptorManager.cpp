@@ -25,6 +25,21 @@ namespace Spire {
             m_descriptorSets.data()
         );
         m_updater->Update();
+
+        // Set debug names
+#ifndef NDEBUG
+        vkSetDebugUtilsObjectNameEXT_fn = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(
+            vkGetInstanceProcAddr(m_renderingManager.GetInstance(), "vkSetDebugUtilsObjectNameEXT")
+        );
+        assert(vkSetDebugUtilsObjectNameEXT_fn);
+
+
+        for (const DescriptorSetLayout &set : layouts.GetDescriptorSets()) {
+            for (const Descriptor &descriptor : set) {
+                SetResourceDebugName(descriptor);
+            }
+        }
+#endif
     }
 
     DescriptorManager::~DescriptorManager() {
@@ -42,7 +57,7 @@ namespace Spire {
         m_descriptorSets[setIndex + offset].CmdBind(commandBuffer, pipelineLayout, shaderSetIndex);
     }
 
-    void DescriptorManager::WriteDescriptor(glm::u32 setIndex, const Descriptor &descriptor) {
+    void DescriptorManager::WriteDescriptor(glm::u32 setIndex, const Descriptor &descriptor) const {
         VkDescriptorBufferInfo bufferInfo = {};
 
         assert(descriptor.Resources.size() == 1); // won't work probably if not 1
@@ -79,9 +94,70 @@ namespace Spire {
 
         // now run it
         vkUpdateDescriptorSets(m_renderingManager.GetDevice(), 1, &write, 0, nullptr);
+
+#ifndef NDEBUG
+        SetResourceDebugName(descriptor);
+#endif
     }
 
     const std::vector<VkDescriptorSetLayout> &DescriptorManager::GetRawLayouts() const {
         return m_rawLayouts;
+    }
+
+    void DescriptorManager::SetResourceDebugName(const Descriptor &descriptor) const {
+#ifndef NDEBUG
+        if (!DescriptorSetsUpdater::IsSupportedResourceType(descriptor.ResourceType)) return;
+        assert(vkSetDebugUtilsObjectNameEXT_fn);
+
+        for (std::size_t i = 0; i < descriptor.Resources.size(); i++) {
+            std::string baseName = descriptor.DebugName ;
+            if (descriptor.Resources.size() > 1) baseName += std::format("[{}]", i); // index
+
+            if (DescriptorSetsUpdater::IsBuffer(descriptor.ResourceType)) {
+                VkDebugUtilsObjectNameInfoEXT info{};
+                info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+                info.objectType = VK_OBJECT_TYPE_BUFFER;
+                info.objectHandle =
+                        reinterpret_cast<uint64_t>(descriptor.Resources[i].Buffer->Buffer);
+                info.pObjectName = baseName.c_str();
+
+                vkSetDebugUtilsObjectNameEXT_fn(m_renderingManager.GetDevice(), &info);
+            } else {
+                // VulkanImage contains an Image, ImageView, and Sampler
+                // We need to name all 3
+                {
+                    VkDebugUtilsObjectNameInfoEXT info{};
+                    info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+                    info.objectType = VK_OBJECT_TYPE_IMAGE;
+                    info.objectHandle =
+                            reinterpret_cast<uint64_t>(descriptor.Resources[i].Image->Image);
+                    std::string name = baseName + ".Image";
+                    info.pObjectName = name.c_str();
+
+                    vkSetDebugUtilsObjectNameEXT_fn(m_renderingManager.GetDevice(), &info);
+                } {
+                    VkDebugUtilsObjectNameInfoEXT info{};
+                    info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+                    info.objectType = VK_OBJECT_TYPE_IMAGE_VIEW;
+                    info.objectHandle =
+                            reinterpret_cast<uint64_t>(descriptor.Resources[i].Image->ImageView);
+                    std::string name = baseName + ".ImageView";
+                    info.pObjectName = name.c_str();
+
+                    vkSetDebugUtilsObjectNameEXT_fn(m_renderingManager.GetDevice(), &info);
+                } {
+                    VkDebugUtilsObjectNameInfoEXT info{};
+                    info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+                    info.objectType = VK_OBJECT_TYPE_SAMPLER;
+                    info.objectHandle =
+                            reinterpret_cast<uint64_t>(descriptor.Resources[i].Image->Sampler);
+                    std::string name = baseName + ".Sampler";
+                    info.pObjectName = name.c_str();
+
+                    vkSetDebugUtilsObjectNameEXT_fn(m_renderingManager.GetDevice(), &info);
+                }
+            }
+        }
+#endif
     }
 }

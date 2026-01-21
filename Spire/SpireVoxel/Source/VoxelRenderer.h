@@ -35,6 +35,8 @@ namespace SpireVoxel {
 
         [[nodiscard]] glm::u64 GetCurrentFrame() const;
 
+        void RecreatePipeline();
+
     private:
         void BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const;
 
@@ -62,6 +64,9 @@ namespace SpireVoxel {
         std::unique_ptr<VoxelWorld> m_world;
         // need to keep old command buffers around until previous frames are no longer using them
         Spire::FrameDeleter<std::unique_ptr<Spire::CommandBufferVector> > m_oldCommandBuffers;
+        Spire::FrameDeleter<std::unique_ptr<Spire::DescriptorManager> > m_oldDescriptorManagers;
+        Spire::FrameDeleter<std::unique_ptr<Spire::GraphicsPipeline> > m_oldPipelines;
+
         glm::u64 m_currentFrame = 0;
         int m_worldEditCallback;
     };

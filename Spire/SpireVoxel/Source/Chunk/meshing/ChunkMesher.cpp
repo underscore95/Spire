@@ -44,8 +44,8 @@ namespace SpireVoxel {
         std::unordered_map<Chunk *, ChunkMesh> meshedChunks;
         meshedChunks.reserve(meshingChunks.size());
 
-        Spire::BufferManager::MappedMemory voxelDataMemory = m_chunkVoxelDataBufferAllocator.MapMemory();
-        Spire::BufferManager::MappedMemory vertexBufferMemory = m_chunkVertexBufferAllocator.MapMemory();
+        std::shared_ptr<BufferAllocator::MappedMemory> voxelDataMemory = m_chunkVoxelDataBufferAllocator.MapMemory();
+        std::shared_ptr<BufferAllocator::MappedMemory> vertexBufferMemory = m_chunkVertexBufferAllocator.MapMemory();
 
         for (auto &[chunk, meshFuture] : meshingChunks) {
             meshedChunks[chunk] = meshFuture.get();
@@ -55,7 +55,7 @@ namespace SpireVoxel {
         // Upload meshed chunks to GPU
         for (auto &[chunk, meshFuture] : meshedChunks) {
             editedChunks.erase(chunk->ChunkPosition);
-            UploadChunkMesh(*chunk, meshFuture, voxelDataMemory, vertexBufferMemory, meshUploadFutures);
+            UploadChunkMesh(*chunk, meshFuture, *voxelDataMemory, *vertexBufferMemory, meshUploadFutures);
         }
 
         // Wait for upload tasks to complete
@@ -71,8 +71,8 @@ namespace SpireVoxel {
         });
     }
 
-    void ChunkMesher::UploadChunkMesh(Chunk &chunk, ChunkMesh &mesh, Spire::BufferManager::MappedMemory &voxelDataMemory,
-                                      Spire::BufferManager::MappedMemory &chunkVertexBufferMemory, std::vector<std::future<void> > &futures) const {
+    void ChunkMesher::UploadChunkMesh(Chunk &chunk, ChunkMesh &mesh, BufferAllocator::MappedMemory &voxelDataMemory,
+                                      BufferAllocator::MappedMemory &chunkVertexBufferMemory, std::vector<std::future<void> > &futures) const {
         // write the new mesh
         {
             const BufferAllocator::Allocation oldAllocation = chunk.VertexAllocation;
@@ -88,7 +88,9 @@ namespace SpireVoxel {
                     // write the mesh into the vertex buffer
                     futures.push_back(
                         Spire::ThreadPool::Instance().submit_task([&chunk,&chunkVertexBufferMemory, &vertexData] {
-                            memcpy(static_cast<char *>(chunkVertexBufferMemory.Memory) + chunk.VertexAllocation.Start, vertexData.data(), vertexData.size() * sizeof(VertexData));
+                            void* memory = chunkVertexBufferMemory.GetByAllocation(chunk.VertexAllocation).Memory;
+                            memcpy(static_cast<char *>(memory) + chunk.VertexAllocation.Location.Start,
+                                   vertexData.data(), vertexData.size() * sizeof(VertexData));
                         }));
                 } else {
                     Spire::error("Chunk vertex data allocation failed");
@@ -96,7 +98,7 @@ namespace SpireVoxel {
             }
 
             if (oldAllocation.Size > 0) {
-                m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
+                m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Location);
             }
 
             chunk.NumVertices = vertexData.size();
@@ -114,7 +116,9 @@ namespace SpireVoxel {
 
                     // write the voxel data async
                     futures.push_back(Spire::ThreadPool::Instance().submit_task([&voxelDataMemory, &chunk]() {
-                        memcpy(static_cast<char *>(voxelDataMemory.Memory) + chunk.VoxelDataAllocation.Start, chunk.VoxelData.data(), sizeof(GPUChunkVoxelData));
+                        void* memory = voxelDataMemory.GetByAllocation(chunk.VoxelDataAllocation).Memory;
+                        memcpy(static_cast<char *>(memory) + chunk.VoxelDataAllocation.Location.Start,
+                               chunk.VoxelData.data(), sizeof(GPUChunkVoxelData));
                     }));
                 } else {
                     // allocation failed, need to free the vertex allocation
@@ -125,7 +129,7 @@ namespace SpireVoxel {
             }
 
             if (oldAllocation.Size > 0) {
-                m_chunkVoxelDataBufferAllocator.ScheduleFreeAllocation(oldAllocation.Start);
+                m_chunkVoxelDataBufferAllocator.ScheduleFreeAllocation(oldAllocation.Location);
             }
         }
     }

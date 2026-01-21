@@ -4,19 +4,23 @@
 #include "Chunk/meshing/ChunkMesher.h"
 #include "Rendering/Memory/BufferManager.h"
 #include "Utils/ThreadPool.h"
+#include "../../Assets/Shaders/PushConstants.h"
 
 namespace SpireVoxel {
     VoxelWorldRenderer::VoxelWorldRenderer(VoxelWorld &world,
                                            Spire::RenderingManager &renderingManager,
+                                           const std::function<void()> &recreatePipelineCallback,
                                            bool isProfilingMeshing)
         : m_world(world),
           m_renderingManager(renderingManager),
           m_onWorldEditedDelegate(),
-          m_chunkVertexBufferAllocator(m_renderingManager, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(), sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD),
-          m_chunkVoxelDataBufferAllocator(m_renderingManager, sizeof(GPUChunkVoxelData), m_renderingManager.GetSwapchain().GetNumImages(),
-                                          sizeof(GPUChunkVoxelData) * MAXIMUM_LOADED_CHUNKS) {
-        Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD / 1024 / 1024);
-        Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", sizeof(GPUChunkVoxelData) * MAXIMUM_LOADED_CHUNKS / 1024 / 1024);
+          m_chunkVertexBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(),
+                                       sizeof(VertexData) * (1024 * 1024 * 32), 1),
+          m_chunkVoxelDataBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(GPUChunkVoxelData), m_renderingManager.GetSwapchain().GetNumImages(),
+                                          sizeof(GPUChunkVoxelData) * 1024, 1) {
+        Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", m_chunkVertexBufferAllocator.GetTotalSize() / 1024 / 1024);
+        Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", m_chunkVoxelDataBufferAllocator.GetTotalSize() / 1024 / 1024);
+
 
         m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr,
                                                                                         VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT);
@@ -46,8 +50,10 @@ namespace SpireVoxel {
         return m_onWorldEditedDelegate;
     }
 
-    void VoxelWorldRenderer::CmdRender(glm::u32 swapchainImage, VkCommandBuffer commandBuffer) const {
+    void VoxelWorldRenderer::CmdRender(VkCommandBuffer commandBuffer, glm::u32 swapchainImage, const Spire::Pipeline &pipeline) const {
         if (!m_latestCachedChunkData.empty()) {
+            PushConstantsData pushConstants = CreatePushConstants();
+            pipeline.CmdSetPushConstants(commandBuffer, &pushConstants, sizeof(PushConstantsData));
             vkCmdDrawIndirect(commandBuffer, m_chunkDatasBuffer->GetBuffer(swapchainImage).Buffer, offsetof(ChunkData, CPU_DrawCommandParams), m_latestCachedChunkData.size(),
                               sizeof(ChunkData));
         }
@@ -55,9 +61,10 @@ namespace SpireVoxel {
 
     void VoxelWorldRenderer::PushDescriptors(Spire::PerImageDescriptorSetLayout &perFrameSet, Spire::DescriptorSetLayout &chunkVertexBuffersLayout) {
         chunkVertexBuffersLayout.push_back(
-            m_chunkVertexBufferAllocator.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING, VK_SHADER_STAGE_VERTEX_BIT, "World Vertex Buffer"));
+            m_chunkVertexBufferAllocator.CreateDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING, VK_SHADER_STAGE_VERTEX_BIT, "World Vertex Buffer"));
         chunkVertexBuffersLayout.push_back(
-            m_chunkVoxelDataBufferAllocator.GetDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING, VK_SHADER_STAGE_FRAGMENT_BIT, "World Voxel Data Buffer"));
+            m_chunkVoxelDataBufferAllocator.
+            CreateDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING, VK_SHADER_STAGE_FRAGMENT_BIT, "World Voxel Data Buffer"));
 
         Spire::PerImageDescriptor chunkDatasDescriptor = m_renderingManager.GetDescriptorCreator().CreatePerImageStorageBuffer(
             SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING,
@@ -117,5 +124,11 @@ namespace SpireVoxel {
             m_chunkVoxelDataBufferAllocator.ScheduleFreeAllocation(chunk.VoxelDataAllocation);
             chunk.VoxelDataAllocation = {};
         }
+    }
+
+    PushConstantsData VoxelWorldRenderer::CreatePushConstants() const {
+        return PushConstantsData{
+            .NumVerticesPerBuffer = m_chunkVertexBufferAllocator.GetNumElementsPerInternalBuffer()
+        };
     }
 } // SpireVoxel
