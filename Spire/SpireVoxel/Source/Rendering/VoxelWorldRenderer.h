@@ -16,6 +16,7 @@ namespace SpireVoxel {
         explicit VoxelWorldRenderer(
             VoxelWorld &world,
             Spire::RenderingManager &renderingManager,
+            const std::function<void()> &recreatePipelineCallback,
             bool isProfilingMeshing
         );
 

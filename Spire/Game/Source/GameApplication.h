@@ -29,6 +29,9 @@ public:
     void OnWindowResize() const override;
 
 private:
+    void RecreatePipeline();
+
+private:
     Spire::Engine *m_engine = nullptr;
     std::unique_ptr<GameCamera> m_camera;
     std::unique_ptr<SpireVoxel::VoxelRenderer> m_voxelRenderer;

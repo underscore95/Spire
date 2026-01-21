@@ -14,7 +14,7 @@
 using namespace Spire;
 
 namespace SpireVoxel {
-    const char * GetAssetsDirectory() {
+    const char *GetAssetsDirectory() {
         return ASSETS_DIRECTORY;
     }
 
@@ -57,6 +57,8 @@ namespace SpireVoxel {
     void VoxelRenderer::Update() {
         m_currentFrame++;
         m_oldCommandBuffers.Update();
+        m_oldDescriptorManagers.Update();
+        m_oldPipelines.Update();
     }
 
     VkCommandBuffer VoxelRenderer::Render(glm::u32 imageIndex) const {
@@ -72,11 +74,7 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::OnWindowResize() {
-        m_descriptorManager.reset();
-        SetupDescriptors();
-        m_graphicsPipeline.reset();
-        SetupGraphicsPipeline();
-        CreateAndRecordCommandBuffers();
+        RecreatePipeline();
     }
 
     VoxelWorld &VoxelRenderer::GetWorld() const {
@@ -85,6 +83,12 @@ namespace SpireVoxel {
 
     glm::u64 VoxelRenderer::GetCurrentFrame() const {
         return m_currentFrame;
+    }
+
+    void VoxelRenderer::RecreatePipeline() {
+        SetupDescriptors();
+        SetupGraphicsPipeline();
+        CreateAndRecordCommandBuffers();
     }
 
     void VoxelRenderer::BeginRendering(VkCommandBuffer commandBuffer, glm::u32 imageIndex) const {
@@ -136,7 +140,9 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::SetupDescriptors() {
-        assert(!m_descriptorManager);
+        if (m_descriptorManager) {
+            m_oldDescriptorManagers.Push(std::move(m_descriptorManager), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
+        }
 
         DescriptorSetLayoutList layouts(m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
 
@@ -168,7 +174,10 @@ namespace SpireVoxel {
     }
 
     void VoxelRenderer::SetupGraphicsPipeline() {
-        assert(!m_graphicsPipeline);
+        if (m_graphicsPipeline) {
+            m_oldPipelines.Push(std::move(m_graphicsPipeline), m_engine.GetRenderingManager().GetSwapchain().GetNumImages());
+        }
+
         auto &rm = m_engine.GetRenderingManager();
 
         m_graphicsPipeline = std::make_unique<GraphicsPipeline>(

@@ -8,15 +8,18 @@
 namespace SpireVoxel {
     VoxelWorldRenderer::VoxelWorldRenderer(VoxelWorld &world,
                                            Spire::RenderingManager &renderingManager,
+                                           const std::function<void()> &recreatePipelineCallback,
                                            bool isProfilingMeshing)
         : m_world(world),
           m_renderingManager(renderingManager),
           m_onWorldEditedDelegate(),
-          m_chunkVertexBufferAllocator(m_renderingManager, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(), sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD),
-          m_chunkVoxelDataBufferAllocator(m_renderingManager, sizeof(GPUChunkVoxelData), m_renderingManager.GetSwapchain().GetNumImages(),
-                                          sizeof(GPUChunkVoxelData) * MAXIMUM_LOADED_CHUNKS) {
-        Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", sizeof(VertexData) * MAXIMUM_VERTICES_IN_WORLD / 1024 / 1024);
-        Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", sizeof(GPUChunkVoxelData) * MAXIMUM_LOADED_CHUNKS / 1024 / 1024);
+          m_chunkVertexBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(),
+                                       sizeof(VertexData) * (1024 * 1024 * 16), 1),
+          m_chunkVoxelDataBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(GPUChunkVoxelData), m_renderingManager.GetSwapchain().GetNumImages(),
+                                          sizeof(GPUChunkVoxelData) * 128, 1) {
+        Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", m_chunkVertexBufferAllocator.GetTotalSize() / 1024 / 1024);
+        Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", m_chunkVoxelDataBufferAllocator.GetTotalSize() / 1024 / 1024);
+
 
         m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr,
                                                                                         VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT);

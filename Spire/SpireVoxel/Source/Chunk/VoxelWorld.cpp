@@ -4,8 +4,9 @@
 
 namespace SpireVoxel {
     VoxelWorld::VoxelWorld(Spire::RenderingManager &renderingManager,
+                           std::function<void()> recreatePipelineCallback,
                            bool isProfilingMeshing) {
-        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, renderingManager, isProfilingMeshing);
+        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, renderingManager, recreatePipelineCallback, isProfilingMeshing);
     }
 
     Chunk &VoxelWorld::LoadChunk(glm::ivec3 chunkPosition) {

@@ -5,7 +5,7 @@ namespace SpireVoxel {
         : m_allocatorValid(allocator.m_allocatorValid) {
         m_mappedMemories.reserve(allocator.m_buffers.size());
         for (auto &buffer : allocator.m_buffers) {
-            m_mappedMemories.push_back(std::move(allocator.m_renderingManager.GetBufferManager().Map(buffer)));
+            PushMappedMemory(allocator, buffer);
         }
     }
 
@@ -27,15 +27,25 @@ namespace SpireVoxel {
         return GetByIndex(allocation.Location.AllocationIndex);
     }
 
+    void BufferAllocator::MappedMemory::PushMappedMemory(const BufferAllocator &allocator, const Spire::VulkanBuffer &buffer) {
+        m_mappedMemories.push_back(std::move(allocator.m_renderingManager.GetBufferManager().Map(buffer)));
+    }
+
     BufferAllocator::BufferAllocator(
-        Spire::RenderingManager &renderingManager,
-        glm::u32 elementSize,
-        glm::u32 numSwapchainImages,
-        std::size_t allocatorSize
-    ) : m_renderingManager(renderingManager),
-        m_elementSize(elementSize),
-        m_numSwapchainImages(numSwapchainImages) {
-        VkDeviceSize maxBufferSize = m_renderingManager.GetPhysicalDevice().DeviceProperties.limits.maxStorageBufferRange;
+     Spire::RenderingManager &renderingManager,
+     const std::function<void()> &recreatePipelineCallback,
+     glm::u32 elementSize,
+     glm::u32 numSwapchainImages,
+     std::size_t sizePerInternalBuffer,
+     glm::u32 numInternalBuffers
+ ) : m_renderingManager(renderingManager),
+     m_elementSize(elementSize),
+     m_numSwapchainImages(numSwapchainImages),
+     m_recreatePipelineCallback(recreatePipelineCallback) {
+
+        // Get max buffer size
+        VkDeviceSize maxBufferSize =
+            m_renderingManager.GetPhysicalDevice().DeviceProperties.limits.maxStorageBufferRange;
 
         static bool hasLoggedMaxSSBOSize = false;
         if (!hasLoggedMaxSSBOSize) {
@@ -43,26 +53,34 @@ namespace SpireVoxel {
             hasLoggedMaxSSBOSize = true;
         }
 
+        // Check if the requested size is less than max size
+        assert(sizePerInternalBuffer % elementSize == 0);
+
+        std::size_t requestedElementsPerBuffer = sizePerInternalBuffer / elementSize;
         std::size_t maxElementsPerBuffer = maxBufferSize / elementSize;
-        assert(maxElementsPerBuffer <= UINT32_MAX);
 
-        std::size_t numElements = allocatorSize / elementSize;
-        std::size_t buffersNeeded = glm::ceil(static_cast<double>(numElements) / static_cast<double>(maxElementsPerBuffer));
-        std::size_t numElementsInLastBuffer = numElements % maxElementsPerBuffer;
-        if (numElementsInLastBuffer == 0) numElementsInLastBuffer = maxElementsPerBuffer;
-
-        for (std::size_t i = 0; i < buffersNeeded - 1; i++) {
-            m_buffers.push_back(m_renderingManager.GetBufferManager().CreateStorageBuffer(nullptr, maxElementsPerBuffer * elementSize, elementSize));
+        if (requestedElementsPerBuffer > maxElementsPerBuffer) {
+            Spire::warn(
+                "Requested {} elements per internal buffer, clamping to device limit {}",
+                requestedElementsPerBuffer,
+                maxElementsPerBuffer
+            );
+            requestedElementsPerBuffer = maxElementsPerBuffer;
         }
-        m_buffers.push_back(m_renderingManager.GetBufferManager().CreateStorageBuffer(nullptr, numElementsInLastBuffer * elementSize, elementSize));
+
+        assert(requestedElementsPerBuffer > 0);
+        assert(requestedElementsPerBuffer <= UINT32_MAX);
+
+        // Create buffers
+        for (glm::u32 i = 0; i < numInternalBuffers; ++i) {
+            PushBuffer(static_cast<glm::u32>(requestedElementsPerBuffer));
+        }
 
         // Test
-        std::size_t totalSize = 0;
         for (const auto &buffer : m_buffers) {
-            totalSize += buffer.Size;
             assert(buffer.Size % elementSize == 0);
+            assert(buffer.Size <= maxBufferSize);
         }
-        assert(totalSize == allocatorSize);
     }
 
     BufferAllocator::~BufferAllocator() {
@@ -109,8 +127,12 @@ namespace SpireVoxel {
             };
         }
 
-        Spire::warn("Failed to allocate memory in BufferAllocator - out of memory! Requested allocation size: {}", requestedSize);
-        return std::nullopt;
+        Spire::info("Allocating memory in BufferAllocator caused capacity to be increased (actual GPU allocation)! Requested allocation size: {}", requestedSize);
+        IncreaseCapacity();
+
+        lock.unlock();
+        auto alloc = Allocate(requestedSize);
+        return alloc;
     }
 
     void BufferAllocator::ScheduleFreeAllocation(AllocationLocation location) {
@@ -128,7 +150,6 @@ namespace SpireVoxel {
     }
 
     Spire::Descriptor BufferAllocator::CreateDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName) {
-        std::unique_lock lock(m_mutex);
         Spire::Descriptor descriptor = {
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = binding,
@@ -199,8 +220,14 @@ namespace SpireVoxel {
         return allocated;
     }
 
-    glm::u32 BufferAllocator::GetMaxElementsPerInternalBuffer() const {
+    glm::u32 BufferAllocator::GetMaxElementsPerInternalBuffer() {
+        std::unique_lock lock(m_mutex);
         return m_buffers[0].Count;
+    }
+
+    std::size_t BufferAllocator::GetTotalSize() {
+        std::unique_lock lock(m_mutex);
+        return m_buffers[0].Size * m_buffers.size();
     }
 
     std::shared_ptr<BufferAllocator::MappedMemory> BufferAllocator::MapMemory() {
@@ -219,5 +246,22 @@ namespace SpireVoxel {
             }
         }
         return {};
+    }
+
+    // Note this does not lock the mutex
+    void BufferAllocator::IncreaseCapacity() {
+        assert(!m_buffers.empty());
+        PushBuffer(m_buffers[0].Count);
+
+        std::shared_ptr mappedMemory = m_mappedMemory.lock();
+        if (mappedMemory) {
+            mappedMemory->PushMappedMemory(*this, m_buffers.back());
+        }
+
+        m_recreatePipelineCallback();
+    }
+
+    void BufferAllocator::PushBuffer(glm::u32 elementsInBuffer) {
+        m_buffers.push_back(m_renderingManager.GetBufferManager().CreateStorageBuffer(nullptr, elementsInBuffer * m_elementSize, m_elementSize));
     }
 } // SpireVoxel

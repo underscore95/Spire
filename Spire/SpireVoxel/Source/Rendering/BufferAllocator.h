@@ -58,14 +58,19 @@ namespace SpireVoxel {
             [[nodiscard]] Spire::BufferManager::MappedMemory &GetByAllocation(const Allocation &allocation) const;
 
         private:
+            void PushMappedMemory(const BufferAllocator &allocator, const Spire::VulkanBuffer &buffer);
+
+        private:
             std::vector<std::unique_ptr<Spire::BufferManager::MappedMemory> > m_mappedMemories;
             std::weak_ptr<bool> m_allocatorValid;
         };
 
         BufferAllocator(Spire::RenderingManager &renderingManager,
+                        const std::function<void()> &recreatePipelineCallback,
                         glm::u32 elementSize,
                         glm::u32 numSwapchainImages,
-                        std::size_t allocatorSize);
+                        std::size_t sizePerInternalBuffer,
+                        glm::u32 numInternalBuffers);
 
         ~BufferAllocator();
 
@@ -92,10 +97,16 @@ namespace SpireVoxel {
         // this is bufferSize - availableMemory
         [[nodiscard]] std::size_t CalculateAllocatedOrPendingMemory();
 
-        [[nodiscard]] glm::u32 GetMaxElementsPerInternalBuffer() const;
+        [[nodiscard]] glm::u32 GetMaxElementsPerInternalBuffer();
+
+        [[nodiscard]] std::size_t GetTotalSize();
 
     private:
         [[nodiscard]] std::optional<PendingFree> IsPendingFree(AllocationLocation location);
+
+        void IncreaseCapacity();
+
+        void PushBuffer(glm::u32 elementsInBuffer);
 
     private:
         Spire::RenderingManager &m_renderingManager;
@@ -110,6 +121,7 @@ namespace SpireVoxel {
         std::shared_ptr<bool> m_allocatorValid = std::make_shared<bool>(true); // set to false when destroyed
         std::mutex m_mutex;
         std::weak_ptr<MappedMemory> m_mappedMemory;
+        std::function<void()> m_recreatePipelineCallback;
     };
 } // SpireVoxel
 

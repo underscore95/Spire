@@ -12,7 +12,11 @@ namespace SpireVoxel {
 
     class VoxelWorld {
     public:
-        explicit VoxelWorld(Spire::RenderingManager &renderingManager, bool isProfilingMeshing);
+        explicit VoxelWorld(
+            Spire::RenderingManager &renderingManager,
+            std::function<void()> recreatePipelineCallback,
+            bool isProfilingMeshing
+        );
 
     public:
         Chunk &LoadChunk(glm::ivec3 chunkPosition);

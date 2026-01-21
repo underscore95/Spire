@@ -26,7 +26,7 @@ layout (location = 4) flat out uint voxelDataAllocationIndex; // Allocation inde
 void main()
 {
     ChunkData chunkData = chunkDataBuffer.chunkDatas[gl_InstanceIndex];
-    uint vertexIndex = chunkData.NumVerticesPerBuffer * chunkData.VertexBufferIndex + (gl_VertexIndex % chunkData.NumVerticesPerBuffer);
+    uint vertexIndex = (gl_VertexIndex % chunkData.NumVerticesPerBuffer);
 
     VertexData vtx = in_Vertices[chunkData.VertexBufferIndex].data[vertexIndex];
 
