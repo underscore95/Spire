@@ -6,6 +6,8 @@
 #include "Chunk/meshing/ChunkMesher.h"
 
 namespace SpireVoxel {
+    struct PushConstantsData;
+
     class VoxelWorld;
 
     // Handles rendering of a VoxelWorld
@@ -27,7 +29,7 @@ namespace SpireVoxel {
         DelegateSubscribers<> &GetOnWorldEditSubscribers();
 
         // Record draw commands
-        void CmdRender(glm::u32 swapchainImage, VkCommandBuffer commandBuffer) const;
+        void CmdRender(VkCommandBuffer commandBuffer, glm::u32 swapchainImage, const Spire::Pipeline &pipeline) const;
 
         void PushDescriptors(Spire::PerImageDescriptorSetLayout &perFrameSet, Spire::DescriptorSetLayout &chunkVertexBuffersLayout);
 
@@ -47,6 +49,8 @@ namespace SpireVoxel {
         void FreeChunkVertexBuffer(Chunk &chunk);
 
         void FreeChunkVoxelDataBuffer(Chunk &chunk);
+
+        [[nodiscard]] PushConstantsData CreatePushConstants() const;
 
     private:
         static constexpr glm::u32 MAXIMUM_VERTICES_IN_WORLD = 36 * (SPIRE_VOXEL_CHUNK_VOLUME * 48);

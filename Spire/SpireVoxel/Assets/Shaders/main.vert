@@ -1,8 +1,8 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier : require
 
-#include "PushConstants.glsl"
 #include "ShaderInfo.h"
+#include "PushConstants.h"
 
 // Vertex buffer
 layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING) readonly buffer Vertices {
@@ -26,7 +26,7 @@ layout (location = 4) flat out uint voxelDataAllocationIndex; // Allocation inde
 void main()
 {
     ChunkData chunkData = chunkDataBuffer.chunkDatas[gl_InstanceIndex];
-    uint vertexIndex = (gl_VertexIndex % chunkData.NumVerticesPerBuffer);
+    uint vertexIndex = (gl_VertexIndex % pushConstants.data.NumVerticesPerBuffer);
 
     VertexData vtx = in_Vertices[chunkData.VertexBufferIndex].data[vertexIndex];
 

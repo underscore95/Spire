@@ -37,7 +37,7 @@ namespace SpireVoxel {
 
         [[nodiscard]] ChunkMesh GenerateMesh() const;
 
-        [[nodiscard]] ChunkData GenerateChunkData(glm::u32 chunkIndex, glm::u32 numVerticesPerVertexBuffer) const;
+        [[nodiscard]] ChunkData GenerateChunkData(glm::u32 chunkIndex) const;
 
         void RegenerateVoxelBits();
 

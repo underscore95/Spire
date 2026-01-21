@@ -220,8 +220,7 @@ namespace SpireVoxel {
         return allocated;
     }
 
-    glm::u32 BufferAllocator::GetMaxElementsPerInternalBuffer() {
-        std::unique_lock lock(m_mutex);
+    glm::u32 BufferAllocator::GetNumElementsPerInternalBuffer() const {
         return m_buffers[0].Count;
     }
 

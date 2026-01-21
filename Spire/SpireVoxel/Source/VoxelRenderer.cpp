@@ -129,7 +129,7 @@ namespace SpireVoxel {
 
             m_graphicsPipeline->CmdSetViewportToWindowSize(commandBuffer, m_engine.GetWindow().GetDimensions());
 
-            m_world->GetRenderer().CmdRender(swapchainImage, commandBuffer);
+            m_world->GetRenderer().CmdRender(commandBuffer, swapchainImage, *m_graphicsPipeline);
 
             vkCmdEndRendering(commandBuffer);
 

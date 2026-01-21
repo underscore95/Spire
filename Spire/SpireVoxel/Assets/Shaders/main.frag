@@ -1,8 +1,8 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier : require
 
-#include "PushConstants.glsl"
 #include "ShaderInfo.h"
+#include "PushConstants.h"
 
 // See vertex shader for input documentation
 layout (location = 0) in vec2 uv;

@@ -201,7 +201,7 @@ namespace SpireVoxel {
         return mesh;
     }
 
-    ChunkData Chunk::GenerateChunkData(glm::u32 chunkIndex, glm::u32 numVerticesPerVertexBuffer) const {
+    ChunkData Chunk::GenerateChunkData(glm::u32 chunkIndex) const {
         assert(NumVertices > 0);
         return {
             .CPU_DrawCommandParams = {
@@ -215,7 +215,6 @@ namespace SpireVoxel {
             .ChunkZ = ChunkPosition.z,
             .VoxelDataChunkIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.Start / sizeof(GPUChunkVoxelData)),
             .VoxelDataAllocationIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.AllocationIndex),
-            .NumVerticesPerBuffer = numVerticesPerVertexBuffer,
             .VertexBufferIndex = static_cast<glm::u32>(VertexAllocation.Location.AllocationIndex)
         };
     }

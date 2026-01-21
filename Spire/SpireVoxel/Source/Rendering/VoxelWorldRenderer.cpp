@@ -4,6 +4,7 @@
 #include "Chunk/meshing/ChunkMesher.h"
 #include "Rendering/Memory/BufferManager.h"
 #include "Utils/ThreadPool.h"
+#include "../../Assets/Shaders/PushConstants.h"
 
 namespace SpireVoxel {
     VoxelWorldRenderer::VoxelWorldRenderer(VoxelWorld &world,
@@ -49,8 +50,10 @@ namespace SpireVoxel {
         return m_onWorldEditedDelegate;
     }
 
-    void VoxelWorldRenderer::CmdRender(glm::u32 swapchainImage, VkCommandBuffer commandBuffer) const {
+    void VoxelWorldRenderer::CmdRender(VkCommandBuffer commandBuffer, glm::u32 swapchainImage, const Spire::Pipeline &pipeline) const {
         if (!m_latestCachedChunkData.empty()) {
+            PushConstantsData pushConstants = CreatePushConstants();
+            pipeline.CmdSetPushConstants(commandBuffer, &pushConstants, sizeof(PushConstantsData));
             vkCmdDrawIndirect(commandBuffer, m_chunkDatasBuffer->GetBuffer(swapchainImage).Buffer, offsetof(ChunkData, CPU_DrawCommandParams), m_latestCachedChunkData.size(),
                               sizeof(ChunkData));
         }
@@ -105,7 +108,7 @@ namespace SpireVoxel {
             auto chunkIndex = static_cast<glm::u32>(m_latestCachedChunkData.size());
             if (chunk->VertexAllocation.Size == 0) continue;
 
-            m_latestCachedChunkData.push_back(chunk->GenerateChunkData(chunkIndex, m_chunkVertexBufferAllocator.GetMaxElementsPerInternalBuffer()));
+            m_latestCachedChunkData.push_back(chunk->GenerateChunkData(chunkIndex));
         }
     }
 
@@ -121,5 +124,11 @@ namespace SpireVoxel {
             m_chunkVoxelDataBufferAllocator.ScheduleFreeAllocation(chunk.VoxelDataAllocation);
             chunk.VoxelDataAllocation = {};
         }
+    }
+
+    PushConstantsData VoxelWorldRenderer::CreatePushConstants() const {
+        return PushConstantsData{
+            .NumVerticesPerBuffer = m_chunkVertexBufferAllocator.GetNumElementsPerInternalBuffer()
+        };
     }
 } // SpireVoxel
