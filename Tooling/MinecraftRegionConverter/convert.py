@@ -1,3 +1,6 @@
+# Outputs version 1 SPRC files
+# These will automatically be migrated when loaded
+
 # https://github.com/0xTiger/anvil-parser2
 import anvil
 import numpy as np
