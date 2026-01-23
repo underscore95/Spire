@@ -15,7 +15,7 @@ While Spire supports up to 2^32-1 voxel types, only grass and dirt have been con
 
 Above is a screenshot of a spider model being rendered by Spire. It takes up 8x4x8 chunks where each chunk is 64^3 voxels.
 
-spider.obj was taken from https://github.com/assimp/assimp/tree/master/test/models/OBJ and then converted to .xyzrgb using https://github.com/eisenwave/obj2voxel and then converted into .sprc via Tooling/XYZRGBConverter which Spire is capable of rendering.
+spider.obj was taken from https://github.com/assimp/assimp/tree/master/test/models/OBJ and then converted to .xyzrgb using https://github.com/eisenwave/obj2voxel (scaled up 4x) and then converted into .sprc via Tooling/XYZRGBConverter which Spire is capable of rendering.
 
 46 MB RAM Used
 
