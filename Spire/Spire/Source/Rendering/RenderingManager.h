@@ -27,7 +27,7 @@ namespace Spire {
         friend class Engine;
 
     public:
-        explicit RenderingManager(Engine &engine, const std::string &applicationName, Window &window,   glm::u32 maximumSwapchainImages);
+        explicit RenderingManager(Engine &engine, const std::string &applicationName, Window &window, glm::u32 maximumSwapchainImages);
 
         ~RenderingManager();
 

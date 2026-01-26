@@ -48,9 +48,9 @@ namespace Spire {
 
         void DestroyBuffer(const VulkanBuffer &buffer);
 
-        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateUniformBuffers(std::size_t bufferSize, bool isTransferDest = false);
+        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreatePerImageUniformBuffers(std::size_t bufferSize, bool isTransferDest = false);
 
-        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreateStorageBuffers(std::size_t bufferSize, std::size_t numElements, const void *data,
+        [[nodiscard]] std::unique_ptr<PerImageBuffer> CreatePerImageStorageBuffers(std::size_t bufferSize, std::size_t numElements, const void *data,
                                                                            VkBufferUsageFlags extraUsageFlags = 0);
 
         void UpdateBuffer(const VulkanBuffer &buffer, const void *data, std::size_t size, std::size_t offset = 0) const;

@@ -1,8 +1,8 @@
 #include "Chunk.h"
 
-#include "meshing/GreedyMeshingGrid.h"
+#include "Meshing/GreedyMeshingGrid.h"
 #include "VoxelWorld.h"
-#include "meshing/ChunkMesh.h"
+#include "Meshing/ChunkMesh.h"
 
 namespace SpireVoxel {
     VoxelType GetAdjacentVoxelType(const Chunk &chunk, glm::ivec3 position, glm::u32 face) {

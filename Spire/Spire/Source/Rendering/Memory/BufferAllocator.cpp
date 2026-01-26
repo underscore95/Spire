@@ -1,6 +1,10 @@
 #include "BufferAllocator.h"
 
-namespace SpireVoxel {
+#include "BufferManager.h"
+#include "Rendering/Core/RenderingDeviceManager.h"
+#include "Utils/Log.h"
+
+namespace Spire {
     BufferAllocator::MappedMemory::MappedMemory(const BufferAllocator &allocator)
         : m_allocatorValid(allocator.m_allocatorValid) {
         m_mappedMemories.reserve(allocator.m_buffers.size());
@@ -37,11 +41,13 @@ namespace SpireVoxel {
      glm::u32 elementSize,
      glm::u32 numSwapchainImages,
      std::size_t sizePerInternalBuffer,
-     glm::u32 numInternalBuffers
+     glm::u32 numInternalBuffers,
+     bool canResize
  ) : m_renderingManager(renderingManager),
      m_elementSize(elementSize),
      m_numSwapchainImages(numSwapchainImages),
-     m_recreatePipelineCallback(recreatePipelineCallback) {
+     m_recreatePipelineCallback(recreatePipelineCallback),
+    m_canResize(canResize){
 
         // Get max buffer size
         VkDeviceSize maxBufferSize =
@@ -127,8 +133,12 @@ namespace SpireVoxel {
             };
         }
 
-        Spire::info("Allocating memory in BufferAllocator caused capacity to be increased (actual GPU allocation)! Requested allocation size: {}", requestedSize);
-        IncreaseCapacity();
+        if (m_canResize) {
+            Spire::info("Allocating memory in BufferAllocator caused capacity to be increased (actual GPU allocation)! Requested allocation size: {}", requestedSize);
+            IncreaseCapacity();
+        } else {
+            return std::nullopt;
+        }
 
         lock.unlock();
         auto alloc = Allocate(requestedSize);
@@ -150,7 +160,7 @@ namespace SpireVoxel {
     }
 
     Spire::Descriptor BufferAllocator::CreateDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName) {
-        Spire::Descriptor descriptor = {
+        Descriptor descriptor = {
             .ResourceType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .Binding = binding,
             .Stages = stages,
@@ -263,4 +273,4 @@ namespace SpireVoxel {
     void BufferAllocator::PushBuffer(glm::u32 elementsInBuffer) {
         m_buffers.push_back(m_renderingManager.GetBufferManager().CreateStorageBuffer(nullptr, elementsInBuffer * m_elementSize, m_elementSize));
     }
-} // SpireVoxel
+} // Spire

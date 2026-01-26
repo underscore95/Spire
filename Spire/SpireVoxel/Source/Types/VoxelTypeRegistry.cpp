@@ -92,7 +92,7 @@ namespace SpireVoxel {
         // how big does the buffer need to be
         glm::u32 numElements = 0;
         for (RegisteredVoxelType &type : m_voxelTypes) {
-            numElements = std::max(numElements, type.GetType().Id + 1);
+            numElements = std::max(numElements, type.GetType().Id + 1u);
         }
 
         // prepare data

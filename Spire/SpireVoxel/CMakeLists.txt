@@ -6,8 +6,6 @@ add_library(SpireVoxel STATIC
         Source/Chunk/Chunk.h
         Source/Chunk/VoxelWorld.cpp
         Source/Chunk/VoxelWorld.h
-        Source/Rendering/BufferAllocator.cpp
-        Source/Rendering/BufferAllocator.h
         Source/Serialisation/VoxelSerializer.cpp
         Source/Serialisation/VoxelSerializer.h
         Source/Rendering/VoxelWorldRenderer.cpp

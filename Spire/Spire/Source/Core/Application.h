@@ -1,24 +1,22 @@
 #pragma once
 
-namespace Spire
-{
+namespace Spire {
     class Engine;
 
-    class Application
-    {
+    class Application {
     public:
         virtual ~Application();
 
     public:
-        virtual void Start(Engine& engine) = 0;
+        virtual void Start(Engine &engine) = 0;
 
         virtual void Update() = 0;
 
         virtual void Render() = 0;
 
-        virtual bool ShouldClose() const = 0;
+        [[nodiscard]] virtual bool ShouldClose() const = 0;
 
-        virtual const char* GetApplicationName() const = 0;
+        [[nodiscard]] virtual const char *GetApplicationName() const = 0;
 
         virtual void OnWindowResize() const = 0;
     };

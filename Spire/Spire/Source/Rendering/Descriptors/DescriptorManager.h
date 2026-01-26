@@ -22,12 +22,12 @@ namespace Spire {
         // update a single descriptor in a descriptor set
         // setIndex - index of the set to update, you will need to call this function multiple times if its a per image set
         // descriptor - new descriptor, this will replace the descriptor with the same binding, you cannot add new descriptors using this function
-       void WriteDescriptor(glm::u32 setIndex, const Descriptor &descriptor) const;
+        void WriteDescriptor(glm::u32 setIndex, const Descriptor &descriptor) const;
 
         [[nodiscard]] const std::vector<VkDescriptorSetLayout> &GetRawLayouts() const;
 
     private:
-void SetResourceDebugName(const Descriptor& descriptor) const;
+        void SetResourceDebugName(const Descriptor &descriptor) const;
 
     private:
         RenderingManager &m_renderingManager;

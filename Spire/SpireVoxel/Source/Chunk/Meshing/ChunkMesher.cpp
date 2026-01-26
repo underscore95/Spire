@@ -7,8 +7,8 @@
 
 namespace SpireVoxel {
     ChunkMesher::ChunkMesher(VoxelWorld &world,
-                             BufferAllocator &chunkVertexBufferAllocator,
-                             BufferAllocator &chunkVoxelDataBufferAllocator,
+                             Spire::BufferAllocator &chunkVertexBufferAllocator,
+                             Spire::BufferAllocator &chunkVoxelDataBufferAllocator,
                              bool isProfilingMeshing)
         : m_numCPUThreads(std::thread::hardware_concurrency()),
           m_world(world),
@@ -44,8 +44,8 @@ namespace SpireVoxel {
         std::unordered_map<Chunk *, ChunkMesh> meshedChunks;
         meshedChunks.reserve(meshingChunks.size());
 
-        std::shared_ptr<BufferAllocator::MappedMemory> voxelDataMemory = m_chunkVoxelDataBufferAllocator.MapMemory();
-        std::shared_ptr<BufferAllocator::MappedMemory> vertexBufferMemory = m_chunkVertexBufferAllocator.MapMemory();
+        std::shared_ptr<Spire::BufferAllocator::MappedMemory> voxelDataMemory = m_chunkVoxelDataBufferAllocator.MapMemory();
+        std::shared_ptr<Spire::BufferAllocator::MappedMemory> vertexBufferMemory = m_chunkVertexBufferAllocator.MapMemory();
 
         for (auto &[chunk, meshFuture] : meshingChunks) {
             meshedChunks[chunk] = meshFuture.get();
@@ -71,11 +71,11 @@ namespace SpireVoxel {
         });
     }
 
-    void ChunkMesher::UploadChunkMesh(Chunk &chunk, ChunkMesh &mesh, BufferAllocator::MappedMemory &voxelDataMemory,
-                                      BufferAllocator::MappedMemory &chunkVertexBufferMemory, std::vector<std::future<void> > &futures) const {
+    void ChunkMesher::UploadChunkMesh(Chunk &chunk, ChunkMesh &mesh, Spire::BufferAllocator::MappedMemory &voxelDataMemory,
+                                      Spire::BufferAllocator::MappedMemory &chunkVertexBufferMemory, std::vector<std::future<void> > &futures) const {
         // write the new mesh
         {
-            const BufferAllocator::Allocation oldAllocation = chunk.VertexAllocation;
+            const Spire::BufferAllocator::Allocation oldAllocation = chunk.VertexAllocation;
             chunk.VertexAllocation = {};
 
             const std::vector<VertexData> &vertexData = mesh.Vertices;
@@ -88,7 +88,7 @@ namespace SpireVoxel {
                     // write the mesh into the vertex buffer
                     futures.push_back(
                         Spire::ThreadPool::Instance().submit_task([&chunk,&chunkVertexBufferMemory, &vertexData] {
-                            void* memory = chunkVertexBufferMemory.GetByAllocation(chunk.VertexAllocation).Memory;
+                            void *memory = chunkVertexBufferMemory.GetByAllocation(chunk.VertexAllocation).Memory;
                             memcpy(static_cast<char *>(memory) + chunk.VertexAllocation.Location.Start,
                                    vertexData.data(), vertexData.size() * sizeof(VertexData));
                         }));
@@ -106,7 +106,7 @@ namespace SpireVoxel {
 
         // write the voxel data
         {
-            const BufferAllocator::Allocation oldAllocation = chunk.VoxelDataAllocation;
+            const Spire::BufferAllocator::Allocation oldAllocation = chunk.VoxelDataAllocation;
             chunk.VoxelDataAllocation = {};
 
             if (chunk.NumVertices > 0) {
@@ -116,7 +116,7 @@ namespace SpireVoxel {
 
                     // write the voxel data async
                     futures.push_back(Spire::ThreadPool::Instance().submit_task([&voxelDataMemory, &chunk]() {
-                        void* memory = voxelDataMemory.GetByAllocation(chunk.VoxelDataAllocation).Memory;
+                        void *memory = voxelDataMemory.GetByAllocation(chunk.VoxelDataAllocation).Memory;
                         memcpy(static_cast<char *>(memory) + chunk.VoxelDataAllocation.Location.Start,
                                chunk.VoxelData.data(), sizeof(GPUChunkVoxelData));
                     }));

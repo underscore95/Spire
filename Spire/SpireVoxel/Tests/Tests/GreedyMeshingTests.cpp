@@ -2,7 +2,7 @@
 #include "../Assets/Shaders/ShaderInfo.h"
 #include <gtest/gtest.h>
 #include "TestHelpers.h"
-#include "../../Source/Chunk/meshing/GreedyMeshingGrid.h"
+#include "../../Source/Chunk/Meshing/GreedyMeshingGrid.h"
 
 TEST(GreedyMeshingTests, TestSettingBits) {
     SpireVoxel::GreedyMeshingGrid mask;

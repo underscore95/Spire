@@ -1,7 +1,7 @@
 #include "VoxelWorldRenderer.h"
 
 #include "Chunk/VoxelWorld.h"
-#include "Chunk/meshing/ChunkMesher.h"
+#include "Chunk/Meshing/ChunkMesher.h"
 #include "Rendering/Memory/BufferManager.h"
 #include "Utils/ThreadPool.h"
 #include "../../Assets/Shaders/PushConstants.h"
@@ -15,14 +15,14 @@ namespace SpireVoxel {
           m_renderingManager(renderingManager),
           m_onWorldEditedDelegate(),
           m_chunkVertexBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(),
-                                       sizeof(VertexData) * (1024 * 1024 * 32), 1),
+                                       sizeof(VertexData) * (1024 * 1024 * 32), 1, true),
           m_chunkVoxelDataBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(GPUChunkVoxelData), m_renderingManager.GetSwapchain().GetNumImages(),
-                                          sizeof(GPUChunkVoxelData) * 1024, 1) {
+                                          sizeof(GPUChunkVoxelData) * 1024, 1, true) {
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", m_chunkVertexBufferAllocator.GetTotalSize() / 1024 / 1024);
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", m_chunkVoxelDataBufferAllocator.GetTotalSize() / 1024 / 1024);
 
 
-        m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreateStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr,
+        m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreatePerImageStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr,
                                                                                         VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT);
         Spire::info("Allocated {} kb buffer for each swapchain image on GPU to store chunk datas", sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS / 1024);
 

@@ -75,7 +75,7 @@ namespace Spire {
         m_numAllocatedBuffers--;
     }
 
-    std::unique_ptr<PerImageBuffer> BufferManager::CreateUniformBuffers(std::size_t bufferSize, bool isTransferDest) {
+    std::unique_ptr<PerImageBuffer> BufferManager::CreatePerImageUniformBuffers(std::size_t bufferSize, bool isTransferDest) {
         std::vector<VulkanBuffer> buffers;
         buffers.resize(m_renderingManager.GetSwapchain().GetNumImages());
 
@@ -91,7 +91,7 @@ namespace Spire {
         return std::unique_ptr<PerImageBuffer>(new PerImageBuffer(*this, buffers));
     }
 
-    std::unique_ptr<PerImageBuffer> BufferManager::CreateStorageBuffers(
+    std::unique_ptr<PerImageBuffer> BufferManager::CreatePerImageStorageBuffers(
         std::size_t bufferSize,
         std::size_t numElements,
         const void *data,

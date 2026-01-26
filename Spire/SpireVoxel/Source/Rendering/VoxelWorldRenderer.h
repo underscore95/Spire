@@ -2,8 +2,8 @@
 
 #include "VoxelRenderer.h"
 #include "Chunk/Chunk.h"
-#include "Chunk/meshing/ChunkMesh.h"
-#include "Chunk/meshing/ChunkMesher.h"
+#include "Chunk/Meshing/ChunkMesh.h"
+#include "Chunk/Meshing/ChunkMesher.h"
 
 namespace SpireVoxel {
     struct PushConstantsData;
@@ -60,9 +60,9 @@ namespace SpireVoxel {
 
         Spire::RenderingManager &m_renderingManager;
         Delegate<> m_onWorldEditedDelegate;
-        BufferAllocator m_chunkVertexBufferAllocator;
+        Spire::BufferAllocator m_chunkVertexBufferAllocator;
         // stores types of voxels
-        BufferAllocator m_chunkVoxelDataBufferAllocator;
+        Spire::BufferAllocator m_chunkVoxelDataBufferAllocator;
         // see ChunkData
         std::unique_ptr<Spire::PerImageBuffer> m_chunkDatasBuffer;
         // if {true,false,false} it means we need to update buffer 0 on swapchain image index 0

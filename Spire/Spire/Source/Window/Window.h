@@ -54,6 +54,8 @@ namespace Spire
         // this doesn't call engine::OnWindowResize();
         void UpdateDimensions();
 
+        void SetTitle(const std::string& title) const;
+
     private:
         static bool Init();
 

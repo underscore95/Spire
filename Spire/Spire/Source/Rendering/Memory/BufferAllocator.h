@@ -1,8 +1,14 @@
 #pragma once
 
-#include "EngineIncludes.h"
+#include "BufferManager.h"
+#include "pch.h"
+#include "Rendering/RenderingManager.h"
+#include "Rendering/Descriptors/Descriptor.h"
+#include "Utils/Hashing.h"
+#include "Utils/MacroDisableCopy.h"
 
-namespace SpireVoxel {
+namespace Spire {
+    struct VulkanBuffer;
     // Instead of using a million buffers, use a single buffer and allocate sub ranges to different buffers
     // allocations are freed only after inflight frames are no longer using data
     class BufferAllocator {
@@ -65,12 +71,14 @@ namespace SpireVoxel {
             std::weak_ptr<bool> m_allocatorValid;
         };
 
-        BufferAllocator(Spire::RenderingManager &renderingManager,
+    public:
+        BufferAllocator(RenderingManager &renderingManager,
                         const std::function<void()> &recreatePipelineCallback,
                         glm::u32 elementSize,
                         glm::u32 numSwapchainImages,
                         std::size_t sizePerInternalBuffer,
-                        glm::u32 numInternalBuffers);
+                        glm::u32 numInternalBuffers,
+                        bool canResize);
 
         ~BufferAllocator();
 
@@ -122,7 +130,8 @@ namespace SpireVoxel {
         std::mutex m_mutex;
         std::weak_ptr<MappedMemory> m_mappedMemory;
         std::function<void()> m_recreatePipelineCallback;
+        bool m_canResize;
     };
 } // SpireVoxel
 
-MAKE_HASHABLE(SpireVoxel::BufferAllocator::AllocationLocation, t.AllocationIndex, t.Start)
+MAKE_HASHABLE(Spire::BufferAllocator::AllocationLocation, t.AllocationIndex, t.Start)

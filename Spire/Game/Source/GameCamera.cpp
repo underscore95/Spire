@@ -5,7 +5,7 @@ using namespace SpireVoxel;
 
 GameCamera::GameCamera(const Engine &engine)
     : m_engine(engine) {
-    m_uniformBuffer = engine.GetRenderingManager().GetBufferManager().CreateUniformBuffers(sizeof(CameraInfo));
+    m_uniformBuffer = engine.GetRenderingManager().GetBufferManager().CreatePerImageUniformBuffers(sizeof(CameraInfo));
     m_camera = std::make_unique<Camera>(engine.GetWindow(), glm::vec3{0, 0, 10});
 }
 
@@ -28,6 +28,6 @@ PerImageDescriptor GameCamera::GetDescriptor(glm::u32 binding) const {
     );
 }
 
- CameraInfo GameCamera::GetCameraInfo() const {
+CameraInfo GameCamera::GetCameraInfo() const {
     return m_cameraInfo;
 }

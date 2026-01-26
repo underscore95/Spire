@@ -97,6 +97,7 @@ namespace SpireVoxel {
     // Chunk data, this exists on both CPU and GPU
     struct ChunkData {
         // Stores indirect draw command params, shader doesn't need to read this (but vulkan reads it)
+        // this must be at the start of the struct
         SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(CPU_DrawCommandParams);
         // Chunk coordinates
         SPIRE_INT32_TYPE ChunkX; // allows for 137 billion voxels in each direction

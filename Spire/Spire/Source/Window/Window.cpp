@@ -259,5 +259,9 @@ namespace Spire
         m_windowDimensions = newWindowDimensions;
     }
 
+    void Window::SetTitle(const std::string &title) const {
+        glfwSetWindowTitle(m_windowHandle, title.c_str());
+    }
+
     bool Window::s_initialized = false;
 }

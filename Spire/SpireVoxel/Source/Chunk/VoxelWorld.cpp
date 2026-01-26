@@ -1,5 +1,4 @@
 #include "VoxelWorld.h"
-#include "Rendering/BufferAllocator.h"
 #include "Rendering/VoxelWorldRenderer.h"
 
 namespace SpireVoxel {

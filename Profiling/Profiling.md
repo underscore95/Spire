@@ -29,3 +29,7 @@ Test Worlds:
 1 chunk (10% chance for a voxel to be empty) (Test4)
 
 100 chunks (50% chance for a voxel to be empty) (Test5)
+
+512x384x512 section of a Minecraft world (Test6)
+
+8x4x8 chunk spider model converted to voxels (Test7)

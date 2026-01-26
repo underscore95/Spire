@@ -31,6 +31,7 @@
 #include "Rendering/Core/RenderingDeviceManager.h"
 #include "Rendering/Scene/SceneImages.h"
 #include "Rendering/Memory/PerImageBuffer.h"
+#include "Rendering/Memory/BufferAllocator.h"
 
 #include "Resources/ImageLoader.h"
 #include "Resources/Model.h"

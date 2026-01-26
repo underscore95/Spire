@@ -60,7 +60,7 @@ namespace SpireVoxel {
         DelegateSubscribers<Args...> &GetSubscribers() { return mSubscribers; }
 
         // ReSharper disable once CppNonExplicitConversionOperator
-        operator DelegateSubscribers<Args...> &() { return GetSubscribers(); }
+        operator DelegateSubscribers<Args...> &() { return GetSubscribers(); } // NOLINT(*-explicit-constructor)
 
     private:
         DelegateSubscribers<Args...> mSubscribers;

@@ -112,8 +112,6 @@ void GameApplication::Render() {
 }
 
 void GameApplication::RenderUi() const {
-    ImGuiIO &io = ImGui::GetIO();
-
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
 
