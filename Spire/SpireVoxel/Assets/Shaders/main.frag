@@ -26,7 +26,6 @@ layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_B
     GPUVoxelType voxelTypes[];
 } voxelTypesBuffer;
 
-#define UVEC4_LENGTH 4u
 #define NUM_TYPES_PER_INT 2u// 2 voxel types (u16) in a u32
 
 uint roundToUint(float x) {
@@ -37,11 +36,10 @@ void main() {
     // Get the voxel type
     uint voxelDataIndex = SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(roundToUint(voxelData.x), roundToUint(voxelData.y), roundToUint(voxelData.z));
 
-    uint uvec4Index = voxelDataIndex / (UVEC4_LENGTH * NUM_TYPES_PER_INT);
-    uint uintIndex  = (voxelDataIndex / NUM_TYPES_PER_INT) % UVEC4_LENGTH;
+    uint uvec4Index = voxelDataIndex / (NUM_TYPES_PER_INT);
     uint halfIndex  = voxelDataIndex % NUM_TYPES_PER_INT;
 
-    uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[voxelDataChunkIndex].Data[uvec4Index][uintIndex];
+    uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[voxelDataChunkIndex].Data[uvec4Index];
 
     uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packed, voxelDataIndex);
 
