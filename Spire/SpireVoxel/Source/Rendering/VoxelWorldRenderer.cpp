@@ -5,6 +5,10 @@
 #include "Rendering/Memory/BufferManager.h"
 #include "Utils/ThreadPool.h"
 #include "../../Assets/Shaders/PushConstants.h"
+#include "Edits/BasicVoxelEdit.h"
+#include "Edits/BasicVoxelEdit.h"
+#include "Edits/BasicVoxelEdit.h"
+#include "Edits/BasicVoxelEdit.h"
 
 namespace SpireVoxel {
     VoxelWorldRenderer::VoxelWorldRenderer(VoxelWorld &world,
@@ -31,8 +35,8 @@ namespace SpireVoxel {
         m_chunkMesher = std::make_unique<ChunkMesher>(m_world, m_chunkVertexBufferAllocator, m_chunkVoxelDataBufferAllocator, isProfilingMeshing);
     }
 
-    void VoxelWorldRenderer::Render(glm::u32 swapchainImageIndex) {
-        HandleChunkEdits();
+    void VoxelWorldRenderer::Render(glm::u32 swapchainImageIndex, glm::vec3 cameraPos) {
+        HandleChunkEdits(cameraPos);
 
         // if empty we aren't issuing render commands so don't need to update the gpu buffer
         if (!m_latestCachedChunkData.empty() && m_dirtyChunkDataBuffers[swapchainImageIndex]) {
@@ -90,8 +94,8 @@ namespace SpireVoxel {
         m_editedChunks.insert(chunk.ChunkPosition);
     }
 
-    void VoxelWorldRenderer::HandleChunkEdits() {
-        if (m_chunkMesher->HandleChunkEdits(m_editedChunks)) {
+    void VoxelWorldRenderer::HandleChunkEdits(glm::vec3 cameraPos) {
+        if (m_chunkMesher->HandleChunkEdits(m_editedChunks, cameraPos)) {
             UpdateChunkDatasBuffer();
             m_onWorldEditedDelegate.Broadcast();
         }

@@ -31,3 +31,7 @@ PerImageDescriptor GameCamera::GetDescriptor(glm::u32 binding) const {
 CameraInfo GameCamera::GetCameraInfo() const {
     return m_cameraInfo;
 }
+
+glm::vec3 GameCamera::GetPosition() const {
+    return m_camera->GetPosition();
+}

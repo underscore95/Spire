@@ -23,18 +23,41 @@ namespace SpireVoxel {
         }
     }
 
-    bool ChunkMesher::HandleChunkEdits(std::unordered_set<glm::ivec3> &editedChunks) {
+    struct ToMesh {
+        glm::ivec3 ChunkCoords;
+        float SquaredDistanceFromCamera;
+
+        bool operator<(const ToMesh &other) const {
+            return SquaredDistanceFromCamera < other.SquaredDistanceFromCamera;
+        }
+    };
+
+    bool ChunkMesher::HandleChunkEdits(std::unordered_set<glm::ivec3> &editedChunks, glm::vec3 cameraCoords) const {
+        // find the highest priority chunks
+        std::priority_queue<ToMesh> chunksToMesh;
+        glm::vec3 cameraChunkCoords = cameraCoords / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE);
+        for (glm::ivec3 chunkCoords : editedChunks) {
+            glm::vec3 delta = static_cast<glm::vec3>(chunkCoords) - cameraChunkCoords;
+            ToMesh toMesh(chunkCoords, glm::dot(delta, delta));
+
+            // If profiling, we want to remesh as much as possible
+            if (m_isProfilingMeshing || chunksToMesh.size() < m_numCPUThreads) {
+                chunksToMesh.push(toMesh);
+            } else if (!chunksToMesh.empty() && chunksToMesh.top().SquaredDistanceFromCamera > toMesh.SquaredDistanceFromCamera) {
+                chunksToMesh.pop();
+                chunksToMesh.push(toMesh);
+            }
+        }
+
         std::unordered_map<Chunk *, std::future<ChunkMesh> > meshingChunks;
 
         // submit mesh tasks to thread pool
-        for (const auto &chunkPos : editedChunks) {
-            Chunk *chunk = m_world.GetLoadedChunk(chunkPos);
+        while (!chunksToMesh.empty()) {
+            Chunk *chunk = m_world.GetLoadedChunk(chunksToMesh.top().ChunkCoords);
+            chunksToMesh.pop();
             if (!chunk) continue;
 
             meshingChunks[chunk] = Mesh(*chunk);
-
-            // If profiling, we want to remesh as much as possible
-            if (!m_isProfilingMeshing && meshingChunks.size() >= m_numCPUThreads) break;
         }
 
         // wait for meshing to complete then move meshingChunks into meshedChunks

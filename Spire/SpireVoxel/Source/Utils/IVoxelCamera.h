@@ -15,7 +15,9 @@ namespace SpireVoxel {
     public:
         virtual ~IVoxelCamera() = default;
 
-        virtual CameraInfo GetCameraInfo() const = 0;
+        [[nodiscard]] virtual CameraInfo GetCameraInfo() const = 0;
+
+        [[nodiscard]] virtual glm::vec3 GetPosition() const = 0;
 
         virtual void Render(const RenderInfo &renderInfo) = 0;
 

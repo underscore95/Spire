@@ -18,6 +18,8 @@ public:
 
     [[nodiscard]] SpireVoxel::CameraInfo GetCameraInfo() const override;
 
+    [[nodiscard]] glm::vec3 GetPosition() const override;
+
 private:
     const Spire::Engine &m_engine;
     std::unique_ptr<Spire::PerImageBuffer> m_uniformBuffer = nullptr;

@@ -24,7 +24,7 @@ namespace SpireVoxel {
 
     public:
         // Call once per frame
-        void Render(glm::u32 swapchainImageIndex);
+        void Render(glm::u32 swapchainImageIndex, glm::vec3 cameraPos);
 
         DelegateSubscribers<> &GetOnWorldEditSubscribers();
 
@@ -39,7 +39,7 @@ namespace SpireVoxel {
         // Replicate edits to chunks to the GPU
         void NotifyChunkEdited(const Chunk &chunk);
 
-        void HandleChunkEdits();
+        void HandleChunkEdits(glm::vec3 cameraPos);
 
     private:
         void NotifyChunkLoadedOrUnloaded();

@@ -17,7 +17,7 @@ namespace SpireVoxel {
 
     public:
         // Return true if something was remeshed
-        [[nodiscard]] bool HandleChunkEdits(std::unordered_set<glm::ivec3> &editedChunks);
+        [[nodiscard]] bool HandleChunkEdits(std::unordered_set<glm::ivec3> &editedChunks, glm::vec3 cameraCoords) const;
 
     private:
         // Mesh a chunk on another thread

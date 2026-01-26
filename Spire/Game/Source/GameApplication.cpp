@@ -32,7 +32,7 @@ void GameApplication::Start(Engine &engine) {
     });
     VoxelWorld &world = m_voxelRenderer->GetWorld();
 
-    m_voxelRenderer->GetWorld().GetRenderer().HandleChunkEdits();
+    m_voxelRenderer->GetWorld().GetRenderer().HandleChunkEdits(m_camera->GetPosition());
 
     if (Profiling::IS_PROFILING) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);

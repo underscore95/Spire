@@ -110,7 +110,7 @@ namespace SpireVoxel {
             }
         }
 
-        world.GetRenderer().HandleChunkEdits();
+        world.GetRenderer().HandleChunkEdits({});
 
         if (migratedAny) {
             Spire::info("Migrated world to latest voxel format, rewriting chunk files");

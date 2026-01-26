@@ -62,7 +62,7 @@ namespace SpireVoxel {
     }
 
     VkCommandBuffer VoxelRenderer::Render(glm::u32 imageIndex) const {
-        m_world->GetRenderer().Render(imageIndex);
+        m_world->GetRenderer().Render(imageIndex, m_camera.GetPosition());
 
         RenderInfo renderInfo = {
             .ImageIndex = imageIndex
