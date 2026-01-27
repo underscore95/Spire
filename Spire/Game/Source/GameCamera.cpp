@@ -12,6 +12,7 @@ GameCamera::GameCamera(const Engine &engine)
 void GameCamera::Update() {
     m_camera->Update(m_engine.GetDeltaTime() * Speed);
     m_cameraInfo.ViewProjectionMatrix = m_camera->GetProjectionMatrix() * m_camera->GetViewMatrix();
+    m_cameraInfo.Scale = Scale;
 }
 
 void GameCamera::Render(const RenderInfo &renderInfo) {

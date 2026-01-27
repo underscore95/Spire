@@ -358,6 +358,7 @@ namespace SpireVoxel {
     // Stores camera matrices
     struct CameraInfo {
         SPIRE_MAT4X4_TYPE ViewProjectionMatrix;
+        float Scale;
     };
 
 #ifdef __cplusplus

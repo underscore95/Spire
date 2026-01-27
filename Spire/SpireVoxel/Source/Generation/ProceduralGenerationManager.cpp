@@ -5,7 +5,7 @@
 #include "Utils/ThreadPool.h"
 
 namespace SpireVoxel {
-    static constexpr bool LOG = true;
+    static constexpr bool LOG = false;
 
     ProceduralGenerationManager::ProceduralGenerationManager(
         std::unique_ptr<IProceduralGenerationProvider> provider,

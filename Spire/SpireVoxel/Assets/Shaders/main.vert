@@ -33,7 +33,7 @@ void main()
     uint vertexVoxelPos = UnpackVertexDataVertexPosition(vtx.Packed_7X7Y7Z2VertPos3Face);
     uvec3 voxelPos = UnpackVertexDataXYZ(vtx.Packed_7X7Y7Z2VertPos3Face);// position in the chunk
     ivec3 chunkPos = ivec3(chunkData.ChunkX, chunkData.ChunkY, chunkData.ChunkZ);// position of the chunk in chunk-space, so chunk 1,0,0's minimum x voxel is 64
-    vec3 worldPos = vec3(voxelPos) + chunkPos * SPIRE_VOXEL_CHUNK_SIZE;// world position of the vertex
+    vec3 worldPos = (vec3(voxelPos) + chunkPos * SPIRE_VOXEL_CHUNK_SIZE) * cameraBuffer.cameraInfo.Scale;// world position of the vertex
     voxelFace = UnpackVertexDataFace(vtx.Packed_7X7Y7Z2VertPos3Face);
 
     gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);

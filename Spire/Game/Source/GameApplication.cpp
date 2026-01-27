@@ -2,6 +2,7 @@
 #include "../../Libs/glfw/include/GLFW/glfw3.h"
 #include "GameCamera.h"
 #include "Profiling.h"
+#include "Generation/Controllers/EmptyProceduralGenerationController.h"
 #include "Generation/Controllers/SimpleProceduralGenerationController.h"
 #include "Generation/Providers/SimpleProceduralGenerationProvider.h"
 #include "Serialisation/VoxelSerializer.h"
@@ -17,7 +18,7 @@ GameApplication::GameApplication() = default;
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
 
-    auto proceduralGenerationController = std::make_unique<SimpleProceduralGenerationController>();
+    auto proceduralGenerationController = std::make_unique<EmptyProceduralGenerationController>();
     auto proceduralGenerationProvider = std::make_unique<SimpleProceduralGenerationProvider>();
 
     m_camera = std::make_unique<GameCamera>(engine);
@@ -162,31 +163,34 @@ void GameApplication::RenderUi() const {
         edit.Apply(m_voxelRenderer->GetWorld());
     }
 
-    glm::vec3 cameraForward = glm::normalize(m_camera->GetCamera().GetForward());
-
-    const char *dir;
-    if (std::abs(cameraForward.x) > std::abs(cameraForward.y) && std::abs(cameraForward.x) > std::abs(cameraForward.z)) {
-        dir = (cameraForward.x > 0) ? "PosX" : "NegX";
-    } else if (std::abs(cameraForward.y) > std::abs(cameraForward.x) && std::abs(cameraForward.y) > std::abs(cameraForward.z)) {
-        dir = (cameraForward.y > 0) ? "PosY" : "NegY";
-    } else {
-        dir = (cameraForward.z > 0) ? "PosZ" : "NegZ";
-    }
-
-    ImGui::Text("Facing: %s (%f, %f, %f) (Enum Value: %d)", dir, cameraForward.x, cameraForward.y, cameraForward.z, DirectionToFace(cameraForward));
-
     glm::vec3 cameraPos = m_camera->GetCamera().GetPosition();
-    ImGui::Text("Position %f, %f, %f", cameraPos.x, cameraPos.y, cameraPos.z);
-
     glm::vec3 chunkPos = {glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE)};
     ImGui::Text("Chunk Position %f, %f, %f", chunkPos.x, chunkPos.y, chunkPos.z);
 
     ImGui::Text("Chunks Loaded: %d / %d (%d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(), VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS,
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0)));
 
-    ImGui::SliderFloat("Camera Speed: ", &m_camera->Speed, 1, 25);
-    if (ImGui::Button("Teleport to 0,0,0")) {
-        m_camera->GetCamera().SetPosition(glm::vec3{0, 0, 0});
+    if (ImGui::CollapsingHeader("Camera")) {
+        glm::vec3 cameraForward = glm::normalize(m_camera->GetCamera().GetForward());
+
+        const char *dir;
+        if (std::abs(cameraForward.x) > std::abs(cameraForward.y) && std::abs(cameraForward.x) > std::abs(cameraForward.z)) {
+            dir = (cameraForward.x > 0) ? "PosX" : "NegX";
+        } else if (std::abs(cameraForward.y) > std::abs(cameraForward.x) && std::abs(cameraForward.y) > std::abs(cameraForward.z)) {
+            dir = (cameraForward.y > 0) ? "PosY" : "NegY";
+        } else {
+            dir = (cameraForward.z > 0) ? "PosZ" : "NegZ";
+        }
+
+        ImGui::Text("Facing: %s (%f, %f, %f) (Enum Value: %d)", dir, cameraForward.x, cameraForward.y, cameraForward.z, DirectionToFace(cameraForward));
+
+        ImGui::Text("Position %f, %f, %f", cameraPos.x, cameraPos.y, cameraPos.z);
+
+        ImGui::SliderFloat("Camera Speed: ", &m_camera->Speed, 1, 25);
+        ImGui::SliderFloat("Camera Scale: ", &m_camera->Scale, 0.01, 1);
+        if (ImGui::Button("Teleport to 0,0,0")) {
+            m_camera->GetCamera().SetPosition(glm::vec3{0, 0, 0});
+        }
     }
 
     ImGui::End();
