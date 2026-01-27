@@ -59,6 +59,8 @@ namespace SpireVoxel {
         m_oldCommandBuffers.Update();
         m_oldDescriptorManagers.Update();
         m_oldPipelines.Update();
+
+        m_world->Update();
     }
 
     VkCommandBuffer VoxelRenderer::Render(glm::u32 imageIndex) const {

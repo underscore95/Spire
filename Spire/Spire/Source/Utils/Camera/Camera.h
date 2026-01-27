@@ -20,7 +20,9 @@ namespace Spire {
 
         glm::vec3 GetForward() const;
 
-          glm::vec3 GetPosition() const;
+        glm::vec3 GetPosition() const;
+
+        void SetPosition(glm::vec3 pos);
 
     private:
         void UpdateCameraVectors();

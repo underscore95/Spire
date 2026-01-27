@@ -2,6 +2,8 @@
 #include "../../Libs/glfw/include/GLFW/glfw3.h"
 #include "GameCamera.h"
 #include "Profiling.h"
+#include "Generation/Controllers/SimpleProceduralGenerationController.h"
+#include "Generation/Providers/SimpleProceduralGenerationProvider.h"
 #include "Serialisation/VoxelSerializer.h"
 #include "Types/VoxelTypeInfo.h"
 #include "Types/VoxelTypeRegistry.h"
@@ -15,8 +17,18 @@ GameApplication::GameApplication() = default;
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
 
+    auto proceduralGenerationController = std::make_unique<SimpleProceduralGenerationController>();
+    auto proceduralGenerationProvider = std::make_unique<SimpleProceduralGenerationProvider>();
+
     m_camera = std::make_unique<GameCamera>(engine);
-    auto tempWorld = std::make_unique<VoxelWorld>(engine.GetRenderingManager(), [this] { RecreatePipeline(); }, Profiling::IS_PROFILING);
+    auto tempWorld = std::make_unique<VoxelWorld>(
+        engine.GetRenderingManager(),
+        [this] { RecreatePipeline(); },
+        Profiling::IS_PROFILING,
+        std::move(proceduralGenerationProvider),
+        std::move(proceduralGenerationController),
+        *m_camera);
+
     m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine, *m_camera, std::move(tempWorld), [](VoxelTypeRegistry &voxelTypeRegistry) {
         voxelTypeRegistry.RegisterTypes(std::vector<VoxelTypeInfo>{
             {
@@ -169,8 +181,13 @@ void GameApplication::RenderUi() const {
     glm::vec3 chunkPos = {glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE)};
     ImGui::Text("Chunk Position %f, %f, %f", chunkPos.x, chunkPos.y, chunkPos.z);
 
-    ImGui::Text("Chunks Loaded: %d (%d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(),
+    ImGui::Text("Chunks Loaded: %d / %d (%d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(), VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS,
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0)));
+
+    ImGui::SliderFloat("Camera Speed: ", &m_camera->Speed, 1, 25);
+    if (ImGui::Button("Teleport to 0,0,0")) {
+        m_camera->GetCamera().SetPosition(glm::vec3{0, 0, 0});
+    }
 
     ImGui::End();
 

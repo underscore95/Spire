@@ -41,6 +41,8 @@ namespace SpireVoxel {
 
         void HandleChunkEdits(glm::vec3 cameraPos);
 
+        [[nodiscard]] glm::u32 NumEditedChunks() const;
+
     private:
         void NotifyChunkLoadedOrUnloaded();
 
@@ -52,9 +54,11 @@ namespace SpireVoxel {
 
         [[nodiscard]] PushConstantsData CreatePushConstants() const;
 
+    public:
+        static constexpr glm::u32 MAXIMUM_LOADED_CHUNKS = 2048;
+
     private:
-        static constexpr glm::u32 MAXIMUM_VERTICES_IN_WORLD = 36 * (SPIRE_VOXEL_CHUNK_VOLUME * 48);
-        static constexpr glm::u32 MAXIMUM_LOADED_CHUNKS = 384 * 3;
+        static constexpr glm::u32 STARTING_MAXIMUM_VERTICES_IN_WORLD = 36 * (SPIRE_VOXEL_CHUNK_VOLUME * 48);
 
         VoxelWorld &m_world;
 
@@ -71,5 +75,6 @@ namespace SpireVoxel {
         std::vector<ChunkData> m_latestCachedChunkData;
         std::unordered_set<glm::ivec3> m_editedChunks;
         std::unique_ptr<ChunkMesher> m_chunkMesher;
+        std::mutex m_chunkEditNotifyMutex;
     };
 } // SpireVoxel

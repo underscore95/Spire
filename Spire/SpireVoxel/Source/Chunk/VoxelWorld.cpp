@@ -3,9 +3,13 @@
 
 namespace SpireVoxel {
     VoxelWorld::VoxelWorld(Spire::RenderingManager &renderingManager,
-                           std::function<void()> recreatePipelineCallback,
-                           bool isProfilingMeshing) {
+                           const std::function<void()>& recreatePipelineCallback,
+                           bool isProfilingMeshing,
+                           std::unique_ptr<IProceduralGenerationProvider> provider,
+                           std::unique_ptr<IProceduralGenerationController> controller,
+                           IVoxelCamera &camera) {
         m_renderer = std::make_unique<VoxelWorldRenderer>(*this, renderingManager, recreatePipelineCallback, isProfilingMeshing);
+        m_proceduralGenerationManager = std::make_unique<ProceduralGenerationManager>(std::move(provider), std::move(controller), *this, camera);
     }
 
     Chunk &VoxelWorld::LoadChunk(glm::ivec3 chunkPosition) {
@@ -22,6 +26,7 @@ namespace SpireVoxel {
 
         for (auto chunkPosition : chunkPositions) {
             if (m_chunks.contains(chunkPosition)) continue;
+            if (m_chunks.size() + 1 > VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS) break;
             m_chunks.try_emplace(chunkPosition, new Chunk(chunkPosition, *this)); // this constructs a unique ptr
             auto &chunk = m_chunks.at(chunkPosition);
             assert(!chunk->IsCorrupted());
@@ -149,5 +154,9 @@ namespace SpireVoxel {
             abs(worldVoxelPosition.y % SPIRE_VOXEL_CHUNK_SIZE),
             abs(worldVoxelPosition.z % SPIRE_VOXEL_CHUNK_SIZE)
         };
+    }
+
+    void VoxelWorld::Update() const {
+        m_proceduralGenerationManager->Update();
     }
 } // SpireVoxel

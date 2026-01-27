@@ -31,7 +31,7 @@ public:
 #ifndef NDEBUG
     static constexpr bool IS_PROFILING = false; // debug
 #else
-    static constexpr bool IS_PROFILING = true; // release
+    static constexpr bool IS_PROFILING = false; // release
 #endif
 
 private:

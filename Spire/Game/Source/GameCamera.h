@@ -20,6 +20,7 @@ public:
 
     [[nodiscard]] glm::vec3 GetPosition() const override;
 
+    float Speed = 20;
 private:
     const Spire::Engine &m_engine;
     std::unique_ptr<Spire::PerImageBuffer> m_uniformBuffer = nullptr;

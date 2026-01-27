@@ -1,4 +1,5 @@
 #pragma once
+
 #include "EngineIncludes.h"
 
 namespace SpireVoxel {

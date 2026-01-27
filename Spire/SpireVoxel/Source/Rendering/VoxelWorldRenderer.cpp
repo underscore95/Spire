@@ -89,19 +89,26 @@ namespace SpireVoxel {
     }
 
     void VoxelWorldRenderer::NotifyChunkEdited(const Chunk &chunk) {
+        std::unique_lock lock(m_chunkEditNotifyMutex);
         assert(m_world.IsLoaded(chunk));
         assert(m_world.GetLoadedChunk(chunk.ChunkPosition) == &chunk);
         m_editedChunks.insert(chunk.ChunkPosition);
     }
 
     void VoxelWorldRenderer::HandleChunkEdits(glm::vec3 cameraPos) {
+        std::unique_lock lock(m_chunkEditNotifyMutex);
         if (m_chunkMesher->HandleChunkEdits(m_editedChunks, cameraPos)) {
             UpdateChunkDatasBuffer();
             m_onWorldEditedDelegate.Broadcast();
         }
     }
 
+    glm::u32 VoxelWorldRenderer::NumEditedChunks() const {
+        return m_editedChunks.size();
+    }
+
     void VoxelWorldRenderer::NotifyChunkLoadedOrUnloaded() {
+        std::unique_lock lock(m_chunkEditNotifyMutex);
         UpdateChunkDatasBuffer();
         m_onWorldEditedDelegate.Broadcast();
     }

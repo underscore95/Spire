@@ -79,6 +79,11 @@ namespace Spire {
         return m_position;
     }
 
+    void Camera::SetPosition(glm::vec3 pos) {
+        m_position = pos;
+        UpdateCameraVectors();
+    }
+
     void Camera::UpdateCameraVectors() {
         // calculate the new Front vector
         glm::vec3 front;
