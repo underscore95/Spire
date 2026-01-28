@@ -50,14 +50,15 @@ void GameApplication::Start(Engine &engine) {
     if (Profiling::IS_PROFILING) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
-    } //else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test2");
+    } else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
 
     Chunk &chunk = world.LoadChunk({0, 0, 0});
-    BasicVoxelEdit({
-        BasicVoxelEdit::Edit{{0, 0, 0}, 1}
-    }).Apply(world);
 
-    chunk.LOD.Scale=2;
+    // BasicVoxelEdit({
+    //     BasicVoxelEdit::Edit{{0, 0, 0}, 1}
+    // }).Apply(world);
+
+  //  world.IncreaseLODTo(chunk, 2);
     //world.LoadChunk({0, 0, 0});
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 0}, 2},
@@ -92,7 +93,7 @@ void GameApplication::Update() {
     m_camera->Update();
     RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), m_camera->GetCamera().GetForward(), 10);
     if (hit) {
-        Chunk *chunkOfHitVoxel = m_voxelRenderer->GetWorld().GetLoadedChunk(VoxelWorld::GetChunkPositionOfVoxel(hit.VoxelPosition));
+        Chunk *chunkOfHitVoxel = m_voxelRenderer->GetWorld().TryGetLoadedChunk(VoxelWorld::GetChunkPositionOfVoxel(hit.VoxelPosition));
 
         if (m_engine->GetWindow().IsKeyPressed(GLFW_KEY_L) && chunkOfHitVoxel) {
             glm::ivec3 adjacentVoxel = hit.VoxelPosition + FaceToDirection(hit.Face);

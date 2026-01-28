@@ -27,7 +27,7 @@ namespace SpireVoxel {
 
         std::vector<Chunk *> chunksToGenerate;
         for (glm::ivec3 coord : coordsToLoad) {
-            Chunk *chunk = m_world.GetLoadedChunk(coord);
+            Chunk *chunk = m_world.TryGetLoadedChunk(coord);
             if (chunk) {
                 chunksToGenerate.push_back(chunk);
             }

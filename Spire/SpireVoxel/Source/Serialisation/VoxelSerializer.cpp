@@ -105,7 +105,7 @@ namespace SpireVoxel {
 
             world.GetRenderer().NotifyChunkEdited(chunk);
             for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
-                Chunk *adjacent = world.GetLoadedChunk(chunk.ChunkPosition + FaceToDirection(face));
+                Chunk *adjacent = world.TryGetLoadedChunk(chunk.ChunkPosition + FaceToDirection(face));
                 if (adjacent) world.GetRenderer().NotifyChunkEdited(*adjacent);
             }
         }

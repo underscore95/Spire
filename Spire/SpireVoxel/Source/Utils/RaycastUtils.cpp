@@ -90,20 +90,14 @@ namespace SpireVoxel {
 
     bool RaycastUtils::IsLODChunk(VoxelWorld &world, glm::vec3 worldPosition) {
         glm::ivec3 chunkCoords = world.GetChunkPositionOfVoxel(worldPosition);
-        Chunk *chunk = world.GetLoadedChunk(chunkCoords);
+        Chunk *chunk = world.TryGetLoadedChunk(chunkCoords);
         if (chunk) return chunk->LOD.Scale > 1;
 
         // Not loaded, check if any chunk is an LOD chunk and contains this
         // TODO: Maintain a data structure to make this lookup faster
-        for (const auto &[candidateChunkCoords, candidateChunkPtr] : world) {
-            // If candidate chunk is > in any axis, it cannot contain the chunk
-            if (candidateChunkCoords.x > chunkCoords.x || candidateChunkCoords.y > chunkCoords.y || candidateChunkCoords.z > chunkCoords.z) continue;
-            glm::ivec3 maxCandidateChunkCoords = candidateChunkCoords + glm::ivec3{1, 1, 1} * static_cast<int>(candidateChunkPtr->LOD.Scale - 1);
-            // After LOD scaling, candidate isn't big enough to contain ours
-            if (maxCandidateChunkCoords.x > chunkCoords.x || maxCandidateChunkCoords.y > chunkCoords.y || maxCandidateChunkCoords.z > chunkCoords.z) continue;
-            return true;
+        for (const auto &[_, candidateChunkPtr] : world) {
+            if (DetailLevel::ChunkIncludes(*candidateChunkPtr, chunkCoords)) return true;
         }
-
         return false;
     }
 } // SpireVoxel

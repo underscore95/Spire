@@ -42,7 +42,7 @@ namespace SpireVoxel {
 
         const Chunk *queryChunk = &chunk;
         if (queryChunkPosition != chunk.ChunkPosition) {
-            queryChunk = chunk.World.GetLoadedChunk(queryChunkPosition);
+            queryChunk = chunk.World.TryGetLoadedChunk(queryChunkPosition);
             if (!queryChunk) return VOXEL_TYPE_AIR;
         }
         return queryChunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(queryPosition)];

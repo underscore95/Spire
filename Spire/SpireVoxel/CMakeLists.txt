@@ -45,6 +45,7 @@ add_library(SpireVoxel STATIC
         Source/Generation/ProceduralGenerationManager.cpp
         Source/Generation/ProceduralGenerationManager.h
         Source/Chunk/DetailLevel.h
+        Source/Chunk/DetailLevel.cpp
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

@@ -31,9 +31,9 @@ namespace SpireVoxel {
         void UnloadChunks(const std::vector<glm::ivec3> &chunkPositions);
 
         // Get chunk if loaded
-        [[nodiscard]] Chunk *GetLoadedChunk(glm::ivec3 chunkPosition);
+        [[nodiscard]] Chunk *TryGetLoadedChunk(glm::ivec3 chunkPosition);
 
-        [[nodiscard]] const Chunk *GetLoadedChunk(glm::ivec3 chunkPosition) const;
+        [[nodiscard]] const Chunk *TryGetLoadedChunk(glm::ivec3 chunkPosition) const;
 
         [[nodiscard]] bool IsLoaded(const Chunk &chunk);
 
@@ -72,6 +72,9 @@ namespace SpireVoxel {
 
         // Convert world voxel coords to chunk space (0 to 63 range)
         [[nodiscard]] static glm::uvec3 ToChunkSpace(glm::ivec3 worldVoxelPosition);
+
+        // Increase the LOD of a chunk
+        void IncreaseLODTo(Chunk& chunk, glm::u32 newLODScale);
 
     private:
         void Update() const;

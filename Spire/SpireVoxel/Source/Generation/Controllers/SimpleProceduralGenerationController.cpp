@@ -8,7 +8,7 @@ namespace SpireVoxel {
         cameraChunkPos.y = 0; // Only load chunks at Y=0
 
         glm::ivec3 spiralCoords = cameraChunkPos + SimpleProceduralGenerationController::GetSpiral(spiralIndex);
-        while (world.GetLoadedChunk(spiralCoords)) {
+        while (world.TryGetLoadedChunk(spiralCoords)) {
             spiralIndex++;
             spiralCoords = cameraChunkPos + SimpleProceduralGenerationController::GetSpiral(spiralIndex);
         }

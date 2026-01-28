@@ -42,7 +42,7 @@ namespace SpireVoxel {
 
         // submit mesh tasks to thread pool
         for (glm::uvec3 chunkCoords : chunksToMesh) {
-            Chunk *chunk = m_world.GetLoadedChunk(chunkCoords);
+            Chunk *chunk = m_world.TryGetLoadedChunk(chunkCoords);
             if (!chunk) continue;
 
             meshingChunks[chunk] = Mesh(*chunk);
