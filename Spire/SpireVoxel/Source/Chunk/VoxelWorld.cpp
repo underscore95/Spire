@@ -3,7 +3,7 @@
 
 namespace SpireVoxel {
     VoxelWorld::VoxelWorld(Spire::RenderingManager &renderingManager,
-                           const std::function<void()>& recreatePipelineCallback,
+                           const std::function<void()> &recreatePipelineCallback,
                            bool isProfilingMeshing,
                            std::unique_ptr<IProceduralGenerationProvider> provider,
                            std::unique_ptr<IProceduralGenerationController> controller,

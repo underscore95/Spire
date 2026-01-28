@@ -50,9 +50,14 @@ void GameApplication::Start(Engine &engine) {
     if (Profiling::IS_PROFILING) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
-    } else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
+    } //else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test2");
 
-    //world.LoadChunk({0, 0, -1});
+    Chunk &chunk = world.LoadChunk({0, 0, 0});
+    BasicVoxelEdit({
+        BasicVoxelEdit::Edit{{0, 0, 0}, 1}
+    }).Apply(world);
+
+    chunk.LOD.Scale=2;
     //world.LoadChunk({0, 0, 0});
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 0}, 2},
@@ -147,6 +152,8 @@ void GameApplication::RenderUi() const {
             m_voxelRenderer->GetWorld().GetVoxelAt(hit.VoxelPosition),
             FaceToString(hit.Face)
         );
+    } else if (hit.TerminatedInLODChunk) {
+        targetedVoxelStr = "Cannot raycast in LOD chunk";
     }
     ImGui::Text("Targeted Voxel: %s", targetedVoxelStr.c_str());
 

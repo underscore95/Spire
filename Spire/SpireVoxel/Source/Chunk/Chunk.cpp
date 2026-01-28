@@ -215,7 +215,8 @@ namespace SpireVoxel {
             .ChunkZ = ChunkPosition.z,
             .VoxelDataChunkIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.Start / sizeof(GPUChunkVoxelData)),
             .VoxelDataAllocationIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.AllocationIndex),
-            .VertexBufferIndex = static_cast<glm::u32>(VertexAllocation.Location.AllocationIndex)
+            .VertexBufferIndex = static_cast<glm::u32>(VertexAllocation.Location.AllocationIndex),
+            .LODScale = static_cast<float>(LOD.Scale)
         };
     }
 
