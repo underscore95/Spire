@@ -152,8 +152,7 @@ namespace Spire {
         m_allocationsPendingFree.push_back({location, m_numSwapchainImages - 1});
     }
 
-    void BufferAllocator::ScheduleFreeAllocation(Allocation allocation) {
-        std::unique_lock lock(m_mutex);
+    void BufferAllocator::ScheduleFreeAllocation(const Allocation &allocation) {
         assert(m_allocations.contains(allocation.Location));
         assert(m_allocations[allocation.Location] == allocation.Size);
         ScheduleFreeAllocation(allocation.Location);

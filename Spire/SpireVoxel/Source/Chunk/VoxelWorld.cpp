@@ -157,15 +157,36 @@ namespace SpireVoxel {
     }
 
     void ReduceDetail(Chunk &reduceInto, const Chunk &target, glm::u32 newLODScale) {
-        glm::uvec3 offset = (target.ChunkPosition - reduceInto.ChunkPosition) / static_cast<glm::i32>(newLODScale) * SPIRE_VOXEL_CHUNK_SIZE;
+        const bool same = &reduceInto == &target;
+
+        std::unique_ptr<std::array<VoxelType, SPIRE_VOXEL_CHUNK_VOLUME> > srcData{};
+        const std::array<VoxelType, SPIRE_VOXEL_CHUNK_VOLUME> *src = &target.VoxelData;
+
+        if (same) {
+            srcData = std::make_unique<std::array<VoxelType, SPIRE_VOXEL_CHUNK_VOLUME> >(reduceInto.VoxelData);
+            src = srcData.get();
+            reduceInto.VoxelData = {};
+        }
+
+        glm::uvec3 offset = static_cast<glm::vec3>(target.ChunkPosition - reduceInto.ChunkPosition) * static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE / newLODScale);
+
         for (glm::u32 x = 0; x < SPIRE_VOXEL_CHUNK_SIZE; x += newLODScale) {
             for (glm::u32 y = 0; y < SPIRE_VOXEL_CHUNK_SIZE; y += newLODScale) {
                 for (glm::u32 z = 0; z < SPIRE_VOXEL_CHUNK_SIZE; z += newLODScale) {
-                    reduceInto.VoxelData[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(x/newLODScale, y/newLODScale, z/newLODScale)] = target.VoxelData[
-                        SPIRE_VOXEL_POSITION_TO_INDEX((glm::uvec3{x, y, z} + offset ))];
+                    reduceInto.VoxelData[
+                        SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(
+                            x / newLODScale + offset.x,
+                            y / newLODScale + offset.y,
+                            z / newLODScale + offset.z
+                        )
+                    ] = (*src)[
+                        SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(x, y, z)
+                    ];
                 }
             }
         }
+
+        assert(!reduceInto.IsCorrupted());
     }
 
     void VoxelWorld::IncreaseLODTo(Chunk &chunk, glm::u32 newLODScale) {
@@ -180,51 +201,42 @@ namespace SpireVoxel {
 
         // Create a vector of all chunks that this chunk will now cover
         std::vector<Chunk *> coveredChunks;
-        std::vector<glm::ivec3> coveredChunkPositionsExcludingMain;
-        coveredChunkPositionsExcludingMain.reserve(newLODScale * newLODScale * newLODScale);
+        std::vector<glm::ivec3> coveredChunkPositions;
+        coveredChunkPositions.reserve(newLODScale * newLODScale * newLODScale);
         coveredChunks.reserve(newLODScale * newLODScale * newLODScale);
         for (int x = chunk.ChunkPosition.x; x < chunk.ChunkPosition.x + newLODScale; x++) {
             for (int y = chunk.ChunkPosition.y; y < chunk.ChunkPosition.y + newLODScale; y++) {
                 for (int z = chunk.ChunkPosition.z; z < chunk.ChunkPosition.z + newLODScale; z++) {
                     Chunk *coveredChunk = TryGetLoadedChunk({x, y, z});
-                    if (coveredChunk) {
+                    if (glm::ivec3{x, y, z} != chunk.ChunkPosition && coveredChunk) {
                         assert(coveredChunk->LOD.Scale == 1);
                         coveredChunks.push_back(coveredChunk);
-                        if (glm::ivec3{x, y, z} != chunk.ChunkPosition) {
-                            coveredChunkPositionsExcludingMain.push_back(coveredChunk->ChunkPosition); // Don't want to unload the main chunk
-                        }
+                        coveredChunkPositions.push_back(coveredChunk->ChunkPosition);
                     }
                 }
             }
         }
 
         // Reduce detail
-        assert(coveredChunks[0] == &chunk); // need to do this chunk first so we aren't overwriting stuff
-
         ReduceDetail(chunk, chunk, newLODScale);
 
         // set everything in main chunk except squished main chunk voxels to air
         for (glm::u32 x = 0; x < SPIRE_VOXEL_CHUNK_SIZE; x++) {
             for (glm::u32 y = 0; y < SPIRE_VOXEL_CHUNK_SIZE; y++) {
                 for (glm::u32 z = 0; z < SPIRE_VOXEL_CHUNK_SIZE; z++) {
-                    if (x < SPIRE_VOXEL_CHUNK_SIZE / newLODScale && y <SPIRE_VOXEL_CHUNK_SIZE / newLODScale && z < SPIRE_VOXEL_CHUNK_SIZE / newLODScale) continue;
+                    if (x < SPIRE_VOXEL_CHUNK_SIZE / newLODScale && y < SPIRE_VOXEL_CHUNK_SIZE / newLODScale && z < SPIRE_VOXEL_CHUNK_SIZE / newLODScale) continue;
                     glm::u32 index = SPIRE_VOXEL_POSITION_TO_INDEX((glm::uvec3{x, y, z} ));
                     chunk.VoxelData[index] = 0;
                 }
             }
         }
 
-        int i = 0;
         for (Chunk *coveredChunk : coveredChunks) {
-            if (i != 0) {
-                ReduceDetail(chunk, *coveredChunk, newLODScale);
-            }
-
-            i++;
+            ReduceDetail(chunk, *coveredChunk, newLODScale);
         }
 
         chunk.LOD.Scale = newLODScale;
-        UnloadChunks(coveredChunkPositionsExcludingMain);
+        UnloadChunks(coveredChunkPositions);
 
         chunk.RegenerateVoxelBits();
         GetRenderer().NotifyChunkEdited(chunk);

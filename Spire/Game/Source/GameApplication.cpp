@@ -50,15 +50,15 @@ void GameApplication::Start(Engine &engine) {
     if (Profiling::IS_PROFILING) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
-    } else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
+    } else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
 
-    Chunk &chunk = world.LoadChunk({0, 0, 0});
+    // world.LoadChunks({{0,0,0},{1,0,0}});
+    // CuboidVoxelEdit({0,0,0},{128,64,64},{1}).Apply(world);
 
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 0}, 1}
     // }).Apply(world);
 
-  //  world.IncreaseLODTo(chunk, 2);
     //world.LoadChunk({0, 0, 0});
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 0}, 2},
@@ -199,6 +199,20 @@ void GameApplication::RenderUi() const {
         if (ImGui::Button("Teleport to 0,0,0")) {
             m_camera->GetCamera().SetPosition(glm::vec3{0, 0, 0});
         }
+    }
+
+    if (ImGui::Button("LOD")) {
+        auto &world = m_voxelRenderer->GetWorld();
+        int newLod = 4;
+        std::vector<Chunk*> chunks;
+        for (auto&[chunkCoords,chunk] : world) {
+if (chunkCoords.x % newLod == 0 && chunkCoords.y == 0 &&chunkCoords.z%newLod==0) {
+    chunks.push_back(chunk.get());
+}
+        }
+       for (Chunk* chunk : chunks ) {
+           world.IncreaseLODTo(*chunk, newLod);
+       }
     }
 
     ImGui::End();
