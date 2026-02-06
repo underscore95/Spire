@@ -227,5 +227,7 @@ This is the most intensive step if meshing on the GPU (SpireVoxel doesn't)
 Converting from 4D face coordinates to 3D voxel coordinates is possible:
 
 if face is Z axis: (col, row, slice)
+
 else if face is X axis: (slice, row, col)
+
 else if face is Y axis: (col, slice, row) 
