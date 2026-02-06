@@ -204,11 +204,11 @@ namespace SpireVoxel {
         std::vector<glm::ivec3> coveredChunkPositions;
         coveredChunkPositions.reserve(newLODScale * newLODScale * newLODScale);
         coveredChunks.reserve(newLODScale * newLODScale * newLODScale);
-        for (int x = chunk.ChunkPosition.x; x < chunk.ChunkPosition.x + newLODScale; x++) {
-            for (int y = chunk.ChunkPosition.y; y < chunk.ChunkPosition.y + newLODScale; y++) {
-                for (int z = chunk.ChunkPosition.z; z < chunk.ChunkPosition.z + newLODScale; z++) {
+        for (int x = chunk.ChunkPosition.x; x < chunk.ChunkPosition.x + static_cast<int>(newLODScale); x++) {
+            for (int y = chunk.ChunkPosition.y; y < chunk.ChunkPosition.y + static_cast<int>(newLODScale); y++) {
+                for (int z = chunk.ChunkPosition.z; z < chunk.ChunkPosition.z +static_cast<int>(newLODScale); z++) {
                     Chunk *coveredChunk = TryGetLoadedChunk({x, y, z});
-                    if (glm::ivec3{x, y, z} != chunk.ChunkPosition && coveredChunk) {
+                    if ( coveredChunk  && coveredChunk != &chunk ) {
                         assert(coveredChunk->LOD.Scale == 1);
                         coveredChunks.push_back(coveredChunk);
                         coveredChunkPositions.push_back(coveredChunk->ChunkPosition);

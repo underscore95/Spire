@@ -205,10 +205,10 @@ void GameApplication::RenderUi() const {
 
     if (ImGui::Button("LOD")) {
         auto &world = m_voxelRenderer->GetWorld();
-        int newLod = 4;
+        int newLod = 2;
         std::vector<Chunk *> chunks;
         for (auto &[chunkCoords,chunk] : world) {
-            if (chunkCoords.x % newLod == 0 && chunkCoords.y == 0 && chunkCoords.z % newLod == 0) {
+            if (chunkCoords.x % newLod == 0 && (chunkCoords.y + 1 /*Test5 starts at chunk y = -1*/) % newLod == 0 && chunkCoords.z % newLod == 0) {
                 chunks.push_back(chunk.get());
             }
         }
