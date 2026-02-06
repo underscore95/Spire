@@ -129,8 +129,6 @@ A vertex is made up of 8 bytes, data is compressed using bit masking. Only 38 / 
 
 To ensure the data is tightly packed on the GPU, 64^3/2 u32 are stored instead and bitmask operations are used to get the u16
 
-For legacy reasons this is stored as an array of 64^3/8 uvec4 instead, this will be improved: https://trello.com/c/vqct2O0k/86-dont-store-voxel-data-in-uvec4
-
 ### ChunkData
 
 The chunk data buffer is used for indirect drawing, so each chunk data struct contains parameters for indirect drawing (vertex count, instance count, first vertex, first instance)
