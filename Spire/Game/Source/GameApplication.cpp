@@ -180,6 +180,8 @@ void GameApplication::RenderUi() const {
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0))
     );
 
+    m_profiling->RenderUI();
+
     if (ImGui::CollapsingHeader("Camera")) {
         glm::vec3 cameraForward = glm::normalize(m_camera->GetCamera().GetForward());
 
