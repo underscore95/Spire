@@ -15,7 +15,7 @@ namespace SpireVoxel {
         friend class VoxelRenderer;
     public:
         explicit VoxelWorld(
-            Spire::RenderingManager &renderingManager,
+            Spire::Engine& engine,
             const std::function<void()>& recreatePipelineCallback,
             bool isProfilingMeshing,
             std::unique_ptr<IProceduralGenerationProvider> provider,
@@ -84,5 +84,6 @@ namespace SpireVoxel {
         std::unordered_map<glm::ivec3, std::unique_ptr<Chunk> > m_chunks;
         std::unique_ptr<VoxelWorldRenderer> m_renderer;
         std::unique_ptr<ProceduralGenerationManager>m_proceduralGenerationManager;
+        Spire::Engine& m_engine;
     };
 } // SpireVoxel

@@ -23,7 +23,7 @@ void GameApplication::Start(Engine &engine) {
 
     m_camera = std::make_unique<GameCamera>(engine);
     auto tempWorld = std::make_unique<VoxelWorld>(
-        engine.GetRenderingManager(),
+        engine,
         [this] { RecreatePipeline(); },
         Profiling::IS_PROFILING,
         std::move(proceduralGenerationProvider),
@@ -178,7 +178,7 @@ void GameApplication::RenderUi() const {
     ImGui::Text("Chunks Loaded: %d / %d (%d MB RAM / %d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(), VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS,
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateCPUMemoryUsageForChunks()) / 1024.0 / 1024.0)),
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0))
-                );
+    );
 
     if (ImGui::CollapsingHeader("Camera")) {
         glm::vec3 cameraForward = glm::normalize(m_camera->GetCamera().GetForward());
@@ -203,9 +203,11 @@ void GameApplication::RenderUi() const {
         }
     }
 
+    static int newLod = 2;
+    ImGui::InputInt("New LOD Level", &newLod);
+
     if (ImGui::Button("LOD")) {
         auto &world = m_voxelRenderer->GetWorld();
-        int newLod = 2;
         std::vector<Chunk *> chunks;
         for (auto &[chunkCoords,chunk] : world) {
             if (chunkCoords.x % newLod == 0 && (chunkCoords.y + 1 /*Test5 starts at chunk y = -1*/) % newLod == 0 && chunkCoords.z % newLod == 0) {

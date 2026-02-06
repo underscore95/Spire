@@ -2,13 +2,15 @@
 #include "Rendering/VoxelWorldRenderer.h"
 
 namespace SpireVoxel {
-    VoxelWorld::VoxelWorld(Spire::RenderingManager &renderingManager,
-                           const std::function<void()> &recreatePipelineCallback,
-                           bool isProfilingMeshing,
-                           std::unique_ptr<IProceduralGenerationProvider> provider,
-                           std::unique_ptr<IProceduralGenerationController> controller,
-                           IVoxelCamera &camera) {
-        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, renderingManager, recreatePipelineCallback, isProfilingMeshing);
+    VoxelWorld::VoxelWorld(
+        Spire::Engine &engine,
+        const std::function<void()> &recreatePipelineCallback,
+        bool isProfilingMeshing,
+        std::unique_ptr<IProceduralGenerationProvider> provider,
+        std::unique_ptr<IProceduralGenerationController> controller,
+        IVoxelCamera &camera)
+        : m_engine(engine) {
+        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, engine.GetRenderingManager(), recreatePipelineCallback, isProfilingMeshing);
         m_proceduralGenerationManager = std::make_unique<ProceduralGenerationManager>(std::move(provider), std::move(controller), *this, camera);
     }
 
@@ -156,7 +158,7 @@ namespace SpireVoxel {
         };
     }
 
-    void ReduceDetail(Chunk &reduceInto, const Chunk &target, glm::u32 newLODScale) {
+    void ReduceDetail(Spire::Random &random, Chunk &reduceInto, const Chunk &target, glm::u32 newLODScale) {
         const bool same = &reduceInto == &target;
 
         std::unique_ptr<std::array<VoxelType, SPIRE_VOXEL_CHUNK_VOLUME> > srcData{};
@@ -170,18 +172,22 @@ namespace SpireVoxel {
 
         glm::uvec3 offset = static_cast<glm::vec3>(target.ChunkPosition - reduceInto.ChunkPosition) * static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE / newLODScale);
 
-        for (glm::u32 x = 0; x < SPIRE_VOXEL_CHUNK_SIZE; x += newLODScale) {
-            for (glm::u32 y = 0; y < SPIRE_VOXEL_CHUNK_SIZE; y += newLODScale) {
-                for (glm::u32 z = 0; z < SPIRE_VOXEL_CHUNK_SIZE; z += newLODScale) {
+        for (glm::u32 x = 0; x < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; x++) {
+            for (glm::u32 y = 0; y < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; y++) {
+                for (glm::u32 z = 0; z < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; z++) {
+                    VoxelType newType = (*src)[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(
+                        x * newLODScale + random.RandomInt(0,newLODScale),
+                        y * newLODScale + random.RandomInt(0,newLODScale),
+                        z * newLODScale + random.RandomInt(0,newLODScale)
+                    )];
+
                     reduceInto.VoxelData[
                         SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(
-                            x / newLODScale + offset.x,
-                            y / newLODScale + offset.y,
-                            z / newLODScale + offset.z
+                            x + offset.x,
+                            y + offset.y,
+                            z + offset.z
                         )
-                    ] = (*src)[
-                        SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(x, y, z)
-                    ];
+                    ] = newType;
                 }
             }
         }
@@ -206,9 +212,9 @@ namespace SpireVoxel {
         coveredChunks.reserve(newLODScale * newLODScale * newLODScale);
         for (int x = chunk.ChunkPosition.x; x < chunk.ChunkPosition.x + static_cast<int>(newLODScale); x++) {
             for (int y = chunk.ChunkPosition.y; y < chunk.ChunkPosition.y + static_cast<int>(newLODScale); y++) {
-                for (int z = chunk.ChunkPosition.z; z < chunk.ChunkPosition.z +static_cast<int>(newLODScale); z++) {
+                for (int z = chunk.ChunkPosition.z; z < chunk.ChunkPosition.z + static_cast<int>(newLODScale); z++) {
                     Chunk *coveredChunk = TryGetLoadedChunk({x, y, z});
-                    if ( coveredChunk  && coveredChunk != &chunk ) {
+                    if (coveredChunk && coveredChunk != &chunk) {
                         assert(coveredChunk->LOD.Scale == 1);
                         coveredChunks.push_back(coveredChunk);
                         coveredChunkPositions.push_back(coveredChunk->ChunkPosition);
@@ -218,7 +224,7 @@ namespace SpireVoxel {
         }
 
         // Reduce detail
-        ReduceDetail(chunk, chunk, newLODScale);
+        ReduceDetail(m_engine.GetRandom(), chunk, chunk, newLODScale);
 
         // set everything in main chunk except squished main chunk voxels to air
         for (glm::u32 x = 0; x < SPIRE_VOXEL_CHUNK_SIZE; x++) {
@@ -232,7 +238,7 @@ namespace SpireVoxel {
         }
 
         for (Chunk *coveredChunk : coveredChunks) {
-            ReduceDetail(chunk, *coveredChunk, newLODScale);
+            ReduceDetail(m_engine.GetRandom(), chunk, *coveredChunk, newLODScale);
         }
 
         chunk.LOD.Scale = newLODScale;
