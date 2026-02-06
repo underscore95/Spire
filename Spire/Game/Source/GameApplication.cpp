@@ -175,8 +175,10 @@ void GameApplication::RenderUi() const {
     glm::vec3 chunkPos = {glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE)};
     ImGui::Text("Chunk Position %f, %f, %f", chunkPos.x, chunkPos.y, chunkPos.z);
 
-    ImGui::Text("Chunks Loaded: %d / %d (%d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(), VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS,
-                static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0)));
+    ImGui::Text("Chunks Loaded: %d / %d (%d MB RAM / %d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(), VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS,
+                static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateCPUMemoryUsageForChunks()) / 1024.0 / 1024.0)),
+                static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0))
+                );
 
     if (ImGui::CollapsingHeader("Camera")) {
         glm::vec3 cameraForward = glm::normalize(m_camera->GetCamera().GetForward());
@@ -204,15 +206,15 @@ void GameApplication::RenderUi() const {
     if (ImGui::Button("LOD")) {
         auto &world = m_voxelRenderer->GetWorld();
         int newLod = 4;
-        std::vector<Chunk*> chunks;
-        for (auto&[chunkCoords,chunk] : world) {
-if (chunkCoords.x % newLod == 0 && chunkCoords.y == 0 &&chunkCoords.z%newLod==0) {
-    chunks.push_back(chunk.get());
-}
+        std::vector<Chunk *> chunks;
+        for (auto &[chunkCoords,chunk] : world) {
+            if (chunkCoords.x % newLod == 0 && chunkCoords.y == 0 && chunkCoords.z % newLod == 0) {
+                chunks.push_back(chunk.get());
+            }
         }
-       for (Chunk* chunk : chunks ) {
-           world.IncreaseLODTo(*chunk, newLod);
-       }
+        for (Chunk *chunk : chunks) {
+            world.IncreaseLODTo(*chunk, newLod);
+        }
     }
 
     ImGui::End();
