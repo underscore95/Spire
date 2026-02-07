@@ -45,7 +45,10 @@ namespace SpireVoxel {
         assert(!reduceInto.IsCorrupted());
     }
 
-    LODManager::LODManager(VoxelWorld &world, std::shared_ptr<ISamplingOffsets> samplingOffsets)
+    LODManager::LODManager(
+        VoxelWorld &world,
+        const std::shared_ptr<ISamplingOffsets> &samplingOffsets
+    )
         : m_world(world),
           m_samplingOffsets(samplingOffsets) {
     }

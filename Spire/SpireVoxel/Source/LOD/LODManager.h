@@ -11,7 +11,7 @@ namespace SpireVoxel {
         friend class VoxelWorld;
 
     private:
-        LODManager(VoxelWorld &world, std::shared_ptr<ISamplingOffsets> samplingOffsets);
+        LODManager(VoxelWorld &world, const std::shared_ptr<ISamplingOffsets> &samplingOffsets);
 
     public:
         void IncreaseLODTo(Chunk &chunk, glm::u32 newLODScale);
