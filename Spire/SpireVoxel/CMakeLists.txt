@@ -49,6 +49,8 @@ add_library(SpireVoxel STATIC
         Source/LOD/SamplingOffsets.cpp
         Source/LOD/SamplingOffsets.h
         Source/LOD/ISamplingOffsets.h
+        Source/LOD/LODManager.cpp
+        Source/LOD/LODManager.h
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

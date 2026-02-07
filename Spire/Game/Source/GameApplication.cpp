@@ -220,7 +220,7 @@ void GameApplication::RenderUi() const {
             }
         }
         for (Chunk *chunk : chunks) {
-            world.IncreaseLODTo(*chunk, newLod);
+            world.GetLODManager().IncreaseLODTo(*chunk, newLod);
         }
         info("LOD {} in {} ms", newLod, timer.MillisSinceStart());
     }
