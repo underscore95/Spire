@@ -171,14 +171,16 @@ namespace SpireVoxel {
         }
 
         glm::uvec3 offset = static_cast<glm::vec3>(target.ChunkPosition - reduceInto.ChunkPosition) * static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE / newLODScale);
+        std::size_t chunkHash = Spire::Hash(reduceInto.ChunkPosition);
 
         for (glm::u32 x = 0; x < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; x++) {
             for (glm::u32 y = 0; y < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; y++) {
                 for (glm::u32 z = 0; z < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; z++) {
+                    glm::u32 sampledVoxelOffset = Spire::Hash(x ^ y ^ z, chunkHash) % newLODScale;
                     glm::u32 readIndex = SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(
-                        x * newLODScale + random.RandomInt(0,newLODScale),
-                        y * newLODScale + random.RandomInt(0,newLODScale),
-                        z * newLODScale + random.RandomInt(0,newLODScale)
+                        x * newLODScale + sampledVoxelOffset,
+                        y * newLODScale + sampledVoxelOffset,
+                        z * newLODScale + sampledVoxelOffset
                     );
                     assert(readIndex < SPIRE_VOXEL_CHUNK_VOLUME);
                     VoxelType type = (*src)[readIndex];
@@ -198,6 +200,7 @@ namespace SpireVoxel {
     }
 
     void VoxelWorld::IncreaseLODTo(Chunk &chunk, glm::u32 newLODScale) {
+        constexpr bool PROFILING_LOD = false;
         if (chunk.LOD.Scale >= newLODScale) {
             Spire::error("Failed to increase LOD scale of chunk {} {} {} from {} to {} because new value is not higher", chunk.ChunkPosition.x,
                          chunk.ChunkPosition.y, chunk.ChunkPosition.z, chunk.LOD.Scale, newLODScale);
@@ -208,6 +211,7 @@ namespace SpireVoxel {
         assert(chunk.LOD.Scale == 1); // todo make support other scales?
 
         // Create a vector of all chunks that this chunk will now cover
+        Spire::Timer timer;
         std::vector<Chunk *> coveredChunks;
         std::vector<glm::ivec3> coveredChunkPositions;
         coveredChunkPositions.reserve(newLODScale * newLODScale * newLODScale);
@@ -224,9 +228,14 @@ namespace SpireVoxel {
                 }
             }
         }
+        if (PROFILING_LOD) Spire::info("Find chunks: {} ms", timer.MillisSinceStart());
+        timer.Restart();
 
         // Reduce detail
         ReduceDetail(m_engine.GetRandom(), chunk, chunk, newLODScale);
+
+        if (PROFILING_LOD) Spire::info("Reduce detail of main chunk: {} ms", timer.MillisSinceStart());
+        timer.Restart();
 
         // set everything in main chunk except squished main chunk voxels to air
         for (glm::u32 x = 0; x < SPIRE_VOXEL_CHUNK_SIZE; x++) {
@@ -239,15 +248,29 @@ namespace SpireVoxel {
             }
         }
 
+        if (PROFILING_LOD) Spire::info("Set to air: {} ms", timer.MillisSinceStart());
+        timer.Restart();
+
         for (Chunk *coveredChunk : coveredChunks) {
             ReduceDetail(m_engine.GetRandom(), chunk, *coveredChunk, newLODScale);
         }
 
+        if (PROFILING_LOD) Spire::info("Reduce detail: {} ms", timer.MillisSinceStart());
+        timer.Restart();
+
         chunk.LOD.Scale = newLODScale;
         UnloadChunks(coveredChunkPositions);
 
+        if (PROFILING_LOD) Spire::info("Unload chunks: {} ms", timer.MillisSinceStart());
+        timer.Restart();
+
         chunk.RegenerateVoxelBits();
+        if (PROFILING_LOD) Spire::info("Regenerate chunks: {} ms", timer.MillisSinceStart());
+        timer.Restart();
         GetRenderer().NotifyChunkEdited(chunk);
+
+        if (PROFILING_LOD) Spire::info("Notify edit: {} ms", timer.MillisSinceStart());
+        timer.Restart();
     }
 
     void VoxelWorld::Update() const {

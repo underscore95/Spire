@@ -15,6 +15,15 @@ namespace Spire {
         seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         HashCombine(seed, rest...);
     }
+
+    template<typename T, typename... Rest>
+    std::size_t Hash(const T& v, Rest... rest) {
+        // i randomly generated this seed
+        // fun fact its a 0.05% chance to only have one letter
+        std::size_t seed = 0x7b63736001704543;
+        HashCombine(seed, v, rest...);
+        return seed;
+    }
 } // Spire
 
 // Makes a struct hashable by combining the hashes of its members
