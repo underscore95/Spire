@@ -3,6 +3,7 @@
 #include "EngineIncludes.h"
 #include "VoxelType.h"
 #include "Generation/ProceduralGenerationManager.h"
+#include "LOD/ISamplingOffsets.h"
 
 namespace SpireVoxel {
     class VoxelWorldRenderer;
@@ -16,6 +17,7 @@ namespace SpireVoxel {
     public:
         explicit VoxelWorld(
             Spire::Engine& engine,
+            const std::shared_ptr<ISamplingOffsets> &samplingOffsets,
             const std::function<void()>& recreatePipelineCallback,
             bool isProfilingMeshing,
             std::unique_ptr<IProceduralGenerationProvider> provider,
@@ -85,5 +87,6 @@ namespace SpireVoxel {
         std::unique_ptr<VoxelWorldRenderer> m_renderer;
         std::unique_ptr<ProceduralGenerationManager>m_proceduralGenerationManager;
         Spire::Engine& m_engine;
+        std::shared_ptr<ISamplingOffsets> m_samplingOffsets;
     };
 } // SpireVoxel

@@ -46,6 +46,9 @@ add_library(SpireVoxel STATIC
         Source/Generation/ProceduralGenerationManager.h
         Source/Chunk/DetailLevel.h
         Source/Chunk/DetailLevel.cpp
+        Source/LOD/SamplingOffsets.cpp
+        Source/LOD/SamplingOffsets.h
+        Source/LOD/ISamplingOffsets.h
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

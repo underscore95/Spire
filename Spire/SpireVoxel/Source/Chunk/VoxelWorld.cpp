@@ -1,15 +1,18 @@
 #include "VoxelWorld.h"
 #include "Rendering/VoxelWorldRenderer.h"
+#include "LOD/SamplingOffsets.h"
 
 namespace SpireVoxel {
     VoxelWorld::VoxelWorld(
         Spire::Engine &engine,
+        const std::shared_ptr<ISamplingOffsets> &samplingOffsets,
         const std::function<void()> &recreatePipelineCallback,
         bool isProfilingMeshing,
         std::unique_ptr<IProceduralGenerationProvider> provider,
         std::unique_ptr<IProceduralGenerationController> controller,
         IVoxelCamera &camera)
-        : m_engine(engine) {
+        : m_engine(engine),
+          m_samplingOffsets(samplingOffsets) {
         m_renderer = std::make_unique<VoxelWorldRenderer>(*this, engine.GetRenderingManager(), recreatePipelineCallback, isProfilingMeshing);
         m_proceduralGenerationManager = std::make_unique<ProceduralGenerationManager>(std::move(provider), std::move(controller), *this, camera);
     }
@@ -158,7 +161,7 @@ namespace SpireVoxel {
         };
     }
 
-    void ReduceDetail(Spire::Random &random, Chunk &reduceInto, const Chunk &target, glm::u32 newLODScale) {
+    void ReduceDetail(ISamplingOffsets &samplingOffsets, Chunk &reduceInto, const Chunk &target, glm::u32 newLODScale) {
         const bool same = &reduceInto == &target;
 
         std::unique_ptr<std::array<VoxelType, SPIRE_VOXEL_CHUNK_VOLUME> > srcData{};
@@ -171,16 +174,15 @@ namespace SpireVoxel {
         }
 
         glm::uvec3 offset = static_cast<glm::vec3>(target.ChunkPosition - reduceInto.ChunkPosition) * static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE / newLODScale);
-        std::size_t chunkHash = Spire::Hash(reduceInto.ChunkPosition);
 
         for (glm::u32 x = 0; x < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; x++) {
             for (glm::u32 y = 0; y < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; y++) {
                 for (glm::u32 z = 0; z < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; z++) {
-                    glm::u32 sampledVoxelOffset = Spire::Hash(x ^ y ^ z, chunkHash) % newLODScale;
+                    auto sampleOffset = static_cast<glm::u32>(samplingOffsets.GetOffset(x, y, z) * static_cast<float>(newLODScale));
                     glm::u32 readIndex = SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(
-                        x * newLODScale + sampledVoxelOffset,
-                        y * newLODScale + sampledVoxelOffset,
-                        z * newLODScale + sampledVoxelOffset
+                        x * newLODScale + sampleOffset,
+                        y * newLODScale + sampleOffset,
+                        z * newLODScale + sampleOffset
                     );
                     assert(readIndex < SPIRE_VOXEL_CHUNK_VOLUME);
                     VoxelType type = (*src)[readIndex];
@@ -232,7 +234,7 @@ namespace SpireVoxel {
         timer.Restart();
 
         // Reduce detail
-        ReduceDetail(m_engine.GetRandom(), chunk, chunk, newLODScale);
+        ReduceDetail(*m_samplingOffsets, chunk, chunk, newLODScale);
 
         if (PROFILING_LOD) Spire::info("Reduce detail of main chunk: {} ms", timer.MillisSinceStart());
         timer.Restart();
@@ -252,7 +254,7 @@ namespace SpireVoxel {
         timer.Restart();
 
         for (Chunk *coveredChunk : coveredChunks) {
-            ReduceDetail(m_engine.GetRandom(), chunk, *coveredChunk, newLODScale);
+            ReduceDetail(*m_samplingOffsets, chunk, *coveredChunk, newLODScale);
         }
 
         if (PROFILING_LOD) Spire::info("Reduce detail: {} ms", timer.MillisSinceStart());

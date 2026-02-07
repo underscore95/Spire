@@ -5,6 +5,7 @@
 #include "Generation/Controllers/EmptyProceduralGenerationController.h"
 #include "Generation/Controllers/SimpleProceduralGenerationController.h"
 #include "Generation/Providers/SimpleProceduralGenerationProvider.h"
+#include "LOD/SamplingOffsets.h"
 #include "Serialisation/VoxelSerializer.h"
 #include "Types/VoxelTypeInfo.h"
 #include "Types/VoxelTypeRegistry.h"
@@ -24,6 +25,7 @@ void GameApplication::Start(Engine &engine) {
     m_camera = std::make_unique<GameCamera>(engine);
     auto tempWorld = std::make_unique<VoxelWorld>(
         engine,
+        std::make_unique<SamplingOffsets>(std::string(GetAssetsDirectory()) + "/LODSamplingOffsets.bin"),
         [this] { RecreatePipeline(); },
         Profiling::IS_PROFILING,
         std::move(proceduralGenerationProvider),
