@@ -175,19 +175,21 @@ namespace SpireVoxel {
         for (glm::u32 x = 0; x < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; x++) {
             for (glm::u32 y = 0; y < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; y++) {
                 for (glm::u32 z = 0; z < SPIRE_VOXEL_CHUNK_SIZE / newLODScale; z++) {
-                    VoxelType newType = (*src)[SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(
+                    glm::u32 readIndex = SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(
                         x * newLODScale + random.RandomInt(0,newLODScale),
                         y * newLODScale + random.RandomInt(0,newLODScale),
                         z * newLODScale + random.RandomInt(0,newLODScale)
-                    )];
+                    );
+                    assert(readIndex < SPIRE_VOXEL_CHUNK_VOLUME);
+                    VoxelType type = (*src)[readIndex];
 
-                    reduceInto.VoxelData[
-                        SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(
-                            x + offset.x,
-                            y + offset.y,
-                            z + offset.z
-                        )
-                    ] = newType;
+                    glm::u32 writeIndex = SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(
+                        x + offset.x,
+                        y + offset.y,
+                        z + offset.z
+                    );
+                    assert(writeIndex < SPIRE_VOXEL_CHUNK_VOLUME);
+                    reduceInto.VoxelData[writeIndex] = type;
                 }
             }
         }
