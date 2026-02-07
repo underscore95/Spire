@@ -209,6 +209,7 @@ void GameApplication::RenderUi() const {
     ImGui::InputInt("New LOD Level", &newLod);
 
     if (ImGui::Button("LOD")) {
+        Timer timer;
         auto &world = m_voxelRenderer->GetWorld();
         std::vector<Chunk *> chunks;
         for (auto &[chunkCoords,chunk] : world) {
@@ -219,6 +220,7 @@ void GameApplication::RenderUi() const {
         for (Chunk *chunk : chunks) {
             world.IncreaseLODTo(*chunk, newLod);
         }
+        info("LOD {} in {} ms", newLod, timer.MillisSinceStart());
     }
 
     ImGui::End();
