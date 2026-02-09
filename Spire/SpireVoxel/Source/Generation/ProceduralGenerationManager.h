@@ -1,5 +1,5 @@
 #pragma once
-#include "Controllers/IProceduralGenerationController.h"
+#include "../ChunkOrderControllers/IChunkOrderController.h"
 #include "Providers/IProceduralGenerationProvider.h"
 
 namespace SpireVoxel {
@@ -7,7 +7,7 @@ namespace SpireVoxel {
     public:
         ProceduralGenerationManager(
             std::unique_ptr<IProceduralGenerationProvider> provider,
-            std::unique_ptr<IProceduralGenerationController> controller,
+            std::unique_ptr<IChunkOrderController> controller,
             VoxelWorld &world,
             IVoxelCamera &camera);
 
@@ -18,7 +18,7 @@ namespace SpireVoxel {
 
     private:
         std::unique_ptr<IProceduralGenerationProvider> m_provider;
-        std::unique_ptr<IProceduralGenerationController> m_controller;
+        std::unique_ptr<IChunkOrderController> m_controller;
         VoxelWorld &m_world;
         IVoxelCamera &m_camera;
         glm::u32 m_numCPUThreads;

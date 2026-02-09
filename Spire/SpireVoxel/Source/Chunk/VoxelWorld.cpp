@@ -9,7 +9,7 @@ namespace SpireVoxel {
         const std::function<void()> &recreatePipelineCallback,
         bool isProfilingMeshing,
         std::unique_ptr<IProceduralGenerationProvider> provider,
-        std::unique_ptr<IProceduralGenerationController> controller,
+        std::unique_ptr<IChunkOrderController> controller,
         IVoxelCamera &camera)
         : m_engine(engine) {
         m_renderer = std::make_unique<VoxelWorldRenderer>(*this, engine.GetRenderingManager(), recreatePipelineCallback, isProfilingMeshing);

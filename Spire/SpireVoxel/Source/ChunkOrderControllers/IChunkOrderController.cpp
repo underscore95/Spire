@@ -1,6 +1,6 @@
-#include "IProceduralGenerationController.h"
+#include "IChunkOrderController.h"
 
-glm::ivec3 SpireVoxel::IProceduralGenerationController::GetSpiral(glm::u32 index) {
+glm::ivec3 SpireVoxel::IChunkOrderController::GetSpiral(glm::u32 index) {
     // https://learning.oreilly.com/library/view/concrete-mathematics-a/9780134389974/
     // Chapter 3 Exercise 40
     // Copilot generated based on given formulas

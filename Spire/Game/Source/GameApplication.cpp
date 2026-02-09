@@ -2,7 +2,7 @@
 #include "../../Libs/glfw/include/GLFW/glfw3.h"
 #include "GameCamera.h"
 #include "Profiling.h"
-#include "Generation/Controllers/EmptyProceduralGenerationController.h"
+#include "../../SpireVoxel/Source/ChunkOrderControllers/EmptyChunkOrderController.h"
 #include "Generation/Controllers/SimpleProceduralGenerationController.h"
 #include "Generation/Providers/EmptyProceduralGenerationProvider.h"
 #include "Generation/Providers/SerializedGenerationProvider.h"
@@ -21,7 +21,7 @@ GameApplication::GameApplication() = default;
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
 
-    std::unique_ptr<IProceduralGenerationController> proceduralGenerationController = std::make_unique<EmptyProceduralGenerationController>();
+    std::unique_ptr<IChunkOrderController> proceduralGenerationController = std::make_unique<EmptyChunkOrderController>();
     std::unique_ptr<IProceduralGenerationProvider> proceduralGenerationProvider = std::make_unique<EmptyProceduralGenerationProvider>();
     if (!Profiling::IS_PROFILING) {
         proceduralGenerationController = std::make_unique<SimpleProceduralGenerationController>(64, glm::ivec2{-1, 4});

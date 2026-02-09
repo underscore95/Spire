@@ -9,7 +9,7 @@ namespace SpireVoxel {
 
     ProceduralGenerationManager::ProceduralGenerationManager(
         std::unique_ptr<IProceduralGenerationProvider> provider,
-        std::unique_ptr<IProceduralGenerationController> controller,
+        std::unique_ptr<IChunkOrderController> controller,
         VoxelWorld &world,
         IVoxelCamera &camera)
         : m_provider(std::move(provider)),

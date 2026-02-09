@@ -1,9 +1,9 @@
 #pragma once
-#include "IProceduralGenerationController.h"
+#include "../../ChunkOrderControllers/IChunkOrderController.h"
 
 namespace SpireVoxel {
     // Generates chunks in a spiral pattern around the camera, only generates chunks in yRange (inclusive both ends)
-    class SimpleProceduralGenerationController : public IProceduralGenerationController {
+    class SimpleProceduralGenerationController : public IChunkOrderController {
     public:
         // view distance in chunks
         explicit SimpleProceduralGenerationController(glm::u32 viewDistance, glm::ivec2 yRange);
