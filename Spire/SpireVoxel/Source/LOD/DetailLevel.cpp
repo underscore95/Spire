@@ -1,6 +1,6 @@
 #include "DetailLevel.h"
 
-#include "Chunk.h"
+#include "Chunk/Chunk.h"
 
 bool SpireVoxel::DetailLevel::ChunkIncludes(const Chunk &possibleLODChunk, glm::ivec3 chunkCoords) {
     assert(possibleLODChunk.LOD.Scale >= 1);

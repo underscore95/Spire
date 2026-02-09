@@ -44,8 +44,8 @@ add_library(SpireVoxel STATIC
         Source/Generation/Providers/SimpleProceduralGenerationProvider.h
         Source/Generation/ProceduralGenerationManager.cpp
         Source/Generation/ProceduralGenerationManager.h
-        Source/Chunk/DetailLevel.h
-        Source/Chunk/DetailLevel.cpp
+        Source/LOD/DetailLevel.h
+        Source/LOD/DetailLevel.cpp
         Source/LOD/SamplingOffsets.cpp
         Source/LOD/SamplingOffsets.h
         Source/LOD/ISamplingOffsets.h

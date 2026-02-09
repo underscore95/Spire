@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DetailLevel.h"
+#include "../LOD/DetailLevel.h"
 #include "EngineIncludes.h"
 #include "VoxelType.h"
 #include "../../Assets/Shaders/ShaderInfo.h"
