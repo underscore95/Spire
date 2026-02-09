@@ -4,6 +4,8 @@
 #include "Profiling.h"
 #include "Generation/Controllers/EmptyProceduralGenerationController.h"
 #include "Generation/Controllers/SimpleProceduralGenerationController.h"
+#include "Generation/Providers/EmptyProceduralGenerationProvider.h"
+#include "Generation/Providers/SerializedGenerationProvider.h"
 #include "Generation/Providers/SimpleProceduralGenerationProvider.h"
 #include "LOD/SamplingOffsets.h"
 #include "Serialisation/VoxelSerializer.h"
@@ -19,8 +21,15 @@ GameApplication::GameApplication() = default;
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
 
-    auto proceduralGenerationController = std::make_unique<EmptyProceduralGenerationController>();
-    auto proceduralGenerationProvider = std::make_unique<SimpleProceduralGenerationProvider>();
+    std::unique_ptr<IProceduralGenerationController> proceduralGenerationController = std::make_unique<EmptyProceduralGenerationController>();
+    std::unique_ptr<IProceduralGenerationProvider> proceduralGenerationProvider = std::make_unique<EmptyProceduralGenerationProvider>();
+    if (!Profiling::IS_PROFILING) {
+        proceduralGenerationController = std::make_unique<SimpleProceduralGenerationController>(64, glm::ivec2{-1, 4});
+        proceduralGenerationProvider = std::make_unique<SerializedGenerationProvider>(
+            std::filesystem::path("Worlds") / "Test6",
+            std::make_unique<EmptyProceduralGenerationProvider>()
+        );
+    }
 
     m_camera = std::make_unique<GameCamera>(engine);
     auto tempWorld = std::make_unique<VoxelWorld>(
@@ -52,7 +61,7 @@ void GameApplication::Start(Engine &engine) {
     if (Profiling::IS_PROFILING) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
-    } else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
+    } // else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
 
     // world.LoadChunks({{0,0,0},{1,0,0}});
     // CuboidVoxelEdit({0,0,0},{128,64,64},{1}).Apply(world);
@@ -142,6 +151,11 @@ void GameApplication::RenderUi() const {
 
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS) (frame %d (swapchain image %d))", m_engine->GetDeltaTime() * 1000, 1.0f / m_engine->GetDeltaTime(), m_frame,
                 m_swapchainImageIndex);
+
+    glm::u32 numChunksGeneratedThisFrame = m_voxelRenderer->GetWorld().GetProceduralGenerationManager().NumChunksGeneratedThisFrame();
+    if (numChunksGeneratedThisFrame) {
+        ImGui::TextColored({1, 0, 0, 1}, "Generated %d chunks this frame", numChunksGeneratedThisFrame);
+    }
 
     const CameraInfo &cameraInfo = m_camera->GetCameraInfo();
     std::string targetedVoxelStr = "None";

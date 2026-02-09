@@ -15,7 +15,7 @@ namespace SpireVoxel {
 
         static void SerializeChunk(const Chunk &chunk, const std::filesystem::path &directory);
 
-        struct ChunkDeserialization {
+        struct ChunkDeserializationResult {
             bool DidChunkFileExist;
             bool Success;
             bool Migrated;
@@ -26,9 +26,9 @@ namespace SpireVoxel {
         static void ClearAndDeserialize(VoxelWorld &world, const std::filesystem::path &directory);
 
         // If no data saved, the chunk will still be cleared
-        static ChunkDeserialization ClearAndDeserializeChunk(VoxelWorld &world, glm::ivec3 chunkCoords, const std::filesystem::path &directory);
+        static ChunkDeserializationResult ClearAndDeserializeChunk(VoxelWorld &world, glm::ivec3 chunkCoords, const std::filesystem::path &directory);
 
-        static ChunkDeserialization ClearAndDeserializeChunkFile(VoxelWorld &world, const std::filesystem::path &filePath);
+        static ChunkDeserializationResult ClearAndDeserializeChunkFile(VoxelWorld &world, const std::filesystem::path &filePath);
 
         [[nodiscard]] static std::filesystem::path GetFilePath(glm::ivec3 chunkCoords, const std::filesystem::path &directory);
 

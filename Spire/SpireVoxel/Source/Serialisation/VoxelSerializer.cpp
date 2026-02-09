@@ -52,7 +52,7 @@ namespace SpireVoxel {
             if (std::filesystem::is_directory(entry)) continue;
             if (Spire::FileIO::GetLowerCaseFileExtension(entry.path()) != ".sprc") continue;
 
-            ChunkDeserialization result =                    ClearAndDeserializeChunkFile(world, entry.path());
+            ChunkDeserializationResult result =                    ClearAndDeserializeChunkFile(world, entry.path());
 
             if (!result.Success) continue;
 
@@ -71,7 +71,7 @@ namespace SpireVoxel {
         Spire::info("Deserialized world in {} ms", timer.MillisSinceStart());
     }
 
-    VoxelSerializer::ChunkDeserialization VoxelSerializer::ClearAndDeserializeChunk(
+    VoxelSerializer::ChunkDeserializationResult VoxelSerializer::ClearAndDeserializeChunk(
         VoxelWorld &world,
         glm::ivec3 chunkCoords,
         const std::filesystem::path &directory) {
@@ -79,11 +79,11 @@ namespace SpireVoxel {
     }
 
 
-    VoxelSerializer::ChunkDeserialization VoxelSerializer::ClearAndDeserializeChunkFile(
+    VoxelSerializer::ChunkDeserializationResult VoxelSerializer::ClearAndDeserializeChunkFile(
         VoxelWorld &world,
         const std::filesystem::path &filePath
     ) {
-        ChunkDeserialization result{};
+        ChunkDeserializationResult result{};
         result.DidChunkFileExist = true;
 
         std::ifstream file(filePath, std::ios_base::binary);

@@ -31,6 +31,9 @@ namespace SpireVoxel {
         // Handles level of detail for the world
         [[nodiscard]] LODManager &GetLODManager() const;
 
+        // Handles what chunks to generate/load
+        [[nodiscard]] ProceduralGenerationManager &GetProceduralGenerationManager() const;
+
         [[nodiscard]] Chunk &LoadChunk(glm::ivec3 chunkPosition);
 
         void LoadChunks(const std::vector<glm::ivec3> &chunkPositions);

@@ -4,16 +4,11 @@
 #include "Utils/IVoxelCamera.h"
 
 namespace SpireVoxel {
-    glm::ivec3 GetNextUnloadedChunk(glm::u32 &spiralIndex, VoxelWorld &world, glm::ivec3 cameraChunkPos) {
-        cameraChunkPos.y = 0; // Only load chunks at Y=0
-
-        glm::ivec3 spiralCoords = cameraChunkPos + SimpleProceduralGenerationController::GetSpiral(spiralIndex);
-        while (world.TryGetLoadedChunk(spiralCoords)) {
-            spiralIndex++;
-            spiralCoords = cameraChunkPos + SimpleProceduralGenerationController::GetSpiral(spiralIndex);
-        }
-
-        return spiralCoords;
+    SimpleProceduralGenerationController::SimpleProceduralGenerationController(
+        glm::u32 viewDistance,
+        glm::ivec2 yRange)
+        : m_viewDistance(viewDistance),
+          m_yRange(yRange) {
     }
 
     std::vector<glm::ivec3> SimpleProceduralGenerationController::GetChunkCoordsToLoad(VoxelWorld &world, const IVoxelCamera &camera, glm::u32 maxToLoad) {
@@ -24,9 +19,30 @@ namespace SpireVoxel {
         glm::u32 spiralIndex = 0;
 
         for (int i = 0; i < maxToLoad; i++) {
-            toLoad.push_back(GetNextUnloadedChunk(spiralIndex, world, cameraChunkPos));
+            glm::ivec3 chunk = GetNextUnloadedChunk(spiralIndex, world, cameraChunkPos);
+            if (glm::distance(static_cast<glm::vec3>(cameraChunkPos), static_cast<glm::vec3>(chunk)) >= m_viewDistance) continue;
+            toLoad.push_back(chunk);
         }
 
         return toLoad;
+    }
+
+
+    glm::ivec3 SimpleProceduralGenerationController::GetNextUnloadedChunk(glm::u32 &spiralIndex, VoxelWorld &world, glm::ivec3 cameraChunkPos) const {
+        cameraChunkPos.y = 0;
+
+        while (true) {
+            glm::ivec3 base = cameraChunkPos + GetSpiral(spiralIndex);
+
+            for (int y = m_yRange.x; y <= m_yRange.y; y++) {
+                glm::ivec3 coords = base;
+                coords.y = y;
+
+                if (!world.TryGetLoadedChunk(coords))
+                    return coords;
+            }
+
+            spiralIndex++;
+        }
     }
 } // SpireVoxel

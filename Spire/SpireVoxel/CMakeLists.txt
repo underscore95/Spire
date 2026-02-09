@@ -51,6 +51,9 @@ add_library(SpireVoxel STATIC
         Source/LOD/ISamplingOffsets.h
         Source/LOD/LODManager.cpp
         Source/LOD/LODManager.h
+        Source/Generation/Providers/SerializedGenerationProvider.h
+        Source/Generation/Providers/SerializedGenerationProvider.cpp
+        Source/Generation/Providers/EmptyProceduralGenerationProvider.h
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

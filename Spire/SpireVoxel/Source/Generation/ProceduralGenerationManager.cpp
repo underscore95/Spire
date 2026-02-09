@@ -19,10 +19,11 @@ namespace SpireVoxel {
         m_numCPUThreads = std::thread::hardware_concurrency();
     }
 
-    void ProceduralGenerationManager::Update() const {
+    void ProceduralGenerationManager::Update() {
         glm::u32 numToGenerate = std::max(0, static_cast<glm::i32>(m_numCPUThreads) - static_cast<glm::i32>(m_world.GetRenderer().NumEditedChunks()));
 
         std::vector<glm::ivec3> coordsToLoad = m_controller->GetChunkCoordsToLoad(m_world, m_camera, numToGenerate);
+        m_numChunksGeneratedThisFrame = coordsToLoad.size();
         m_world.LoadChunks(coordsToLoad);
 
         std::vector<Chunk *> chunksToGenerate;
@@ -46,5 +47,9 @@ namespace SpireVoxel {
         if (LOG && !chunksToGenerate.empty()) {
             Spire::info("[ProceduralGenerationManager] Generated {} chunks in {} ms", chunksToGenerate.size(), timer.MillisSinceStart());
         }
+    }
+
+    glm::u32 ProceduralGenerationManager::NumChunksGeneratedThisFrame() const {
+        return m_numChunksGeneratedThisFrame;
     }
 } // SpireVoxel

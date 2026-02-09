@@ -12,7 +12,9 @@ namespace SpireVoxel {
             IVoxelCamera &camera);
 
     public:
-        void Update() const;
+        void Update();
+
+        [[nodiscard]] glm::u32 NumChunksGeneratedThisFrame() const;
 
     private:
         std::unique_ptr<IProceduralGenerationProvider> m_provider;
@@ -20,5 +22,6 @@ namespace SpireVoxel {
         VoxelWorld &m_world;
         IVoxelCamera &m_camera;
         glm::u32 m_numCPUThreads;
+        glm::u32 m_numChunksGeneratedThisFrame = 0;
     };
 } // SpireVoxel

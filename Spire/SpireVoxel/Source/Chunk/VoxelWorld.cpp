@@ -21,6 +21,10 @@ namespace SpireVoxel {
         return *m_lodManager;
     }
 
+    ProceduralGenerationManager &VoxelWorld::GetProceduralGenerationManager() const {
+        return *m_proceduralGenerationManager;
+    }
+
     Chunk &VoxelWorld::LoadChunk(glm::ivec3 chunkPosition) {
         auto it = m_chunks.find(chunkPosition);
         if (it != m_chunks.end()) return *it->second;
