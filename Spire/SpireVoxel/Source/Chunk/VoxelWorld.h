@@ -41,6 +41,7 @@ namespace SpireVoxel {
         void UnloadChunks(const std::vector<glm::ivec3> &chunkPositions);
 
         // Get chunk if loaded
+        // Use LODManager if using LODs
         [[nodiscard]] Chunk *TryGetLoadedChunk(glm::ivec3 chunkPosition);
 
         [[nodiscard]] const Chunk *TryGetLoadedChunk(glm::ivec3 chunkPosition) const;

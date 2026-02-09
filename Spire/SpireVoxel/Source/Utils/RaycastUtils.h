@@ -28,6 +28,6 @@ namespace SpireVoxel {
 
     private:
         // Return true if the chunk at this LOD is
-        [[nodiscard]] static bool IsLODChunk(VoxelWorld &world, glm::vec3 worldPosition);
+        [[nodiscard]] static bool IsLODChunk(const VoxelWorld &world, glm::vec3 worldPosition);
     };
 } // SpireVoxel

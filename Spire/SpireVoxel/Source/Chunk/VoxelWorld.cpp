@@ -38,7 +38,7 @@ namespace SpireVoxel {
         bool loadedAnyChunks = false;
 
         for (auto chunkPosition : chunkPositions) {
-            if (m_chunks.contains(chunkPosition)) continue;
+            if (m_lodManager->TryGetLODChunk(chunkPosition)) continue;
             if (m_chunks.size() + 1 > VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS) break;
             m_chunks.try_emplace(chunkPosition, new Chunk(chunkPosition, *this)); // this constructs a unique ptr
             auto &chunk = m_chunks.at(chunkPosition);
@@ -56,6 +56,7 @@ namespace SpireVoxel {
         for (auto chunkPosition : chunkPositions) {
             auto it = m_chunks.find(chunkPosition);
             if (it == m_chunks.end()) continue;
+            m_lodManager->OnChunkUnload(*it->second);
             m_renderer->FreeChunkVertexBuffer(*it->second);
             m_renderer->FreeChunkVoxelDataBuffer(*it->second);
             m_chunks.erase(it);

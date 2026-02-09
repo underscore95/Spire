@@ -1,6 +1,15 @@
 #include "SimpleProceduralGenerationController.h"
 
+#include <complex.h>
+#include <complex.h>
+
 #include "Chunk/VoxelWorld.h"
+#include "Edits/BasicVoxelEdit.h"
+#include "Edits/BasicVoxelEdit.h"
+#include "Edits/BasicVoxelEdit.h"
+#include "Edits/BasicVoxelEdit.h"
+#include "Edits/BasicVoxelEdit.h"
+#include "Edits/BasicVoxelEdit.h"
 #include "Utils/IVoxelCamera.h"
 
 namespace SpireVoxel {
@@ -19,7 +28,7 @@ namespace SpireVoxel {
         glm::u32 spiralIndex = 0;
 
         for (int i = 0; i < maxToLoad; i++) {
-            glm::ivec3 chunk = GetNextUnloadedChunk(spiralIndex, world, cameraChunkPos);
+            glm::ivec3 chunk = GetNextUnloadedChunk(spiralIndex, world, cameraChunkPos, toLoad);
             if (glm::distance(static_cast<glm::vec3>(cameraChunkPos), static_cast<glm::vec3>(chunk)) >= m_viewDistance) continue;
             toLoad.push_back(chunk);
         }
@@ -28,7 +37,8 @@ namespace SpireVoxel {
     }
 
 
-    glm::ivec3 SimpleProceduralGenerationController::GetNextUnloadedChunk(glm::u32 &spiralIndex, VoxelWorld &world, glm::ivec3 cameraChunkPos) const {
+    glm::ivec3 SimpleProceduralGenerationController::GetNextUnloadedChunk(glm::u32 &spiralIndex, VoxelWorld &world, glm::ivec3 cameraChunkPos,
+                                                                          const std::vector<glm::ivec3> &alreadyFound) const {
         cameraChunkPos.y = 0;
 
         while (true) {
@@ -38,7 +48,7 @@ namespace SpireVoxel {
                 glm::ivec3 coords = base;
                 coords.y = y;
 
-                if (!world.TryGetLoadedChunk(coords))
+                if (!world.GetLODManager().TryGetLODChunk(coords) && std::ranges::find(alreadyFound, coords) == alreadyFound.end())
                     return coords;
             }
 

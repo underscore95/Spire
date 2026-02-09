@@ -88,16 +88,9 @@ namespace SpireVoxel {
         }
     }
 
-    bool RaycastUtils::IsLODChunk(VoxelWorld &world, glm::vec3 worldPosition) {
+    bool RaycastUtils::IsLODChunk(const VoxelWorld &world, glm::vec3 worldPosition) {
         glm::ivec3 chunkCoords = world.GetChunkPositionOfVoxel(worldPosition);
-        Chunk *chunk = world.TryGetLoadedChunk(chunkCoords);
-        if (chunk) return chunk->LOD.Scale > 1;
-
-        // Not loaded, check if any chunk is an LOD chunk and contains this
-        // TODO: Maintain a data structure to make this lookup faster
-        for (const auto &[_, candidateChunkPtr] : world) {
-            if (DetailLevel::ChunkIncludes(*candidateChunkPtr, chunkCoords)) return true;
-        }
-        return false;
+        Chunk *chunk = world.GetLODManager().TryGetLODChunk(chunkCoords);
+        return chunk && chunk->LOD.Scale != 1;
     }
 } // SpireVoxel

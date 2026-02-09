@@ -41,6 +41,7 @@ namespace SpireVoxel {
                 return;
             }
 
+            //  Spire::info("generating chunk {} {} {}", chunksToGenerate[i]->ChunkPosition.x, chunksToGenerate[i]->ChunkPosition.y,chunksToGenerate[i]->ChunkPosition.z);
             m_provider->GenerateChunk(m_world, *chunksToGenerate[i]);
         }).get();
 

@@ -53,6 +53,17 @@ namespace SpireVoxel {
           m_samplingOffsets(samplingOffsets) {
     }
 
+    void LODManager::OnChunkUnload(const Chunk &chunk) {
+        glm::ivec3 base = chunk.ChunkPosition;
+        for (int x = base.x; x < base.x + chunk.LOD.Scale; x++) {
+            for (int y = base.y; y < base.y + chunk.LOD.Scale; y++) {
+                for (int z = base.z; z < base.z + chunk.LOD.Scale; z++) {
+                    m_coveredToPrimaryChunk.erase(glm::ivec3{x, y, z});
+                }
+            }
+        }
+    }
+
     void LODManager::IncreaseLODTo(Chunk &chunk, glm::u32 newLODScale) {
         constexpr bool PROFILING_LOD = false;
         if (chunk.LOD.Scale >= newLODScale) {
@@ -114,6 +125,11 @@ namespace SpireVoxel {
 
         chunk.LOD.Scale = newLODScale;
         m_world.UnloadChunks(coveredChunkPositions);
+        for (glm::ivec3 chunkCoord : coveredChunkPositions) {
+             m_coveredToPrimaryChunk[chunkCoord] = &chunk;
+            // Spire::info("{} {} {} is now covered by {} {} {}", chunkCoord.x, chunkCoord.y, chunkCoord.z,
+            //             chunk.ChunkPosition.x, chunk.ChunkPosition.y, chunk.ChunkPosition.z);
+        }
 
         if (PROFILING_LOD) Spire::info("Unload chunks: {} ms", timer.MillisSinceStart());
         timer.Restart();
@@ -125,5 +141,15 @@ namespace SpireVoxel {
 
         if (PROFILING_LOD) Spire::info("Notify edit: {} ms", timer.MillisSinceStart());
         timer.Restart();
+    }
+
+    Chunk *LODManager::TryGetLODChunk(glm::ivec3 chunkCoords) {
+        Chunk *chunk = m_world.TryGetLoadedChunk(chunkCoords);
+        if (chunk) return chunk;
+
+        auto it = m_coveredToPrimaryChunk.find(chunkCoords);
+        if (it == m_coveredToPrimaryChunk.end()) return nullptr;
+
+        return it->second;
     }
 } // SpireVoxel
