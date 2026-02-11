@@ -54,6 +54,10 @@ add_library(SpireVoxel STATIC
         Source/Generation/Providers/SerializedGenerationProvider.h
         Source/Generation/Providers/SerializedGenerationProvider.cpp
         Source/Generation/Providers/EmptyProceduralGenerationProvider.h
+        Source/LOD/Controllers/SimpleLODController.cpp
+        Source/LOD/Controllers/SimpleLODController.h
+        Source/LOD/Controllers/LODController.h
+        Source/LOD/Controllers/LODController.cpp
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

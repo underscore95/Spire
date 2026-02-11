@@ -20,7 +20,7 @@ namespace SpireVoxel {
           m_yRange(yRange) {
     }
 
-    std::vector<glm::ivec3> SimpleProceduralGenerationController::GetChunkCoordsToLoad(VoxelWorld &world, const IVoxelCamera &camera, glm::u32 maxToLoad) {
+    std::vector<glm::ivec3> SimpleProceduralGenerationController::GetChunkCoordsBatch(VoxelWorld &world, const IVoxelCamera &camera, glm::u32 maxToLoad) {
         std::vector<glm::ivec3> toLoad;
         toLoad.reserve(maxToLoad);
 

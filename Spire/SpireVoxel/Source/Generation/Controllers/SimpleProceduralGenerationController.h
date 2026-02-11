@@ -9,7 +9,7 @@ namespace SpireVoxel {
         explicit SimpleProceduralGenerationController(glm::u32 viewDistance, glm::ivec2 yRange);
 
     public:
-        std::vector<glm::ivec3> GetChunkCoordsToLoad(VoxelWorld &world, const IVoxelCamera &camera, glm::u32 maxToLoad) override;
+        std::vector<glm::ivec3> GetChunkCoordsBatch(VoxelWorld &world, const IVoxelCamera &camera, glm::u32 maxToLoad) override;
 
     private:
         glm::ivec3 GetNextUnloadedChunk(glm::u32 &spiralIndex, VoxelWorld &world, glm::ivec3 cameraChunkPos, const std::vector<glm::ivec3> &alreadyFound) const;

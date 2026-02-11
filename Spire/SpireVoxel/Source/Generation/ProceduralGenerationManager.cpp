@@ -22,7 +22,7 @@ namespace SpireVoxel {
     void ProceduralGenerationManager::Update() {
         glm::u32 numToGenerate = std::max(0, static_cast<glm::i32>(m_numCPUThreads) - static_cast<glm::i32>(m_world.GetRenderer().NumEditedChunks()));
 
-        std::vector<glm::ivec3> coordsToLoad = m_controller->GetChunkCoordsToLoad(m_world, m_camera, numToGenerate);
+        std::vector<glm::ivec3> coordsToLoad = m_controller->GetChunkCoordsBatch(m_world, m_camera, numToGenerate);
         m_numChunksGeneratedThisFrame = coordsToLoad.size();
         m_world.LoadChunks(coordsToLoad);
 
