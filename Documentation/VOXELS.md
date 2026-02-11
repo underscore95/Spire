@@ -2,15 +2,65 @@
 
 The SpireVoxel library handles meshing, rendering, editing, and serialisation of voxels.
 
+# Procedural Generation
+
+Spire provides an API to support procedural generation.
+
+The VoxelWorld constructor takes in two interfaces: IChunkOrderController and IProceduralGenerationProvider. 
+
+## IChunkOrderController
+
+This interface decides what order chunks should be generated.
+
+### EmptyChunkOrderController
+
+This is a built in controller which never outputs a chunk to be generated.
+
+### SimpleProceduralGenerationController
+
+This is a built in controller which generates chunks in a spiral pattern around the player in columns, this is a similar algorithm to games like Minecraft.
+
+The constructor takes in two parameters:
+- viewDistance is the maximum distance in chunks that a chunk should be generated
+- yRange is the range of the columns that should be generated (e.g. for (0, 1), only chunks with a y value of 0 or 1 will be generated)
+
+## IProceduralGenerationProvider
+
+This interfaces decides what voxels should be put in the chunk.
+
+You can use the IVoxelEdit API here.
+
+### EmptyProceduralGenerationProvider
+
+This is a built in provider which never sets a voxel in any generated chunk.
+
+### SimpleProceduralGenerationProvider
+
+This is a built in provider which sets the bottom half of every chunk to grass.
+
+### SerializedGenerationProvider
+
+This is a built in Provider useful for world serialisation, documented in the serialisation section.
+
 # Serialisation
 
 Voxel worlds are serialised into a directory of `.sprc` files. `.sprc` (SpireChunk) is a file format specifically for Spire and the spec can be found in SPRC_SPEC.md
 
 Serialisation is fairly simple at the moment, with chunk data just being stored in a binary file with no compression.
 
-`SpireVoxel::VoxelSerializer` provides functions for loading and saving a world.
+Each chunk is stored in a separate file, all chunks are stored in the same directory.
 
-# Voxel Edits
+`SpireVoxel::VoxelSerializer` provides functions for loading and saving a world. There are also functions to load and save a single chunk.
+
+## Generation Provider
+
+If you don't want to load an entire world at once you can piggyback on the procedural generation system and use SerializedGenerationProvider.
+
+This class will try and load a chunk from disk when generating a chunk, if the chunk doesn't exist then it will ask a backup provider to generate the chunk.
+
+If you don't want a backup provider, pass in an EmptyProceduralGenerationProvider instance.
+
+# Voxel Edits 
 
 SpireVoxel provides utilities for editing voxels, these are optimised for the renderer and are faster and easier for a game developer to use.
 
@@ -30,6 +80,14 @@ It then sets the voxel at (0, 0, 0) to 2 (dirt)
 
 All operations are perfomed at the same time so no unnecessary chunk meshing is performed.
 
+## Custom Voxel Edits
+
+You can add your own voxel edits by implementing the `IVoxelEdit` interface.
+
+## BasicVoxelEdit
+
+Basic edit that changes 1 or more voxels to 1 or more voxel types
+
 ## CuboidVoxelEdit
 
 This operation is optimised for how voxel data is stored in chunks. 
@@ -37,6 +95,10 @@ The voxel data is contigious along the Z axis.
 
 This property is used so that multiple voxel types can be written in a single memory write operation.
 Note the standard library may split the operation into multiple.
+
+## MergedVoxelEdit
+
+Combines multiple IVoxelEdit into a single edit.
 
 # Rendering
 
@@ -229,3 +291,25 @@ Converting from 4D face coordinates to 3D voxel coordinates is possible:
 if face is Z axis: (col, row, slice)
 else if face is X axis: (slice, row, col)
 else if face is Y axis: (col, slice, row) 
+
+# LOD
+
+Spire has a basic LOD system built in. 
+
+It works by squishing n^3 chunks into 1 chunk and rendering that chunk at scale N.
+
+![LOD Diagram](Images/LOD_Diagram.png "LOD Diagram")
+
+The VoxelWorld doesn't know about LOD, if you want to use LOD you can get the LODManager from VoxelWorld.
+
+Note that this means if you try to get chunk (1,0,0) which isn't loaded but chunk (0,0,0) is LOD 2, chunk (1,0,0) will be rendered but TryGetLoadedChunk would return nullptr.
+
+Chunks with a LOD other than 1 cannot be edited, you would need to load LOD 1 and then edit and then convert back to LOD 2 or higher.
+
+There are only integer LOD levels, LOD 0 is invalid, LOD 1 is full detail, LOD 2 is 1/(2^3) detail
+
+## LODManager
+
+TryGetLODChunk - This will get a chunk from its chunk coordinates if it is loaded, the difference from TryGetLODChunk is that it will return the parent chunk if an LOD chunk is rendering it.
+
+IncreaseLODTo - This will increase a chunks LOD, this will lose unload all chunks that the LOD would cover and the only way to reduce a chunks LOD is to regenerate them as LOD 1 chunks (or load from a file)

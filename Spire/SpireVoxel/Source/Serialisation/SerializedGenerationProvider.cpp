@@ -1,6 +1,5 @@
 #include "SerializedGenerationProvider.h"
-
-#include "Serialisation/VoxelSerializer.h"
+#include "VoxelSerializer.h"
 
 SpireVoxel::SerializedGenerationProvider::SerializedGenerationProvider(
     const std::filesystem::path &path,

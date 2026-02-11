@@ -1,5 +1,5 @@
 #pragma once
-#include "IProceduralGenerationProvider.h"
+#include "../Generation/Providers/IProceduralGenerationProvider.h"
 
 // Loads data from disk, but uses another provider as a backup
 namespace SpireVoxel {

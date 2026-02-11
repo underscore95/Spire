@@ -17,6 +17,7 @@ namespace SpireVoxel {
         void OnChunkUnload(const Chunk& chunk);
 
     public:
+        // Only works on chunks of LOD 1
         void IncreaseLODTo(Chunk &chunk, glm::u32 newLODScale);
 
         // Get a chunk if it is loaded

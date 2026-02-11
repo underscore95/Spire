@@ -5,7 +5,7 @@
 #include "../../SpireVoxel/Source/ChunkOrderControllers/EmptyChunkOrderController.h"
 #include "Generation/Controllers/SimpleProceduralGenerationController.h"
 #include "Generation/Providers/EmptyProceduralGenerationProvider.h"
-#include "Generation/Providers/SerializedGenerationProvider.h"
+#include "../../SpireVoxel/Source/Serialisation/SerializedGenerationProvider.h"
 #include "Generation/Providers/SimpleProceduralGenerationProvider.h"
 #include "LOD/SamplingOffsets.h"
 #include "Serialisation/VoxelSerializer.h"

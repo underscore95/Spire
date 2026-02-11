@@ -9,7 +9,6 @@ namespace SpireVoxel {
 
 namespace SpireVoxel {
     // A controller decides what chunks should have an operation applied
-    // depending on usage, this could be procedural generation, converting to a higher LOD ...
     class IChunkOrderController {
     public:
         virtual ~IChunkOrderController() = default;
