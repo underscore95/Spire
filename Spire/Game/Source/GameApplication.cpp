@@ -222,21 +222,33 @@ void GameApplication::RenderUi() const {
     }
 
     static int newLod = 2;
-    ImGui::InputInt("New LOD Level", &newLod);
+    static float chanceToLOD = 1;
+    static bool canLOD = true;
 
-    if (ImGui::Button("LOD")) {
-        Timer timer;
-        auto &world = m_voxelRenderer->GetWorld();
-        std::vector<Chunk *> chunks;
-        for (auto &[chunkCoords,chunk] : world) {
-            if (chunkCoords.x % newLod == 0 && (chunkCoords.y + 1 /*Test5 starts at chunk y = -1*/) % newLod == 0 && chunkCoords.z % newLod == 0) {
-                chunks.push_back(chunk.get());
+    if (canLOD && ImGui::CollapsingHeader("LOD")) {
+        ImGui::InputInt("New LOD Level", &newLod);
+        ImGui::SliderFloat("Chance to LOD a chunk: ", &chanceToLOD, 0, 1);
+        chanceToLOD = std::clamp(chanceToLOD, 0.0f, 1.0f);
+
+        if (ImGui::Button("Generate New LOD")) {
+            Timer timer;
+            auto &world = m_voxelRenderer->GetWorld();
+            std::vector<Chunk *> chunks;
+            glm::u32 originalNumChunks = world.NumLoadedChunks();
+            for (auto &[chunkCoords,chunk] : world) {
+                bool shouldLOD = m_engine->GetRandom().RandomFloat() < chanceToLOD;
+                if (chunkCoords.x % newLod == 0 && (chunkCoords.y + 1 /*Test5 starts at chunk y = -1*/) % newLod == 0 && chunkCoords.z % newLod == 0 && shouldLOD) {
+                    chunks.push_back(chunk.get());
+                }
             }
+            for (Chunk *chunk : chunks) {
+                world.GetLODManager().IncreaseLODTo(*chunk, newLod);
+            }
+            glm::u32 numConverted = chunks.size() + (originalNumChunks - world.NumLoadedChunks());
+            info("{} of {} chunks converted to new LOD {} (requested {}%) in {} ms.", numConverted, originalNumChunks, newLod, static_cast<int>(chanceToLOD * 100),
+                 timer.MillisSinceStart());
+            canLOD = false;
         }
-        for (Chunk *chunk : chunks) {
-            world.GetLODManager().IncreaseLODTo(*chunk, newLod);
-        }
-        info("LOD {} in {} ms", newLod, timer.MillisSinceStart());
     }
 
     ImGui::End();
