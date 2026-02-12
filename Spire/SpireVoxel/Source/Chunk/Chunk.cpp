@@ -42,7 +42,7 @@ namespace SpireVoxel {
 
         const Chunk *queryChunk = &chunk;
         if (queryChunkPosition != chunk.ChunkPosition) {
-            queryChunk = chunk.World.GetLoadedChunk(queryChunkPosition);
+            queryChunk = chunk.World.TryGetLoadedChunk(queryChunkPosition);
             if (!queryChunk) return VOXEL_TYPE_AIR;
         }
         return queryChunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(queryPosition)];
@@ -215,7 +215,8 @@ namespace SpireVoxel {
             .ChunkZ = ChunkPosition.z,
             .VoxelDataChunkIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.Start / sizeof(GPUChunkVoxelData)),
             .VoxelDataAllocationIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.AllocationIndex),
-            .VertexBufferIndex = static_cast<glm::u32>(VertexAllocation.Location.AllocationIndex)
+            .VertexBufferIndex = static_cast<glm::u32>(VertexAllocation.Location.AllocationIndex),
+            .LODScale = static_cast<float>(LOD.Scale)
         };
     }
 

@@ -11,6 +11,8 @@ namespace SpireVoxel {
         // voxel traversal algorithm by https://doi.org/10.2312/egtp.19871000
         glm::vec3 origin = position;
 
+        if (IsLODChunk(world, origin)) return {.TerminatedInLODChunk = true};
+
         // assert forward is normalized
         assert(
             !glm::epsilonEqual(normalizedForward.x, 0.0f, glm::epsilon<float>())
@@ -44,7 +46,11 @@ namespace SpireVoxel {
 
         while (true) {
             glm::vec3 voxelCenter = glm::vec3(voxel) + 0.5f;
-            if (glm::distance(origin, voxelCenter) > maxDist) return hit;
+            if (glm::distance(origin, voxelCenter) > maxDist) {
+                glm::ivec3 terminatedAt = origin + normalizedForward * maxDist;
+                hit.TerminatedInLODChunk = IsLODChunk(world, terminatedAt);
+                return hit;
+            }
 
             if (world.IsVoxelAt(voxel)) {
                 hit.HitAnything = true;
@@ -52,6 +58,9 @@ namespace SpireVoxel {
                 if (lastAxis == 0) hit.Face = step.x > 0 ? SPIRE_VOXEL_FACE_NEG_X : SPIRE_VOXEL_FACE_POS_X;
                 if (lastAxis == 1) hit.Face = step.y > 0 ? SPIRE_VOXEL_FACE_NEG_Y : SPIRE_VOXEL_FACE_POS_Y;
                 if (lastAxis == 2) hit.Face = step.z > 0 ? SPIRE_VOXEL_FACE_NEG_Z : SPIRE_VOXEL_FACE_POS_Z;
+
+                hit.TerminatedInLODChunk = IsLODChunk(world, hit.VoxelPosition);
+                if (hit.TerminatedInLODChunk) hit.HitAnything = false;
                 return hit;
             }
 
@@ -77,5 +86,11 @@ namespace SpireVoxel {
                 }
             }
         }
+    }
+
+    bool RaycastUtils::IsLODChunk(const VoxelWorld &world, glm::vec3 worldPosition) {
+        glm::ivec3 chunkCoords = world.GetChunkPositionOfVoxel(worldPosition);
+        Chunk *chunk = world.GetLODManager().TryGetLODChunk(chunkCoords);
+        return chunk && chunk->LOD.Scale != 1;
     }
 } // SpireVoxel

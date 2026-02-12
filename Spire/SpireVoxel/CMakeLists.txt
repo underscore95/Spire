@@ -35,15 +35,25 @@ add_library(SpireVoxel STATIC
         Source/Chunk/VoxelType.h
         Assets/Shaders/PushConstants.h
         Source/Utils/ClosestUtil.h
-        Source/Generation/Controllers/IProceduralGenerationController.h
+        Source/ChunkOrderControllers/IChunkOrderController.h
         Source/Generation/Providers/IProceduralGenerationProvider.h
         Source/Generation/Controllers/SimpleProceduralGenerationController.cpp
         Source/Generation/Controllers/SimpleProceduralGenerationController.h
-        Source/Generation/Controllers/IProceduralGenerationController.cpp
+        Source/ChunkOrderControllers/IChunkOrderController.cpp
         Source/Generation/Providers/SimpleProceduralGenerationProvider.cpp
         Source/Generation/Providers/SimpleProceduralGenerationProvider.h
         Source/Generation/ProceduralGenerationManager.cpp
         Source/Generation/ProceduralGenerationManager.h
+        Source/Chunk/DetailLevel.h
+        Source/Chunk/DetailLevel.cpp
+        Source/LOD/SamplingOffsets.cpp
+        Source/LOD/SamplingOffsets.h
+        Source/LOD/ISamplingOffsets.h
+        Source/LOD/LODManager.cpp
+        Source/LOD/LODManager.h
+        Source/Serialisation/SerializedGenerationProvider.h
+        Source/Serialisation/SerializedGenerationProvider.cpp
+        Source/Generation/Providers/EmptyProceduralGenerationProvider.h
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

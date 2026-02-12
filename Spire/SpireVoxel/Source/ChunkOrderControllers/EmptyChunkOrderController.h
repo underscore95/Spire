@@ -1,9 +1,9 @@
 #pragma once
-#include "IProceduralGenerationController.h"
+#include "IChunkOrderController.h"
 
 // Never generates chunks
 namespace SpireVoxel {
-    class EmptyProceduralGenerationController : public IProceduralGenerationController {
+    class EmptyChunkOrderController : public IChunkOrderController {
     public:
         std::vector<glm::ivec3> GetChunkCoordsToLoad(VoxelWorld &world, const IVoxelCamera &camera, glm::u32 maxToLoad) override { return {}; }
     };

@@ -2,9 +2,12 @@
 #include "../../Libs/glfw/include/GLFW/glfw3.h"
 #include "GameCamera.h"
 #include "Profiling.h"
-#include "Generation/Controllers/EmptyProceduralGenerationController.h"
+#include "../../SpireVoxel/Source/ChunkOrderControllers/EmptyChunkOrderController.h"
 #include "Generation/Controllers/SimpleProceduralGenerationController.h"
+#include "Generation/Providers/EmptyProceduralGenerationProvider.h"
+#include "../../SpireVoxel/Source/Serialisation/SerializedGenerationProvider.h"
 #include "Generation/Providers/SimpleProceduralGenerationProvider.h"
+#include "LOD/SamplingOffsets.h"
 #include "Serialisation/VoxelSerializer.h"
 #include "Types/VoxelTypeInfo.h"
 #include "Types/VoxelTypeRegistry.h"
@@ -18,12 +21,20 @@ GameApplication::GameApplication() = default;
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
 
-    auto proceduralGenerationController = std::make_unique<EmptyProceduralGenerationController>();
-    auto proceduralGenerationProvider = std::make_unique<SimpleProceduralGenerationProvider>();
+    std::unique_ptr<IChunkOrderController> proceduralGenerationController = std::make_unique<EmptyChunkOrderController>();
+    std::unique_ptr<IProceduralGenerationProvider> proceduralGenerationProvider = std::make_unique<EmptyProceduralGenerationProvider>();
+    if (!Profiling::IS_PROFILING) {
+        proceduralGenerationController = std::make_unique<SimpleProceduralGenerationController>(64, glm::ivec2{-1, 4});
+        proceduralGenerationProvider = std::make_unique<SerializedGenerationProvider>(
+            std::filesystem::path("Worlds") / "Test6",
+            std::make_unique<EmptyProceduralGenerationProvider>()
+        );
+    }
 
     m_camera = std::make_unique<GameCamera>(engine);
     auto tempWorld = std::make_unique<VoxelWorld>(
-        engine.GetRenderingManager(),
+        engine,
+        std::make_unique<SamplingOffsets>(std::string(GetAssetsDirectory()) + "/LODSamplingOffsets.bin"),
         [this] { RecreatePipeline(); },
         Profiling::IS_PROFILING,
         std::move(proceduralGenerationProvider),
@@ -50,9 +61,15 @@ void GameApplication::Start(Engine &engine) {
     if (Profiling::IS_PROFILING) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
-    } else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
+    } // else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
 
-    //world.LoadChunk({0, 0, -1});
+    // world.LoadChunks({{0,0,0},{1,0,0}});
+    // CuboidVoxelEdit({0,0,0},{128,64,64},{1}).Apply(world);
+
+    // BasicVoxelEdit({
+    //     BasicVoxelEdit::Edit{{0, 0, 0}, 1}
+    // }).Apply(world);
+
     //world.LoadChunk({0, 0, 0});
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 0}, 2},
@@ -87,7 +104,7 @@ void GameApplication::Update() {
     m_camera->Update();
     RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), m_camera->GetCamera().GetForward(), 10);
     if (hit) {
-        Chunk *chunkOfHitVoxel = m_voxelRenderer->GetWorld().GetLoadedChunk(VoxelWorld::GetChunkPositionOfVoxel(hit.VoxelPosition));
+        Chunk *chunkOfHitVoxel = m_voxelRenderer->GetWorld().TryGetLoadedChunk(VoxelWorld::GetChunkPositionOfVoxel(hit.VoxelPosition));
 
         if (m_engine->GetWindow().IsKeyPressed(GLFW_KEY_L) && chunkOfHitVoxel) {
             glm::ivec3 adjacentVoxel = hit.VoxelPosition + FaceToDirection(hit.Face);
@@ -135,6 +152,11 @@ void GameApplication::RenderUi() const {
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS) (frame %d (swapchain image %d))", m_engine->GetDeltaTime() * 1000, 1.0f / m_engine->GetDeltaTime(), m_frame,
                 m_swapchainImageIndex);
 
+    glm::u32 numChunksGeneratedThisFrame = m_voxelRenderer->GetWorld().GetProceduralGenerationManager().NumChunksGeneratedThisFrame();
+    if (numChunksGeneratedThisFrame) {
+        ImGui::TextColored({1, 0, 0, 1}, "Generated %d chunks this frame", numChunksGeneratedThisFrame);
+    }
+
     const CameraInfo &cameraInfo = m_camera->GetCameraInfo();
     std::string targetedVoxelStr = "None";
     RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), m_camera->GetCamera().GetForward(), 10);
@@ -147,6 +169,8 @@ void GameApplication::RenderUi() const {
             m_voxelRenderer->GetWorld().GetVoxelAt(hit.VoxelPosition),
             FaceToString(hit.Face)
         );
+    } else if (hit.TerminatedInLODChunk) {
+        targetedVoxelStr = "Cannot raycast in LOD chunk";
     }
     ImGui::Text("Targeted Voxel: %s", targetedVoxelStr.c_str());
 
@@ -167,8 +191,12 @@ void GameApplication::RenderUi() const {
     glm::vec3 chunkPos = {glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE)};
     ImGui::Text("Chunk Position %f, %f, %f", chunkPos.x, chunkPos.y, chunkPos.z);
 
-    ImGui::Text("Chunks Loaded: %d / %d (%d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(), VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS,
-                static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0)));
+    ImGui::Text("Chunks Loaded: %d / %d (%d MB RAM / %d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(), VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS,
+                static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateCPUMemoryUsageForChunks()) / 1024.0 / 1024.0)),
+                static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0))
+    );
+
+    m_profiling->RenderUI();
 
     if (ImGui::CollapsingHeader("Camera")) {
         glm::vec3 cameraForward = glm::normalize(m_camera->GetCamera().GetForward());
@@ -190,6 +218,36 @@ void GameApplication::RenderUi() const {
         ImGui::SliderFloat("Camera Scale: ", &m_camera->Scale, 0.01, 1);
         if (ImGui::Button("Teleport to 0,0,0")) {
             m_camera->GetCamera().SetPosition(glm::vec3{0, 0, 0});
+        }
+    }
+
+    static int newLod = 2;
+    static float chanceToLOD = 1;
+    static bool canLOD = true;
+
+    if (canLOD && ImGui::CollapsingHeader("LOD")) {
+        ImGui::InputInt("New LOD Level", &newLod);
+        ImGui::SliderFloat("Chance to LOD a chunk: ", &chanceToLOD, 0, 1);
+        chanceToLOD = std::clamp(chanceToLOD, 0.0f, 1.0f);
+
+        if (ImGui::Button("Generate New LOD")) {
+            Timer timer;
+            auto &world = m_voxelRenderer->GetWorld();
+            std::vector<Chunk *> chunks;
+            glm::u32 originalNumChunks = world.NumLoadedChunks();
+            for (auto &[chunkCoords,chunk] : world) {
+                bool shouldLOD = m_engine->GetRandom().RandomFloat() < chanceToLOD;
+                if (chunkCoords.x % newLod == 0 && (chunkCoords.y + 1 /*Test5 starts at chunk y = -1*/) % newLod == 0 && chunkCoords.z % newLod == 0 && shouldLOD) {
+                    chunks.push_back(chunk.get());
+                }
+            }
+            for (Chunk *chunk : chunks) {
+                world.GetLODManager().IncreaseLODTo(*chunk, newLod);
+            }
+            glm::u32 numConverted = chunks.size() + (originalNumChunks - world.NumLoadedChunks());
+            info("{} of {} chunks converted to new LOD {} (requested {}%) in {} ms.", numConverted, originalNumChunks, newLod, static_cast<int>(chanceToLOD * 100),
+                 timer.MillisSinceStart());
+            canLOD = false;
         }
     }
 

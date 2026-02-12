@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DetailLevel.h"
 #include "EngineIncludes.h"
 #include "VoxelType.h"
 #include "../../Assets/Shaders/ShaderInfo.h"
@@ -27,6 +28,7 @@ namespace SpireVoxel {
         Spire::BufferAllocator::Allocation VertexAllocation = {};
         Spire::BufferAllocator::Allocation VoxelDataAllocation = {};
         glm::u32 NumVertices;
+        DetailLevel LOD = {};
 
         void SetVoxel(glm::u32 index, VoxelType type);
 

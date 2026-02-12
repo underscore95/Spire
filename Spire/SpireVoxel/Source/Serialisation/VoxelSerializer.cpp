@@ -7,116 +7,155 @@
 
 namespace SpireVoxel {
     void VoxelSerializer::Serialize(VoxelWorld &world, const std::filesystem::path &directory) {
-        if (!std::filesystem::exists(directory) && !std::filesystem::create_directories(directory)) {
-            Spire::error("Failed to create directory {} to serialize world");
-            return;
-        }
-
         for (const auto &[_, chunk] : world) {
-            std::filesystem::path path = directory / std::format("{}_{}_{}.sprc", chunk->ChunkPosition.x, chunk->ChunkPosition.y, chunk->ChunkPosition.z);
-            std::ofstream file(path, std::ios_base::binary | std::ios_base::trunc);
-
-            file.write(HEADER_IDENTIFIER.data(), HEADER_IDENTIFIER.size());
-            file.write(reinterpret_cast<const char *>(&VERSION), sizeof(VERSION));
-            file.write(reinterpret_cast<const char *>(&chunk->ChunkPosition), sizeof(chunk->ChunkPosition));
-            file.write(reinterpret_cast<const char *>(chunk->VoxelData.data()), chunk->VoxelData.size() * sizeof(chunk->VoxelData[0]));
-
-            file.close();
+            SerializeChunk(*chunk, directory);
         }
 
         Spire::info("Saved {} chunks to {}", world.NumLoadedChunks(), directory.string());
     }
 
-    void VoxelSerializer::ClearAndDeserialize(VoxelWorld &world, const std::filesystem::path &directory) {
+    void VoxelSerializer::SerializeChunk(const Chunk &chunk, const std::filesystem::path &directory) {
+        if (chunk.LOD.Scale != 1) {
+            Spire::error("Attempted to serialize chunk {} {} {} but its LOD was {}", chunk.ChunkPosition.x, chunk.ChunkPosition.y, chunk.ChunkPosition.z, chunk.LOD.Scale);
+            assert(false);
+            return;
+        }
+
+        if (!std::filesystem::exists(directory) && !std::filesystem::create_directories(directory)) {
+            Spire::error("Failed to create directory {} to serialize world");
+            return;
+        }
+
+        std::filesystem::path path = GetFilePath(chunk.ChunkPosition, directory);
+        std::ofstream file(path, std::ios_base::binary | std::ios_base::trunc);
+
+        file.write(HEADER_IDENTIFIER.data(), HEADER_IDENTIFIER.size());
+        file.write(reinterpret_cast<const char *>(&VERSION), sizeof(VERSION));
+        file.write(reinterpret_cast<const char *>(&chunk.ChunkPosition), sizeof(chunk.ChunkPosition));
+        file.write(reinterpret_cast<const char *>(chunk.VoxelData.data()), chunk.VoxelData.size() * sizeof(chunk.VoxelData[0]));
+
+        file.close();
+    }
+
+    void VoxelSerializer::ClearAndDeserialize(
+        VoxelWorld &world,
+        const std::filesystem::path &directory
+    ) {
         Spire::Timer timer;
 
         world.UnloadAllChunks();
-
         if (!std::filesystem::exists(directory)) return;
 
-        bool migratedAny = false;
         std::unordered_set<glm::ivec3> loadedChunks;
 
         for (const auto &entry : std::filesystem::directory_iterator(directory)) {
             if (std::filesystem::is_directory(entry)) continue;
             if (Spire::FileIO::GetLowerCaseFileExtension(entry.path()) != ".sprc") continue;
 
-            std::ifstream file(entry.path(), std::ios_base::binary);
-            if (!file) continue;
+            ChunkDeserializationResult result =                    ClearAndDeserializeChunkFile(world, entry.path());
 
-            std::remove_const_t<decltype(HEADER_IDENTIFIER)> identifier;
-            if (!file.read(identifier.data(), identifier.size()) || identifier != HEADER_IDENTIFIER) {
-                Spire::error("Failed to read .sprc file - invalid identifier {}", entry.path().string());
-                continue;
-            }
+            if (!result.Success) continue;
 
-            std::uint32_t version{};
-            if (!file.read(reinterpret_cast<char *>(&version), sizeof(version)) || version > VERSION) {
-                Spire::error("Failed to read version of {}", entry.path().string());
-                continue;
-            }
-
-            glm::ivec3 chunkPos{};
-            if (!file.read(reinterpret_cast<char *>(&chunkPos), sizeof(chunkPos))) {
-                Spire::error("Failed to read chunk position of {}", entry.path().string());
-                continue;
-            }
-
-            if (loadedChunks.contains(chunkPos)) {
+            if (!loadedChunks.insert(result.ChunkPos).second) {
                 Spire::error(
                     "World at directory {} contains multiple files for chunk {}, {}, {}",
-                    directory.string(), chunkPos.x, chunkPos.y, chunkPos.z
+                    directory.string(),
+                    result.ChunkPos.x,
+                    result.ChunkPos.y,
+                    result.ChunkPos.z
                 );
-                continue;
-            }
-            loadedChunks.insert(chunkPos);
-
-            Chunk &chunk = world.LoadChunk(chunkPos);
-            assert(!chunk.IsCorrupted());
-
-            if (version < VOXEL_TYPE_U32_TO_U16_VERSION) {
-                std::vector<std::uint32_t> legacy(chunk.VoxelData.size());
-                if (!file.read(reinterpret_cast<char *>(legacy.data()), legacy.size() * sizeof(glm::u32))) {
-                    Spire::error("Failed to read legacy voxel data of {}", entry.path().string());
-                    continue;
-                }
-
-                std::fill(chunk.VoxelData.begin(), chunk.VoxelData.end(), 0);
-
-                for (std::size_t i = 0; i < legacy.size(); ++i) {
-                    static_assert(sizeof(chunk.VoxelData[0]) == sizeof(glm::u16));
-                    chunk.VoxelData[i] = legacy[i];
-                }
-
-                migratedAny = true;
-            } else {
-                if (!file.read(reinterpret_cast<char *>(chunk.VoxelData.data()),
-                               chunk.VoxelData.size() * sizeof(chunk.VoxelData[0]))) {
-                    Spire::error(
-                        "Failed to read chunk voxel data of {} (chunk {} {} {})",
-                        entry.path().string(), chunkPos.x, chunkPos.y, chunkPos.z
-                    );
-                    continue;
-                }
-            }
-
-            chunk.RegenerateVoxelBits();
-            assert(!chunk.IsCorrupted());
-
-            world.GetRenderer().NotifyChunkEdited(chunk);
-            for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
-                Chunk *adjacent = world.GetLoadedChunk(chunk.ChunkPosition + FaceToDirection(face));
-                if (adjacent) world.GetRenderer().NotifyChunkEdited(*adjacent);
             }
         }
 
         world.GetRenderer().HandleChunkEdits({});
+        Spire::info("Deserialized world in {} ms", timer.MillisSinceStart());
+    }
 
-        if (migratedAny) {
-            Spire::info("Migrated world to latest voxel format, rewriting chunk files");
-            Serialize(world, directory);
+    VoxelSerializer::ChunkDeserializationResult VoxelSerializer::ClearAndDeserializeChunk(
+        VoxelWorld &world,
+        glm::ivec3 chunkCoords,
+        const std::filesystem::path &directory) {
+        return ClearAndDeserializeChunkFile(world, GetFilePath(chunkCoords,directory));
+    }
+
+
+    VoxelSerializer::ChunkDeserializationResult VoxelSerializer::ClearAndDeserializeChunkFile(
+        VoxelWorld &world,
+        const std::filesystem::path &filePath
+    ) {
+        ChunkDeserializationResult result{};
+        result.DidChunkFileExist = true;
+
+        std::ifstream file(filePath, std::ios_base::binary);
+        if (!file) return result;
+
+        std::remove_const_t<decltype(HEADER_IDENTIFIER)> identifier;
+        if (!file.read(identifier.data(), identifier.size()) || identifier != HEADER_IDENTIFIER) {
+            Spire::error("Failed to read .sprc file - invalid identifier {}", filePath.string());
+            return result;
         }
 
-        Spire::info("Deserialized world in {} ms", timer.MillisSinceStart());
+        std::uint32_t version{};
+        if (!file.read(reinterpret_cast<char *>(&version), sizeof(version)) || version > VERSION) {
+            Spire::error("Failed to read version of {}", filePath.string());
+            return result;
+        }
+
+        if (!file.read(reinterpret_cast<char *>(&result.ChunkPos), sizeof(result.ChunkPos))) {
+            Spire::error("Failed to read chunk position of {}", filePath.string());
+            return result;
+        }
+
+        Chunk &chunk = world.LoadChunk(result.ChunkPos);
+        assert(!chunk.IsCorrupted());
+
+        if (version < VOXEL_TYPE_U32_TO_U16_VERSION) {
+            std::vector<std::uint32_t> legacy(chunk.VoxelData.size());
+            if (!file.read(reinterpret_cast<char *>(legacy.data()), legacy.size() * sizeof(std::uint32_t))) {
+                Spire::error("Failed to read legacy voxel data of {}", filePath.string());
+                return result;
+            }
+
+            for (std::size_t i = 0; i < legacy.size(); ++i) {
+                chunk.VoxelData[i] = static_cast<std::uint16_t>(legacy[i]);
+            }
+
+            result.Migrated = true;
+
+            Spire::info(
+                "Migrated chunk {} {} {} to latest voxel format",
+                result.ChunkPos.x, result.ChunkPos.y, result.ChunkPos.z
+            );
+        } else {
+            if (!file.read(reinterpret_cast<char *>(chunk.VoxelData.data()),
+                           chunk.VoxelData.size() * sizeof(chunk.VoxelData[0]))) {
+                Spire::error(
+                    "Failed to read chunk voxel data of {} (chunk {} {} {})",
+                    filePath.string(),
+                    result.ChunkPos.x, result.ChunkPos.y, result.ChunkPos.z
+                );
+                return result;
+            }
+        }
+
+        chunk.RegenerateVoxelBits();
+        assert(!chunk.IsCorrupted());
+
+        world.GetRenderer().NotifyChunkEdited(chunk);
+        for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
+            Chunk *adjacent = world.TryGetLoadedChunk(chunk.ChunkPosition + FaceToDirection(face));
+            if (adjacent) world.GetRenderer().NotifyChunkEdited(*adjacent);
+        }
+
+        if (result.Migrated) {
+            SerializeChunk(chunk, filePath.parent_path());
+        }
+
+        result.Success = true;
+        return result;
+    }
+
+    std::filesystem::path VoxelSerializer::GetFilePath(glm::ivec3 chunkCoords, const std::filesystem::path &directory) {
+        return directory / std::format("{}_{}_{}.sprc", chunkCoords.x, chunkCoords.y, chunkCoords.z);
     }
 } // SpireVoxel

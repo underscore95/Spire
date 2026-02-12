@@ -89,7 +89,7 @@ namespace Spire {
         // Free an allocation once it is no longer needed
         void ScheduleFreeAllocation(AllocationLocation location);
 
-        void ScheduleFreeAllocation(Allocation allocation);
+        void ScheduleFreeAllocation(const Allocation &allocation);
 
         [[nodiscard]] Spire::Descriptor CreateDescriptor(glm::u32 binding, VkShaderStageFlags stages, const std::string &debugName = "Buffer Allocator");
 

@@ -8,11 +8,10 @@ namespace SpireVoxel {
 }
 
 namespace SpireVoxel {
-    // A controller decides what chunks should be loaded
-    // When Spire isn't loading or meshing any chunks, it will try to load new ones
-    class IProceduralGenerationController {
+    // A controller decides what chunks should have an operation applied
+    class IChunkOrderController {
     public:
-        virtual ~IProceduralGenerationController() = default;
+        virtual ~IChunkOrderController() = default;
 
     public:
         [[nodiscard]] virtual std::vector<glm::ivec3> GetChunkCoordsToLoad(VoxelWorld &world, const IVoxelCamera &camera, glm::u32 maxToLoad) = 0;

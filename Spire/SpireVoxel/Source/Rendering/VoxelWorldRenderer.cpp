@@ -91,7 +91,7 @@ namespace SpireVoxel {
     void VoxelWorldRenderer::NotifyChunkEdited(const Chunk &chunk) {
         std::unique_lock lock(m_chunkEditNotifyMutex);
         assert(m_world.IsLoaded(chunk));
-        assert(m_world.GetLoadedChunk(chunk.ChunkPosition) == &chunk);
+        assert(m_world.TryGetLoadedChunk(chunk.ChunkPosition) == &chunk);
         m_editedChunks.insert(chunk.ChunkPosition);
     }
 

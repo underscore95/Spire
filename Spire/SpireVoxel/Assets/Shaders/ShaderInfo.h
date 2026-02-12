@@ -109,6 +109,8 @@ namespace SpireVoxel {
         SPIRE_UINT32_TYPE VoxelDataAllocationIndex;
         // What buffer is this chunks vertices stored in?
         SPIRE_UINT32_TYPE VertexBufferIndex;
+        // LOD Scale, should be a uint but floating point operations are faster on gpu
+        float LODScale;
     };
 
 #ifdef __cplusplus

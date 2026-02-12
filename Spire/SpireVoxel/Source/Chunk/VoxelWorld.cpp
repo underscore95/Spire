@@ -1,15 +1,28 @@
 #include "VoxelWorld.h"
 #include "Rendering/VoxelWorldRenderer.h"
+#include "LOD/SamplingOffsets.h"
 
 namespace SpireVoxel {
-    VoxelWorld::VoxelWorld(Spire::RenderingManager &renderingManager,
-                           const std::function<void()>& recreatePipelineCallback,
-                           bool isProfilingMeshing,
-                           std::unique_ptr<IProceduralGenerationProvider> provider,
-                           std::unique_ptr<IProceduralGenerationController> controller,
-                           IVoxelCamera &camera) {
-        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, renderingManager, recreatePipelineCallback, isProfilingMeshing);
+    VoxelWorld::VoxelWorld(
+        Spire::Engine &engine,
+        const std::shared_ptr<ISamplingOffsets> &samplingOffsets,
+        const std::function<void()> &recreatePipelineCallback,
+        bool isProfilingMeshing,
+        std::unique_ptr<IProceduralGenerationProvider> provider,
+        std::unique_ptr<IChunkOrderController> controller,
+        IVoxelCamera &camera)
+        : m_engine(engine) {
+        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, engine.GetRenderingManager(), recreatePipelineCallback, isProfilingMeshing);
         m_proceduralGenerationManager = std::make_unique<ProceduralGenerationManager>(std::move(provider), std::move(controller), *this, camera);
+        m_lodManager = std::unique_ptr<LODManager>(new LODManager(*this, samplingOffsets));
+    }
+
+    LODManager &VoxelWorld::GetLODManager() const {
+        return *m_lodManager;
+    }
+
+    ProceduralGenerationManager &VoxelWorld::GetProceduralGenerationManager() const {
+        return *m_proceduralGenerationManager;
     }
 
     Chunk &VoxelWorld::LoadChunk(glm::ivec3 chunkPosition) {
@@ -25,7 +38,7 @@ namespace SpireVoxel {
         bool loadedAnyChunks = false;
 
         for (auto chunkPosition : chunkPositions) {
-            if (m_chunks.contains(chunkPosition)) continue;
+            if (m_lodManager->TryGetLODChunk(chunkPosition)) continue;
             if (m_chunks.size() + 1 > VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS) break;
             m_chunks.try_emplace(chunkPosition, new Chunk(chunkPosition, *this)); // this constructs a unique ptr
             auto &chunk = m_chunks.at(chunkPosition);
@@ -43,6 +56,7 @@ namespace SpireVoxel {
         for (auto chunkPosition : chunkPositions) {
             auto it = m_chunks.find(chunkPosition);
             if (it == m_chunks.end()) continue;
+            m_lodManager->OnChunkUnload(*it->second);
             m_renderer->FreeChunkVertexBuffer(*it->second);
             m_renderer->FreeChunkVoxelDataBuffer(*it->second);
             m_chunks.erase(it);
@@ -54,18 +68,18 @@ namespace SpireVoxel {
         }
     }
 
-    Chunk *VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) {
+    Chunk *VoxelWorld::TryGetLoadedChunk(glm::ivec3 chunkPosition) {
         auto it = m_chunks.find(chunkPosition);
         return it != m_chunks.end() ? it->second.get() : nullptr;
     }
 
-    const Chunk *VoxelWorld::GetLoadedChunk(glm::ivec3 chunkPosition) const {
+    const Chunk *VoxelWorld::TryGetLoadedChunk(glm::ivec3 chunkPosition) const {
         auto it = m_chunks.find(chunkPosition);
         return it != m_chunks.end() ? it->second.get() : nullptr;
     }
 
     bool VoxelWorld::IsLoaded(const Chunk &chunk) {
-        Chunk *loaded = GetLoadedChunk(chunk.ChunkPosition);
+        Chunk *loaded = TryGetLoadedChunk(chunk.ChunkPosition);
         if (!loaded) return false;
         assert(loaded == &chunk); // make sure there isn't two chunks at the same position
         return true;
@@ -117,7 +131,7 @@ namespace SpireVoxel {
         glm::ivec3 chunkPos = GetChunkPositionOfVoxel(worldPosition);
         glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
 
-        const Chunk *chunk = GetLoadedChunk(chunkPos);
+        const Chunk *chunk = TryGetLoadedChunk(chunkPos);
         return chunk ? chunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(positionInChunk)] : VOXEL_TYPE_AIR;
     }
 
@@ -125,7 +139,7 @@ namespace SpireVoxel {
         glm::ivec3 chunkPos = GetChunkPositionOfVoxel(worldPosition);
         glm::ivec3 positionInChunk = worldPosition - chunkPos * SPIRE_VOXEL_CHUNK_SIZE;
 
-        Chunk *chunk = GetLoadedChunk(chunkPos);
+        Chunk *chunk = TryGetLoadedChunk(chunkPos);
         if (chunk) {
             chunk->SetVoxel(SPIRE_VOXEL_POSITION_TO_INDEX(positionInChunk), voxelType);
             m_renderer->NotifyChunkEdited(*chunk);
