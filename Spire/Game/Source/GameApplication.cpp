@@ -16,6 +16,12 @@
 using namespace Spire;
 using namespace SpireVoxel;
 
+bool ShouldStreamLoading() {
+    if (Profiling::IS_PROFILING) return false;
+    return false;
+    return true;
+}
+
 GameApplication::GameApplication() = default;
 
 void GameApplication::Start(Engine &engine) {
@@ -23,7 +29,7 @@ void GameApplication::Start(Engine &engine) {
 
     std::unique_ptr<IChunkOrderController> proceduralGenerationController = std::make_unique<EmptyChunkOrderController>();
     std::unique_ptr<IProceduralGenerationProvider> proceduralGenerationProvider = std::make_unique<EmptyProceduralGenerationProvider>();
-    if (!Profiling::IS_PROFILING) {
+    if (ShouldStreamLoading()) {
         proceduralGenerationController = std::make_unique<SimpleProceduralGenerationController>(64, glm::ivec2{-1, 4});
         proceduralGenerationProvider = std::make_unique<SerializedGenerationProvider>(
             std::filesystem::path("Worlds") / "Test6",
@@ -61,14 +67,26 @@ void GameApplication::Start(Engine &engine) {
     if (Profiling::IS_PROFILING) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
-    } // else VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
+    } else if (!ShouldStreamLoading()) {
+         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
+    }
 
-    // world.LoadChunks({{0,0,0},{1,0,0}});
-    // CuboidVoxelEdit({0,0,0},{128,64,64},{1}).Apply(world);
-
+   // world.LoadChunks({{0, 0, 0}, {-1, 0, 0}});
+    // CuboidVoxelEdit({0,0,0},{64,64,64},{1}).Apply(world);
+    //   CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
+    //
     // BasicVoxelEdit({
-    //     BasicVoxelEdit::Edit{{0, 0, 0}, 1}
+    //     BasicVoxelEdit::Edit{{0, 0, 5}, 1},
+    //     BasicVoxelEdit::Edit{{-1, 0, 5}, 2}
     // }).Apply(world);
+
+    //
+    // BasicVoxelEdit({
+    //    BasicVoxelEdit::Edit{{16, 16, 16}, 1},
+    //    BasicVoxelEdit::Edit{{17, 16, 16}, 1},
+    //    BasicVoxelEdit::Edit{{17, 16, 15}, 0},
+    //    BasicVoxelEdit::Edit{{17, 17, 16}, 1}
+    //  }).Apply(world);
 
     //world.LoadChunk({0, 0, 0});
     // BasicVoxelEdit({

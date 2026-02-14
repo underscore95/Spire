@@ -5,10 +5,6 @@
 #include "Rendering/Memory/BufferManager.h"
 #include "Utils/ThreadPool.h"
 #include "../../Assets/Shaders/PushConstants.h"
-#include "Edits/BasicVoxelEdit.h"
-#include "Edits/BasicVoxelEdit.h"
-#include "Edits/BasicVoxelEdit.h"
-#include "Edits/BasicVoxelEdit.h"
 
 namespace SpireVoxel {
     VoxelWorldRenderer::VoxelWorldRenderer(VoxelWorld &world,
@@ -20,8 +16,8 @@ namespace SpireVoxel {
           m_onWorldEditedDelegate(),
           m_chunkVertexBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(),
                                        sizeof(VertexData) * (1024 * 1024 * 32), 1, true),
-          m_chunkVoxelDataBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(GPUChunkVoxelData), m_renderingManager.GetSwapchain().GetNumImages(),
-                                          sizeof(GPUChunkVoxelData) * 1024, 1, true) {
+          m_chunkVoxelDataBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(VoxelType), m_renderingManager.GetSwapchain().GetNumImages(),
+                                          1024 * 1024 * 128, 1, true) {
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", m_chunkVertexBufferAllocator.GetTotalSize() / 1024 / 1024);
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", m_chunkVoxelDataBufferAllocator.GetTotalSize() / 1024 / 1024);
 

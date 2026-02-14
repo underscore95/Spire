@@ -2,6 +2,8 @@
 
 #include "Meshing/GreedyMeshingGrid.h"
 #include "VoxelWorld.h"
+#include "Edits/BasicVoxelEdit.h"
+#include "Edits/BasicVoxelEdit.h"
 #include "Meshing/ChunkMesh.h"
 
 namespace SpireVoxel {
@@ -48,69 +50,135 @@ namespace SpireVoxel {
         return queryChunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(queryPosition)];
     }
 
-    void PushFace(std::vector<VertexData> &vertices, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) {
+    void Chunk::PushVoxelTypes(ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) const {
+        assert(start.x < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(start.y < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(start.z < SPIRE_VOXEL_CHUNK_SIZE);
+
+        glm::uvec3 worldSize = GreedyMeshingFaceSizeSwizzleToWorldSpace(face, width, height);
+        assert((worldSize.x == 0) + (worldSize.y == 0) + (worldSize.z == 0) == 1); // exactly one coordinate is 0
+
+        if (IsFaceOnXAxis(face)) {
+            assert(worldSize.x == 0);
+            constexpr glm::u32 xOffset = 0;
+            for (glm::u32 yOffset = 0; yOffset < worldSize.y; yOffset++) {
+                for (glm::u32 zOffset = 0; zOffset < worldSize.z; zOffset++) {
+                    glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
+                    assert(coord.x < SPIRE_VOXEL_CHUNK_SIZE);
+                    assert(coord.y < SPIRE_VOXEL_CHUNK_SIZE);
+                    assert(coord.z < SPIRE_VOXEL_CHUNK_SIZE);
+                    VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(coord)];
+                    assert(type != 0);
+                    mesh.VoxelTypes.push_back(type);
+                }
+            }
+            return;
+        }
+
+        if (IsFaceOnYAxis(face)) {
+            assert(worldSize.y == 0);
+            constexpr glm::u32 yOffset = 0;
+            for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
+                for (glm::u32 zOffset = 0; zOffset < worldSize.z; zOffset++) {
+                    glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
+                    assert(coord.x < SPIRE_VOXEL_CHUNK_SIZE);
+                    assert(coord.y < SPIRE_VOXEL_CHUNK_SIZE);
+                    assert(coord.z < SPIRE_VOXEL_CHUNK_SIZE);
+                    VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(coord)];
+                    assert(type != 0);
+                    mesh.VoxelTypes.push_back(type);
+                }
+            }
+            return;
+        }
+
+        if (IsFaceOnZAxis(face)) {
+            assert(worldSize.z == 0);
+            constexpr glm::u32 zOffset = 0;
+            for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
+                for (glm::u32 yOffset = 0; yOffset < worldSize.y; yOffset++) {
+                    glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
+                    assert(coord.x < SPIRE_VOXEL_CHUNK_SIZE);
+                    assert(coord.y < SPIRE_VOXEL_CHUNK_SIZE);
+                    assert(coord.z < SPIRE_VOXEL_CHUNK_SIZE);
+                    VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(coord)];
+                    assert(type != 0);
+                    mesh.VoxelTypes.push_back(type);
+                }
+            }
+            return;
+        }
+
+        assert(false);
+    }
+
+    void Chunk::PushFace(ChunkMesh &mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const {
+        std::vector<VertexData> &vertices = mesh.Vertices;
+
         assert(width > 0);
         assert(height > 0);
         const glm::u32 w = width;
         const glm::u32 h = height;
         switch (face) {
             case SPIRE_VOXEL_FACE_POS_Z:
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + 1, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + h, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + h, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 1, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + h, p.z + 1, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + h, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + h, p.z + 1, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + 0, p.z + 1, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
                 break;
 
             case SPIRE_VOXEL_FACE_NEG_Z:
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + h, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Z));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + h, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Z));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Z));
                 break;
 
             case SPIRE_VOXEL_FACE_NEG_X:
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + w, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + h, p.z + w, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + w, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + h, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + h, p.z + w, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + h, p.z + w, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 0, p.z + w, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_X));
                 break;
 
             case SPIRE_VOXEL_FACE_POS_X:
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + 0, p.z + w, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + h, p.z + w, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_X));
-                vertices.push_back(PackVertexData(w, h, p.x + 1, p.y + 0, p.z + w, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 1, p.y + 0, p.z + w, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 1, p.y + h, p.z + w, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 1, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 1, p.y + h, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 1, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_X));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 1, p.y + 0, p.z + w, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_X));
                 break;
 
             case SPIRE_VOXEL_FACE_POS_Y:
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 1, p.z + h, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 1, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 1, p.z + h, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 1, p.z + h, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 1, p.z + h, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 1, p.z + 0, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_POS_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + 1, p.z + 0, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_POS_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + 1, p.z + h, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_POS_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 1, p.z + h, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Y));
                 break;
 
             case SPIRE_VOXEL_FACE_NEG_Y:
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + h, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + h, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + h, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Y));
-                vertices.push_back(PackVertexData(w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 0, p.z + h, VoxelVertexPosition::THREE, SPIRE_VOXEL_FACE_NEG_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + 0, p.z + h, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + 0, p.z + h, VoxelVertexPosition::TWO, SPIRE_VOXEL_FACE_NEG_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + w, p.y + 0, p.z + 0, VoxelVertexPosition::ONE, SPIRE_VOXEL_FACE_NEG_Y));
+                vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), w, h, p.x + 0, p.y + 0, p.z + 0, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_NEG_Y));
                 break;
             default:
                 assert(false);
                 break;
         }
+
+        PushVoxelTypes(mesh, p, width, height, face);
     }
 
     void Chunk::SetVoxel(glm::u32 index, VoxelType type) {
@@ -187,7 +255,7 @@ namespace SpireVoxel {
 
                         // push the face
                         glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
-                        PushFace(mesh.Vertices, face + faceSignIndex, chunkCoords, width, height);
+                        PushFace(mesh, face + faceSignIndex, chunkCoords, width, height);
 
                         if (grid.GetColumn(col) != 0) {
                             // we didn't get all the voxels on this row, loop again
@@ -213,7 +281,7 @@ namespace SpireVoxel {
             .ChunkX = ChunkPosition.x,
             .ChunkY = ChunkPosition.y,
             .ChunkZ = ChunkPosition.z,
-            .VoxelDataChunkIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.Start / sizeof(GPUChunkVoxelData)),
+            .VoxelDataChunkIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.Start / sizeof(VoxelType)),
             .VoxelDataAllocationIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.AllocationIndex),
             .VertexBufferIndex = static_cast<glm::u32>(VertexAllocation.Location.AllocationIndex),
             .LODScale = static_cast<float>(LOD.Scale)

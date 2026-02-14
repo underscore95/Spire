@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 TEST(VertexPackingTests, TestA) {
-    SpireVoxel::VertexData vertex = SpireVoxel::PackVertexData(5, 1, 14, 50, 15, SpireVoxel::VoxelVertexPosition::ZERO, 3);
+    SpireVoxel::VertexData vertex = SpireVoxel::PackVertexData(0, 5, 1, 14, 50, 15, SpireVoxel::VoxelVertexPosition::ZERO, 3);
     glm::uvec3 pos = SpireVoxel::UnpackVertexDataXYZ(vertex.Packed_7X7Y7Z2VertPos3Face);
     EXPECT_EQ(pos.x, 14);
     EXPECT_EQ(pos.y, 50);
@@ -15,7 +15,7 @@ TEST(VertexPackingTests, TestA) {
 }
 
 TEST(VertexPackingTests, TestB) {
-    SpireVoxel::VertexData vertex = SpireVoxel::PackVertexData(63, 19, 63, 64, 0, SpireVoxel::VoxelVertexPosition::THREE, 0);
+    SpireVoxel::VertexData vertex = SpireVoxel::PackVertexData(0, 63, 19, 63, 64, 0, SpireVoxel::VoxelVertexPosition::THREE, 0);
     glm::uvec3 pos = SpireVoxel::UnpackVertexDataXYZ(vertex.Packed_7X7Y7Z2VertPos3Face);
     EXPECT_EQ(pos.x, 63);
     EXPECT_EQ(pos.y, 64);
