@@ -36,7 +36,7 @@ namespace SpireVoxel {
     bool ChunkMesher::HandleChunkEdits(std::unordered_set<glm::ivec3> &editedChunks, glm::vec3 cameraCoords) const {
         // find the highest priority chunks
         glm::vec3 cameraChunkCoords = cameraCoords / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE);
-        std::vector<glm::uvec3> chunksToMesh = ClosestUtil::GetClosestCoords(editedChunks, cameraChunkCoords, m_numCPUThreads);
+        std::vector<glm::uvec3> chunksToMesh = ClosestUtil::GetClosestCoords(editedChunks, cameraChunkCoords, m_isProfilingMeshing ? UINT32_MAX : m_numCPUThreads);
 
         std::unordered_map<Chunk *, std::future<ChunkMesh> > meshingChunks;
 
