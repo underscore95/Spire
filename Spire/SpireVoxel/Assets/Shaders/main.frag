@@ -11,7 +11,8 @@ layout (location = 1) in vec3 voxelData;
 layout (location = 2) flat in uint voxelDataChunkIndex;
 layout (location = 3) flat in uint voxelFace;
 layout (location = 4) flat in uint voxelDataAllocationIndex;
-layout (location = 5) flat in MeshFace meshFace;
+layout (location = 5) flat in uint voxelTypesFaceStartIndex;
+layout (location = 6) flat in float faceWidth;
 
 layout(location = 0) out vec4 out_Color;
 
@@ -37,9 +38,9 @@ uint roundToUint(float x) {
 void main() {
     // Get voxel type
     uvec2 voxelCoordsInFace = uvec2(uv);
-    uint voxelIndexInFace = uint(voxelCoordsInFace.y * meshFace.Width + voxelCoordsInFace.x);
+    uint voxelIndexInFace = uint(voxelCoordsInFace.y * faceWidth + voxelCoordsInFace.x);
 
-    uint voxelDataIndex = voxelIndexInFace + meshFace.VoxelTypesStartIndex;
+    uint voxelDataIndex = voxelIndexInFace + voxelTypesFaceStartIndex;
 
     uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[(voxelDataChunkIndex + voxelDataIndex) / NUM_TYPES_PER_INT];
 

@@ -23,7 +23,8 @@ layout (location = 1) out vec3 voxelData;// voxel coordinate in world space
 layout (location = 2) flat out uint voxelDataChunkIndex;// Index of the current chunk
 layout (location = 3) flat out uint voxelFace;// What face is this vertex part of
 layout (location = 4) flat out uint voxelDataAllocationIndex;// Allocation index (what buffer)
-layout (location = 5) flat out MeshFace meshFace;// Mesh face info
+layout (location = 5) flat out uint voxelTypesFaceStartIndex;// Index of where the types of this face start
+layout (location = 6) flat out float faceWidth;// Width of this face
 
 void main()
 {
@@ -46,11 +47,6 @@ void main()
     voxelDataChunkIndex = chunkData.VoxelDataChunkIndex;
     voxelDataAllocationIndex = chunkData.VoxelDataAllocationIndex;
 
-    meshFace.VoxelTypesStartIndex = vtx.VoxelTypeStartingIndex;
-    uvec3 worldFaceSize = GreedyMeshingFaceSizeSwizzleToWorldSpace(voxelFace, faceSize.x, faceSize.y);
-    meshFace.SizeX = worldFaceSize.x;
-    meshFace.SizeY = worldFaceSize.y;
-    meshFace.SizeZ = worldFaceSize.z;
-    meshFace.Width = float(faceSize.x);
-    meshFace.Height = float(faceSize.y);
+    voxelTypesFaceStartIndex = vtx.VoxelTypeStartingIndex;
+    faceWidth = float(faceSize.x);
 }
