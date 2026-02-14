@@ -27,10 +27,10 @@ public:
     static constexpr ProfileStrategy PROFILE_STATIC_1000 = {ProfileStrategy::STATIC, 1000};
     static constexpr ProfileStrategy PROFILE_DYNAMIC_10 = {ProfileStrategy::DYNAMIC, 10};
     static constexpr ProfileStrategy PROFILE_DYNAMIC = {ProfileStrategy::DYNAMIC, 100};
-    //  static constexpr std::array<ProfileStrategy, 2> PROFILE_STRATEGIES = {PROFILE_STATIC, PROFILE_DYNAMIC};
-    static constexpr std::array PROFILE_STRATEGIES = {PROFILE_STATIC_1000};
+    static constexpr std::array<ProfileStrategy, 2> PROFILE_STRATEGIES = {PROFILE_STATIC_1000, PROFILE_DYNAMIC_10};
+    //   static constexpr std::array PROFILE_STRATEGIES = {PROFILE_STATIC_1000};
 
-    static constexpr bool BEGIN_PROFILING_AUTOMATICALLY = false;
+    static constexpr bool BEGIN_PROFILING_AUTOMATICALLY = true;
 
 #ifndef NDEBUG
     static constexpr bool IS_PROFILING = false; // debug
