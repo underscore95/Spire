@@ -3,6 +3,7 @@
 
 #include "ShaderInfo.h"
 #include "PushConstants.h"
+#include "Greedy.h"
 
 // See vertex shader for input documentation
 layout (location = 0) in vec2 uv;
@@ -10,6 +11,7 @@ layout (location = 1) in vec3 voxelData;
 layout (location = 2) flat in uint voxelDataChunkIndex;
 layout (location = 3) flat in uint voxelFace;
 layout (location = 4) flat in uint voxelDataAllocationIndex;
+layout (location = 5) flat in MeshFace meshFace;
 
 layout(location = 0) out vec4 out_Color;
 
@@ -18,7 +20,7 @@ layout(set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_BI
 
 // The types of all the voxels in the current world
 layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING) readonly buffer ChunkVoxelData {
-    GPUChunkVoxelData datas[];
+    uint datas[];
 } chunkVoxelData[];
 
 // Information about all registered voxel types
@@ -33,22 +35,23 @@ uint roundToUint(float x) {
 }
 
 void main() {
-    // Get the voxel type
-    uint voxelDataIndex = SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(roundToUint(voxelData.x), roundToUint(voxelData.y), roundToUint(voxelData.z));
+    // Get voxel type
+    uvec2 voxelCoordsInFace = uvec2(uv);
+    uint voxelIndexInFace = uint(voxelCoordsInFace.y * meshFace.Width + voxelCoordsInFace.x);
 
-    uint uvec4Index = voxelDataIndex / (NUM_TYPES_PER_INT);
-    uint halfIndex  = voxelDataIndex % NUM_TYPES_PER_INT;
+    uint voxelDataIndex = voxelIndexInFace + meshFace.VoxelTypesStartIndex;
 
-    uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[voxelDataChunkIndex].Data[uvec4Index];
+    uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[(voxelDataChunkIndex + voxelDataIndex) / NUM_TYPES_PER_INT];
 
     uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packed, voxelDataIndex);
 
-#ifndef NDEBUG
+    // Output debug colour if invalid type
+    #ifndef NDEBUG
     if (voxelType == 0) {
-        out_Color = vec4(1, voxelType == 0 ? 1 : 0, 0, 1);
+        out_Color = vec4(1, 0, 0, 1);
         return;
     }
-#endif
+    #endif
 
     // Get the image to use
     uint imageIndex = voxelTypesBuffer.voxelTypes[voxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[voxelType].VoxelFaceLayout, voxelFace);

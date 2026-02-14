@@ -191,7 +191,7 @@ namespace SpireVoxel {
         return direction.z > 0 ? SPIRE_VOXEL_FACE_POS_Z : SPIRE_VOXEL_FACE_NEG_Z;
     }
 
-  // Voxel Type Face Layout
+    // Voxel Type Face Layout
 #define SPIRE_VOXEL_LAYOUT_ALL_SAME 0 // all sides use image 0 (e.g. dirt)
 #define SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT 1 // top uses image 0, bottom uses image 1, sides use image 2 (e.g. grass)
 
@@ -225,6 +225,23 @@ namespace SpireVoxel {
 }
 #endif
 
+// greedy meshing face size swizzling
+#ifdef __cplusplus
+namespace SpireVoxel {
+#endif
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UVEC3_TYPE GreedyMeshingFaceSizeSwizzleToWorldSpace(
+        SPIRE_UINT32_TYPE face, SPIRE_UINT32_TYPE width, SPIRE_UINT32_TYPE height) {
+        if (IsFaceOnZAxis(face)) return SPIRE_UVEC3_TYPE(width, height, 0);
+        if (IsFaceOnYAxis(face)) return SPIRE_UVEC3_TYPE(width, 0, height);
+#ifdef __cplusplus
+        assert(IsFaceOnXAxis(face));
+#endif
+        return SPIRE_UVEC3_TYPE(0, height, width);
+    }
+#ifdef __cplusplus
+}
+#endif
+
 // voxel type
 #ifdef __cplusplus
 namespace SpireVoxel {
@@ -251,6 +268,7 @@ namespace SpireVoxel {
     struct VertexData {
         SPIRE_UINT32_TYPE Packed_6Width6Height;
         SPIRE_UINT32_TYPE Packed_7X7Y7Z2VertPos3Face;
+        SPIRE_UINT32_TYPE VoxelTypeStartingIndex;
     };
 
     // voxel vertex positions
@@ -298,6 +316,7 @@ namespace SpireVoxel {
      */
 
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE VertexData PackVertexData(
+        SPIRE_UINT32_TYPE voxelTypeStartIndex,
         SPIRE_UINT32_TYPE width, // 1-64 range
         SPIRE_UINT32_TYPE height, // 1-64 range
         SPIRE_UINT32_TYPE x, SPIRE_UINT32_TYPE y, SPIRE_UINT32_TYPE z, // 0-64 range
@@ -316,7 +335,8 @@ namespace SpireVoxel {
         VertexData vertex = {
             .Packed_6Width6Height = ((MAX_SIX_BIT_VALUE & height) << 6) | (MAX_SIX_BIT_VALUE & width),
             .Packed_7X7Y7Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (
-                                              0xFF & z)
+                                              0xFF & z),
+            .VoxelTypeStartingIndex = voxelTypeStartIndex
         };
 
         return vertex;
@@ -361,23 +381,6 @@ namespace SpireVoxel {
     struct CameraInfo {
         SPIRE_MAT4X4_TYPE ViewProjectionMatrix;
         float Scale;
-    };
-
-#ifdef __cplusplus
-}
-#endif
-
-// gpu chunk data
-#ifdef __cplusplus
-namespace SpireVoxel {
-#endif
-    // Equivalent to Chunk#VoxelData, this is the GPU struct and also used for copying from CPU to GPU
-    struct GPUChunkVoxelData {
-#ifdef __cplusplus
-        std::array<SPIRE_UINT32_TYPE, SPIRE_VOXEL_CHUNK_VOLUME / 2> Data; // Divided by 2 because we use uint16 types
-#else
-        uint Data[SPIRE_VOXEL_CHUNK_VOLUME / 2];
-#endif
     };
 
 #ifdef __cplusplus

@@ -121,15 +121,15 @@ namespace SpireVoxel {
             chunk.VoxelDataAllocation = {};
 
             if (chunk.NumVertices > 0) {
-                std::optional alloc = m_chunkVoxelDataBufferAllocator.Allocate(sizeof(GPUChunkVoxelData));
+                std::optional alloc = m_chunkVoxelDataBufferAllocator.Allocate(sizeof(mesh.VoxelTypes[0]) * mesh.VoxelTypes.size());
                 if (alloc) {
                     chunk.VoxelDataAllocation = *alloc;
 
                     // write the voxel data async
-                    futures.push_back(Spire::ThreadPool::Instance().submit_task([&voxelDataMemory, &chunk]() {
+                    futures.push_back(Spire::ThreadPool::Instance().submit_task([&voxelDataMemory, &chunk, &mesh, alloc]() {
                         void *memory = voxelDataMemory.GetByAllocation(chunk.VoxelDataAllocation).Memory;
                         memcpy(static_cast<char *>(memory) + chunk.VoxelDataAllocation.Location.Start,
-                               chunk.VoxelData.data(), sizeof(GPUChunkVoxelData));
+                               mesh.VoxelTypes.data(), alloc->Size);
                     }));
                 } else {
                     // allocation failed, need to free the vertex allocation

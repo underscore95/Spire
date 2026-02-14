@@ -3,6 +3,7 @@
 
 #include "ShaderInfo.h"
 #include "PushConstants.h"
+#include "Greedy.h"
 
 // Vertex buffer
 layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING) readonly buffer Vertices {
@@ -22,6 +23,7 @@ layout (location = 1) out vec3 voxelData;// voxel coordinate in world space
 layout (location = 2) flat out uint voxelDataChunkIndex;// Index of the current chunk
 layout (location = 3) flat out uint voxelFace;// What face is this vertex part of
 layout (location = 4) flat out uint voxelDataAllocationIndex;// Allocation index (what buffer)
+layout (location = 5) flat out MeshFace meshFace;// Mesh face info
 
 void main()
 {
@@ -38,8 +40,17 @@ void main()
     voxelFace = UnpackVertexDataFace(vtx.Packed_7X7Y7Z2VertPos3Face);
 
     gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);
-    texCoord = VoxelVertexPositionToUV(vertexVoxelPos) * UnpackVertexFaceWidthHeight(vtx.Packed_6Width6Height) ;//* chunkData.LODScale;
+    uvec2 faceSize = UnpackVertexFaceWidthHeight(vtx.Packed_6Width6Height);
+    texCoord = VoxelVertexPositionToUV(vertexVoxelPos) * faceSize;//* chunkData.LODScale;
     voxelData = vec3(voxelPos.x, voxelPos.y, voxelPos.z) - FaceToDirection(voxelFace) * 0.5f /*move to the center of the voxel*/;
     voxelDataChunkIndex = chunkData.VoxelDataChunkIndex;
     voxelDataAllocationIndex = chunkData.VoxelDataAllocationIndex;
+
+    meshFace.VoxelTypesStartIndex = vtx.VoxelTypeStartingIndex;
+    uvec3 worldFaceSize = GreedyMeshingFaceSizeSwizzleToWorldSpace(voxelFace, faceSize.x, faceSize.y);
+    meshFace.SizeX = worldFaceSize.x;
+    meshFace.SizeY = worldFaceSize.y;
+    meshFace.SizeZ = worldFaceSize.z;
+    meshFace.Width = float(faceSize.x);
+    meshFace.Height = float(faceSize.y);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EngineIncludes.h"
+#include "Chunk/VoxelType.h"
 
 namespace SpireVoxel {
     struct VertexData;
@@ -12,5 +13,6 @@ namespace SpireVoxel {
         ChunkMesh() = default;
 
         std::vector<VertexData> Vertices;
+        std::vector<VoxelType> VoxelTypes;
     };
 } // SpireVoxel

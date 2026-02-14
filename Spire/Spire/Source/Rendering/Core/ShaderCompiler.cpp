@@ -8,6 +8,21 @@
 // Adapted from: https://github.com/emeiri/ogldev/blob/VULKAN_13/Vulkan/VulkanCore/Source/shader.cpp
 
 namespace Spire {
+    void PrintWithLineNumbers(const std::string &source) {
+        std::size_t line = 1;
+        std::cout << "LINE " << line << ": ";
+
+        for (char c : source) {
+            if (c == '\n') {
+                std::cout << '\n';
+                ++line;
+                std::cout << "LINE " << line << ": ";
+            } else {
+                std::cout << c;
+            }
+        }
+    }
+
     struct CompiledShader {
         std::vector<glm::u32> SPIRV;
         VkShaderModule ShaderModule = nullptr;
@@ -404,6 +419,10 @@ namespace Spire {
                 if (compileFromText)break;
             }
         }
+
+        // if (fileName.ends_with(".frag")) {
+        //     PrintWithLineNumbers(parsed.FullSource);
+        // }
 
         VkShaderModule shader = (m_alwaysCompileFromSource || compileFromText)
                                     ? CreateShaderModuleFromSource(fileName, parsed.FullSource)
