@@ -387,4 +387,35 @@ namespace SpireVoxel {
 }
 #endif
 
+// ambient occlusion
+#ifdef __cplusplus
+namespace SpireVoxel {
+#endif
+#define SPIRE_AO_VALUES_PER_U32 16
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE UnpackAO(SPIRE_UINT32_TYPE packed, SPIRE_UINT32_TYPE index) {
+#ifdef __cplusplus
+        assert(index < SPIRE_AO_VALUES_PER_U32);
+#endif
+        const SPIRE_UINT32_TYPE MAX_2_BIT_VALUE = 3; // 0b11
+        return MAX_2_BIT_VALUE & (packed >> index * 2);
+    }
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE SetAO(SPIRE_UINT32_TYPE packed, SPIRE_UINT32_TYPE index, SPIRE_UINT32_TYPE value) {
+#ifdef __cplusplus
+        assert(index < SPIRE_AO_VALUES_PER_U32);
+        assert(value <= 0b11);
+#endif
+        const SPIRE_UINT32_TYPE MAX_2_BIT_VALUE = 3; // 0b11
+        // clear the two bits we care about
+        SPIRE_UINT32_TYPE clearMask = ~(MAX_2_BIT_VALUE << (index * 2));
+        SPIRE_UINT32_TYPE clearedPacked = clearMask & packed;
+        // set the two bits
+        SPIRE_UINT32_TYPE valueToSet = value << (index * 2);
+        return clearedPacked | valueToSet;
+    }
+#ifdef __cplusplus
+}
+#endif
+
 #endif // SPIRE_SHADER_BINDINGS
