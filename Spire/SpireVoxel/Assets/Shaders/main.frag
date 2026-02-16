@@ -13,6 +13,8 @@ layout (location = 3) flat in uint voxelFace;
 layout (location = 4) flat in uint voxelDataAllocationIndex;
 layout (location = 5) flat in uint voxelTypesFaceStartIndex;
 layout (location = 6) flat in float faceWidth;
+layout (location = 7) flat in uint aoDataChunkPackedIndex;
+layout (location = 8) flat in uint aoDataAllocationIndex;
 
 layout(location = 0) out vec4 out_Color;
 
@@ -23,6 +25,11 @@ layout(set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_BI
 layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING) readonly buffer ChunkVoxelData {
     uint datas[];
 } chunkVoxelData[];
+
+// Ambient occlusion information
+layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_AO_DATA_BINDING) readonly buffer ChunkAOData {
+    uint datas[];
+} chunkAOData[];
 
 // Information about all registered voxel types
 layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING) readonly buffer VoxelTypesBuffer {
@@ -42,14 +49,24 @@ void main() {
 
     uint voxelDataIndex = voxelIndexInFace + voxelTypesFaceStartIndex;
 
-    uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[(voxelDataChunkIndex + voxelDataIndex) / NUM_TYPES_PER_INT];
+    uint packedVoxelType = chunkVoxelData[voxelDataAllocationIndex].datas[(voxelDataChunkIndex + voxelDataIndex) / NUM_TYPES_PER_INT];
 
-    uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packed, voxelDataIndex);
+    uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packedVoxelType, voxelDataIndex);
 
-    // Output debug colour if invalid type
+    // Ambient occlusion
+    uint packedAO = chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + voxelDataIndex / SPIRE_AO_VALUES_PER_U32];
+
+    uint ao = UnpackAO(packedAO, voxelDataIndex % SPIRE_AO_VALUES_PER_U32); // todo 4 per face
+
     #ifndef NDEBUG
+    // Output debug colour if invalid type
     if (voxelType == 0) {
         out_Color = vec4(1, 0, 0, 1);
+        return;
+    }
+
+    if (ao != 1) {
+        out_Color = vec4(1, 0, 1, 1);
         return;
     }
     #endif

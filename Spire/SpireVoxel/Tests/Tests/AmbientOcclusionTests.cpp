@@ -13,6 +13,14 @@ TEST(AmbientOcclusionTests, SetAndUnpack_SingleValue) {
     EXPECT_EQ(UnpackAO(packed, 2), 0b01u);
 }
 
+TEST(AmbientOcclusionTests, Set) {
+    SPIRE_UINT32_TYPE packed = 0u;
+    packed = SetAO(packed, 0, 0b01);
+    packed = SetAO(packed, 1, 0b01);
+
+    EXPECT_EQ(packed, 0b0101);
+}
+
 TEST(AmbientOcclusionTests, SetAO_DifferentIndices_DoNotInterfere) {
     SPIRE_UINT32_TYPE packed = 0u;
 
@@ -20,8 +28,8 @@ TEST(AmbientOcclusionTests, SetAO_DifferentIndices_DoNotInterfere) {
     packed = SetAO(packed, 5, 0b10);
     packed = SetAO(packed, 15, 0b11);
 
-    EXPECT_EQ(UnpackAO(packed, 0),  0b01u);
-    EXPECT_EQ(UnpackAO(packed, 5),  0b10u);
+    EXPECT_EQ(UnpackAO(packed, 0), 0b01u);
+    EXPECT_EQ(UnpackAO(packed, 5), 0b10u);
     EXPECT_EQ(UnpackAO(packed, 15), 0b11u);
 
     for (SPIRE_UINT32_TYPE i = 0; i < SPIRE_AO_VALUES_PER_U32; ++i) {

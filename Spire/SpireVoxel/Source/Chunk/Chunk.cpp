@@ -50,7 +50,7 @@ namespace SpireVoxel {
         return queryChunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(queryPosition)];
     }
 
-    void Chunk::PushVoxelTypes(ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) const {
+    void Chunk::PushRelatedFaceData(ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) const {
         assert(start.x < SPIRE_VOXEL_CHUNK_SIZE);
         assert(start.y < SPIRE_VOXEL_CHUNK_SIZE);
         assert(start.z < SPIRE_VOXEL_CHUNK_SIZE);
@@ -69,7 +69,19 @@ namespace SpireVoxel {
                     assert(coord.z < SPIRE_VOXEL_CHUNK_SIZE);
                     VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(coord)];
                     assert(type != 0);
+
+                    // Push voxel type
                     mesh.VoxelTypes.push_back(type);
+
+                    // Push AO
+                    glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
+                    glm::u32 ao = 1;
+                    if (aoIndex == 0) mesh.AOData.push_back(ao);
+                    else {
+                        glm::u32& packed = mesh.AOData.back();
+                        packed = SetAO(packed, aoIndex, ao);
+                    }
+                    mesh.AODataValueCount++;
                 }
             }
             return;
@@ -86,7 +98,19 @@ namespace SpireVoxel {
                     assert(coord.z < SPIRE_VOXEL_CHUNK_SIZE);
                     VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(coord)];
                     assert(type != 0);
+
+                    // Push voxel type
                     mesh.VoxelTypes.push_back(type);
+
+                    // Push AO
+                    glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
+                    glm::u32 ao = 1;
+                    if (aoIndex == 0) mesh.AOData.push_back(ao);
+                    else {
+                        glm::u32& packed = mesh.AOData.back();
+                        packed = SetAO(packed, aoIndex, ao);
+                    }
+                    mesh.AODataValueCount++;
                 }
             }
             return;
@@ -103,7 +127,19 @@ namespace SpireVoxel {
                     assert(coord.z < SPIRE_VOXEL_CHUNK_SIZE);
                     VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(coord)];
                     assert(type != 0);
+
+                    // Push voxel type
                     mesh.VoxelTypes.push_back(type);
+
+                    // Push AO
+                    glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
+                    glm::u32 ao = 1;
+                    if (aoIndex == 0) mesh.AOData.push_back(ao);
+                    else {
+                        glm::u32& packed = mesh.AOData.back();
+                        packed = SetAO(packed, aoIndex, ao);
+                    }
+                    mesh.AODataValueCount++;
                 }
             }
             return;
@@ -178,7 +214,7 @@ namespace SpireVoxel {
                 break;
         }
 
-        PushVoxelTypes(mesh, p, width, height, face);
+        PushRelatedFaceData(mesh, p, width, height, face);
     }
 
     void Chunk::SetVoxel(glm::u32 index, VoxelType type) {
@@ -197,7 +233,7 @@ namespace SpireVoxel {
     }
 
     ChunkMesh Chunk::GenerateMesh() const {
-        ChunkMesh mesh;
+        ChunkMesh mesh = {};
 
         // slice, row, col are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetChunkCoords
         // slice is the slice of voxels we are working with
@@ -266,6 +302,8 @@ namespace SpireVoxel {
             }
         }
 
+        assert(mesh.VoxelTypes.size() == mesh.AODataValueCount);
+
         return mesh;
     }
 
@@ -284,7 +322,9 @@ namespace SpireVoxel {
             .VoxelDataChunkIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.Start / sizeof(VoxelType)),
             .VoxelDataAllocationIndex = static_cast<glm::u32>(VoxelDataAllocation.Location.AllocationIndex),
             .VertexBufferIndex = static_cast<glm::u32>(VertexAllocation.Location.AllocationIndex),
-            .LODScale = static_cast<float>(LOD.Scale)
+            .LODScale = static_cast<float>(LOD.Scale),
+            .AODataChunkPackedIndex = static_cast<glm::u32>(AODataAllocation.Location.Start / sizeof(glm::u32)),
+            .AODataAllocationIndex = static_cast<glm::u32>(AODataAllocation.Location.AllocationIndex)
         };
     }
 

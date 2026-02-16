@@ -26,6 +26,7 @@ namespace SpireVoxel {
         std::uint64_t CorruptedMemoryCheck2 = 12387732823748723; // This value will be changed if something overruns when editing VoxelBits
         Spire::BufferAllocator::Allocation VertexAllocation = {};
         Spire::BufferAllocator::Allocation VoxelDataAllocation = {};
+        Spire::BufferAllocator::Allocation AODataAllocation = {};
         glm::u32 NumVertices;
         DetailLevel LOD = {};
 
@@ -46,6 +47,6 @@ namespace SpireVoxel {
     private:
         void PushFace(ChunkMesh& mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const;
 
-        void PushVoxelTypes(::SpireVoxel::ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) const;
+        void PushRelatedFaceData(::SpireVoxel::ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) const;
     };
 } // SpireVoxel

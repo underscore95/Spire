@@ -17,18 +17,20 @@ namespace SpireVoxel {
           m_chunkVertexBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(VertexData), m_renderingManager.GetSwapchain().GetNumImages(),
                                        sizeof(VertexData) * (1024 * 1024 * 32), 1, true),
           m_chunkVoxelDataBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(VoxelType), m_renderingManager.GetSwapchain().GetNumImages(),
-                                          1024 * 1024 * 128, 1, true) {
+                                          1024 * 1024 * 128, 1, true),
+          m_chunkAOBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(glm::u32), m_renderingManager.GetSwapchain().GetNumImages(),
+                                   1024 * 1024 * 128, 1, true) {
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", m_chunkVertexBufferAllocator.GetTotalSize() / 1024 / 1024);
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", m_chunkVoxelDataBufferAllocator.GetTotalSize() / 1024 / 1024);
-
+        Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", m_chunkAOBufferAllocator.GetTotalSize() / 1024 / 1024);
 
         m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreatePerImageStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr,
-                                                                                        VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT);
+                                                                                                VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT);
         Spire::info("Allocated {} kb buffer for each swapchain image on GPU to store chunk datas", sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS / 1024);
 
         m_dirtyChunkDataBuffers.resize(renderingManager.GetSwapchain().GetNumImages());
 
-        m_chunkMesher = std::make_unique<ChunkMesher>(m_world, m_chunkVertexBufferAllocator, m_chunkVoxelDataBufferAllocator, isProfilingMeshing);
+        m_chunkMesher = std::make_unique<ChunkMesher>(m_world, m_chunkVertexBufferAllocator, m_chunkVoxelDataBufferAllocator, m_chunkAOBufferAllocator, isProfilingMeshing);
     }
 
     void VoxelWorldRenderer::Render(glm::u32 swapchainImageIndex, glm::vec3 cameraPos) {
@@ -65,6 +67,9 @@ namespace SpireVoxel {
         chunkVertexBuffersLayout.push_back(
             m_chunkVoxelDataBufferAllocator.
             CreateDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING, VK_SHADER_STAGE_FRAGMENT_BIT, "World Voxel Data Buffer"));
+        chunkVertexBuffersLayout.push_back(
+            m_chunkAOBufferAllocator.
+            CreateDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_AO_DATA_BINDING, VK_SHADER_STAGE_FRAGMENT_BIT, "World AO Data Buffer"));
 
         Spire::PerImageDescriptor chunkDatasDescriptor = m_renderingManager.GetDescriptorCreator().CreatePerImageStorageBuffer(
             SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING,

@@ -11,6 +11,8 @@
 #define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING 1
 #define SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING 2
 #define SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING 3
+#define SPIRE_VOXEL_SHADER_BINDINGS_AO_DATA_BINDING 4
+
 #define SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING 1
 #define SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING 0
 
@@ -111,6 +113,9 @@ namespace SpireVoxel {
         SPIRE_UINT32_TYPE VertexBufferIndex;
         // LOD Scale, should be a uint but floating point operations are faster on gpu
         float LODScale;
+        // AO data buffer contains all ambient occlusion data for the whole world, this index is where the latest data for this chunk is
+        SPIRE_UINT32_TYPE AODataChunkPackedIndex; // This is uint index, not element index
+        SPIRE_UINT32_TYPE AODataAllocationIndex;
     };
 
 #ifdef __cplusplus
