@@ -74,14 +74,16 @@ namespace SpireVoxel {
                     mesh.VoxelTypes.push_back(type);
 
                     // Push AO
-                    glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
-                    glm::u32 ao = 1;
-                    if (aoIndex == 0) mesh.AOData.push_back(ao);
-                    else {
-                        glm::u32& packed = mesh.AOData.back();
-                        packed = SetAO(packed, aoIndex, ao);
+                    for (int i = 0; i < 4; i++ ) {
+                        glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
+                        glm::u32 ao = i;
+                        if (aoIndex == 0) mesh.AOData.push_back(ao);
+                        else {
+                            glm::u32& packed = mesh.AOData.back();
+                            packed = SetAO(packed, aoIndex, ao);
+                        }
+                        mesh.AODataValueCount++;
                     }
-                    mesh.AODataValueCount++;
                 }
             }
             return;
@@ -103,14 +105,16 @@ namespace SpireVoxel {
                     mesh.VoxelTypes.push_back(type);
 
                     // Push AO
-                    glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
-                    glm::u32 ao = 1;
-                    if (aoIndex == 0) mesh.AOData.push_back(ao);
-                    else {
-                        glm::u32& packed = mesh.AOData.back();
-                        packed = SetAO(packed, aoIndex, ao);
+                    for (int i = 0; i < 4; i++ ) {
+                        glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
+                        glm::u32 ao = i;
+                        if (aoIndex == 0) mesh.AOData.push_back(ao);
+                        else {
+                            glm::u32& packed = mesh.AOData.back();
+                            packed = SetAO(packed, aoIndex, ao);
+                        }
+                        mesh.AODataValueCount++;
                     }
-                    mesh.AODataValueCount++;
                 }
             }
             return;
@@ -132,14 +136,16 @@ namespace SpireVoxel {
                     mesh.VoxelTypes.push_back(type);
 
                     // Push AO
-                    glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
-                    glm::u32 ao = 1;
-                    if (aoIndex == 0) mesh.AOData.push_back(ao);
-                    else {
-                        glm::u32& packed = mesh.AOData.back();
-                        packed = SetAO(packed, aoIndex, ao);
+                    for (int i = 0; i < 4; i++ ) {
+                        glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
+                        glm::u32 ao = i;
+                        if (aoIndex == 0) mesh.AOData.push_back(ao);
+                        else {
+                            glm::u32& packed = mesh.AOData.back();
+                            packed = SetAO(packed, aoIndex, ao);
+                        }
+                        mesh.AODataValueCount++;
                     }
-                    mesh.AODataValueCount++;
                 }
             }
             return;
@@ -301,8 +307,6 @@ namespace SpireVoxel {
                 }
             }
         }
-
-        assert(mesh.VoxelTypes.size() == mesh.AODataValueCount);
 
         return mesh;
     }

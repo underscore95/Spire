@@ -42,6 +42,8 @@ uint roundToUint(float x) {
     return uint(floor(x));
 }
 
+#define AO_VALUES_PER_FACE 4
+
 void main() {
     // Get voxel type
     uvec2 voxelCoordsInFace = uvec2(uv);
@@ -54,9 +56,13 @@ void main() {
     uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packedVoxelType, voxelDataIndex);
 
     // Ambient occlusion
-    uint packedAO = chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + voxelDataIndex / SPIRE_AO_VALUES_PER_U32];
+    uint aoIndex = voxelDataIndex * AO_VALUES_PER_FACE;
+    uint packedAO = chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + aoIndex / SPIRE_AO_VALUES_PER_U32];
 
-    uint ao = UnpackAO(packedAO, voxelDataIndex % SPIRE_AO_VALUES_PER_U32); // todo 4 per face
+    uint ao0 = UnpackAO(packedAO, aoIndex % SPIRE_AO_VALUES_PER_U32);
+    uint ao1 = UnpackAO(packedAO, (aoIndex + 1) % SPIRE_AO_VALUES_PER_U32);
+    uint ao2 = UnpackAO(packedAO, (aoIndex + 2) % SPIRE_AO_VALUES_PER_U32);
+    uint ao3 = UnpackAO(packedAO, (aoIndex + 3) % SPIRE_AO_VALUES_PER_U32);
 
     #ifndef NDEBUG
     // Output debug colour if invalid type
@@ -65,7 +71,8 @@ void main() {
         return;
     }
 
-    if (ao != 1) {
+    // Output debug colour if AO is wrong
+    if (ao0 != 0 || ao1 != 1 || ao2 != 2 || ao3 != 3) {
         out_Color = vec4(1, 0, 1, 1);
         return;
     }
