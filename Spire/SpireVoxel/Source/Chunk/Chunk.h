@@ -47,6 +47,8 @@ namespace SpireVoxel {
     private:
         void PushFace(ChunkMesh& mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const;
 
-        void PushRelatedFaceData(::SpireVoxel::ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) const;
+        void PushRelatedFaceData(ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) const;
+
+        void PushRelatedVoxelData(ChunkMesh& mesh, glm::uvec3 chunkCoords, glm::u32 face) const;
     };
 } // SpireVoxel

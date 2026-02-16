@@ -50,6 +50,7 @@ namespace SpireVoxel {
         return queryChunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(queryPosition)];
     }
 
+
     void Chunk::PushRelatedFaceData(ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) const {
         assert(start.x < SPIRE_VOXEL_CHUNK_SIZE);
         assert(start.y < SPIRE_VOXEL_CHUNK_SIZE);
@@ -64,26 +65,7 @@ namespace SpireVoxel {
             for (glm::u32 yOffset = 0; yOffset < worldSize.y; yOffset++) {
                 for (glm::u32 zOffset = 0; zOffset < worldSize.z; zOffset++) {
                     glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
-                    assert(coord.x < SPIRE_VOXEL_CHUNK_SIZE);
-                    assert(coord.y < SPIRE_VOXEL_CHUNK_SIZE);
-                    assert(coord.z < SPIRE_VOXEL_CHUNK_SIZE);
-                    VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(coord)];
-                    assert(type != 0);
-
-                    // Push voxel type
-                    mesh.VoxelTypes.push_back(type);
-
-                    // Push AO
-                    for (int i = 0; i < 4; i++ ) {
-                        glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
-                        glm::u32 ao = i;
-                        if (aoIndex == 0) mesh.AOData.push_back(ao);
-                        else {
-                            glm::u32& packed = mesh.AOData.back();
-                            packed = SetAO(packed, aoIndex, ao);
-                        }
-                        mesh.AODataValueCount++;
-                    }
+                    PushRelatedVoxelData(mesh, coord, face);
                 }
             }
             return;
@@ -95,26 +77,7 @@ namespace SpireVoxel {
             for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
                 for (glm::u32 zOffset = 0; zOffset < worldSize.z; zOffset++) {
                     glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
-                    assert(coord.x < SPIRE_VOXEL_CHUNK_SIZE);
-                    assert(coord.y < SPIRE_VOXEL_CHUNK_SIZE);
-                    assert(coord.z < SPIRE_VOXEL_CHUNK_SIZE);
-                    VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(coord)];
-                    assert(type != 0);
-
-                    // Push voxel type
-                    mesh.VoxelTypes.push_back(type);
-
-                    // Push AO
-                    for (int i = 0; i < 4; i++ ) {
-                        glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
-                        glm::u32 ao = i;
-                        if (aoIndex == 0) mesh.AOData.push_back(ao);
-                        else {
-                            glm::u32& packed = mesh.AOData.back();
-                            packed = SetAO(packed, aoIndex, ao);
-                        }
-                        mesh.AODataValueCount++;
-                    }
+                    PushRelatedVoxelData(mesh, coord, face);
                 }
             }
             return;
@@ -126,32 +89,37 @@ namespace SpireVoxel {
             for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
                 for (glm::u32 yOffset = 0; yOffset < worldSize.y; yOffset++) {
                     glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
-                    assert(coord.x < SPIRE_VOXEL_CHUNK_SIZE);
-                    assert(coord.y < SPIRE_VOXEL_CHUNK_SIZE);
-                    assert(coord.z < SPIRE_VOXEL_CHUNK_SIZE);
-                    VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(coord)];
-                    assert(type != 0);
-
-                    // Push voxel type
-                    mesh.VoxelTypes.push_back(type);
-
-                    // Push AO
-                    for (int i = 0; i < 4; i++ ) {
-                        glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
-                        glm::u32 ao = i;
-                        if (aoIndex == 0) mesh.AOData.push_back(ao);
-                        else {
-                            glm::u32& packed = mesh.AOData.back();
-                            packed = SetAO(packed, aoIndex, ao);
-                        }
-                        mesh.AODataValueCount++;
-                    }
+                    PushRelatedVoxelData(mesh, coord, face);
                 }
             }
             return;
         }
 
         assert(false);
+    }
+
+    void Chunk::PushRelatedVoxelData(ChunkMesh &mesh, glm::uvec3 chunkCoords, glm::u32 face) const {
+        assert(chunkCoords.x < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(chunkCoords.y < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(chunkCoords.z < SPIRE_VOXEL_CHUNK_SIZE);
+
+        VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)];
+        assert(type != 0);
+
+        // Push voxel type
+        mesh.VoxelTypes.push_back(type);
+
+        // Push AO
+        for (int i = 0; i < 4; i++) {
+            glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
+            glm::u32 ao = i;
+            if (aoIndex == 0) mesh.AOData.push_back(ao);
+            else {
+                glm::u32 &packed = mesh.AOData.back();
+                packed = SetAO(packed, aoIndex, ao);
+            }
+            mesh.AODataValueCount++;
+        }
     }
 
     void Chunk::PushFace(ChunkMesh &mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const {
