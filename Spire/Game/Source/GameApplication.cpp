@@ -68,16 +68,16 @@ void GameApplication::Start(Engine &engine) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
     } else if (!ShouldStreamLoading()) {
-         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
+        VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
     }
 
-   // world.LoadChunks({{0, 0, 0}, {-1, 0, 0}});
-    // CuboidVoxelEdit({0,0,0},{64,64,64},{1}).Apply(world);
-    //   CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
-    //
+    world.LoadChunks({{0, 0, 0}});
+    //CuboidVoxelEdit({0,0,0},{64,64,64},{1}).Apply(world);
+    // CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
+
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 5}, 1},
-    //     BasicVoxelEdit::Edit{{-1, 0, 5}, 2}
+    //     BasicVoxelEdit::Edit{{1, 0, 5}, 2},
     // }).Apply(world);
 
     //
@@ -176,8 +176,9 @@ void GameApplication::RenderUi() const {
     }
 
     const CameraInfo &cameraInfo = m_camera->GetCameraInfo();
+    glm::vec3 forward = m_camera->GetCamera().GetForward();
     std::string targetedVoxelStr = "None";
-    RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), m_camera->GetCamera().GetForward(), 10);
+    RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), forward, 10);
     if (hit) {
         targetedVoxelStr = std::format(
             "({}, {}, {}), Voxel Type: {}, Targeted Face: {}",
@@ -191,6 +192,10 @@ void GameApplication::RenderUi() const {
         targetedVoxelStr = "Cannot raycast in LOD chunk";
     }
     ImGui::Text("Targeted Voxel: %s", targetedVoxelStr.c_str());
+
+    if (abs(forward.x) > abs(forward.y) && abs(forward.x) > abs(forward.z)) ImGui::Text("Facing %s X", forward.x > 0 ? "Positive" : "Negative");
+    else if (abs(forward.y) > abs(forward.x) && abs(forward.y) > abs(forward.z)) ImGui::Text("Facing %s Y", forward.y > 0 ? "Positive" : "Negative");
+    else ImGui::Text("Facing %s Z", forward.z > 0 ? "Positive" : "Negative");
 
     if (ImGui::Button("Load Test6")) {
         VoxelSerializer::ClearAndDeserialize(m_voxelRenderer->GetWorld(), std::filesystem::path("Worlds") / "Test6");

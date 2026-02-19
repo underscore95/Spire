@@ -35,6 +35,9 @@
 #define SPIRE_VOXEL_POSITION_TO_INDEX(pos) SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(pos.x, pos.y, pos.z)
 
 // GPU doesn't have uint16, these macros unpack the uint16 from a uint32
+// unpack a u32 into 2 u16s
+// low = first voxel type
+// high = second voxel type
 #define SPIRE_VOXEL_UINT16_MAX 65535u
 
 #define SPIRE_VOXEL_UNPACK_VOXEL_TYPE(doubleVoxelType, index) \
@@ -158,6 +161,10 @@ namespace SpireVoxel {
 
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE bool IsFaceOnZAxis(SPIRE_UINT32_TYPE face) {
         return face == SPIRE_VOXEL_FACE_POS_Z || face == SPIRE_VOXEL_FACE_NEG_Z;
+    }
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE bool IsFaceOnNegativeAxis(SPIRE_UINT32_TYPE face) {
+        return face == SPIRE_VOXEL_FACE_NEG_X || face == SPIRE_VOXEL_FACE_NEG_Y || face == SPIRE_VOXEL_FACE_NEG_Z;
     }
 
     // Convert from face enum to a normalised direction vector
@@ -310,6 +317,7 @@ namespace SpireVoxel {
 #ifdef __cplusplus
     /*
      * VertexData Spec
+     * Bit ordering is LSB to MSB
      * uint32 Packed_8Width8Height; 32 bit uint where the first 6 bits are the width of the voxel face minus 1 and the next 6 bits are the height of the voxel face minus 1
      * uint32 Packed_7X7Y7Z2VertPos3Face; 32 bit uint where the first 7 bits the voxel Z coordinate in the chunk, second 7 bits is the Y coordinate, third 7 bits is the X coordinate,
      *      next 2 bits are VoxelVertexPosition, next 3 bits are voxel face (see SPIRE_VOXEL_NUM_FACES)
