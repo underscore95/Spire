@@ -37,55 +37,37 @@ uint roundToUint(float x) {
 }
 
 void main() {
-    // Get voxel type
+    // Find voxel index
+    // Get the coordinates of the voxel in the current face
+    // e.g. for a 1x2 face, valid coordinates are 0,0 and 0,1
     uvec2 voxelCoordsInFace = uvec2(clamp(uv.x, 0, float(faceWidth) - 1), clamp(uv.y, 0, float(faceHeight) - 1));
 
-    if (voxelFace == SPIRE_VOXEL_FACE_NEG_Z) {
-        // need to flip x coords
-        //      voxelCoordsInFace.x = (uint(faceWidth) - 1) - voxelCoordsInFace.x;
-    }
-
-    if (voxelFace == SPIRE_VOXEL_FACE_POS_Y) {
-        // need to flip y coords
-        //       voxelCoordsInFace.y = (uint(faceHeight) - 1) - voxelCoordsInFace.y;
-    }
-
-    if (voxelFace == SPIRE_VOXEL_FACE_POS_X) {
-        // need to flip y coords
-        //     voxelCoordsInFace.y = (uint(faceHeight) - 1) - voxelCoordsInFace.y;
-    }
-
-    if ( voxelFace == SPIRE_VOXEL_FACE_POS_X || voxelFace == SPIRE_VOXEL_FACE_NEG_Z) {
+    // These components of the voxel coords need to be flipped because UV 0,0 isn't always the bottom left (because otherwise certain faces would have flipped textures)
+    // it is *probably* better to flip them here rather than passing even more data to the fragment shader
+    if (voxelFace == SPIRE_VOXEL_FACE_POS_X || voxelFace == SPIRE_VOXEL_FACE_NEG_Z) {
         voxelCoordsInFace.x = (faceWidth - 1u) - voxelCoordsInFace.x;
     }
 
-    if ( voxelFace == SPIRE_VOXEL_FACE_POS_Y) {
+    if (voxelFace == SPIRE_VOXEL_FACE_POS_Y) {
         voxelCoordsInFace.y = (faceHeight - 1u) - voxelCoordsInFace.y;
     }
 
-    uint voxelIndexInFace = uint(voxelCoordsInFace.y * uint(faceWidth)+ voxelCoordsInFace.x);
+    // Now we can convert from 2D coordinates into 1D axis
+    uint voxelIndexInFace = uint(voxelCoordsInFace.y * uint(faceWidth) + voxelCoordsInFace.x);
 
-    uint voxelDataIndex = voxelIndexInFace + voxelTypesFaceStartIndex;
+    uint voxelDataIndex = voxelIndexInFace + voxelTypesFaceStartIndex;// Add on where the data of the current face starts
 
+    // Get voxel type
+    uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[(voxelDataChunkIndex + voxelDataIndex) / NUM_TYPES_PER_INT];
+    uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packed, voxelDataIndex);
+
+    // Debug output
+    #ifndef NDEBUG
     if (voxelCoordsInFace.x > 63 || voxelCoordsInFace.y > 63) {
-        out_Color = vec4(1, 0, 0, 1.0);
+        out_Color = vec4(0.5, 0, 0, 1.0);
         return;
     }
 
-
-    //    #ifndef NDEBUG
-    //    if (uv.y > 1 && (SPIRE_VOXEL_FACE_POS_Z == voxelFace || SPIRE_VOXEL_FACE_NEG_Z == voxelFace)) {
-    //        out_Color = vec4(1,1,1,1);
-    //        return;
-    //    }
-    //    #endif
-
-    uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[(voxelDataChunkIndex + voxelDataIndex) / NUM_TYPES_PER_INT];
-
-    uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packed, voxelDataIndex);
-
-    // Output debug colour if invalid type
-    #ifndef NDEBUG
     if (voxelType == 0) {
         out_Color = vec4(1, 0, 0, 1);
         return;

@@ -52,7 +52,7 @@ void GameApplication::Start(Engine &engine) {
             {
                 1, {
                     std::string(GetAssetsDirectory()) + "/grass_top.png",
-                    std::string(GetAssetsDirectory()) + "/grass_top.png",
+                    std::string(GetAssetsDirectory()) + "/dirt.png",
                     std::string(GetAssetsDirectory()) + "/grass_side.png"
                 },
                 SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT

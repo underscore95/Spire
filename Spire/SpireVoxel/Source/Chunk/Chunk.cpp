@@ -2,8 +2,6 @@
 
 #include "Meshing/GreedyMeshingGrid.h"
 #include "VoxelWorld.h"
-#include "Edits/BasicVoxelEdit.h"
-#include "Edits/BasicVoxelEdit.h"
 #include "Meshing/ChunkMesh.h"
 
 namespace SpireVoxel {
@@ -58,8 +56,6 @@ namespace SpireVoxel {
         glm::uvec3 worldSize = GreedyMeshingFaceSizeSwizzleToWorldSpace(face, width, height);
         assert((worldSize.x == 0) + (worldSize.y == 0) + (worldSize.z == 0) == 1); // exactly one coordinate is 0
 
-        //  glm::u32 startSize = mesh.VoxelTypes.size();
-
         if (IsFaceOnXAxis(face)) {
             assert(worldSize.x == 0);
             assert(worldSize.y == height);
@@ -112,14 +108,6 @@ namespace SpireVoxel {
         } else {
             assert(false);
         }
-
-        //         std::stringstream ss;
-        //         ss << "face " << FaceToString(face) << "("<<width << "x"<<height<<"): ";
-        // for (int i = startSize; i < mesh.VoxelTypes.size(); i++) {
-        //     ss<<mesh.VoxelTypes[i];
-        //     if (i +1<mesh.VoxelTypes.size()) ss<<", ";
-        // }
-        //         Spire::info(ss.str());
     }
 
     void Chunk::PushFace(ChunkMesh &mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const {
