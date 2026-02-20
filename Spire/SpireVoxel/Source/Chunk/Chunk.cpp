@@ -2,8 +2,6 @@
 
 #include "Meshing/GreedyMeshingGrid.h"
 #include "VoxelWorld.h"
-#include "Edits/BasicVoxelEdit.h"
-#include "Edits/BasicVoxelEdit.h"
 #include "Meshing/ChunkMesh.h"
 
 namespace SpireVoxel {
@@ -60,7 +58,10 @@ namespace SpireVoxel {
 
         if (IsFaceOnXAxis(face)) {
             assert(worldSize.x == 0);
+            assert(worldSize.y == height);
+            assert(worldSize.z == width);
             constexpr glm::u32 xOffset = 0;
+            // must be height in outer, width in inner for all 3 faces
             for (glm::u32 yOffset = 0; yOffset < worldSize.y; yOffset++) {
                 for (glm::u32 zOffset = 0; zOffset < worldSize.z; zOffset++) {
                     glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
@@ -72,14 +73,13 @@ namespace SpireVoxel {
                     mesh.VoxelTypes.push_back(type);
                 }
             }
-            return;
-        }
-
-        if (IsFaceOnYAxis(face)) {
+        } else if (IsFaceOnYAxis(face)) {
             assert(worldSize.y == 0);
+            assert(worldSize.x == width);
+            assert(worldSize.z == height);
             constexpr glm::u32 yOffset = 0;
-            for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
-                for (glm::u32 zOffset = 0; zOffset < worldSize.z; zOffset++) {
+            for (glm::u32 zOffset = 0; zOffset < worldSize.z; zOffset++) {
+                for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
                     glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
                     assert(coord.x < SPIRE_VOXEL_CHUNK_SIZE);
                     assert(coord.y < SPIRE_VOXEL_CHUNK_SIZE);
@@ -89,14 +89,13 @@ namespace SpireVoxel {
                     mesh.VoxelTypes.push_back(type);
                 }
             }
-            return;
-        }
-
-        if (IsFaceOnZAxis(face)) {
+        } else if (IsFaceOnZAxis(face)) {
             assert(worldSize.z == 0);
+            assert(worldSize.y == height);
+            assert(worldSize.x == width);
             constexpr glm::u32 zOffset = 0;
-            for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
-                for (glm::u32 yOffset = 0; yOffset < worldSize.y; yOffset++) {
+            for (glm::u32 yOffset = 0; yOffset < worldSize.y; yOffset++) {
+                for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
                     glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
                     assert(coord.x < SPIRE_VOXEL_CHUNK_SIZE);
                     assert(coord.y < SPIRE_VOXEL_CHUNK_SIZE);
@@ -106,10 +105,9 @@ namespace SpireVoxel {
                     mesh.VoxelTypes.push_back(type);
                 }
             }
-            return;
+        } else {
+            assert(false);
         }
-
-        assert(false);
     }
 
     void Chunk::PushFace(ChunkMesh &mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const {
@@ -196,6 +194,29 @@ namespace SpireVoxel {
         }
     }
 
+    static std::string VertexDataToString(const VertexData &v) {
+        const glm::u32 width = (v.Packed_6Width6Height & 0x3Fu) + 1u;
+        const glm::u32 height = ((v.Packed_6Width6Height >> 6) & 0x3Fu) + 1u;
+
+        const glm::u32 z = (v.Packed_7X7Y7Z2VertPos3Face & 0x7Fu);
+        const glm::u32 y = ((v.Packed_7X7Y7Z2VertPos3Face >> 7) & 0x7Fu);
+        const glm::u32 x = ((v.Packed_7X7Y7Z2VertPos3Face >> 14) & 0x7Fu);
+
+        const glm::u32 vertPos = ((v.Packed_7X7Y7Z2VertPos3Face >> 21) & 0x3u);
+        const glm::u32 face = ((v.Packed_7X7Y7Z2VertPos3Face >> 23) & 0x7u);
+
+        std::ostringstream ss;
+        ss << "VertexData {\n"
+                << "  Width: " << width << ", Height: " << height << "\n"
+                << "  ChunkPos: (X: " << x << ", Y: " << y << ", Z: " << z << ")\n"
+                << "  VertexPosition: " << vertPos << "\n"
+                << "  Face: " << face << "\n"
+                << "  VoxelTypeStartingIndex: " << v.VoxelTypeStartingIndex << "\n"
+                << "}";
+
+        return ss.str();
+    }
+
     ChunkMesh Chunk::GenerateMesh() const {
         ChunkMesh mesh;
 
@@ -256,6 +277,7 @@ namespace SpireVoxel {
                         // push the face
                         glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
                         PushFace(mesh, face + faceSignIndex, chunkCoords, width, height);
+                        //  Spire::info("pushing face {}", FaceToString(face + faceSignIndex));
 
                         if (grid.GetColumn(col) != 0) {
                             // we didn't get all the voxels on this row, loop again
@@ -265,6 +287,13 @@ namespace SpireVoxel {
                 }
             }
         }
+
+        // int i = 0;
+        // for (auto v : mesh.Vertices) {
+        //     std::string s = VertexDataToString(v);
+        //   Spire::info("Vertex {}: {}", i, s);
+        //     i++;
+        // }
 
         return mesh;
     }

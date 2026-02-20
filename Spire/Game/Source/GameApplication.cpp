@@ -68,17 +68,32 @@ void GameApplication::Start(Engine &engine) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
     } else if (!ShouldStreamLoading()) {
-         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
+       VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
     }
 
-   // world.LoadChunks({{0, 0, 0}, {-1, 0, 0}});
-    // CuboidVoxelEdit({0,0,0},{64,64,64},{1}).Apply(world);
-    //   CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
-    //
+    world.LoadChunks({{0, 0, 0}});
+    //CuboidVoxelEdit({0,0,0},{64,64,64},{1}).Apply(world);
+    // CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
+
+    std::vector<BasicVoxelEdit::Edit> edits;
+    for (int x = 0; x < 64; x++) {
+        for (int y = 0; y < 64; y++) {
+            for (int z = 0; z < 64; z++) {
+                VoxelType type = static_cast<VoxelType>(((x + y + z) & 1) ? 1 : 2);
+             edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, static_cast<VoxelType>(z % 2 == 0 ? 1 : 2)});
+              //  edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, type});
+            }
+        }
+    }
+
+  //  BasicVoxelEdit(edits).Apply(world);
+
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 5}, 1},
-    //     BasicVoxelEdit::Edit{{-1, 0, 5}, 2}
+    //     BasicVoxelEdit::Edit{{1, 0, 5}, 2},
     // }).Apply(world);
+
+    //  CuboidVoxelEdit({0, 0, 0}, {64, 64, 64}, 1).Apply(world);
 
     //
     // BasicVoxelEdit({
@@ -176,8 +191,9 @@ void GameApplication::RenderUi() const {
     }
 
     const CameraInfo &cameraInfo = m_camera->GetCameraInfo();
+    glm::vec3 forward = m_camera->GetCamera().GetForward();
     std::string targetedVoxelStr = "None";
-    RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), m_camera->GetCamera().GetForward(), 10);
+    RaycastUtils::Hit hit = RaycastUtils::Raycast(m_voxelRenderer->GetWorld(), m_camera->GetCamera().GetPosition(), forward, 10);
     if (hit) {
         targetedVoxelStr = std::format(
             "({}, {}, {}), Voxel Type: {}, Targeted Face: {}",
@@ -191,6 +207,10 @@ void GameApplication::RenderUi() const {
         targetedVoxelStr = "Cannot raycast in LOD chunk";
     }
     ImGui::Text("Targeted Voxel: %s", targetedVoxelStr.c_str());
+
+    if (abs(forward.x) > abs(forward.y) && abs(forward.x) > abs(forward.z)) ImGui::Text("Facing %s X", forward.x > 0 ? "Positive" : "Negative");
+    else if (abs(forward.y) > abs(forward.x) && abs(forward.y) > abs(forward.z)) ImGui::Text("Facing %s Y", forward.y > 0 ? "Positive" : "Negative");
+    else ImGui::Text("Facing %s Z", forward.z > 0 ? "Positive" : "Negative");
 
     if (ImGui::Button("Load Test6")) {
         VoxelSerializer::ClearAndDeserialize(m_voxelRenderer->GetWorld(), std::filesystem::path("Worlds") / "Test6");
@@ -206,8 +226,9 @@ void GameApplication::RenderUi() const {
     }
 
     glm::vec3 cameraPos = m_camera->GetCamera().GetPosition();
-    glm::vec3 chunkPos = {glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE)};
-    ImGui::Text("Chunk Position %f, %f, %f", chunkPos.x, chunkPos.y, chunkPos.z);
+    glm::ivec3 cameraPosInt = cameraPos;
+    glm::ivec3 chunkPos = {glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE)};
+    ImGui::Text("Chunk Position %d, %d, %d (Voxel Position %d, %d, %d)", chunkPos.x, chunkPos.y, chunkPos.z, cameraPosInt.x, cameraPosInt.y, cameraPosInt.z);
 
     ImGui::Text("Chunks Loaded: %d / %d (%d MB RAM / %d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(), VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS,
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateCPUMemoryUsageForChunks()) / 1024.0 / 1024.0)),

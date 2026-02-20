@@ -18,13 +18,14 @@ layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_VOXEL_SHADER_
     ChunkData chunkDatas[];
 } chunkDataBuffer;
 
-layout (location = 0) out vec2 texCoord;// texture coordinate of the vertex
+layout (location = 0) out vec2 texCoord;// texture coordinate of the vertex, these are in range 0 to faceSize, so that uv 0,0 to uv 1,1 covers exactly one voxel face
 layout (location = 1) out vec3 voxelData;// voxel coordinate in world space
 layout (location = 2) flat out uint voxelDataChunkIndex;// Index of the current chunk
-layout (location = 3) flat out uint voxelFace;// What face is this vertex part of
+layout (location = 3) flat out uint voxelFace;// What face is this vertex part of (0-5 range, "enum")
 layout (location = 4) flat out uint voxelDataAllocationIndex;// Allocation index (what buffer)
 layout (location = 5) flat out uint voxelTypesFaceStartIndex;// Index of where the types of this face start
-layout (location = 6) flat out float faceWidth;// Width of this face
+layout (location = 6) flat out uint faceWidth;// Size of this face
+layout (location = 7) flat out uint faceHeight;
 
 void main()
 {
@@ -42,11 +43,15 @@ void main()
 
     gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);
     uvec2 faceSize = UnpackVertexFaceWidthHeight(vtx.Packed_6Width6Height);
-    texCoord = VoxelVertexPositionToUV(vertexVoxelPos) * faceSize;//* chunkData.LODScale;
+
+    vec2 uv = VoxelVertexPositionToUV(vertexVoxelPos);
+    texCoord = uv * faceSize;//* chunkData.LODScale;
+
     voxelData = vec3(voxelPos.x, voxelPos.y, voxelPos.z) - FaceToDirection(voxelFace) * 0.5f /*move to the center of the voxel*/;
     voxelDataChunkIndex = chunkData.VoxelDataChunkIndex;
     voxelDataAllocationIndex = chunkData.VoxelDataAllocationIndex;
 
     voxelTypesFaceStartIndex = vtx.VoxelTypeStartingIndex;
-    faceWidth = float(faceSize.x);
+    faceWidth = faceSize.x;
+    faceHeight = faceSize.y;
 }
