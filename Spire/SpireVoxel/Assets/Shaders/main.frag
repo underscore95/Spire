@@ -39,26 +39,43 @@ uint roundToUint(float x) {
 void main() {
     // Get voxel type
     uvec2 voxelCoordsInFace = uvec2(uv);
-    if (voxelFace == SPIRE_VOXEL_FACE_NEG_X || voxelFace == SPIRE_VOXEL_FACE_NEG_Z) {
+    if (IsFaceOnYAxis(voxelFace)) {
+      //  voxelCoordsInFace.yx = voxelCoordsInFace.xy;
+    }
+
+    if (IsFaceOnZAxis(voxelFace)) {
+     //   voxelCoordsInFace.yx = voxelCoordsInFace.xy;
+        if (voxelFace ==SPIRE_VOXEL_FACE_NEG_Z) {
+      //   voxelCoordsInFace.y = (uint(faceHeight) - 1) - voxelCoordsInFace.y;
+        }
+    }
+    if ( voxelFace == SPIRE_VOXEL_FACE_NEG_Z) {
         // need to flip x coords
         voxelCoordsInFace.x = (uint(faceWidth) - 1) - voxelCoordsInFace.x;
     }
 
     if (voxelFace == SPIRE_VOXEL_FACE_NEG_Y) {
         // need to flip y coords
-        voxelCoordsInFace.y = (uint(faceHeight) - 1) - voxelCoordsInFace.y;
+        //  voxelCoordsInFace.y = (uint(faceHeight) - 1) - voxelCoordsInFace.y;
     }
 
     uint voxelIndexInFace = uint(voxelCoordsInFace.y * faceWidth + voxelCoordsInFace.x);
 
     uint voxelDataIndex = voxelIndexInFace + voxelTypesFaceStartIndex;
 
-//    #ifndef NDEBUG
-//    if (uv.y > 1 && (SPIRE_VOXEL_FACE_POS_Z == voxelFace || SPIRE_VOXEL_FACE_NEG_Z == voxelFace)) {
-//        out_Color = vec4(1,1,1,1);
-//        return;
-//    }
-//    #endif
+    vec2 debugUV = vec2(voxelCoordsInFace);
+    if (uv.x!=-239) {
+        out_Color = vec4(debugUV.y / 64, 0, 0, 1.0);
+        // return;
+    }
+
+
+    //    #ifndef NDEBUG
+    //    if (uv.y > 1 && (SPIRE_VOXEL_FACE_POS_Z == voxelFace || SPIRE_VOXEL_FACE_NEG_Z == voxelFace)) {
+    //        out_Color = vec4(1,1,1,1);
+    //        return;
+    //    }
+    //    #endif
 
     uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[(voxelDataChunkIndex + voxelDataIndex) / NUM_TYPES_PER_INT];
 

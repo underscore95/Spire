@@ -58,11 +58,14 @@ namespace SpireVoxel {
         glm::uvec3 worldSize = GreedyMeshingFaceSizeSwizzleToWorldSpace(face, width, height);
         assert((worldSize.x == 0) + (worldSize.y == 0) + (worldSize.z == 0) == 1); // exactly one coordinate is 0
 
-      //  glm::u32 startSize = mesh.VoxelTypes.size();
+        //  glm::u32 startSize = mesh.VoxelTypes.size();
 
         if (IsFaceOnXAxis(face)) {
             assert(worldSize.x == 0);
+            assert(worldSize.y == height);
+            assert(worldSize.z == width);
             constexpr glm::u32 xOffset = 0;
+            // must be height in outer, width in inner for all 3 faces
             for (glm::u32 yOffset = 0; yOffset < worldSize.y; yOffset++) {
                 for (glm::u32 zOffset = 0; zOffset < worldSize.z; zOffset++) {
                     glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
@@ -74,11 +77,13 @@ namespace SpireVoxel {
                     mesh.VoxelTypes.push_back(type);
                 }
             }
-        } else         if (IsFaceOnYAxis(face)) {
+        } else if (IsFaceOnYAxis(face)) {
             assert(worldSize.y == 0);
+            assert(worldSize.x == width);
+            assert(worldSize.z == height);
             constexpr glm::u32 yOffset = 0;
-            for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
-                for (glm::u32 zOffset = 0; zOffset < worldSize.z; zOffset++) {
+            for (glm::u32 zOffset = 0; zOffset < worldSize.z; zOffset++) {
+                for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
                     glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
                     assert(coord.x < SPIRE_VOXEL_CHUNK_SIZE);
                     assert(coord.y < SPIRE_VOXEL_CHUNK_SIZE);
@@ -88,11 +93,13 @@ namespace SpireVoxel {
                     mesh.VoxelTypes.push_back(type);
                 }
             }
-        }else        if (IsFaceOnZAxis(face)) {
+        } else if (IsFaceOnZAxis(face)) {
             assert(worldSize.z == 0);
+            assert(worldSize.y == height);
+            assert(worldSize.x == width);
             constexpr glm::u32 zOffset = 0;
-            for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
-                for (glm::u32 yOffset = 0; yOffset < worldSize.y; yOffset++) {
+            for (glm::u32 yOffset = 0; yOffset < worldSize.y; yOffset++) {
+                for (glm::u32 xOffset = 0; xOffset < worldSize.x; xOffset++) {
                     glm::uvec3 coord = start + glm::uvec3(xOffset, yOffset, zOffset);
                     assert(coord.x < SPIRE_VOXEL_CHUNK_SIZE);
                     assert(coord.y < SPIRE_VOXEL_CHUNK_SIZE);
@@ -106,13 +113,13 @@ namespace SpireVoxel {
             assert(false);
         }
 
-//         std::stringstream ss;
-//         ss << "face " << FaceToString(face) << "("<<width << "x"<<height<<"): ";
-// for (int i = startSize; i < mesh.VoxelTypes.size(); i++) {
-//     ss<<mesh.VoxelTypes[i];
-//     if (i +1<mesh.VoxelTypes.size()) ss<<", ";
-// }
-//         Spire::info(ss.str());
+        //         std::stringstream ss;
+        //         ss << "face " << FaceToString(face) << "("<<width << "x"<<height<<"): ";
+        // for (int i = startSize; i < mesh.VoxelTypes.size(); i++) {
+        //     ss<<mesh.VoxelTypes[i];
+        //     if (i +1<mesh.VoxelTypes.size()) ss<<", ";
+        // }
+        //         Spire::info(ss.str());
     }
 
     void Chunk::PushFace(ChunkMesh &mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const {
@@ -199,26 +206,25 @@ namespace SpireVoxel {
         }
     }
 
-    static std::string VertexDataToString(const VertexData& v)
-    {
-        const glm::u32 width  =  (v.Packed_6Width6Height        & 0x3Fu) + 1u;
-        const glm::u32 height = ((v.Packed_6Width6Height >> 6)  & 0x3Fu) + 1u;
+    static std::string VertexDataToString(const VertexData &v) {
+        const glm::u32 width = (v.Packed_6Width6Height & 0x3Fu) + 1u;
+        const glm::u32 height = ((v.Packed_6Width6Height >> 6) & 0x3Fu) + 1u;
 
-        const glm::u32 z =  (v.Packed_7X7Y7Z2VertPos3Face        & 0x7Fu);
-        const glm::u32 y = ((v.Packed_7X7Y7Z2VertPos3Face >> 7)  & 0x7Fu);
+        const glm::u32 z = (v.Packed_7X7Y7Z2VertPos3Face & 0x7Fu);
+        const glm::u32 y = ((v.Packed_7X7Y7Z2VertPos3Face >> 7) & 0x7Fu);
         const glm::u32 x = ((v.Packed_7X7Y7Z2VertPos3Face >> 14) & 0x7Fu);
 
         const glm::u32 vertPos = ((v.Packed_7X7Y7Z2VertPos3Face >> 21) & 0x3u);
-        const glm::u32 face    = ((v.Packed_7X7Y7Z2VertPos3Face >> 23) & 0x7u);
+        const glm::u32 face = ((v.Packed_7X7Y7Z2VertPos3Face >> 23) & 0x7u);
 
         std::ostringstream ss;
         ss << "VertexData {\n"
-           << "  Width: " << width << ", Height: " << height << "\n"
-           << "  ChunkPos: (X: " << x << ", Y: " << y << ", Z: " << z << ")\n"
-           << "  VertexPosition: " << vertPos << "\n"
-           << "  Face: " << face << "\n"
-           << "  VoxelTypeStartingIndex: " << v.VoxelTypeStartingIndex << "\n"
-           << "}";
+                << "  Width: " << width << ", Height: " << height << "\n"
+                << "  ChunkPos: (X: " << x << ", Y: " << y << ", Z: " << z << ")\n"
+                << "  VertexPosition: " << vertPos << "\n"
+                << "  Face: " << face << "\n"
+                << "  VoxelTypeStartingIndex: " << v.VoxelTypeStartingIndex << "\n"
+                << "}";
 
         return ss.str();
     }
@@ -283,7 +289,7 @@ namespace SpireVoxel {
                         // push the face
                         glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
                         PushFace(mesh, face + faceSignIndex, chunkCoords, width, height);
-                      //  Spire::info("pushing face {}", FaceToString(face + faceSignIndex));
+                        //  Spire::info("pushing face {}", FaceToString(face + faceSignIndex));
 
                         if (grid.GetColumn(col) != 0) {
                             // we didn't get all the voxels on this row, loop again
