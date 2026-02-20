@@ -24,8 +24,8 @@ layout (location = 2) flat out uint voxelDataChunkIndex;// Index of the current 
 layout (location = 3) flat out uint voxelFace;// What face is this vertex part of
 layout (location = 4) flat out uint voxelDataAllocationIndex;// Allocation index (what buffer)
 layout (location = 5) flat out uint voxelTypesFaceStartIndex;// Index of where the types of this face start
-layout (location = 6) flat out float faceWidth;// Size of this face
-layout (location = 7) flat out float faceHeight;
+layout (location = 6) flat out uint faceWidth;// Size of this face
+layout (location = 7) flat out uint faceHeight;
 
 void main()
 {
@@ -43,12 +43,15 @@ void main()
 
     gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);
     uvec2 faceSize = UnpackVertexFaceWidthHeight(vtx.Packed_6Width6Height);
-    texCoord = VoxelVertexPositionToUV(vertexVoxelPos) * faceSize;//* chunkData.LODScale;
+
+    vec2 uv = VoxelVertexPositionToUV(vertexVoxelPos);
+    texCoord = uv * faceSize;//* chunkData.LODScale;
+
     voxelData = vec3(voxelPos.x, voxelPos.y, voxelPos.z) - FaceToDirection(voxelFace) * 0.5f /*move to the center of the voxel*/;
     voxelDataChunkIndex = chunkData.VoxelDataChunkIndex;
     voxelDataAllocationIndex = chunkData.VoxelDataAllocationIndex;
 
     voxelTypesFaceStartIndex = vtx.VoxelTypeStartingIndex;
-    faceWidth = float(faceSize.x);
-    faceHeight = float(faceSize.y);
+    faceWidth = faceSize.x;
+    faceHeight = faceSize.y;
 }

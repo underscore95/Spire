@@ -52,7 +52,7 @@ void GameApplication::Start(Engine &engine) {
             {
                 1, {
                     std::string(GetAssetsDirectory()) + "/grass_top.png",
-                    std::string(GetAssetsDirectory()) + "/dirt.png",
+                    std::string(GetAssetsDirectory()) + "/grass_top.png",
                     std::string(GetAssetsDirectory()) + "/grass_side.png"
                 },
                 SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
@@ -68,23 +68,25 @@ void GameApplication::Start(Engine &engine) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
     } else if (!ShouldStreamLoading()) {
-         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
+       VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
     }
 
     world.LoadChunks({{0, 0, 0}});
     //CuboidVoxelEdit({0,0,0},{64,64,64},{1}).Apply(world);
     // CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
 
-    // std::vector<BasicVoxelEdit::Edit> edits;
-    // for (int x = 0; x < 64; x++) {
-    //     for (int y = 0; y < 64; y++) {
-    //         for (int z = 0; z < 64; z++) {
-    //             edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, static_cast<VoxelType>(x % 2 == 0 ? 1 : 2)});
-    //         }
-    //     }
-    // }
-    //
-    // BasicVoxelEdit(edits).Apply(world);
+    std::vector<BasicVoxelEdit::Edit> edits;
+    for (int x = 0; x < 64; x++) {
+        for (int y = 0; y < 64; y++) {
+            for (int z = 0; z < 64; z++) {
+                VoxelType type = static_cast<VoxelType>(((x + y + z) & 1) ? 1 : 2);
+             edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, static_cast<VoxelType>(z % 2 == 0 ? 1 : 2)});
+              //  edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, type});
+            }
+        }
+    }
+
+  //  BasicVoxelEdit(edits).Apply(world);
 
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 5}, 1},
@@ -224,8 +226,9 @@ void GameApplication::RenderUi() const {
     }
 
     glm::vec3 cameraPos = m_camera->GetCamera().GetPosition();
-    glm::vec3 chunkPos = {glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE)};
-    ImGui::Text("Chunk Position %f, %f, %f", chunkPos.x, chunkPos.y, chunkPos.z);
+    glm::ivec3 cameraPosInt = cameraPos;
+    glm::ivec3 chunkPos = {glm::floor(cameraPos.x / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.y / SPIRE_VOXEL_CHUNK_SIZE), glm::floor(cameraPos.z / SPIRE_VOXEL_CHUNK_SIZE)};
+    ImGui::Text("Chunk Position %d, %d, %d (Voxel Position %d, %d, %d)", chunkPos.x, chunkPos.y, chunkPos.z, cameraPosInt.x, cameraPosInt.y, cameraPosInt.z);
 
     ImGui::Text("Chunks Loaded: %d / %d (%d MB RAM / %d MB VRAM)", m_voxelRenderer->GetWorld().NumLoadedChunks(), VoxelWorldRenderer::MAXIMUM_LOADED_CHUNKS,
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateCPUMemoryUsageForChunks()) / 1024.0 / 1024.0)),
