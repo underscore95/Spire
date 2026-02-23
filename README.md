@@ -7,6 +7,8 @@ See [Documentation](https://github.com/underscore95/VulkanTutorial/tree/main/Doc
 ![Screenshot](https://i.ibb.co/ZRHGkdJw/voxelrend.png)
 Above is a screenshot showing Spire rendering 32x32 Minecraft chunks (36,031,803 non-empty voxels) at over 2600 FPS on an RTX 4060 Ti with 85 MB VRAM.
 
+Minecraft renders the same world region at 700 FPS with ~0.5GB VRAM.
+
 The entire world can be remeshed and uploaded to the GPU in 125ms on an i7-12700F (20 threads).
 
 While Spire supports up to 2^16-1 voxel types, only grass and dirt have been configured which is why the world does not look like Minecraft.
