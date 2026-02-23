@@ -112,7 +112,7 @@ namespace SpireVoxel {
     }
 
     glm::u64 VoxelWorld::CalculateGPUMemoryUsageForChunks() const {
-        return m_renderer->m_chunkVertexBufferAllocator.CalculateAllocatedOrPendingMemory() + m_renderer->m_chunkVoxelDataBufferAllocator.CalculateAllocatedOrPendingMemory();
+        return m_renderer->m_chunkVertexBufferAllocator.CalculateAllocatedOrPendingMemory() + m_renderer->m_chunkVoxelDataBufferAllocator.CalculateAllocatedOrPendingMemory() + m_renderer->m_chunkAOBufferAllocator.CalculateAllocatedOrPendingMemory();
     }
 
     glm::u64 VoxelWorld::CalculateCPUMemoryUsageForChunks() const {
