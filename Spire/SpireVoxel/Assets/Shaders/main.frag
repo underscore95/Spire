@@ -72,7 +72,7 @@ void main() {
     }
 
     // Output debug colour if AO is wrong
-    if (ao0 != 0 || ao1 != 1 || ao2 != 2 || ao3 != 3) {
+    if (ao0 > 3 || ao1 > 3 || ao2 > 3 || ao3 > 3) {
         out_Color = vec4(1, 0, 1, 1);
         return;
     }
@@ -82,4 +82,29 @@ void main() {
     uint imageIndex = voxelTypesBuffer.voxelTypes[voxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[voxelType].VoxelFaceLayout, voxelFace);
 
     out_Color = texture(texSampler[imageIndex], uv);
+
+    // Apply AO
+    vec2 voxelUV = fract(uv);
+
+    const float aoStrength = 0.75;
+
+    vec2 f = voxelUV;
+
+    float a0 = float(3 - ao0) / 4.0;
+    float a1 = float(3 - ao1) / 4.0;
+    float a2 = float(3 - ao2) / 4.0;
+    float a3 = float(3 - ao3) / 4.0;
+
+    float w0 = (1.0 - f.x) * (1.0 - f.y);
+    float w1 = f.x * (1.0 - f.y);
+    float w2 = f.x * f.y;
+    float w3 = (1.0 - f.x) * f.y;
+
+    float ao = a0*w0 + a1*w1 + a2*w2 + a3*w3;
+
+    float shade = 1.0 - ao * aoStrength;
+
+    out_Color.xyz *= shade;
+
+
 }

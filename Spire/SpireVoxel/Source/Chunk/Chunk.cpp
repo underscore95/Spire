@@ -2,15 +2,13 @@
 
 #include "Meshing/GreedyMeshingGrid.h"
 #include "VoxelWorld.h"
-#include "Edits/BasicVoxelEdit.h"
-#include "Edits/BasicVoxelEdit.h"
 #include "Meshing/ChunkMesh.h"
 
 namespace SpireVoxel {
-    VoxelType GetAdjacentVoxelType(const Chunk &chunk, glm::ivec3 position, glm::u32 face) {
+    VoxelType GetAdjacentVoxelType(const Chunk &chunk, glm::ivec3 queryPosition) {
         glm::ivec3 queryChunkPosition = chunk.ChunkPosition;
-        glm::ivec3 queryPosition = position + FaceToDirection(face);
 
+        // Just for current usage but these asserts could be removed
         assert(queryPosition.x >= -1 && queryPosition.x <= SPIRE_VOXEL_CHUNK_SIZE);
         assert(queryPosition.y >= -1 && queryPosition.y <= SPIRE_VOXEL_CHUNK_SIZE);
         assert(queryPosition.z >= -1 && queryPosition.z <= SPIRE_VOXEL_CHUNK_SIZE);
@@ -98,6 +96,14 @@ namespace SpireVoxel {
         assert(false);
     }
 
+    // https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
+    glm::u32 vertexAO(bool side1, bool side2, bool corner) {
+        if (side1 && side2) {
+            return 0;
+        }
+        return 3 - (side1 + side2 + corner);
+    }
+
     void Chunk::PushRelatedVoxelData(ChunkMesh &mesh, glm::uvec3 chunkCoords, glm::u32 face) const {
         assert(chunkCoords.x < SPIRE_VOXEL_CHUNK_SIZE);
         assert(chunkCoords.y < SPIRE_VOXEL_CHUNK_SIZE);
@@ -110,9 +116,20 @@ namespace SpireVoxel {
         mesh.VoxelTypes.push_back(type);
 
         // Push AO
-        for (int i = 0; i < 4; i++) {
+        glm::ivec3 i = FaceToDirection(face), j, k;
+        FACE_TO_PERPENDICULAR_POSITIVE_DIRECTIONS(face, j, k);
+        assert(i != j);
+        assert(i != k);
+        for (VoxelVertexPosition vertexPos : VoxelVertexPositionValues) {
             glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
-            glm::u32 ao = i;
+
+            glm::ivec3 vj = (VoxelVertexPositionToUV(vertexPos).y == 0 ? -1 : 1) * j;
+            glm::ivec3 vk = (VoxelVertexPositionToUV(vertexPos).x == 0 ? -1 : 1) * k;
+            bool side1 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + vj) != VOXEL_TYPE_AIR;
+            bool side2 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + vk) != VOXEL_TYPE_AIR;
+            bool corner = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + vj + vk) != VOXEL_TYPE_AIR;
+            glm::u32 ao = vertexAO(side1, side2, corner);
+            assert(ao <= 0b11);
             if (aoIndex == 0) mesh.AOData.push_back(ao);
             else {
                 glm::u32 &packed = mesh.AOData.back();

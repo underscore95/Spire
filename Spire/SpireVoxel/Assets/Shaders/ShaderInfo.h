@@ -23,6 +23,12 @@
 #define SPIRE_VOXEL_CHUNK_AREA (SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_SIZE)
 #define SPIRE_VOXEL_CHUNK_VOLUME (SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_CHUNK_SIZE)
 
+#ifdef __cplusplus
+#define SPIRE_CPP_ASSERT_FALSE assert(false);
+#else
+#define SPIRE_CPP_ASSERT_FALSE
+#endif
+
 // Map from 3D index to 1D index
 #define SPIRE_VOXEL_INDEX_TO_POSITION(positionType, index) \
     positionType( \
@@ -179,6 +185,24 @@ namespace SpireVoxel {
         return SPIRE_IVEC3_TYPE(0, 0, 0);
     }
 
+    // Set two ivec3 with names variable0Name and variable1Name which are perpendicular vectors which themselves are perpendicular to the face direction
+    // always points in the positive direction
+#define FACE_TO_PERPENDICULAR_POSITIVE_DIRECTIONS(face, variable0Name, variable1Name) \
+    if ((face) == SPIRE_VOXEL_FACE_POS_X || (face) == SPIRE_VOXEL_FACE_NEG_X) { \
+        variable0Name = SPIRE_IVEC3_TYPE(0, 1, 0); \
+        variable1Name = SPIRE_IVEC3_TYPE(0, 0, 1); \
+    } else if ((face) == SPIRE_VOXEL_FACE_POS_Y || (face) == SPIRE_VOXEL_FACE_NEG_Y) { \
+        variable0Name = SPIRE_IVEC3_TYPE(0, 0, 1); \
+        variable1Name = SPIRE_IVEC3_TYPE(1, 0, 0); \
+    } else if ((face) == SPIRE_VOXEL_FACE_POS_Z || (face) == SPIRE_VOXEL_FACE_NEG_Z) { \
+        variable0Name = SPIRE_IVEC3_TYPE(1, 0, 0); \
+        variable1Name = SPIRE_IVEC3_TYPE(0, 1, 0); \
+    } else { \
+        variable0Name = SPIRE_IVEC3_TYPE(0, 0, 0); \
+        variable1Name = SPIRE_IVEC3_TYPE(0, 0, 0); \
+        SPIRE_CPP_ASSERT_FALSE\
+    }
+
     // Convert from a direction to a face enum
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE DirectionToFace(SPIRE_VEC3_TYPE direction) {
 #ifdef __cplusplus
@@ -286,10 +310,17 @@ namespace SpireVoxel {
         THREE // uv 0, 1
     };
 
+    constexpr std::array VoxelVertexPositionValues = {VoxelVertexPosition::ZERO, VoxelVertexPosition::ONE, VoxelVertexPosition::TWO, VoxelVertexPosition::THREE};
+
 #define SPIRE_VOXEL_VERTEX_POSITION_TYPE SpireVoxel::VoxelVertexPosition
 #else
 #define SPIRE_VOXEL_VERTEX_POSITION_TYPE SPIRE_UINT32_TYPE
+
+    const SPIRE_UINT32_TYPE VoxelVertexPositionValues[4] = SPIRE_UINT32_TYPE[4](0, 1, 2, 3);
 #endif
+
+
+    // Doesn't necessarily have to be UV coordinates, this is just where the vertex is in the quad
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_VEC2_TYPE VoxelVertexPositionToUV(SPIRE_VOXEL_VERTEX_POSITION_TYPE position) {
         SPIRE_KEYWORD_STATIC const SPIRE_VEC2_TYPE UV_COORDINATES[SPIRE_NUM_VOXEL_VERTEX_POSITIONS] =
 #ifdef __cplusplus
