@@ -67,11 +67,6 @@ void main() {
     uint voxelDataIndex = voxelIndexInFace + voxelTypesFaceStartIndex;// Add on where the data of the current face starts
 
     // Get voxel type
-    uvec2 voxelCoordsInFace = uvec2(uv);
-    uint voxelIndexInFace = uint(voxelCoordsInFace.y * faceWidth + voxelCoordsInFace.x);
-
-    uint voxelDataIndex = voxelIndexInFace + voxelTypesFaceStartIndex;
-
     uint packedVoxelType = chunkVoxelData[voxelDataAllocationIndex].datas[(voxelDataChunkIndex + voxelDataIndex) / NUM_TYPES_PER_INT];
 
     uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packedVoxelType, voxelDataIndex);
@@ -107,7 +102,7 @@ void main() {
     // Apply AO
     vec2 voxelUV = fract(uv);
 
-    const float aoStrength = 0.75;
+    const float aoStrength = 1.5;
 
     vec2 f = voxelUV;
 
