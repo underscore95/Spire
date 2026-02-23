@@ -45,6 +45,14 @@ uint roundToUint(float x) {
 
 #define AO_VALUES_PER_FACE 4
 
+float remapAO(uint aoIndex) {
+    if (aoIndex == 0) return 0;
+    if (aoIndex == 1) return 0.25;
+    if (aoIndex == 2) return 0.55;
+    if (aoIndex == 3) return 0.75;
+    return 0;
+}
+
 void main() {
     // Find voxel index
     // Get the coordinates of the voxel in the current face
@@ -72,13 +80,33 @@ void main() {
     uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packedVoxelType, voxelDataIndex);
 
     // Ambient occlusion
-    uint aoIndex = voxelDataIndex * AO_VALUES_PER_FACE;
-    uint packedAO = chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + aoIndex / SPIRE_AO_VALUES_PER_U32];
+    uint baseValueIndex = voxelDataIndex * AO_VALUES_PER_FACE;
 
-    uint ao0 = UnpackAO(packedAO, aoIndex % SPIRE_AO_VALUES_PER_U32);
-    uint ao1 = UnpackAO(packedAO, (aoIndex + 1) % SPIRE_AO_VALUES_PER_U32);
-    uint ao2 = UnpackAO(packedAO, (aoIndex + 2) % SPIRE_AO_VALUES_PER_U32);
-    uint ao3 = UnpackAO(packedAO, (aoIndex + 3) % SPIRE_AO_VALUES_PER_U32);
+    uint packedIndex0 = aoDataChunkPackedIndex + baseValueIndex / SPIRE_AO_VALUES_PER_U32;
+    uint localIndex0  = baseValueIndex % SPIRE_AO_VALUES_PER_U32;
+
+    uint ao0 = UnpackAO(chunkAOData[aoDataAllocationIndex].datas[packedIndex0], localIndex0);
+
+    uint ao1 = UnpackAO(
+    chunkAOData[aoDataAllocationIndex].datas[
+    aoDataChunkPackedIndex + (baseValueIndex + 1) / SPIRE_AO_VALUES_PER_U32
+    ],
+    (baseValueIndex + 1) % SPIRE_AO_VALUES_PER_U32
+    );
+
+    uint ao2 = UnpackAO(
+    chunkAOData[aoDataAllocationIndex].datas[
+    aoDataChunkPackedIndex + (baseValueIndex + 2) / SPIRE_AO_VALUES_PER_U32
+    ],
+    (baseValueIndex + 2) % SPIRE_AO_VALUES_PER_U32
+    );
+
+    uint ao3 = UnpackAO(
+    chunkAOData[aoDataAllocationIndex].datas[
+    aoDataChunkPackedIndex + (baseValueIndex + 3) / SPIRE_AO_VALUES_PER_U32
+    ],
+    (baseValueIndex + 3) % SPIRE_AO_VALUES_PER_U32
+    );
 
     #ifndef NDEBUG
     // Output debug colour if invalid type
@@ -100,27 +128,34 @@ void main() {
     out_Color = texture(texSampler[imageIndex], uv);
 
     // Apply AO
+    const float aoStrength = 1.5f;
+
     vec2 voxelUV = fract(uv);
 
-    const float aoStrength = 1.5;
+    float a0 = remapAO(ao0);
+    float a1 = remapAO(ao1);
+    float a2 = remapAO(ao2);
+    float a3 = remapAO(ao3);
 
-    vec2 f = voxelUV;
-
-    float a0 = float(3 - ao0) / 4.0;
-    float a1 = float(3 - ao1) / 4.0;
-    float a2 = float(3 - ao2) / 4.0;
-    float a3 = float(3 - ao3) / 4.0;
-
-    float w0 = (1.0 - f.x) * (1.0 - f.y);
-    float w1 = f.x * (1.0 - f.y);
-    float w2 = f.x * f.y;
-    float w3 = (1.0 - f.x) * f.y;
-
-    float ao = a0*w0 + a1*w1 + a2*w2 + a3*w3;
+    float ao = mix(mix(a0, a1, voxelUV.x), mix(a3, a2, voxelUV.x), voxelUV.y);// bilinear interpolation
 
     float shade = 1.0 - ao * aoStrength;
 
     out_Color.xyz *= shade;
+    //
+    //    vec3 c0 = vec3(1.0, 0.0, 0.0);
+    //    vec3 c1 = vec3(0.0, 0.0, 1.0);
+    //    vec3 c2 = vec3(0.0, 1.0, 0.0);
+    //    vec3 c3 = vec3(1.0, 1.0, 1.0);
+    //
+    //    float w0 = (1.0 - f.x) * (1.0 - f.y);
+    //    float w1 = f.x * (1.0 - f.y);
+    //    float w2 = f.x * f.y;
+    //    float w3 = (1.0 - f.x) * f.y;
+    //
+    //    vec3 debugColor = c0 * w0 + c1 * w1 + c2 * w2 + c3 * w3;
+    //
+    //    out_Color.xyz = debugColor;
 
 
 }

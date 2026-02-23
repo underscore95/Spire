@@ -99,9 +99,9 @@ namespace SpireVoxel {
     // https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
     glm::u32 vertexAO(bool side1, bool side2, bool corner) {
         if (side1 && side2) {
-            return 0;
+            return 3;
         }
-        return 3 - (side1 + side2 + corner);
+        return (side1 + side2 + corner);
     }
 
     void Chunk::PushRelatedVoxelData(ChunkMesh &mesh, glm::uvec3 chunkCoords, glm::u32 face) const {
@@ -123,8 +123,30 @@ namespace SpireVoxel {
         for (VoxelVertexPosition vertexPos : VoxelVertexPositionValues) {
             glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
 
-            glm::ivec3 vj = (VoxelVertexPositionToUV(vertexPos).y == 0 ? -1 : 1) * j;
-            glm::ivec3 vk = (VoxelVertexPositionToUV(vertexPos).x == 0 ? -1 : 1) * k;
+            // glm::ivec3 vj = (VoxelVertexPositionToUV(vertexPos).y == 0 ? -1 : 1) * j;
+            // glm::ivec3 vk = (VoxelVertexPositionToUV(vertexPos).x == 0 ? -1 : 1) * k;
+            glm::ivec3 vj = j, vk = k;
+            if (IsFaceOnXAxis(face)) {
+                if (vertexPos == VoxelVertexPosition::ZERO || vertexPos == VoxelVertexPosition::ONE) vj *= -1;
+                if (vertexPos == VoxelVertexPosition::ONE || vertexPos == VoxelVertexPosition::TWO) vk *= -1;
+                if (IsFaceOnNegativeAxis(face)) {
+                    vk *= -1;
+                }
+            } else if (IsFaceOnYAxis(face)) {
+                if (vertexPos == VoxelVertexPosition::TWO || vertexPos == VoxelVertexPosition::THREE) vj *= -1;
+                if (vertexPos == VoxelVertexPosition::ZERO || vertexPos == VoxelVertexPosition::THREE) vk *= -1;
+                if (IsFaceOnNegativeAxis(face)) {
+                    vj *= -1;
+                }
+            } else if (IsFaceOnZAxis(face)) {
+                if (vertexPos == VoxelVertexPosition::ZERO || vertexPos == VoxelVertexPosition::THREE) vj *= -1;
+                if (vertexPos == VoxelVertexPosition::ZERO || vertexPos == VoxelVertexPosition::ONE) vk *= -1;
+                if (IsFaceOnNegativeAxis(face)) {
+                    vj *= -1;
+                }
+            }
+
+
             bool side1 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + vj) != VOXEL_TYPE_AIR;
             bool side2 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + vk) != VOXEL_TYPE_AIR;
             bool corner = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + vj + vk) != VOXEL_TYPE_AIR;
