@@ -12,9 +12,10 @@ layout (location = 2) flat in uint voxelDataChunkIndex;
 layout (location = 3) flat in uint voxelFace;
 layout (location = 4) flat in uint voxelDataAllocationIndex;
 layout (location = 5) flat in uint voxelTypesFaceStartIndex;
-layout (location = 6) flat in float faceWidth;
-layout (location = 7) flat in uint aoDataChunkPackedIndex;
-layout (location = 8) flat in uint aoDataAllocationIndex;
+layout (location = 6) flat in uint faceWidth;
+layout (location = 7) flat in uint faceHeight;
+layout (location = 8) flat in uint aoDataChunkPackedIndex;
+layout (location = 9) flat in uint aoDataAllocationIndex;
 
 layout(location = 0) out vec4 out_Color;
 
@@ -45,6 +46,26 @@ uint roundToUint(float x) {
 #define AO_VALUES_PER_FACE 4
 
 void main() {
+    // Find voxel index
+    // Get the coordinates of the voxel in the current face
+    // e.g. for a 1x2 face, valid coordinates are 0,0 and 0,1
+    uvec2 voxelCoordsInFace = uvec2(clamp(uv.x, 0, float(faceWidth) - 1), clamp(uv.y, 0, float(faceHeight) - 1));
+
+    // These components of the voxel coords need to be flipped because UV 0,0 isn't always the bottom left (because otherwise certain faces would have flipped textures)
+    // it is *probably* better to flip them here rather than passing even more data to the fragment shader
+    if (voxelFace == SPIRE_VOXEL_FACE_POS_X || voxelFace == SPIRE_VOXEL_FACE_NEG_Z) {
+        voxelCoordsInFace.x = (faceWidth - 1u) - voxelCoordsInFace.x;
+    }
+
+    if (voxelFace == SPIRE_VOXEL_FACE_POS_Y) {
+        voxelCoordsInFace.y = (faceHeight - 1u) - voxelCoordsInFace.y;
+    }
+
+    // Now we can convert from 2D coordinates into 1D axis
+    uint voxelIndexInFace = uint(voxelCoordsInFace.y * uint(faceWidth) + voxelCoordsInFace.x);
+
+    uint voxelDataIndex = voxelIndexInFace + voxelTypesFaceStartIndex;// Add on where the data of the current face starts
+
     // Get voxel type
     uvec2 voxelCoordsInFace = uvec2(uv);
     uint voxelIndexInFace = uint(voxelCoordsInFace.y * faceWidth + voxelCoordsInFace.x);

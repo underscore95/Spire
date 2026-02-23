@@ -20,7 +20,7 @@ public:
 
     [[nodiscard]] glm::vec3 GetPosition() const override;
 
-    float Speed = 10;
+    float Speed = 1;
     float Scale = 1;
 private:
     const Spire::Engine &m_engine;
