@@ -46,11 +46,8 @@ uint roundToUint(float x) {
 #define AO_VALUES_PER_FACE 4
 
 float remapAO(uint aoIndex) {
-    if (aoIndex == 0) return 0;
-    if (aoIndex == 1) return 0.25;
-    if (aoIndex == 2) return 0.55;
-    if (aoIndex == 3) return 0.75;
-    return 0;
+    const float STRENGTHS[4] = float[4](0.0f, 0.25f, 0.50f, 0.75f);
+    return STRENGTHS[aoIndex];
 }
 
 void main() {
@@ -79,34 +76,16 @@ void main() {
 
     uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packedVoxelType, voxelDataIndex);
 
-    // Ambient occlusion
+    // Read ambient occlusion information
     uint baseValueIndex = voxelDataIndex * AO_VALUES_PER_FACE;
 
     uint packedIndex0 = aoDataChunkPackedIndex + baseValueIndex / SPIRE_AO_VALUES_PER_U32;
     uint localIndex0  = baseValueIndex % SPIRE_AO_VALUES_PER_U32;
 
     uint ao0 = UnpackAO(chunkAOData[aoDataAllocationIndex].datas[packedIndex0], localIndex0);
-
-    uint ao1 = UnpackAO(
-    chunkAOData[aoDataAllocationIndex].datas[
-    aoDataChunkPackedIndex + (baseValueIndex + 1) / SPIRE_AO_VALUES_PER_U32
-    ],
-    (baseValueIndex + 1) % SPIRE_AO_VALUES_PER_U32
-    );
-
-    uint ao2 = UnpackAO(
-    chunkAOData[aoDataAllocationIndex].datas[
-    aoDataChunkPackedIndex + (baseValueIndex + 2) / SPIRE_AO_VALUES_PER_U32
-    ],
-    (baseValueIndex + 2) % SPIRE_AO_VALUES_PER_U32
-    );
-
-    uint ao3 = UnpackAO(
-    chunkAOData[aoDataAllocationIndex].datas[
-    aoDataChunkPackedIndex + (baseValueIndex + 3) / SPIRE_AO_VALUES_PER_U32
-    ],
-    (baseValueIndex + 3) % SPIRE_AO_VALUES_PER_U32
-    );
+    uint ao1 = UnpackAO(chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + (baseValueIndex + 1) / SPIRE_AO_VALUES_PER_U32], (baseValueIndex + 1) % SPIRE_AO_VALUES_PER_U32);
+    uint ao2 = UnpackAO(chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + (baseValueIndex + 2) / SPIRE_AO_VALUES_PER_U32], (baseValueIndex + 2) % SPIRE_AO_VALUES_PER_U32);
+    uint ao3 = UnpackAO(chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + (baseValueIndex + 3) / SPIRE_AO_VALUES_PER_U32], (baseValueIndex + 3) % SPIRE_AO_VALUES_PER_U32);
 
     #ifndef NDEBUG
     // Output debug colour if invalid type
@@ -132,30 +111,16 @@ void main() {
 
     vec2 voxelUV = fract(uv);
 
+    // AO strengths
     float a0 = remapAO(ao0);
     float a1 = remapAO(ao1);
     float a2 = remapAO(ao2);
     float a3 = remapAO(ao3);
 
-    float ao = mix(mix(a0, a1, voxelUV.x), mix(a3, a2, voxelUV.x), voxelUV.y);// bilinear interpolation
+    // bilinear interpolation
+    float ao = mix(mix(a0, a1, voxelUV.x), mix(a3, a2, voxelUV.x), voxelUV.y);
 
     float shade = 1.0 - ao * aoStrength;
 
     out_Color.xyz *= shade;
-    //
-    //    vec3 c0 = vec3(1.0, 0.0, 0.0);
-    //    vec3 c1 = vec3(0.0, 0.0, 1.0);
-    //    vec3 c2 = vec3(0.0, 1.0, 0.0);
-    //    vec3 c3 = vec3(1.0, 1.0, 1.0);
-    //
-    //    float w0 = (1.0 - f.x) * (1.0 - f.y);
-    //    float w1 = f.x * (1.0 - f.y);
-    //    float w2 = f.x * f.y;
-    //    float w3 = (1.0 - f.x) * f.y;
-    //
-    //    vec3 debugColor = c0 * w0 + c1 * w1 + c2 * w2 + c3 * w3;
-    //
-    //    out_Color.xyz = debugColor;
-
-
 }
