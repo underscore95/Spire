@@ -98,7 +98,7 @@ namespace SpireVoxel {
     }
 
     // https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
-    glm::u32 vertexAO(bool side1, bool side2, bool corner) {
+    glm::u32 GetVertexAO(bool side1, bool side2, bool corner) {
         if (side1 && side2) {
             return 3;
         }
@@ -126,7 +126,7 @@ namespace SpireVoxel {
             bool side1 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + j) != VOXEL_TYPE_AIR;
             bool side2 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + k) != VOXEL_TYPE_AIR;
             bool corner = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + j + k) != VOXEL_TYPE_AIR;
-            glm::u32 ao = vertexAO(side1, side2, corner);
+            glm::u32 ao = GetVertexAO(side1, side2, corner);
             assert(ao <= 0b11);
 
             if (aoIndex == 0) {
