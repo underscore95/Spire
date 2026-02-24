@@ -1,5 +1,6 @@
 #include "Chunk.h"
 
+#include "AOLookupTable.h"
 #include "Meshing/GreedyMeshingGrid.h"
 #include "VoxelWorld.h"
 #include "Meshing/ChunkMesh.h"
@@ -116,44 +117,24 @@ namespace SpireVoxel {
         mesh.VoxelTypes.push_back(type);
 
         // Push AO
-        glm::ivec3 i = FaceToDirection(face), j, k;
-        FACE_TO_PERPENDICULAR_POSITIVE_DIRECTIONS(face, j, k);
-        assert(i != j);
-        assert(i != k);
+        glm::ivec3 i, j, k;
         for (VoxelVertexPosition vertexPos : VoxelVertexPositionValues) {
             glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
 
-            // glm::ivec3 vj = (VoxelVertexPositionToUV(vertexPos).y == 0 ? -1 : 1) * j;
-            // glm::ivec3 vk = (VoxelVertexPositionToUV(vertexPos).x == 0 ? -1 : 1) * k;
-            glm::ivec3 vj = j, vk = k;
-            if (IsFaceOnXAxis(face)) {
-                if (vertexPos == VoxelVertexPosition::ZERO || vertexPos == VoxelVertexPosition::ONE) vj *= -1;
-                if (vertexPos == VoxelVertexPosition::ONE || vertexPos == VoxelVertexPosition::TWO) vk *= -1;
-                if (IsFaceOnNegativeAxis(face)) {
-                    vk *= -1;
-                }
-            } else if (IsFaceOnYAxis(face)) {
-                if (vertexPos == VoxelVertexPosition::TWO || vertexPos == VoxelVertexPosition::THREE) vj *= -1;
-                if (vertexPos == VoxelVertexPosition::ZERO || vertexPos == VoxelVertexPosition::THREE) vk *= -1;
-                if (IsFaceOnNegativeAxis(face)) {
-                    vj *= -1;
-                }
-            } else if (IsFaceOnZAxis(face)) {
-                if (vertexPos == VoxelVertexPosition::ZERO || vertexPos == VoxelVertexPosition::THREE) vj *= -1;
-                if (vertexPos == VoxelVertexPosition::ZERO || vertexPos == VoxelVertexPosition::ONE) vk *= -1;
-                if (IsFaceOnNegativeAxis(face)) {
-                    vj *= -1;
-                }
-            }
+            GetAmbientOcclusionOffsetVectors(face, static_cast<glm::u32>(vertexPos), i, j, k);
 
-
-            bool side1 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + vj) != VOXEL_TYPE_AIR;
-            bool side2 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + vk) != VOXEL_TYPE_AIR;
-            bool corner = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + vj + vk) != VOXEL_TYPE_AIR;
+            bool side1 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + j) != VOXEL_TYPE_AIR;
+            bool side2 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + k) != VOXEL_TYPE_AIR;
+            bool corner = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + j + k) != VOXEL_TYPE_AIR;
             glm::u32 ao = vertexAO(side1, side2, corner);
             assert(ao <= 0b11);
-            if (aoIndex == 0) mesh.AOData.push_back(ao);
+
+            if (aoIndex == 0) {
+                // need a new integer
+                mesh.AOData.push_back(ao);
+            }
             else {
+                // there is space to pack it into the end of the current integer
                 glm::u32 &packed = mesh.AOData.back();
                 packed = SetAO(packed, aoIndex, ao);
             }
@@ -328,7 +309,6 @@ namespace SpireVoxel {
                         // push the face
                         glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
                         PushFace(mesh, face + faceSignIndex, chunkCoords, width, height);
-                        //  Spire::info("pushing face {}", FaceToString(face + faceSignIndex));
 
                         if (grid.GetColumn(col) != 0) {
                             // we didn't get all the voxels on this row, loop again
@@ -338,13 +318,6 @@ namespace SpireVoxel {
                 }
             }
         }
-
-        // int i = 0;
-        // for (auto v : mesh.Vertices) {
-        //     std::string s = VertexDataToString(v);
-        //   Spire::info("Vertex {}: {}", i, s);
-        //     i++;
-        // }
 
         return mesh;
     }

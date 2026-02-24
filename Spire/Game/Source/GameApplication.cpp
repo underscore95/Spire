@@ -68,7 +68,7 @@ void GameApplication::Start(Engine &engine) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
     } else if (!ShouldStreamLoading()) {
-       VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
+       VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
     }
 
     world.LoadChunks({{0, 0, 0}});

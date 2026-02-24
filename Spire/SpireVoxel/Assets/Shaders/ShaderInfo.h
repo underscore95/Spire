@@ -192,24 +192,6 @@ namespace SpireVoxel {
         return SPIRE_IVEC3_TYPE(0, 0, 0);
     }
 
-    // Set two ivec3 with names variable0Name and variable1Name which are perpendicular vectors which themselves are perpendicular to the face direction
-    // always points in the positive direction
-#define FACE_TO_PERPENDICULAR_POSITIVE_DIRECTIONS(face, variable0Name, variable1Name) \
-    if ((face) == SPIRE_VOXEL_FACE_POS_X || (face) == SPIRE_VOXEL_FACE_NEG_X) { \
-        variable0Name = SPIRE_IVEC3_TYPE(0, 1, 0); \
-        variable1Name = SPIRE_IVEC3_TYPE(0, 0, 1); \
-    } else if ((face) == SPIRE_VOXEL_FACE_POS_Y || (face) == SPIRE_VOXEL_FACE_NEG_Y) { \
-        variable0Name = SPIRE_IVEC3_TYPE(0, 0, 1); \
-        variable1Name = SPIRE_IVEC3_TYPE(1, 0, 0); \
-    } else if ((face) == SPIRE_VOXEL_FACE_POS_Z || (face) == SPIRE_VOXEL_FACE_NEG_Z) { \
-        variable0Name = SPIRE_IVEC3_TYPE(1, 0, 0); \
-        variable1Name = SPIRE_IVEC3_TYPE(0, 1, 0); \
-    } else { \
-        variable0Name = SPIRE_IVEC3_TYPE(0, 0, 0); \
-        variable1Name = SPIRE_IVEC3_TYPE(0, 0, 0); \
-        SPIRE_CPP_ASSERT_FALSE\
-    }
-
     // Convert from a direction to a face enum
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE DirectionToFace(SPIRE_VEC3_TYPE direction) {
 #ifdef __cplusplus
