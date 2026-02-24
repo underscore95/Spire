@@ -75,16 +75,22 @@ void GameApplication::Start(Engine &engine) {
     //CuboidVoxelEdit({0,0,0},{64,64,64},{1}).Apply(world);
     // CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
 
-    std::vector<BasicVoxelEdit::Edit> edits;
-    for (int x = 0; x < 64; x++) {
-        for (int y = 0; y < 64; y++) {
-            for (int z = 0; z < 64; z++) {
-                VoxelType type = static_cast<VoxelType>(((x + y + z) & 1) ? 1 : 2);
-             edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, static_cast<VoxelType>(z % 2 == 0 ? 1 : 2)});
-              //  edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, type});
-            }
-        }
-    }
+    // BasicVoxelEdit({
+    //     BasicVoxelEdit::Edit{{5, 5, 5}, 1},
+    //     BasicVoxelEdit::Edit{{4, 6, 5}, 1},
+    //     BasicVoxelEdit::Edit{{5, 6, 4}, 1},
+    // }).Apply(world);
+
+    // std::vector<BasicVoxelEdit::Edit> edits;
+    // for (int x = 0; x < 64; x++) {
+    //     for (int y = 0; y < 64; y++) {
+    //         for (int z = 0; z < 64; z++) {
+    //             VoxelType type = static_cast<VoxelType>(((x + y + z) & 1) ? 1 : 2);
+    //          edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, static_cast<VoxelType>(z % 2 == 0 ? 1 : 2)});
+    //           //  edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, type});
+    //         }
+    //     }
+    // }
 
   //  BasicVoxelEdit(edits).Apply(world);
 
@@ -92,6 +98,7 @@ void GameApplication::Start(Engine &engine) {
     //     BasicVoxelEdit::Edit{{0, 0, 5}, 1},
     //     BasicVoxelEdit::Edit{{1, 0, 5}, 2},
     // }).Apply(world);
+
 
     //  CuboidVoxelEdit({0, 0, 0}, {64, 64, 64}, 1).Apply(world);
 

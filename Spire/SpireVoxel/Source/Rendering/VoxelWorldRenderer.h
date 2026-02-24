@@ -67,6 +67,8 @@ namespace SpireVoxel {
         Spire::BufferAllocator m_chunkVertexBufferAllocator;
         // stores types of voxels
         Spire::BufferAllocator m_chunkVoxelDataBufferAllocator;
+        // stores ambient occlusion information
+        Spire::BufferAllocator m_chunkAOBufferAllocator;
         // see ChunkData
         std::unique_ptr<Spire::PerImageBuffer> m_chunkDatasBuffer;
         // if {true,false,false} it means we need to update buffer 0 on swapchain image index 0

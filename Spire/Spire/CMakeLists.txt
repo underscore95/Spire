@@ -95,6 +95,7 @@ add_library(Spire STATIC
         Source/Utils/ThreadPool.h
         Source/Rendering/Memory/BufferAllocator.cpp
         Source/Rendering/Memory/BufferAllocator.h
+        Source/Utils/MathsUtils.h
 )
 
 target_precompile_headers(Spire PUBLIC "Source/pch.h")

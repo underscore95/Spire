@@ -54,6 +54,7 @@ add_library(SpireVoxel STATIC
         Source/Serialisation/SerializedGenerationProvider.h
         Source/Serialisation/SerializedGenerationProvider.cpp
         Source/Generation/Providers/EmptyProceduralGenerationProvider.h
+        Source/Chunk/AOLookupTable.h
 )
 
 target_include_directories(SpireVoxel PUBLIC "Source/")

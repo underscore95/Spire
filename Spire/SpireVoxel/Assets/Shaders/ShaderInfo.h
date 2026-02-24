@@ -11,6 +11,8 @@
 #define SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING 1
 #define SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING 2
 #define SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING 3
+#define SPIRE_VOXEL_SHADER_BINDINGS_AO_DATA_BINDING 4
+
 #define SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING 1
 #define SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING 0
 
@@ -20,6 +22,12 @@
 #define SPIRE_VOXEL_CHUNK_SIZE 64
 #define SPIRE_VOXEL_CHUNK_AREA (SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_SIZE)
 #define SPIRE_VOXEL_CHUNK_VOLUME (SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_CHUNK_SIZE)
+
+#ifdef __cplusplus
+#define SPIRE_CPP_ASSERT_FALSE assert(false);
+#else
+#define SPIRE_CPP_ASSERT_FALSE
+#endif
 
 // Map from 3D index to 1D index
 #define SPIRE_VOXEL_INDEX_TO_POSITION(positionType, index) \
@@ -114,6 +122,9 @@ namespace SpireVoxel {
         SPIRE_UINT32_TYPE VertexBufferIndex;
         // LOD Scale, should be a uint but floating point operations are faster on gpu
         float LODScale;
+        // AO data buffer contains all ambient occlusion data for the whole world, this index is where the latest data for this chunk is
+        SPIRE_UINT32_TYPE AODataChunkPackedIndex; // This is uint index, not element index
+        SPIRE_UINT32_TYPE AODataAllocationIndex;
     };
 
 #ifdef __cplusplus
@@ -288,10 +299,17 @@ namespace SpireVoxel {
         THREE // uv 0, 1
     };
 
+    constexpr std::array VoxelVertexPositionValues = {VoxelVertexPosition::ZERO, VoxelVertexPosition::ONE, VoxelVertexPosition::TWO, VoxelVertexPosition::THREE};
+
 #define SPIRE_VOXEL_VERTEX_POSITION_TYPE SpireVoxel::VoxelVertexPosition
 #else
 #define SPIRE_VOXEL_VERTEX_POSITION_TYPE SPIRE_UINT32_TYPE
+
+    const SPIRE_UINT32_TYPE VoxelVertexPositionValues[4] = SPIRE_UINT32_TYPE[4](0, 1, 2, 3);
 #endif
+
+
+    // Doesn't necessarily have to be UV coordinates, this is just where the vertex is in the quad
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_VEC2_TYPE VoxelVertexPositionToUV(SPIRE_VOXEL_VERTEX_POSITION_TYPE position) {
         SPIRE_KEYWORD_STATIC const SPIRE_VEC2_TYPE UV_COORDINATES[SPIRE_NUM_VOXEL_VERTEX_POSITIONS] =
 #ifdef __cplusplus
@@ -391,6 +409,37 @@ namespace SpireVoxel {
         float Scale;
     };
 
+#ifdef __cplusplus
+}
+#endif
+
+// ambient occlusion
+#ifdef __cplusplus
+namespace SpireVoxel {
+#endif
+#define SPIRE_AO_VALUES_PER_U32 16
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE UnpackAO(SPIRE_UINT32_TYPE packed, SPIRE_UINT32_TYPE index) {
+#ifdef __cplusplus
+        assert(index < SPIRE_AO_VALUES_PER_U32);
+#endif
+        const SPIRE_UINT32_TYPE MAX_2_BIT_VALUE = 3; // 0b11
+        return MAX_2_BIT_VALUE & (packed >> index * 2);
+    }
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE SetAO(SPIRE_UINT32_TYPE packed, SPIRE_UINT32_TYPE index, SPIRE_UINT32_TYPE value) {
+#ifdef __cplusplus
+        assert(index < SPIRE_AO_VALUES_PER_U32);
+        assert(value <= 0b11);
+#endif
+        const SPIRE_UINT32_TYPE MAX_2_BIT_VALUE = 3; // 0b11
+        // clear the two bits we care about
+        SPIRE_UINT32_TYPE clearMask = ~(MAX_2_BIT_VALUE << (index * 2));
+        SPIRE_UINT32_TYPE clearedPacked = clearMask & packed;
+        // set the two bits
+        SPIRE_UINT32_TYPE valueToSet = value << (index * 2);
+        return clearedPacked | valueToSet;
+    }
 #ifdef __cplusplus
 }
 #endif

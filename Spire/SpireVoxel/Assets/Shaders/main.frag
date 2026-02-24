@@ -14,6 +14,8 @@ layout (location = 4) flat in uint voxelDataAllocationIndex;
 layout (location = 5) flat in uint voxelTypesFaceStartIndex;
 layout (location = 6) flat in uint faceWidth;
 layout (location = 7) flat in uint faceHeight;
+layout (location = 8) flat in uint aoDataChunkPackedIndex;
+layout (location = 9) flat in uint aoDataAllocationIndex;
 
 layout(location = 0) out vec4 out_Color;
 
@@ -25,6 +27,11 @@ layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VO
     uint datas[];
 } chunkVoxelData[];
 
+// Ambient occlusion information
+layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_AO_DATA_BINDING) readonly buffer ChunkAOData {
+    uint datas[];
+} chunkAOData[];
+
 // Information about all registered voxel types
 layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_VOXEL_TYPE_UBO_BINDING) readonly buffer VoxelTypesBuffer {
     GPUVoxelType voxelTypes[];
@@ -34,6 +41,13 @@ layout (set = SPIRE_SHADER_BINDINGS_CONSTANT_SET, binding = SPIRE_VOXEL_SHADER_B
 
 uint roundToUint(float x) {
     return uint(floor(x));
+}
+
+#define AO_VALUES_PER_FACE 4
+
+float remapAO(uint aoIndex) {
+    const float STRENGTHS[4] = float[4](0.0f, 0.25f, 0.50f, 0.75f);
+    return STRENGTHS[aoIndex];
 }
 
 void main() {
@@ -58,18 +72,31 @@ void main() {
     uint voxelDataIndex = voxelIndexInFace + voxelTypesFaceStartIndex;// Add on where the data of the current face starts
 
     // Get voxel type
-    uint packed = chunkVoxelData[voxelDataAllocationIndex].datas[(voxelDataChunkIndex + voxelDataIndex) / NUM_TYPES_PER_INT];
-    uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packed, voxelDataIndex);
+    uint packedVoxelType = chunkVoxelData[voxelDataAllocationIndex].datas[(voxelDataChunkIndex + voxelDataIndex) / NUM_TYPES_PER_INT];
 
-    // Debug output
+    uint voxelType = SPIRE_VOXEL_UNPACK_VOXEL_TYPE(packedVoxelType, voxelDataIndex);
+
+    // Read ambient occlusion information
+    uint baseValueIndex = voxelDataIndex * AO_VALUES_PER_FACE;
+
+    uint packedIndex0 = aoDataChunkPackedIndex + baseValueIndex / SPIRE_AO_VALUES_PER_U32;
+    uint localIndex0  = baseValueIndex % SPIRE_AO_VALUES_PER_U32;
+
+    uint ao0 = UnpackAO(chunkAOData[aoDataAllocationIndex].datas[packedIndex0], localIndex0);
+    uint ao1 = UnpackAO(chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + (baseValueIndex + 1) / SPIRE_AO_VALUES_PER_U32], (baseValueIndex + 1) % SPIRE_AO_VALUES_PER_U32);
+    uint ao2 = UnpackAO(chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + (baseValueIndex + 2) / SPIRE_AO_VALUES_PER_U32], (baseValueIndex + 2) % SPIRE_AO_VALUES_PER_U32);
+    uint ao3 = UnpackAO(chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + (baseValueIndex + 3) / SPIRE_AO_VALUES_PER_U32], (baseValueIndex + 3) % SPIRE_AO_VALUES_PER_U32);
+
     #ifndef NDEBUG
-    if (voxelCoordsInFace.x > 63 || voxelCoordsInFace.y > 63) {
-        out_Color = vec4(0.5, 0, 0, 1.0);
+    // Output debug colour if invalid type
+    if (voxelType == 0) {
+        out_Color = vec4(1, 0, 0, 1);
         return;
     }
 
-    if (voxelType == 0) {
-        out_Color = vec4(1, 0, 0, 1);
+    // Output debug colour if AO is wrong
+    if (ao0 > 3 || ao1 > 3 || ao2 > 3 || ao3 > 3) {
+        out_Color = vec4(1, 0, 1, 1);
         return;
     }
     #endif
@@ -78,4 +105,22 @@ void main() {
     uint imageIndex = voxelTypesBuffer.voxelTypes[voxelType].FirstTextureIndex + GetImageIndex(voxelTypesBuffer.voxelTypes[voxelType].VoxelFaceLayout, voxelFace);
 
     out_Color = texture(texSampler[imageIndex], uv);
+
+    // Apply AO
+    const float aoStrength = 1.5f;
+
+    vec2 voxelUV = fract(uv);
+
+    // AO strengths
+    float a0 = remapAO(ao0);
+    float a1 = remapAO(ao1);
+    float a2 = remapAO(ao2);
+    float a3 = remapAO(ao3);
+
+    // bilinear interpolation
+    float ao = mix(mix(a0, a1, voxelUV.x), mix(a3, a2, voxelUV.x), voxelUV.y);
+
+    float shade = 1.0 - ao * aoStrength;
+
+    out_Color.xyz *= shade;
 }

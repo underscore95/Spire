@@ -26,6 +26,8 @@ layout (location = 4) flat out uint voxelDataAllocationIndex;// Allocation index
 layout (location = 5) flat out uint voxelTypesFaceStartIndex;// Index of where the types of this face start
 layout (location = 6) flat out uint faceWidth;// Size of this face
 layout (location = 7) flat out uint faceHeight;
+layout (location = 8) flat out uint aoDataChunkPackedIndex; // Index of the current chunk in the AO buffer allocator, index of the first uint
+layout (location = 9) flat out uint aoDataAllocationIndex;// Allocation index (what buffer)
 
 void main()
 {
@@ -52,6 +54,10 @@ void main()
     voxelDataAllocationIndex = chunkData.VoxelDataAllocationIndex;
 
     voxelTypesFaceStartIndex = vtx.VoxelTypeStartingIndex;
+
     faceWidth = faceSize.x;
     faceHeight = faceSize.y;
+
+    aoDataChunkPackedIndex = chunkData.AODataChunkPackedIndex;
+    aoDataAllocationIndex = chunkData.AODataAllocationIndex;
 }
