@@ -132,8 +132,7 @@ namespace SpireVoxel {
             if (aoIndex == 0) {
                 // need a new integer
                 mesh.AOData.push_back(ao);
-            }
-            else {
+            } else {
                 // there is space to pack it into the end of the current integer
                 glm::u32 &packed = mesh.AOData.back();
                 packed = SetAO(packed, aoIndex, ao);
@@ -250,74 +249,68 @@ namespace SpireVoxel {
     }
 
     ChunkMesh Chunk::GenerateMesh() const {
+        Spire::Timer timer;
         ChunkMesh mesh = {};
 
         // slice, row, col are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetChunkCoords
         // slice is the slice of voxels we are working with
         // POS_Z/NEG_Z col is X axis, row is Y axis, slice is Z
 
-        for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face += 2) {
-            for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
-                // generate the grid
-                std::array<GreedyMeshingGrid, 2> grids;
+        std::array<GreedyMeshingGrid, SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_NUM_FACES> grids = {};
 
-                for (glm::u32 row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
-                    for (glm::u32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
+        // generate the grids
+        for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
+            for (glm::u32 row = 0; row < SPIRE_VOXEL_CHUNK_SIZE; row++) {
+                for (glm::u32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
+                    for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
                         glm::ivec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face);
-                        glm::ivec3 adjacentPositive = chunkCoords + FaceToDirection(face);
-                        glm::ivec3 adjacentNegative = chunkCoords - FaceToDirection(face);
-                        bool adjacentPositiveIsPresent = adjacentPositive.x < SPIRE_VOXEL_CHUNK_SIZE &&
-                                                         adjacentPositive.y < SPIRE_VOXEL_CHUNK_SIZE &&
-                                                         adjacentPositive.z < SPIRE_VOXEL_CHUNK_SIZE &&
-                                                         VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentPositive)];
-                        bool adjacentNegativeIsPresent = adjacentNegative.x >= 0 &&
-                                                         adjacentNegative.y >= 0 &&
-                                                         adjacentNegative.z >= 0 &&
-                                                         VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentNegative)];
-                        // This seems to be getting compiler optimised really heavily
-                        // I tried adding another check and not generating any faces if the adjacent is outside of chunk bounds
-                        // and it reduced generation time by 20%
-                        if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentPositiveIsPresent) {
-                            grids[0].SetBit(row, col);
-                        }
+                        glm::ivec3 adjacent = chunkCoords + FaceToDirection(face);
+                        bool adjacentIsPresent = adjacent.x < SPIRE_VOXEL_CHUNK_SIZE && adjacent.x >= 0 &&
+                                                 adjacent.y < SPIRE_VOXEL_CHUNK_SIZE && adjacent.y >= 0 &&
+                                                 adjacent.z < SPIRE_VOXEL_CHUNK_SIZE && adjacent.z >= 0 &&
+                                                 VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacent)];
 
-                        if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentNegativeIsPresent) {
-                            grids[1].SetBit(row, col);
-                        }
-                    }
-                }
-
-                // push the faces
-                for (glm::u32 faceSignIndex = 0; faceSignIndex < 2; faceSignIndex++) {
-                    GreedyMeshingGrid &grid = grids[faceSignIndex];
-                    for (glm::i32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
-                        // find the starting row and height of the face
-                        if (grid.GetColumn(col) == 0) continue;
-                        glm::u32 row = grid.NumTrailingEmptyVoxels(col, 0);
-                        glm::u32 height = grid.NumTrailingPresentVoxels(col, row);
-
-                        // absorb faces
-                        grid.SetEmptyVoxels(col, row, height);
-
-                        // move as far right as we can
-                        glm::u32 width = 1;
-                        while (col + width < SPIRE_VOXEL_CHUNK_SIZE && grid.NumTrailingPresentVoxels(col + width, row) >= height) {
-                            grid.SetEmptyVoxels(col + width, row, height); // absorb the new column
-                            width++;
-                        }
-
-                        // push the face
-                        glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
-                        PushFace(mesh, face + faceSignIndex, chunkCoords, width, height);
-
-                        if (grid.GetColumn(col) != 0) {
-                            // we didn't get all the voxels on this row, loop again
-                            col--;
+                        if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentIsPresent) {
+                            grids[slice * SPIRE_VOXEL_NUM_FACES + face].SetBit(row, col);
                         }
                     }
                 }
             }
         }
+
+        for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
+            for (glm::u32 slice = 0; slice < SPIRE_VOXEL_CHUNK_SIZE; slice++) {
+                // push the faces
+                GreedyMeshingGrid &grid = grids[slice * SPIRE_VOXEL_NUM_FACES + face];
+                for (glm::i32 col = 0; col < SPIRE_VOXEL_CHUNK_SIZE; col++) {
+                    // find the starting row and height of the face
+                    if (grid.GetColumn(col) == 0) continue;
+                    glm::u32 row = grid.NumTrailingEmptyVoxels(col, 0);
+                    glm::u32 height = grid.NumTrailingPresentVoxels(col, row);
+
+                    // absorb faces
+                    grid.SetEmptyVoxels(col, row, height);
+
+                    // move as far right as we can
+                    glm::u32 width = 1;
+                    while (col + width < SPIRE_VOXEL_CHUNK_SIZE && grid.NumTrailingPresentVoxels(col + width, row) >= height) {
+                        grid.SetEmptyVoxels(col + width, row, height); // absorb the new column
+                        width++;
+                    }
+
+                    // push the face
+                    glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face);
+                    PushFace(mesh, face, chunkCoords, width, height);
+
+                    if (grid.GetColumn(col) != 0) {
+                        // we didn't get all the voxels on this row, loop again
+                        col--;
+                    }
+                }
+            }
+        }
+        float millis = timer.MillisSinceStart();
+        Spire::info("generated in {} ms", millis);
 
         return mesh;
     }
