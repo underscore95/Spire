@@ -126,6 +126,21 @@ void GameApplication::Start(Engine &engine) {
     //       assert(voxelType == 1);
     //   }
 
+    // Stress test:
+    // world.UnloadAllChunks();
+    // constexpr glm::ivec3 SIZE = {6,4,6};
+    // for (int x = -SIZE.x / 2; x <= SIZE.x / 2; x++) {
+    //     for (int y = -SIZE.y / 2; y <= SIZE.y / 2; y++) {
+    //         for (int z = -SIZE.z / 2; z <= SIZE.z / 2; z++) {
+    //             Chunk &chunk = world.LoadChunk({x, y, z});
+    //             for (int i = 0; i < SPIRE_VOXEL_CHUNK_VOLUME; i++) {
+    //                 chunk.SetVoxel(i, m_engine->GetRandom().RandomInt(0,2));
+    //             }
+    //             world.GetRenderer().NotifyChunkEdited(chunk);
+    //         }
+    //     }
+    // }
+
     m_profiling = std::make_unique<Profiling>(*m_engine, *m_voxelRenderer);
 }
 
