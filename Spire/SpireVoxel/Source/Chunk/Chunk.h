@@ -20,7 +20,7 @@ namespace SpireVoxel {
     struct Chunk {
         glm::ivec3 ChunkPosition;
         VoxelWorld &World;
-        std::array<VoxelType, SPIRE_VOXEL_CHUNK_VOLUME> VoxelData{};
+        std::array<VoxelType, SPIRE_VOXEL_CHUNK_VOLUME> VoxelData{}; // Do not edit this directly, use SetVoxel or SetVoxels which updates other internal state (e.g. VoxelBits)
         std::uint64_t CorruptedMemoryCheck = 9238745897238972389; // This value will be changed if something overruns when editing VoxelData
         std::bitset<SPIRE_VOXEL_CHUNK_VOLUME> VoxelBits{}; // 1 = voxel is present, 0 = voxel is empty
         std::uint64_t CorruptedMemoryCheck2 = 12387732823748723; // This value will be changed if something overruns when editing VoxelBits
