@@ -1,5 +1,5 @@
-#ifndef SPIRE_SHADER_GREEDY
-#define SPIRE_SHADER_GREEDY
+#ifndef SPIRE_SHADER_GREEDY_H
+#define SPIRE_SHADER_GREEDY_H
 
 #include "ShaderInfo.h"
 

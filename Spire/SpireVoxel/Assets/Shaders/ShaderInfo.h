@@ -1,6 +1,6 @@
 // ReSharper disable CppVariableCanBeMadeConstexpr
-#ifndef SPIRE_SHADER_BINDINGS
-#define SPIRE_SHADER_BINDINGS
+#ifndef SPIRE_SHADER_BINDINGS_H
+#define SPIRE_SHADER_BINDINGS_H
 
 // Descriptor and descriptor set bindings
 #define SPIRE_SHADER_BINDINGS_CONSTANT_SET 0

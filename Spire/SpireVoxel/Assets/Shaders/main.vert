@@ -4,6 +4,7 @@
 #include "ShaderInfo.h"
 #include "PushConstants.h"
 #include "Greedy.h"
+#include "FaceSize.h"
 
 // Vertex buffer
 layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING) readonly buffer Vertices {
@@ -26,14 +27,14 @@ layout (location = 4) flat out uint voxelDataAllocationIndex;// Allocation index
 layout (location = 5) flat out uint voxelTypesFaceStartIndex;// Index of where the types of this face start
 layout (location = 6) flat out uint faceWidth;// Size of this face
 layout (location = 7) flat out uint faceHeight;
-layout (location = 8) flat out uint aoDataChunkPackedIndex; // Index of the current chunk in the AO buffer allocator, index of the first uint
+layout (location = 8) flat out uint aoDataChunkPackedIndex;// Index of the current chunk in the AO buffer allocator, index of the first uint
 layout (location = 9) flat out uint aoDataAllocationIndex;// Allocation index (what buffer)
 
 void main()
 {
     ChunkData chunkData = chunkDataBuffer.chunkDatas[gl_InstanceIndex];
 
-    uint vertexIndex = (gl_VertexIndex % pushConstants.data.NumVerticesPerBuffer);
+    int vertexIndex = int(gl_VertexIndex % pushConstants.data.NumVerticesPerBuffer);
 
     VertexData vtx = in_Vertices[chunkData.VertexBufferIndex].data[vertexIndex];
 
@@ -44,7 +45,40 @@ void main()
     voxelFace = UnpackVertexDataFace(vtx.Packed_7X7Y7Z2VertPos3Face);
 
     gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);
-    uvec2 faceSize = UnpackVertexFaceWidthHeight(vtx.Packed_6Width6Height);
+    // calculate face size
+    const int VERTICES_PER_QUAD = 6;
+    uvec2 faceSize = uvec2(0, 0);
+    int localIndex = vertexIndex % VERTICES_PER_QUAD;
+
+    // width
+    int otherWidthIndex = vertexIndex + SPIRE_WIDTH_DELTAS[localIndex];
+    VertexData widthVert = in_Vertices[chunkData.VertexBufferIndex].data[otherWidthIndex];
+    vec3 widthPos = UnpackVertexDataXYZ(widthVert.Packed_7X7Y7Z2VertPos3Face);
+
+    // height
+    int otherHeightIndex = vertexIndex + SPIRE_HEIGHT_DELTAS[localIndex];
+    VertexData heightVert = in_Vertices[chunkData.VertexBufferIndex].data[otherHeightIndex];
+    vec3 heightPos = UnpackVertexDataXYZ(heightVert.Packed_7X7Y7Z2VertPos3Face);
+
+    // axis
+    if (IsFaceOnXAxis(voxelFace)) {
+        faceSize.x = uint(abs(voxelPos.z - widthPos.z));
+        faceSize.y = uint(abs(voxelPos.y - heightPos.y));
+    }
+    else if (IsFaceOnYAxis(voxelFace)) {
+        faceSize.x = uint(abs(voxelPos.x - widthPos.x));
+        faceSize.y = uint(abs(voxelPos.z - heightPos.z));
+    }
+    else if (IsFaceOnZAxis(voxelFace)){
+        faceSize.x = uint(abs(voxelPos.x - widthPos.x));
+        faceSize.y = uint(abs(voxelPos.y - heightPos.y));
+    } else {
+        // oh no! the fragment shader should output an error colour for us
+        // unfortunately glslang doesn't give a way to say a branch is unreachable
+    }
+    faceWidth = faceSize.x;
+    faceHeight = faceSize.y;
+    // end face size
 
     vec2 uv = VoxelVertexPositionToUV(vertexVoxelPos);
     texCoord = uv * faceSize;//* chunkData.LODScale;
@@ -54,9 +88,6 @@ void main()
     voxelDataAllocationIndex = chunkData.VoxelDataAllocationIndex;
 
     voxelTypesFaceStartIndex = vtx.VoxelTypeStartingIndex;
-
-    faceWidth = faceSize.x;
-    faceHeight = faceSize.y;
 
     aoDataChunkPackedIndex = chunkData.AODataChunkPackedIndex;
     aoDataAllocationIndex = chunkData.AODataAllocationIndex;

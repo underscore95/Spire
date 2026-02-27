@@ -1,7 +1,7 @@
 #include "ShaderInfo.h"
 
-#ifndef SPIRE_PUSH_CONSTANTS
-#define SPIRE_PUSH_CONSTANTS
+#ifndef SPIRE_PUSH_CONSTANTS_H
+#define SPIRE_PUSH_CONSTANTS_H
 
 #ifdef __cplusplus
 namespace SpireVoxel {
