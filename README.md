@@ -18,6 +18,8 @@ While Spire supports up to 2^16-1 voxel types, only grass and dirt have been con
 ![Screenshot](Documentation/Images/big_world.png)
 Spire can render the previous 32x32 Minecraft chunk world 49 times (totalling 1568x1568x384 blocks) at 60 FPS and 4.3 GB VRAM on an RTX 4060 TI in **level 1 LOD** (full detail)
 
+**Note:** The world appears to be repeating becasue I copy pasted the same 512x384x512 area 48 times (to make a 7x7 square), this is because my Minecraft importer script would take 16 hours to convert a big enough Minecraft world into SPRC files.
+
 ### Top Down View
 ![Screenshot](Documentation/Images/comparison.png)
 Here is a top down view of the previous screenshot.
