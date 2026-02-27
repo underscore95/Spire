@@ -55,7 +55,7 @@ namespace SpireVoxel {
         [[nodiscard]] PushConstantsData CreatePushConstants() const;
 
     public:
-        static constexpr glm::u32 MAXIMUM_LOADED_CHUNKS = 2048;
+        static constexpr glm::u32 MAXIMUM_LOADED_CHUNKS = 32768;
 
     private:
         static constexpr glm::u32 STARTING_MAXIMUM_VERTICES_IN_WORLD = 36 * (SPIRE_VOXEL_CHUNK_VOLUME * 48);

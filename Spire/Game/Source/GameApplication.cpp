@@ -68,7 +68,7 @@ void GameApplication::Start(Engine &engine) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
     } else if (!ShouldStreamLoading()) {
-       VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
+        VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test6");
     }
 
     world.LoadChunks({{0, 0, 0}});
@@ -92,7 +92,7 @@ void GameApplication::Start(Engine &engine) {
     //     }
     // }
 
-  //  BasicVoxelEdit(edits).Apply(world);
+    //  BasicVoxelEdit(edits).Apply(world);
 
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 5}, 1},
@@ -126,7 +126,7 @@ void GameApplication::Start(Engine &engine) {
     //       assert(voxelType == 1);
     //   }
 
-    // Stress test:
+    // Stress test: (lots of small faces)
     // world.UnloadAllChunks();
     // constexpr glm::ivec3 SIZE = {6,4,6};
     // for (int x = -SIZE.x / 2; x <= SIZE.x / 2; x++) {
@@ -140,6 +140,70 @@ void GameApplication::Start(Engine &engine) {
     //         }
     //     }
     // }
+
+    // Stress test: (big world)
+    // should be test6 and profiling !!
+
+    std::unordered_map<glm::ivec3, Chunk *> chunks;
+
+    glm::ivec3 minChunkPos{INT32_MAX};
+    glm::ivec3 maxChunkPos{INT32_MIN};
+
+    for (auto &[pos, chunk] : world) {
+        chunks.emplace(pos, chunk.get());
+
+        minChunkPos = glm::min(minChunkPos, pos);
+        maxChunkPos = glm::max(maxChunkPos, pos);
+    }
+
+    if (chunks.empty())
+        return;
+
+    glm::ivec3 worldSize = maxChunkPos - minChunkPos + glm::ivec3(1);
+
+    constexpr glm::ivec3 SIZE{7, 1, 7};
+
+    for (int sx = 0; sx < SIZE.x; ++sx) {
+        info("progress: {}/{}", sx, SIZE.x);
+        int ox = sx - SIZE.x / 2;
+
+        for (int sy = 0; sy < SIZE.y; ++sy) {
+            int oy = sy - SIZE.y / 2;
+
+            for (int sz = 0; sz < SIZE.z; ++sz) {
+                int oz = sz - SIZE.z / 2;
+
+                if (ox == 0 && oy == 0 && oz == 0)
+                    continue;
+
+                glm::ivec3 offset{ox, oy, oz};
+                glm::ivec3 baseDst = minChunkPos + offset * worldSize;
+
+                for (int i = 0; i < worldSize.x; ++i) {
+                    for (int j = 0; j < worldSize.y; ++j) {
+                        for (int k = 0; k < worldSize.z; ++k) {
+                            glm::ivec3 local{i, j, k};
+                            glm::ivec3 srcPos = minChunkPos + local;
+
+                            auto it = chunks.find(srcPos);
+                            if (it == chunks.end())
+                                continue;
+
+                            Chunk *src = it->second;
+
+                            glm::ivec3 dstPos = baseDst + local;
+                            Chunk &dst = world.LoadChunk(dstPos);
+
+                            dst.VoxelData = src->VoxelData;
+                            dst.VoxelBits = src->VoxelBits;
+
+                            world.GetRenderer().NotifyChunkEdited(dst);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     m_profiling = std::make_unique<Profiling>(*m_engine, *m_voxelRenderer);
 }
