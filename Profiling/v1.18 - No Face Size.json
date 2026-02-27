@@ -1,0 +1,24 @@
+[
+  {
+    "time_ms": 345.4942,
+    "frames": 1000,
+    "chunks": 384,
+    "world": "Test6",
+    "dynamic_state": "static",
+    "chunk_gpu_memory": 68630324,
+    "chunk_cpu_memory": 213955584,
+    "window_width": 1280,
+    "window_height": 720
+  },
+  {
+    "time_ms": 1860.7366,
+    "frames": 10,
+    "chunks": 384,
+    "world": "Test6",
+    "dynamic_state": "dynamic",
+    "chunk_gpu_memory": 245586376,
+    "chunk_cpu_memory": 213955584,
+    "window_width": 1280,
+    "window_height": 720
+  }
+]
