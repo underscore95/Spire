@@ -71,14 +71,15 @@ void GameApplication::Start(Engine &engine) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
     }
 
-    world.LoadChunks({{0, 0, 0}});
+    //  world.LoadChunks({{-1, 0, 0}});
+    //  world.LoadChunks({{0, 0, 0}});
     //CuboidVoxelEdit({0,0,0},{64,64,64},{1}).Apply(world);
     // CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
 
     // BasicVoxelEdit({
-    //     BasicVoxelEdit::Edit{{5, 5, 5}, 1},
-    //     BasicVoxelEdit::Edit{{4, 6, 5}, 1},
-    //     BasicVoxelEdit::Edit{{5, 6, 4}, 1},
+    //     BasicVoxelEdit::Edit{{0, 5, 5}, 2},
+    //     BasicVoxelEdit::Edit{{-1, 6, 5}, 1},
+    //     BasicVoxelEdit::Edit{{-1, 5, 5}, 1},
     // }).Apply(world);
 
     // std::vector<BasicVoxelEdit::Edit> edits;
