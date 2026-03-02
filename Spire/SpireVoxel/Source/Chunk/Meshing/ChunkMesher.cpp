@@ -144,7 +144,9 @@ namespace SpireVoxel {
         chunk.NumVertices = vertexData.size();
 
         // write the voxel data
-        if (!UploadData(chunk, voxelDataMemory, futures, sizeof(mesh.VoxelTypes[0]) * mesh.VoxelTypes.size(), mesh.VoxelTypes.data(), chunk.VoxelDataAllocation,
+        // Since voxel data is stored in uint32 on GPU, we need to push an extra u16 as padding if we have an odd number of u16's
+        std::size_t voxelDataPadding = mesh.VoxelTypes.size() % 2 == 1 ? sizeof(mesh.VoxelTypes[0]) : 0;
+        if (!UploadData(chunk, voxelDataMemory, futures, sizeof(mesh.VoxelTypes[0]) * mesh.VoxelTypes.size() + voxelDataPadding, mesh.VoxelTypes.data(), chunk.VoxelDataAllocation,
                         m_chunkVoxelDataBufferAllocator) && chunk.
             NumVertices > 0) {
             // allocation failed, need to free the vertex allocation

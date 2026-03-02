@@ -6,7 +6,56 @@
 #include "Meshing/ChunkMesh.h"
 
 namespace SpireVoxel {
-    VoxelType GetAdjacentVoxelType(const Chunk &chunk, glm::ivec3 queryPosition) {
+    std::string ToString(const VertexData &vertexData) {
+        glm::uvec3 xyz = UnpackVertexDataXYZ(vertexData.Packed_7X7Y7Z2VertPos3Face);
+        return std::format("VertexData{{X: {}, Y: {}, Z: {}, VertPos: {}, Face: {}, Index: {}}}",
+                           xyz.x,
+                           xyz.y,
+                           xyz.z,
+                           static_cast<int>(UnpackVertexDataVertexPosition(vertexData.Packed_7X7Y7Z2VertPos3Face)),
+                           UnpackVertexDataFace(vertexData.Packed_7X7Y7Z2VertPos3Face),
+                           vertexData.VoxelTypeStartingIndex
+        );
+    }
+
+    // If verbose, include all contents of vectors too
+    std::string ToString(const ChunkMesh &mesh, bool verbose) {
+        std::string result;
+
+        result += std::format(
+            "ChunkMesh{{Vertices: {}, VoxelTypes: {}, AOData(u32): {}, AOValueCount: {}}}",
+            mesh.Vertices.size(),
+            mesh.VoxelTypes.size(),
+            mesh.AOData.size(),
+            mesh.AODataValueCount
+        );
+
+        if (!verbose)
+            return result;
+
+        result += "\n";
+
+        result += std::format("Vertices[{}]:\n", mesh.Vertices.size());
+        for (size_t i = 0; i < mesh.Vertices.size(); ++i) {
+            result += std::format("  [{}] {}\n", i, ToString(mesh.Vertices[i]));
+        }
+
+        result += std::format("VoxelTypes[{}]:\n", mesh.VoxelTypes.size());
+        for (size_t i = 0; i < mesh.VoxelTypes.size(); ++i) {
+            result += std::format("  [{}] {}\n", i, mesh.VoxelTypes[i]);
+        }
+
+        result += std::format("AOData(u32)[{}]:\n", mesh.AOData.size());
+        for (size_t i = 0; i < mesh.AOData.size(); ++i) {
+            result += std::format("  [{}] {}\n", i, mesh.AOData[i]);
+        }
+
+        return result;
+    }
+
+    // Check if the voxel at queryPosition (chunk space) is present
+    // queryPosition can be up to 1 outside of the current chunk and it will get the correct chunk and query that instead
+    bool IsAdjacentVoxelPresent(const Chunk &chunk, glm::ivec3 queryPosition) {
         glm::ivec3 queryChunkPosition = chunk.ChunkPosition;
 
         // Just for current usage but these asserts could be removed
@@ -44,9 +93,13 @@ namespace SpireVoxel {
         const Chunk *queryChunk = &chunk;
         if (queryChunkPosition != chunk.ChunkPosition) {
             queryChunk = chunk.World.TryGetLoadedChunk(queryChunkPosition);
-            if (!queryChunk) return VOXEL_TYPE_AIR;
+            if (!queryChunk) return false;
         }
-        return queryChunk->VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(queryPosition)];
+
+        assert(queryPosition.x >= 0 && queryPosition.x < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(queryPosition.y >= 0 && queryPosition.y < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(queryPosition.z >= 0 && queryPosition.z < SPIRE_VOXEL_CHUNK_SIZE);
+        return queryChunk->VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(queryPosition)];
     }
 
 
@@ -123,17 +176,16 @@ namespace SpireVoxel {
 
             GetAmbientOcclusionOffsetVectors(face, static_cast<glm::u32>(vertexPos), i, j, k);
 
-            bool side1 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + j) != VOXEL_TYPE_AIR;
-            bool side2 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + k) != VOXEL_TYPE_AIR;
-            bool corner = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + j + k) != VOXEL_TYPE_AIR;
+            bool side1 = IsAdjacentVoxelPresent(*this, glm::ivec3(chunkCoords) + i + j);
+            bool side2 = IsAdjacentVoxelPresent(*this, glm::ivec3(chunkCoords) + i + k);
+            bool corner = IsAdjacentVoxelPresent(*this, glm::ivec3(chunkCoords) + i + j + k);
             glm::u32 ao = GetVertexAO(side1, side2, corner);
             assert(ao <= 0b11);
 
             if (aoIndex == 0) {
                 // need a new integer
                 mesh.AOData.push_back(ao);
-            }
-            else {
+            } else {
                 // there is space to pack it into the end of the current integer
                 glm::u32 &packed = mesh.AOData.back();
                 packed = SetAO(packed, aoIndex, ao);
@@ -243,6 +295,8 @@ namespace SpireVoxel {
                         glm::ivec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face);
                         glm::ivec3 adjacentPositive = chunkCoords + FaceToDirection(face);
                         glm::ivec3 adjacentNegative = chunkCoords - FaceToDirection(face);
+                        bool adjacentPositiveIsPresentNew = IsAdjacentVoxelPresent(*this, adjacentPositive);
+                        bool adjacentNegativeIsPresentNew = IsAdjacentVoxelPresent(*this, adjacentNegative);
                         bool adjacentPositiveIsPresent = adjacentPositive.x < SPIRE_VOXEL_CHUNK_SIZE &&
                                                          adjacentPositive.y < SPIRE_VOXEL_CHUNK_SIZE &&
                                                          adjacentPositive.z < SPIRE_VOXEL_CHUNK_SIZE &&
@@ -251,14 +305,12 @@ namespace SpireVoxel {
                                                          adjacentNegative.y >= 0 &&
                                                          adjacentNegative.z >= 0 &&
                                                          VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(adjacentNegative)];
-                        // This seems to be getting compiler optimised really heavily
-                        // I tried adding another check and not generating any faces if the adjacent is outside of chunk bounds
-                        // and it reduced generation time by 20%
-                        if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentPositiveIsPresent) {
+
+                        if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentPositiveIsPresentNew) {
                             grids[0].SetBit(row, col);
                         }
 
-                        if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentNegativeIsPresent) {
+                        if (VoxelBits[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)] && !adjacentNegativeIsPresentNew) {
                             grids[1].SetBit(row, col);
                         }
                     }

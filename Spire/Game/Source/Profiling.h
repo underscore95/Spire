@@ -21,14 +21,14 @@ public:
         glm::u64 FramesToProfile;
     };
 
-    static constexpr const char *PROFILE_WORLD_NAME = "Test7";
+    static constexpr const char *PROFILE_WORLD_NAME = "Test6";
 
     static constexpr ProfileStrategy PROFILE_STATIC = {ProfileStrategy::STATIC, 10000};
     static constexpr ProfileStrategy PROFILE_STATIC_1000 = {ProfileStrategy::STATIC, 1000};
     static constexpr ProfileStrategy PROFILE_DYNAMIC_10 = {ProfileStrategy::DYNAMIC, 10};
     static constexpr ProfileStrategy PROFILE_DYNAMIC = {ProfileStrategy::DYNAMIC, 100};
-    static constexpr std::array<ProfileStrategy, 2> PROFILE_STRATEGIES = {PROFILE_STATIC_1000, PROFILE_DYNAMIC_10};
-     // static constexpr std::array PROFILE_STRATEGIES = {PROFILE_STATIC_1000};
+     static constexpr std::array<ProfileStrategy, 2> PROFILE_STRATEGIES = {PROFILE_STATIC_1000, PROFILE_DYNAMIC_10};
+    //static constexpr std::array PROFILE_STRATEGIES = {PROFILE_STATIC_1000};
 
     static constexpr bool BEGIN_PROFILING_AUTOMATICALLY = true;
 
