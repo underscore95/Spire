@@ -88,13 +88,19 @@ void main() {
     uint ao3 = UnpackAO(chunkAOData[aoDataAllocationIndex].datas[aoDataChunkPackedIndex + (baseValueIndex + 3) / SPIRE_AO_VALUES_PER_U32], (baseValueIndex + 3) % SPIRE_AO_VALUES_PER_U32);
 
     #ifndef NDEBUG
-    // Output debug colour if invalid type
+    // Invalid face
+    if (voxelFace >= SPIRE_VOXEL_NUM_FACES) {
+        out_Color = vec4(1, 0, 0.5, 1);
+        return;
+    }
+
+    // Invalid type
     if (voxelType == 0) {
         out_Color = vec4(1, 0, 0, 1);
         return;
     }
 
-    // Output debug colour if AO is wrong
+    // AO is wrong
     if (ao0 > 3 || ao1 > 3 || ao2 > 3 || ao3 > 3) {
         out_Color = vec4(1, 0, 1, 1);
         return;
