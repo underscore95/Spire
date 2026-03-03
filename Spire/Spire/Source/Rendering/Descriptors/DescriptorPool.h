@@ -10,8 +10,16 @@ namespace Spire {
 
     class DescriptorPool {
     public:
+        struct Settings {
+            glm::u32 UniformBuffers = 100;
+            glm::u32 StorageBuffers = 100;
+            glm::u32 CombinedImageSamplers = 100;
+        };
+
+    public:
         explicit DescriptorPool(
-            RenderingManager &renderingManager
+            RenderingManager &renderingManager,
+            Settings settings
         );
 
         ~DescriptorPool();

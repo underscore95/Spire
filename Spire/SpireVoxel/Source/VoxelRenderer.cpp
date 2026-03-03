@@ -172,7 +172,9 @@ namespace SpireVoxel {
         layouts.Push(chunkSet);
 
         // Create descriptor manager
-        m_descriptorManager = std::make_unique<DescriptorManager>(m_engine.GetRenderingManager(), layouts);
+        DescriptorPool::Settings poolSettings = {};
+        poolSettings.CombinedImageSamplers = m_voxelTypeRegistry->GetTypes().size() + 100;
+        m_descriptorManager = std::make_unique<DescriptorManager>(m_engine.GetRenderingManager(), layouts, poolSettings);
     }
 
     void VoxelRenderer::SetupGraphicsPipeline() {

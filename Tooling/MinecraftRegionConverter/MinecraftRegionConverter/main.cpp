@@ -81,7 +81,9 @@ void SerializeChunk(const SpireChunk &chunk, enkiMICoordinate chunkCoords, const
 
     file.write(HEADER_IDENTIFIER.data(), HEADER_IDENTIFIER.size());
     file.write(reinterpret_cast<const char *>(&VERSION), sizeof(VERSION));
-    file.write(reinterpret_cast<const char *>(&chunkCoords), sizeof(chunkCoords));
+    file.write(reinterpret_cast<const char *>(&chunkCoords.x), sizeof(chunkCoords.x));
+    file.write(reinterpret_cast<const char *>(&chunkCoords.y), sizeof(chunkCoords.y));
+    file.write(reinterpret_cast<const char *>(&chunkCoords.z), sizeof(chunkCoords.z));
     file.write(reinterpret_cast<const char *>(chunk.VoxelTypes.data()), chunk.VoxelTypes.size() * sizeof(chunk.VoxelTypes[0]));
 
     file.close();
@@ -90,7 +92,7 @@ void SerializeChunk(const SpireChunk &chunk, enkiMICoordinate chunkCoords, const
 
 int main(int argc, const char **argv) {
     if (argc < 5) {
-        std::cerr << "Invalid usage! Arugments: input region file, output directory, minecraft dir, types output file [-overwrite]" << "\n";
+        std::cerr << "Invalid usage! Arguments: input region file, output directory, minecraft dir, types output file [-overwrite]" << "\n";
         return -1;
     }
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
@@ -152,7 +154,7 @@ int main(int argc, const char **argv) {
     std::atomic_int processedChunks = 0;
     std::vector<std::thread> threadVector;
     for (int thread = 0; thread < numThreads; thread++) {
-        threadVector.emplace_back([chunksPerThread, thread, &regionFile, &chunks, &processedChunks]() {
+        threadVector.emplace_back([chunksPerThread, thread, &regionFile, &chunks, &processedChunks, types]() {
             // loop over all chunks this thread is responsible for
             for (int i = chunksPerThread * thread; i < (thread + 1) * chunksPerThread && i < ENKI_MI_REGION_CHUNKS_NUMBER; i++) {
                 processedChunks += 1;
@@ -186,13 +188,12 @@ int main(int argc, const char **argv) {
                                         id = {pStrNotNullTerminated, size};
                                     }
 
+                                    // remove minecraft:
+                                    id = id.substr(10);
+
                                     // convert to spire id
-                                    int type = 0;
-                                    if (id == "minecraft:grass_block") {
-                                        type = 1;
-                                    } else if (id != "minecraft:air") {
-                                        type = 2;
-                                    }
+                                    auto it = types.find(id);
+                                    int type = it == types.end() ? 0 : it->second;
 
                                     // calculate index to write
                                     // 54 -> 54

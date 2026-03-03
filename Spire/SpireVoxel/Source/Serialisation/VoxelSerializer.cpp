@@ -52,7 +52,7 @@ namespace SpireVoxel {
             if (std::filesystem::is_directory(entry)) continue;
             if (Spire::FileIO::GetLowerCaseFileExtension(entry.path()) != ".sprc") continue;
 
-            ChunkDeserializationResult result =                    ClearAndDeserializeChunkFile(world, entry.path());
+            ChunkDeserializationResult result = ClearAndDeserializeChunkFile(world, entry.path());
 
             if (!result.Success) continue;
 
@@ -75,7 +75,7 @@ namespace SpireVoxel {
         VoxelWorld &world,
         glm::ivec3 chunkCoords,
         const std::filesystem::path &directory) {
-        return ClearAndDeserializeChunkFile(world, GetFilePath(chunkCoords,directory));
+        return ClearAndDeserializeChunkFile(world, GetFilePath(chunkCoords, directory));
     }
 
 

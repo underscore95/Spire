@@ -124,7 +124,7 @@ bool LoadTypes(const std::filesystem::path &path, const std::filesystem::path &f
             });
         } else continue; // not included
 
-        types[minecraftId] = types.size();
+        types[minecraftId] = types.size()+1;
     }
 
     // todo liquids are hard coded in minecraft, we could replace with cube_all though

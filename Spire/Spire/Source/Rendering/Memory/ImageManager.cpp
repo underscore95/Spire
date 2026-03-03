@@ -53,7 +53,7 @@ namespace Spire {
 
         images.Sampler = CreateImageSampler(minFilter, maxFilter, addressMode);
 
-        info("Created vulkan image from '{}'", filename);
+        //info("Created vulkan image from '{}'", filename);
         return images;
     }
 
