@@ -1,6 +1,7 @@
 #include "GameApplication.h"
 #include "../../Libs/glfw/include/GLFW/glfw3.h"
 #include "GameCamera.h"
+#include "MinecraftTypes.h"
 #include "Profiling.h"
 #include "../../SpireVoxel/Source/ChunkOrderControllers/EmptyChunkOrderController.h"
 #include "Generation/Controllers/SimpleProceduralGenerationController.h"
@@ -48,17 +49,18 @@ void GameApplication::Start(Engine &engine) {
         *m_camera);
 
     m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine, *m_camera, std::move(tempWorld), [](VoxelTypeRegistry &voxelTypeRegistry) {
-        voxelTypeRegistry.RegisterTypes(std::vector<VoxelTypeInfo>{
-            {
-                1, {
-                    std::string(GetAssetsDirectory()) + "/grass_top.png",
-                    std::string(GetAssetsDirectory()) + "/dirt.png",
-                    std::string(GetAssetsDirectory()) + "/grass_side.png"
-                },
-                SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
-            },
-            {2, {std::string(GetAssetsDirectory()) + "/dirt.png"}, SPIRE_VOXEL_LAYOUT_ALL_SAME},
-        });
+        // voxelTypeRegistry.RegisterTypes(std::vector<VoxelTypeInfo>{
+        //     {
+        //         1, {
+        //             std::string(GetAssetsDirectory()) + "/grass_top.png",
+        //             std::string(GetAssetsDirectory()) + "/dirt.png",
+        //             std::string(GetAssetsDirectory()) + "/grass_side.png"
+        //         },
+        //         SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
+        //     },
+        //     {2, {std::string(GetAssetsDirectory()) + "/dirt.png"}, SPIRE_VOXEL_LAYOUT_ALL_SAME},
+        // });
+        RegisterMinecraftVoxelTypes(voxelTypeRegistry);
     });
     VoxelWorld &world = m_voxelRenderer->GetWorld();
 

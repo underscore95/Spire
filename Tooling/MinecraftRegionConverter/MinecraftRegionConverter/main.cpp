@@ -8,6 +8,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include "minecraft.h"
 
 #include "enkimi.h"
 
@@ -86,39 +87,53 @@ void SerializeChunk(const SpireChunk &chunk, enkiMICoordinate chunkCoords, const
     file.close();
 }
 
-void log(std::string s) {
-    static std::mutex m;
-    std::unique_lock l(m);
-    std::cout << s << "\n";
-}
 
-int main(int argc, const char** argv) {
-    if (argc != 3) {
-        std::cerr << "Invalid usage! Arugments: input region file, output directory" << "\n";
+int main(int argc, const char **argv) {
+    if (argc < 5) {
+        std::cerr << "Invalid usage! Arugments: input region file, output directory, minecraft dir, types output file [-overwrite]" << "\n";
         return -1;
     }
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
-    const char* input = argv[1];
-    const char* output = argv[2];
+    const char *input = argv[1];
+    const char *output = argv[2];
     std::filesystem::path outputDir(output);
+    std::filesystem::path minecraftDir(argv[3]); // Extract Minecraft jar (%appdata%/.minecraft/versions) and place it into this directory
+    std::filesystem::path typesOutputFile(argv[4]);
+
+    bool overwriteOutput = argc > 5;
+    if (overwriteOutput && argv[5] != std::string("-overwrite")) {
+        std::cerr << "Invalid argument " << argv[5] << ", expected -overwrite\n";
+        return -1;
+    }
+
+    std::unordered_map<std::string, int> types;
+    if (!LoadTypes(minecraftDir, typesOutputFile, overwriteOutput, types)) return -1;
+
     FILE *fp = fopen(input, "rb");
 
     if (!fp) {
-        std::cerr << "Failed to open input file\n";return -1;
+        std::cerr << "Failed to open input file\n";
+        return -2;
     }
 
     // delete and create dir
-    if (std::filesystem::exists(outputDir) ) {
-        std::cerr << std::format("Output directory {} already exists\n", outputDir.string());
-        return -1;
+    if (std::filesystem::exists(outputDir)) {
+        if (overwriteOutput) {
+            if (!std::filesystem::remove_all(outputDir)) {
+                std::cerr << "Failed to delete directory " << outputDir.string() << "\n";
+            }
+        } else {
+            std::cerr << std::format("Output directory {} already exists\n", outputDir.string());
+            return -3;
+        }
     }
     if (!std::filesystem::create_directories(outputDir)) {
         std::cerr << std::format("Failed to create directory {} to serialize world\n", outputDir.string());
-        return -1;
+        return -4;
     }
 
-    log(std::format("Converting Minecraft region {} into a Spire world (directory {})...",input, outputDir.string()));
+    log(std::format("Converting Minecraft region {} into a Spire world (directory {})...", input, outputDir.string()));
 
     using ChunkArray = std::array<
         SpireChunk,
@@ -132,7 +147,7 @@ int main(int argc, const char** argv) {
 
     // dispatch threads
     int numThreads = std::thread::hardware_concurrency();
-    log(std::format("Using {} threads...",numThreads));
+    log(std::format("Using {} threads...", numThreads));
     int chunksPerThread = std::ceil(ENKI_MI_REGION_CHUNKS_NUMBER / static_cast<float>(numThreads));
     std::atomic_int processedChunks = 0;
     std::vector<std::thread> threadVector;
