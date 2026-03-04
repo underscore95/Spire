@@ -16,7 +16,7 @@ The entire world can be remeshed and uploaded to the GPU in 180ms (125ms without
 
 While Spire supports up to 2^16-1 voxel types, only grass and dirt have been configured which is why the world does not look like Minecraft.
 
-Here is how the world looks like in Minecraft:
+Here is how the world looks like in Minecraft: (note that Spire mirrored the world as an artifact of the import process)
 ![Screenshot](Documentation/Images/minecraft.png)
 
 ## Large World
