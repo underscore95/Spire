@@ -23,7 +23,7 @@ namespace Spire {
     }
 
     glm::mat4 Camera::GetViewMatrix() const {
-        return glm::lookAt(m_position, m_position + m_front,- m_up);
+        return glm::lookAt(m_position, m_position + m_front, -m_up);
     }
 
     glm::mat4 Camera::GetProjectionMatrix() const {
@@ -82,6 +82,10 @@ namespace Spire {
     void Camera::SetPosition(glm::vec3 pos) {
         m_position = pos;
         UpdateCameraVectors();
+    }
+
+    Frustum Camera::CalculateFrustum() const {
+        return {GetProjectionMatrix() * GetViewMatrix()};
     }
 
     void Camera::UpdateCameraVectors() {

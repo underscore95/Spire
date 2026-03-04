@@ -20,6 +20,8 @@ public:
 
     [[nodiscard]] glm::vec3 GetPosition() const override;
 
+    [[nodiscard]] Spire::Frustum CalculateFrustum() const override;
+
     float Speed = 1;
     float Scale = 1;
 private:

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Frustum.h"
 #include "pch.h"
 
 namespace Spire {
@@ -12,17 +13,19 @@ namespace Spire {
                         float yawDegrees = YAW, float pitchDegrees = PITCH);
 
     public:
-        glm::mat4 GetViewMatrix() const;
+        [[nodiscard]] glm::mat4 GetViewMatrix() const;
 
-        glm::mat4 GetProjectionMatrix() const;
+        [[nodiscard]] glm::mat4 GetProjectionMatrix() const;
 
         void Update(float deltaTime);
 
-        glm::vec3 GetForward() const;
+        [[nodiscard]] glm::vec3 GetForward() const;
 
-        glm::vec3 GetPosition() const;
+        [[nodiscard]] glm::vec3 GetPosition() const;
 
         void SetPosition(glm::vec3 pos);
+
+        [[nodiscard]] Frustum CalculateFrustum() const;
 
     private:
         void UpdateCameraVectors();

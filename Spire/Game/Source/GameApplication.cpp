@@ -17,6 +17,8 @@
 using namespace Spire;
 using namespace SpireVoxel;
 
+constexpr bool ALLOW_FRUSTUM_CULLING = !Profiling::IS_PROFILING;
+
 bool ShouldStreamLoading() {
     if (Profiling::IS_PROFILING) return false;
     return false;
@@ -46,7 +48,9 @@ void GameApplication::Start(Engine &engine) {
         Profiling::IS_PROFILING,
         std::move(proceduralGenerationProvider),
         std::move(proceduralGenerationController),
-        *m_camera);
+        *m_camera,
+        ALLOW_FRUSTUM_CULLING
+    );
 
     constexpr glm::vec3 CORNFLOWER_BLUE = {0.392, 0.584, 0.929};
     m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine, *m_camera, std::move(tempWorld), CORNFLOWER_BLUE, [](VoxelTypeRegistry &voxelTypeRegistry) {
@@ -325,6 +329,13 @@ void GameApplication::RenderUi() const {
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateCPUMemoryUsageForChunks()) / 1024.0 / 1024.0)),
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0))
     );
+
+    if (ALLOW_FRUSTUM_CULLING) {
+        ImGui::Text("Frustum culled %d of %d non-empty chunks", m_voxelRenderer->GetWorld().GetRenderer().GetNumChunksOutsideFrustum(),
+                    m_voxelRenderer->GetWorld().GetRenderer().GetNumNonEmptyChunks());
+    } else {
+        ImGui::TextColored(ImVec4{1, 0, 0, 1}, "Frustum culling is disabled!");
+    }
 
     m_profiling->RenderUI();
 

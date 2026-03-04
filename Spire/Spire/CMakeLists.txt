@@ -96,6 +96,7 @@ add_library(Spire STATIC
         Source/Rendering/Memory/BufferAllocator.cpp
         Source/Rendering/Memory/BufferAllocator.h
         Source/Utils/MathsUtils.h
+        Source/Utils/Camera/Frustum.h
 )
 
 target_precompile_headers(Spire PUBLIC "Source/pch.h")

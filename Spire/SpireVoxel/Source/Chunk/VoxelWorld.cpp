@@ -10,9 +10,11 @@ namespace SpireVoxel {
         bool isProfilingMeshing,
         std::unique_ptr<IProceduralGenerationProvider> provider,
         std::unique_ptr<IChunkOrderController> controller,
-        IVoxelCamera &camera)
+        IVoxelCamera &camera,
+        bool allowFrustumCulling
+    )
         : m_engine(engine) {
-        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, engine.GetRenderingManager(), recreatePipelineCallback, isProfilingMeshing);
+        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, engine.GetRenderingManager(), recreatePipelineCallback, isProfilingMeshing, camera, allowFrustumCulling);
         m_proceduralGenerationManager = std::make_unique<ProceduralGenerationManager>(std::move(provider), std::move(controller), *this, camera);
         m_lodManager = std::unique_ptr<LODManager>(new LODManager(*this, samplingOffsets));
     }
@@ -112,7 +114,8 @@ namespace SpireVoxel {
     }
 
     glm::u64 VoxelWorld::CalculateGPUMemoryUsageForChunks() const {
-        return m_renderer->m_chunkVertexBufferAllocator.CalculateAllocatedOrPendingMemory() + m_renderer->m_chunkVoxelDataBufferAllocator.CalculateAllocatedOrPendingMemory() + m_renderer->m_chunkAOBufferAllocator.CalculateAllocatedOrPendingMemory();
+        return m_renderer->m_chunkVertexBufferAllocator.CalculateAllocatedOrPendingMemory() + m_renderer->m_chunkVoxelDataBufferAllocator.CalculateAllocatedOrPendingMemory() +
+               m_renderer->m_chunkAOBufferAllocator.CalculateAllocatedOrPendingMemory();
     }
 
     glm::u64 VoxelWorld::CalculateCPUMemoryUsageForChunks() const {
