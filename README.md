@@ -4,7 +4,7 @@ Spire is a voxel renderer written in Vulkan using the rasterization pipeline.
 
 See [Documentation](https://github.com/underscore95/VulkanTutorial/tree/main/Documentation) for documentation, building instructions,  etc.
 
-The default GameApplication code relies on Minecraft assets, see [MinecraftRegionConverter README](https://github.com/underscore95/Spire/tree/minecraft-importer-v2/Tooling/MinecraftRegionConverter) for more information.
+The default GameApplication code relies on Minecraft assets, see [MinecraftRegionConverter README](https://github.com/underscore95/Spire/tree/main/Tooling/MinecraftRegionConverter) for more information.
 
 ## Minecraft World
 ![Screenshot](Documentation/Images/ao_screenshot.png)
@@ -31,6 +31,8 @@ The red square shows both Hytale and Minecraft's maximum render distance.
 The yellow square shows Vintage Story's maximum render distance (note that Vintage Story only has a world height of 256)
 
 Maximum render distance in this context means the largest value that can be set via the in game settings menu without mods. Vintage Story distance was sourced from a player on discord, as I do not own the game.
+
+Note this screenshot is from an outdated Spire version with only 2 voxel types.
 
 ## .obj model
 ![Screenshot](Documentation/Images/spider_screenshot.png)
