@@ -138,7 +138,9 @@ bool LoadTypes(const std::filesystem::path &path, const std::filesystem::path &f
         types[minecraftId] = types.size() + 1;
     }
 
-    // todo liquids are hard coded in minecraft, we could replace with cube_all though
+    // liquids are hard coded in minecraft code, let's replace them with wool
+    types["water"] = types["blue_wool"];
+    types["lava"] = types["red_wool"];
 
     // lookup textures
     for (SpireType &spireType : spireTypes) {
