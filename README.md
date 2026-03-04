@@ -4,7 +4,7 @@ Spire is a voxel renderer written in Vulkan using the rasterization pipeline.
 
 See [Documentation](https://github.com/underscore95/VulkanTutorial/tree/main/Documentation) for documentation, building instructions,  etc.
 
-The default GameApplication code relies on Minecraft assets, see [MinecraftRegionConverter README](https://github.com/underscore95/Spire/tree/minecraft-importer-v2/Tooling/MinecraftRegionConverter) for more information.
+The default GameApplication code relies on Minecraft assets, see [MinecraftRegionConverter README](https://github.com/underscore95/Spire/tree/main/Tooling/MinecraftRegionConverter) for more information.
 
 ## Minecraft World
 ![Screenshot](Documentation/Images/ao_screenshot.png)
