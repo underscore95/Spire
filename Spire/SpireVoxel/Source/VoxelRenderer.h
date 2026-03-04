@@ -18,6 +18,7 @@ namespace SpireVoxel {
     class VoxelRenderer {
     public:
         explicit VoxelRenderer(Spire::Engine &engine, IVoxelCamera &camera, std::unique_ptr<VoxelWorld> world,
+                               glm::vec3 clearColor,
                                const std::function<void(VoxelTypeRegistry &)> &registerVoxelTypesFunc);
 
         ~VoxelRenderer();
@@ -66,6 +67,7 @@ namespace SpireVoxel {
         Spire::FrameDeleter<std::unique_ptr<Spire::CommandBufferVector> > m_oldCommandBuffers;
         Spire::FrameDeleter<std::unique_ptr<Spire::DescriptorManager> > m_oldDescriptorManagers;
         Spire::FrameDeleter<std::unique_ptr<Spire::GraphicsPipeline> > m_oldPipelines;
+        glm::vec3 m_clearColor;
 
         glm::u64 m_currentFrame = 0;
         int m_worldEditCallback;

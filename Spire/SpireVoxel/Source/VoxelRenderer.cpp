@@ -19,8 +19,9 @@ namespace SpireVoxel {
     }
 
     VoxelRenderer::VoxelRenderer(Engine &engine, IVoxelCamera &camera, std::unique_ptr<VoxelWorld> world,
+                                 glm::vec3 clearColor,
                                  const std::function<void(VoxelTypeRegistry &)> &registerVoxelTypesFunc)
-        : m_engine(engine), m_camera(camera), m_world(std::move(world)) {
+        : m_engine(engine), m_camera(camera), m_world(std::move(world)), m_clearColor(clearColor) {
         auto &rm = m_engine.GetRenderingManager();
 
         // Shaders
@@ -97,7 +98,7 @@ namespace SpireVoxel {
         auto &rm = m_engine.GetRenderingManager();
 
         VkClearValue clearColor = {
-            .color = {0.0f, 0.0f, 0.0f, 1.0f},
+            .color = {m_clearColor.x, m_clearColor.y, m_clearColor.z, 1.0f},
         };
 
         VkClearValue clearDepthValue = {
