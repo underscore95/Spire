@@ -8,7 +8,7 @@ The default GameApplication code relies on Minecraft assets, see [MinecraftRegio
 
 ## Minecraft World
 ![Screenshot](Documentation/Images/ao_screenshot.png)
-Above is a screenshot showing Spire rendering 32x32 Minecraft chunks (36,031,803 non-empty voxels) at over 9600 FPS on an RTX 4060 TI with 65 MB VRAM.
+Above is a screenshot showing Spire rendering 32x32 Minecraft chunks (36,031,803 non-empty voxels) at over 2600 FPS on an RTX 4060 TI with 65 MB VRAM.
 
 Minecraft (1.21.1) renders the same world region at 512 FPS with 697 MB RAM and ~0.5GB VRAM. Obviously an unfair comparison because Minecraft has lighting, entities, etc. Minecraft is only utilising 33% GPU.
 
