@@ -45,6 +45,8 @@ For example, jungle applies a vibrant green, desert applies a dried out greeny y
 
 Spire does not support this. A greenifier python script exists to automatically make grayscale images greener.
 
+ffmpeg is required to be in your environment path.
+
 ### Usage
 
 - Copy all Minecraft block textures into a folder
@@ -74,6 +76,8 @@ Depends on a modified version of https://github.com/dougbinks/enkiMI/tree/master
 https://github.com/nlohmann/json
 
 https://www.minecraft.net/en-us
+
+https://www.ffmpeg.org/
 
 ## History
 
