@@ -2,16 +2,16 @@
 
 #include "pch.h"
 #include "DescriptorSetLayoutList.h"
+#include "DescriptorPool.h"
 
 namespace Spire {
     struct DescriptorSet;
     class DescriptorSetsUpdater;
-    class DescriptorPool;
     class RenderingManager;
 
     class DescriptorManager {
     public:
-        DescriptorManager(RenderingManager &renderingManager, const DescriptorSetLayoutList &layouts);
+        DescriptorManager(RenderingManager &renderingManager, const DescriptorSetLayoutList &layouts, DescriptorPool::Settings settings = {});
 
         ~DescriptorManager();
 

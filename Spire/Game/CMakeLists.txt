@@ -7,6 +7,7 @@ add_executable(Game
         Source/GameCamera.h
         Source/Profiling.cpp
         Source/Profiling.h
+        Source/MinecraftTypes.h
 )
 
 target_include_directories(Game PRIVATE "Source/")

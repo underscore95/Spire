@@ -11,10 +11,11 @@
 namespace Spire {
     DescriptorManager::DescriptorManager(
         RenderingManager &renderingManager,
-        const DescriptorSetLayoutList &layouts
+        const DescriptorSetLayoutList &layouts,
+        DescriptorPool::Settings settings
     ) : m_renderingManager(renderingManager),
         m_layouts(layouts) {
-        m_pool = std::make_unique<DescriptorPool>(m_renderingManager);
+        m_pool = std::make_unique<DescriptorPool>(m_renderingManager, settings);
 
         m_descriptorSets = m_pool->Allocate(layouts);
         m_rawLayouts = DescriptorSet::ToLayoutVector(m_descriptorSets);
@@ -110,7 +111,7 @@ namespace Spire {
         assert(vkSetDebugUtilsObjectNameEXT_fn);
 
         for (std::size_t i = 0; i < descriptor.Resources.size(); i++) {
-            std::string baseName = descriptor.DebugName ;
+            std::string baseName = descriptor.DebugName;
             if (descriptor.Resources.size() > 1) baseName += std::format("[{}]", i); // index
 
             if (DescriptorSetsUpdater::IsBuffer(descriptor.ResourceType)) {

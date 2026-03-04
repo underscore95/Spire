@@ -7,22 +7,24 @@
 
 namespace Spire {
     DescriptorPool::DescriptorPool(
-        RenderingManager &renderingManager)
+        RenderingManager &renderingManager,
+Settings settings
+        )
         : m_renderingManager(renderingManager) {
         // Generate pool sizes
         std::vector<VkDescriptorPoolSize> sizes;
 
         sizes.push_back({
             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 100
+            .descriptorCount = settings.UniformBuffers
         });
         sizes.push_back({
             .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .descriptorCount = 100
+            .descriptorCount = settings.StorageBuffers
         });
         sizes.push_back({
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 100
+            .descriptorCount = settings.CombinedImageSamplers
         });
 
         // Create pool
