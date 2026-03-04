@@ -107,7 +107,7 @@ bool LoadTypes(const std::filesystem::path &path, const std::filesystem::path &f
 
         std::string minecraftId = file.path().stem().string(); // file name without extension
 
-        if (parent == "block/cube_all") {
+        if (parent == "block/cube_all" || parent == "block/leaves") {
             // one texture
             spireTypes.push_back({
                 static_cast<unsigned int>(types.size() + 1), minecraftId,SPIRE_VOXEL_LAYOUT_ALL_SAME, {
