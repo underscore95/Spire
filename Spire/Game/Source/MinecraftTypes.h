@@ -11,180 +11,250 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
     voxelTypeRegistry.RegisterTypes(std::vector<SpireVoxel::VoxelTypeInfo>{
         {
             1, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/acacia_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/acacia_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            2, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/acacia_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            2, {
+            3, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/acacia_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/acacia_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            4, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/amethyst_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            3, {
+            5, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/ancient_debris_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/ancient_debris_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            6, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/andesite.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            4, {
+            7, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/azalea_leaves.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            5, {
+            8, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/bamboo_block_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/bamboo_block.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            9, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/bamboo_mosaic.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            6, {
+            10, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/bamboo_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            7, {
+            11, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/basalt_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/basalt_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            12, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/bedrock.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            8, {
+            13, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/birch_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/birch_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            14, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/birch_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            9, {
+            15, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/birch_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/birch_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            16, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/blackstone_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/blackstone.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            17, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/black_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            10, {
+            18, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/black_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            11, {
+            19, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/black_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            12, {
+            20, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/black_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            13, {
+            21, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/black_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            14, {
+            22, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/blue_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            15, {
+            23, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/blue_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            16, {
+            24, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/blue_ice.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            17, {
+            25, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/blue_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            18, {
+            26, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/blue_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            19, {
+            27, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/blue_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            20, {
+            28, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/bone_block_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/bone_block_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            29, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oak_planks.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/bookshelf.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            30, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/brain_coral_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            21, {
+            31, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            22, {
+            32, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/brown_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            23, {
+            33, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/brown_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            24, {
+            34, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/brown_mushroom_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            25, {
+            35, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/brown_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            26, {
+            36, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/brown_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            27, {
+            37, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/brown_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            28, {
+            38, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/bubble_coral_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            29, {
+            39, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/budding_amethyst.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            30, {
+            40, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cactus_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cactus_bottom.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cactus_side.png"
@@ -192,13 +262,13 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            31, {
+            41, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/calcite.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            32, {
+            42, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/calibrated_sculk_sensor_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sculk_sensor_bottom.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sculk_sensor_side.png"
@@ -206,85 +276,134 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            33, {
+            43, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cherry_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cherry_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            44, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cherry_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            34, {
+            45, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cherry_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cherry_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            46, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            35, {
+            47, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_deepslate.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            36, {
+            48, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_nether_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            37, {
+            49, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_polished_blackstone.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            38, {
+            50, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_quartz_block_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_quartz_block.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            51, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_sandstone_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_red_sandstone.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            52, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_resin_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            39, {
+            53, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sandstone_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_sandstone.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            54, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_stone_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            40, {
+            55, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_tuff_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_tuff.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            56, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_tuff_bricks_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/chiseled_tuff_bricks.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            57, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/clay.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            41, {
+            58, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/coal_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            42, {
+            59, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/coal_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            43, {
+            60, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/coarse_dirt.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            44, {
+            61, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cobbled_deepslate.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            45, {
+            62, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cobblestone.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            46, {
+            63, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/composter_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/composter_bottom.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/composter_side.png"
@@ -292,253 +411,323 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            47, {
+            64, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/copper_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            48, {
+            65, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/copper_bulb.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            49, {
+            66, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/copper_bulb_lit.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            50, {
+            67, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/copper_bulb_lit_powered.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            51, {
+            68, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/copper_bulb_powered.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            52, {
+            69, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/copper_grate.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            53, {
+            70, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/copper_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            54, {
+            71, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cracked_deepslate_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            55, {
+            72, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cracked_deepslate_tiles.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            56, {
+            73, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cracked_nether_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            57, {
+            74, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cracked_polished_blackstone_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            58, {
+            75, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cracked_stone_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            59, {
+            76, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/creaking_heart_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/creaking_heart.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            77, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/creaking_heart_top_awake.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/creaking_heart_awake.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            78, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/creaking_heart_top_dormant.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/creaking_heart_dormant.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            79, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/crimson_stem.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/crimson_stem.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            80, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/crimson_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            60, {
+            81, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/crimson_stem_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/crimson_stem.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            82, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/crying_obsidian.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            61, {
+            83, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cut_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            62, {
+            84, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_sandstone_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cut_red_sandstone.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            85, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sandstone_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cut_sandstone.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            86, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cyan_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            63, {
+            87, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cyan_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            64, {
+            88, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cyan_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            65, {
+            89, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cyan_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            66, {
+            90, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/cyan_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            67, {
+            91, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dark_oak_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dark_oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            92, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dark_oak_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            68, {
+            93, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dark_oak_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dark_oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            94, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dark_prismarine.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            69, {
+            95, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dead_brain_coral_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            70, {
+            96, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dead_bubble_coral_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            71, {
+            97, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dead_fire_coral_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            72, {
+            98, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dead_horn_coral_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            73, {
+            99, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dead_tube_coral_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            74, {
+            100, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            101, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            75, {
+            102, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_coal_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            76, {
+            103, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_copper_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            77, {
+            104, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_diamond_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            78, {
+            105, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_emerald_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            79, {
+            106, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_gold_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            80, {
+            107, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_iron_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            81, {
+            108, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_lapis_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            82, {
+            109, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_redstone_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            83, {
+            110, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/deepslate_tiles.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            84, {
+            111, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/diamond_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            85, {
+            112, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/diamond_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            86, {
+            113, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/diorite.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            87, {
+            114, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dirt.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            88, {
+            115, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dirt_path_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dirt.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dirt_path_side.png"
@@ -546,25 +735,25 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            89, {
+            116, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dripstone_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            90, {
+            117, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/emerald_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            91, {
+            118, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/emerald_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            92, {
+            119, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/enchanting_table_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/enchanting_table_bottom.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/enchanting_table_side.png"
@@ -572,7 +761,7 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            93, {
+            120, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/end_portal_frame_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/end_stone.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/end_portal_frame_side.png"
@@ -580,139 +769,139 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            94, {
+            121, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/end_stone.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            95, {
+            122, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/end_stone_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            96, {
+            123, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/exposed_chiseled_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            97, {
+            124, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/exposed_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            98, {
+            125, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/exposed_copper_bulb.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            99, {
+            126, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/exposed_copper_bulb_lit.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            100, {
+            127, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/exposed_copper_bulb_lit_powered.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            101, {
+            128, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/exposed_copper_bulb_powered.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            102, {
+            129, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/exposed_copper_grate.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            103, {
+            130, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/exposed_cut_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            104, {
+            131, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/fire_coral_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            105, {
+            132, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/flowering_azalea_leaves.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            106, {
+            133, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/frosted_ice_0.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            107, {
+            134, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/frosted_ice_1.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            108, {
+            135, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/frosted_ice_2.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            109, {
+            136, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/frosted_ice_3.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            110, {
+            137, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/gilded_blackstone.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            111, {
+            138, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            112, {
+            139, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/glowstone.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            113, {
+            140, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/gold_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            114, {
+            141, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/gold_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            115, {
+            142, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/granite.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            116, {
+            143, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/grass_block_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/dirt.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/grass_block_side.png"
@@ -720,337 +909,407 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            117, {
+            144, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/gravel.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            118, {
+            145, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/gray_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            119, {
+            146, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/gray_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            120, {
+            147, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/gray_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            121, {
+            148, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/gray_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            122, {
+            149, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/gray_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            123, {
+            150, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/green_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            124, {
+            151, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/green_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            125, {
+            152, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/green_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            126, {
+            153, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/green_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            127, {
+            154, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/green_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            128, {
+            155, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/hay_block_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/hay_block_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            156, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/honeycomb_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            129, {
+            157, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/horn_coral_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            130, {
+            158, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/ice.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            131, {
+            159, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/iron_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            132, {
+            160, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/iron_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            133, {
+            161, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/jungle_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/jungle_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            162, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/jungle_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            134, {
+            163, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/jungle_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/jungle_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            164, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/lapis_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            135, {
+            165, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/lapis_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            136, {
+            166, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/light_blue_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            137, {
+            167, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/light_blue_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            138, {
+            168, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/light_blue_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            139, {
+            169, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/light_blue_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            140, {
+            170, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/light_blue_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            141, {
+            171, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/light_gray_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            142, {
+            172, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/light_gray_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            143, {
+            173, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/light_gray_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            144, {
+            174, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/light_gray_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            145, {
+            175, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/light_gray_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            146, {
+            176, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/lime_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            147, {
+            177, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/lime_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            148, {
+            178, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/lime_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            149, {
+            179, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/lime_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            150, {
+            180, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/lime_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            151, {
+            181, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/lodestone_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/lodestone_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            182, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/magenta_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            152, {
+            183, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/magenta_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            153, {
+            184, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/magenta_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            154, {
+            185, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/magenta_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            155, {
+            186, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/magenta_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            156, {
+            187, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/magma.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            157, {
+            188, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/mangrove_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/mangrove_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            189, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/mangrove_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            158, {
+            190, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/mangrove_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/mangrove_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            191, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/melon_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/melon_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            192, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/mossy_cobblestone.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            159, {
+            193, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/mossy_stone_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            160, {
+            194, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/moss_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            161, {
+            195, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/mud.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            162, {
+            196, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/muddy_mangrove_roots_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/muddy_mangrove_roots_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            197, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/mud_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            163, {
+            198, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/mushroom_stem.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            164, {
+            199, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/netherite_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            165, {
+            200, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/netherrack.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            166, {
+            201, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/nether_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            167, {
+            202, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/nether_gold_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            168, {
+            203, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/nether_quartz_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            169, {
+            204, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/nether_wart_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            170, {
+            205, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/note_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            171, {
+            206, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oak_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            207, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oak_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            172, {
+            208, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oak_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            209, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/observer_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/observer_back.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/observer_side.png"
@@ -1058,355 +1317,418 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            173, {
+            210, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/obsidian.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            174, {
+            211, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/ochre_froglight_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/ochre_froglight_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            212, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/orange_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            175, {
+            213, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/orange_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            176, {
+            214, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/orange_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            177, {
+            215, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/orange_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            178, {
+            216, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/orange_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            179, {
+            217, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oxidized_chiseled_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            180, {
+            218, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oxidized_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            181, {
+            219, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oxidized_copper_bulb.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            182, {
+            220, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oxidized_copper_bulb_lit.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            183, {
+            221, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oxidized_copper_bulb_lit_powered.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            184, {
+            222, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oxidized_copper_bulb_powered.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            185, {
+            223, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oxidized_copper_grate.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            186, {
+            224, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/oxidized_cut_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            187, {
+            225, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/packed_ice.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            188, {
+            226, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/packed_mud.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            189, {
+            227, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pale_moss_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            190, {
+            228, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pale_oak_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pale_oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            229, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pale_oak_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            191, {
+            230, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pale_oak_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pale_oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            231, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pearlescent_froglight_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pearlescent_froglight_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            232, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pink_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            192, {
+            233, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pink_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            193, {
+            234, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pink_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            194, {
+            235, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pink_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            195, {
+            236, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pink_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            196, {
+            237, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/polished_andesite.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            197, {
+            238, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/polished_basalt_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/polished_basalt_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            239, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/polished_blackstone.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            198, {
+            240, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/polished_blackstone_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            199, {
+            241, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/polished_deepslate.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            200, {
+            242, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/polished_diorite.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            201, {
+            243, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/polished_granite.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            202, {
+            244, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/polished_tuff.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            203, {
+            245, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/prismarine.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            204, {
+            246, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/prismarine_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            205, {
+            247, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pumpkin_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/pumpkin_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            248, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/purple_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            206, {
+            249, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/purple_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            207, {
+            250, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/purple_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            208, {
+            251, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/purple_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            209, {
+            252, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/purple_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            210, {
+            253, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/purpur_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            211, {
+            254, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/purpur_pillar_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/purpur_pillar.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            255, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/quartz_block_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/quartz_block_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            256, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/quartz_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            212, {
+            257, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/quartz_pillar_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/quartz_pillar.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            258, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/raw_copper_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            213, {
+            259, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/raw_gold_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            214, {
+            260, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/raw_iron_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            215, {
+            261, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/redstone_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            216, {
+            262, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/redstone_lamp.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            217, {
+            263, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/redstone_lamp_on.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            218, {
+            264, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/redstone_ore.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            219, {
+            265, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            220, {
+            266, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            221, {
+            267, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_mushroom_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            222, {
+            268, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_nether_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            223, {
+            269, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_sand.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            224, {
+            270, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            225, {
+            271, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            226, {
+            272, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            227, {
+            273, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/resin_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            228, {
+            274, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/resin_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            229, {
+            275, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/rooted_dirt.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            230, {
+            276, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sand.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            231, {
+            277, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/scaffolding_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/scaffolding_bottom.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/scaffolding_side.png"
@@ -1414,7 +1736,7 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            232, {
+            278, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/scaffolding_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/scaffolding_bottom.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/scaffolding_side.png"
@@ -1422,13 +1744,13 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            233, {
+            279, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sculk.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            234, {
+            280, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sculk_sensor_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sculk_sensor_bottom.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sculk_sensor_side.png"
@@ -1436,85 +1758,106 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            235, {
+            281, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sea_lantern.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            236, {
+            282, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/shroomlight.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            237, {
+            283, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/smooth_basalt.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            238, {
+            284, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/quartz_block_bottom.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            239, {
+            285, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/red_sandstone_top.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            240, {
+            286, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sandstone_top.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            241, {
+            287, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/smooth_stone.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            242, {
+            288, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/smooth_stone.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/smooth_stone_slab_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            289, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/snow.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            243, {
+            290, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/soul_sand.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            244, {
+            291, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/soul_soil.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            245, {
+            292, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sponge.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            246, {
+            293, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/spruce_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/spruce_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            294, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/spruce_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            247, {
+            295, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/spruce_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/spruce_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            296, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stone.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            248, {
+            297, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stonecutter_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stonecutter_bottom.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stonecutter_side.png"
@@ -1522,91 +1865,259 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            249, {
+            298, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stone_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            250, {
+            299, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_acacia_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_acacia_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            300, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_acacia_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_acacia_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            301, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_bamboo_block_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_bamboo_block.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            302, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_birch_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_birch_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            303, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_birch_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_birch_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            304, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_cherry_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_cherry_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            305, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_cherry_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_cherry_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            306, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_crimson_stem.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_crimson_stem.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            307, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_crimson_stem_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_crimson_stem.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            308, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_dark_oak_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_dark_oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            309, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_dark_oak_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_dark_oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            310, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_jungle_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_jungle_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            311, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_jungle_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_jungle_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            312, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_mangrove_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_mangrove_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            313, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_mangrove_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_mangrove_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            314, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_oak_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            315, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_oak_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            316, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_pale_oak_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_pale_oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            317, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_pale_oak_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_pale_oak_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            318, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_spruce_log_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_spruce_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            319, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_spruce_log.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_spruce_log.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            320, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_warped_stem.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_warped_stem.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            321, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_warped_stem_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/stripped_warped_stem.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            322, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/structure_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            251, {
+            323, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/structure_block_corner.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            252, {
+            324, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/structure_block_data.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            253, {
+            325, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/structure_block_load.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            254, {
+            326, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/structure_block_save.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            255, {
+            327, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/suspicious_gravel_0.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            256, {
+            328, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/suspicious_gravel_1.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            257, {
+            329, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/suspicious_gravel_2.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            258, {
+            330, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/suspicious_gravel_3.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            259, {
+            331, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/suspicious_sand_0.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            260, {
+            332, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/suspicious_sand_1.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            261, {
+            333, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/suspicious_sand_2.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            262, {
+            334, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/suspicious_sand_3.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            263, {
+            335, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/target_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/target_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            336, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sculk_shrieker_top.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sculk_shrieker_bottom.png",
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/sculk_shrieker_side.png"
@@ -1614,187 +2125,208 @@ inline void RegisterMinecraftVoxelTypes(SpireVoxel::VoxelTypeRegistry &voxelType
             SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
         },
         {
-            264, {
+            337, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            265, {
+            338, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/test_block_accept.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            266, {
+            339, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/test_block_fail.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            267, {
+            340, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/test_block_log.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            268, {
+            341, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/test_block_start.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            269, {
+            342, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/test_instance_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            270, {
+            343, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/tinted_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            271, {
+            344, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/tube_coral_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            272, {
+            345, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/tuff.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            273, {
+            346, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/tuff_bricks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            274, {
+            347, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/verdant_froglight_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/verdant_froglight_side.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            348, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/warped_stem.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/warped_stem.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            349, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/warped_planks.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            275, {
+            350, {
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/warped_stem_top.png",
+                std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/warped_stem.png"
+            },
+            SPIRE_VOXEL_LAYOUT_COLUMN
+        },
+        {
+            351, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/warped_wart_block.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            276, {
+            352, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/weathered_chiseled_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            277, {
+            353, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/weathered_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            278, {
+            354, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/weathered_copper_bulb.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            279, {
+            355, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/weathered_copper_bulb_lit.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            280, {
+            356, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/weathered_copper_bulb_lit_powered.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            281, {
+            357, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/weathered_copper_bulb_powered.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            282, {
+            358, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/weathered_copper_grate.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            283, {
+            359, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/weathered_cut_copper.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            284, {
+            360, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/wet_sponge.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            285, {
+            361, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/white_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            286, {
+            362, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/white_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            287, {
+            363, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/white_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            288, {
+            364, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/white_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            289, {
+            365, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/white_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            290, {
+            366, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/yellow_concrete.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            291, {
+            367, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/yellow_concrete_powder.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            292, {
+            368, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/yellow_stained_glass.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            293, {
+            369, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/yellow_terracotta.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME
         },
         {
-            294, {
+            370, {
                 std::string(SpireVoxel::GetAssetsDirectory()) + "/Minecraft/yellow_wool.png"
             },
             SPIRE_VOXEL_LAYOUT_ALL_SAME

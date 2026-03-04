@@ -212,11 +212,13 @@ namespace SpireVoxel {
     // Voxel Type Face Layout
 #define SPIRE_VOXEL_LAYOUT_ALL_SAME 0 // all sides use image 0 (e.g. dirt)
 #define SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT 1 // top uses image 0, bottom uses image 1, sides use image 2 (e.g. grass)
+#define SPIRE_VOXEL_LAYOUT_COLUMN 2 // top and bottom use image 0, sides use image 1 (e.g. log)
 
     // Get the number of images for a specific face layout
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE GetNumImages(SPIRE_UINT32_TYPE faceLayout) {
         if (faceLayout == SPIRE_VOXEL_LAYOUT_ALL_SAME) return 1;
         if (faceLayout == SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT) return 3;
+        if (faceLayout == SPIRE_VOXEL_LAYOUT_COLUMN) return 2;
 
 #ifdef __cplusplus
         assert(false); // invalid face layout
@@ -231,6 +233,10 @@ namespace SpireVoxel {
             if (face == SPIRE_VOXEL_FACE_POS_Y) return 0;
             if (face == SPIRE_VOXEL_FACE_NEG_Y) return 1;
             return 2;
+        }
+        if (faceLayout == SPIRE_VOXEL_LAYOUT_COLUMN) {
+            if (face == SPIRE_VOXEL_FACE_POS_Y || face == SPIRE_VOXEL_FACE_NEG_Y) return 0;
+            return 1;
         }
 
 #ifdef __cplusplus

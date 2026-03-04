@@ -6,6 +6,7 @@
 // taken from spire
 #define SPIRE_VOXEL_LAYOUT_ALL_SAME 0 // all sides use image 0 (e.g. dirt)
 #define SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT 1 // top uses image 0, bottom uses image 1, sides use image 2 (e.g. grass)
+#define SPIRE_VOXEL_LAYOUT_COLUMN 2 // top and bottom use image 0, sides use image 1 (e.g. log)
 
 struct SpireType {
     unsigned int SpireId; // Min value 1
@@ -27,8 +28,9 @@ std::string EscapeString(const std::string &s) {
 
 std::string LayoutToEnum(unsigned int layout) {
     switch (layout) {
-        case 0: return "SPIRE_VOXEL_LAYOUT_ALL_SAME";
-        case 1: return "SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT";
+        case SPIRE_VOXEL_LAYOUT_ALL_SAME: return "SPIRE_VOXEL_LAYOUT_ALL_SAME";
+        case SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT: return "SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT";
+        case SPIRE_VOXEL_LAYOUT_COLUMN: return "SPIRE_VOXEL_LAYOUT_COLUMN";
         default: assert(false);
     }
 }
@@ -122,9 +124,18 @@ bool LoadTypes(const std::filesystem::path &path, const std::filesystem::path &f
                     data["textures"]["side"]
                 }
             });
-        } else continue; // not included
+        } else if (parent == "block/cube_column") {
+            spireTypes.push_back({
+                static_cast<unsigned int>(types.size() + 1), minecraftId,SPIRE_VOXEL_LAYOUT_COLUMN, {
+                    data["textures"]["end"],
+                    data["textures"]["side"]
+                }
+            });
+        } else {
+            continue; // not included
+        }
 
-        types[minecraftId] = types.size()+1;
+        types[minecraftId] = types.size() + 1;
     }
 
     // todo liquids are hard coded in minecraft, we could replace with cube_all though
