@@ -32,6 +32,8 @@ The yellow square shows Vintage Story's maximum render distance (note that Vinta
 
 Maximum render distance in this context means the largest value that can be set via the in game settings menu without mods. Vintage Story distance was sourced from a player on discord, as I do not own the game.
 
+Note this screenshot is from an outdated Spire version with only 2 voxel types.
+
 ## .obj model
 ![Screenshot](Documentation/Images/spider_screenshot.png)
 
