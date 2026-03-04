@@ -36,3 +36,7 @@ CameraInfo GameCamera::GetCameraInfo() const {
 glm::vec3 GameCamera::GetPosition() const {
     return m_camera->GetPosition();
 }
+
+Spire::Frustum GameCamera::CalculateFrustum() const {
+    return m_camera->CalculateFrustum();
+}

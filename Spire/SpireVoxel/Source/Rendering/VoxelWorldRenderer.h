@@ -9,6 +9,7 @@ namespace SpireVoxel {
     struct PushConstantsData;
 
     class VoxelWorld;
+    class IVoxelCamera;
 
     // Handles rendering of a VoxelWorld
     class VoxelWorldRenderer {
@@ -19,7 +20,9 @@ namespace SpireVoxel {
             VoxelWorld &world,
             Spire::RenderingManager &renderingManager,
             const std::function<void()> &recreatePipelineCallback,
-            bool isProfilingMeshing
+            bool isProfilingMeshing,
+            const IVoxelCamera& camera,
+            bool allowFrustumCulling
         );
 
     public:
@@ -42,6 +45,10 @@ namespace SpireVoxel {
         void HandleChunkEdits(glm::vec3 cameraPos);
 
         [[nodiscard]] glm::u32 NumEditedChunks() const;
+
+        [[nodiscard]] glm::u32 GetNumChunksOutsideFrustum() const;
+
+        [[nodiscard]] glm::u32 GetNumNonEmptyChunks() const;
 
     private:
         void NotifyChunkLoadedOrUnloaded();
@@ -78,5 +85,10 @@ namespace SpireVoxel {
         std::unordered_set<glm::ivec3> m_editedChunks;
         std::unique_ptr<ChunkMesher> m_chunkMesher;
         std::mutex m_chunkEditNotifyMutex;
+        const IVoxelCamera& m_camera;
+        glm::u32 m_numChunksOutsideFrustum;
+        glm::u32 m_numNonEmptyChunks;
+        CameraInfo m_cameraInfoLastFrame = {};
+        bool m_allowFrustumCulling;
     };
 } // SpireVoxel

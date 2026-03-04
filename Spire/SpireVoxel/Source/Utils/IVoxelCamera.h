@@ -22,5 +22,7 @@ namespace SpireVoxel {
         virtual void Render(const RenderInfo &renderInfo) = 0;
 
         [[nodiscard]] virtual Spire::PerImageDescriptor GetDescriptor(glm::u32 binding) const = 0;
+
+        [[nodiscard]] virtual Spire::Frustum CalculateFrustum() const = 0;
     };
 } // SpireVoxel

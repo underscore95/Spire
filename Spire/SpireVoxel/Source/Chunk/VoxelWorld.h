@@ -24,7 +24,8 @@ namespace SpireVoxel {
             bool isProfilingMeshing,
             std::unique_ptr<IProceduralGenerationProvider> provider,
             std::unique_ptr<IChunkOrderController> controller,
-            IVoxelCamera &camera
+            IVoxelCamera &camera,
+            bool allowFrustumCulling
         );
 
     public:

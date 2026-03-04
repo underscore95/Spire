@@ -16,45 +16,13 @@
 #define SPIRE_VOXEL_SHADER_BINDINGS_IMAGES_BINDING 1
 #define SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING 0
 
-// Constants
 #define SPIRE_SHADER_TEXTURE_COUNT 1
-
-#define SPIRE_VOXEL_CHUNK_SIZE 64
-#define SPIRE_VOXEL_CHUNK_AREA (SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_SIZE)
-#define SPIRE_VOXEL_CHUNK_VOLUME (SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_CHUNK_SIZE)
 
 #ifdef __cplusplus
 #define SPIRE_CPP_ASSERT_FALSE assert(false);
 #else
 #define SPIRE_CPP_ASSERT_FALSE
 #endif
-
-// Map from 3D index to 1D index
-#define SPIRE_VOXEL_INDEX_TO_POSITION(positionType, index) \
-    positionType( \
-        (index) / SPIRE_VOXEL_CHUNK_AREA, \
-        ((index) / SPIRE_VOXEL_CHUNK_SIZE) % SPIRE_VOXEL_CHUNK_SIZE, \
-        (index) % SPIRE_VOXEL_CHUNK_SIZE \
-        )
-
-#define SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(x, y, z) \
-    ((x) * SPIRE_VOXEL_CHUNK_AREA + (y) * SPIRE_VOXEL_CHUNK_SIZE + (z))
-
-#define SPIRE_VOXEL_POSITION_TO_INDEX(pos) SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(pos.x, pos.y, pos.z)
-
-// GPU doesn't have uint16, these macros unpack the uint16 from a uint32
-// unpack a u32 into 2 u16s
-// low = first voxel type
-// high = second voxel type
-#define SPIRE_VOXEL_UINT16_MAX 65535u
-
-#define SPIRE_VOXEL_UNPACK_VOXEL_TYPE(doubleVoxelType, index) \
-    (((index) % 2) == 0 ? (doubleVoxelType) & SPIRE_VOXEL_UINT16_MAX : (doubleVoxelType) >> 16)
-
-#define SPIRE_VOXEL_PACK_VOXEL_TYPE(existingType, index, newType) \
-    (((index) % 2) == 0 ? \
-    (((existingType) & (SPIRE_VOXEL_UINT16_MAX << 16)) | ((newType) & SPIRE_VOXEL_UINT16_MAX)) : \
-    (((existingType) & SPIRE_VOXEL_UINT16_MAX) | (((newType) & SPIRE_VOXEL_UINT16_MAX) << 16)))
 
 // types
 #ifdef __cplusplus
@@ -100,6 +68,39 @@ static_assert(sizeof(VkDrawIndirectCommand) == 16);
 #define SPIRE_KEYWORD_INLINE
 
 #endif
+
+// constants
+#define SPIRE_VOXEL_CHUNK_SIZE 64
+#define SPIRE_VOXEL_CHUNK_AREA (SPIRE_VOXEL_CHUNK_SIZE * SPIRE_VOXEL_CHUNK_SIZE)
+#define SPIRE_VOXEL_CHUNK_VOLUME (SPIRE_VOXEL_CHUNK_AREA * SPIRE_VOXEL_CHUNK_SIZE)
+#define SPIRE_VOXEL_CHUNK_DIMENSIONS SPIRE_IVEC3_TYPE(SPIRE_VOXEL_CHUNK_SIZE, SPIRE_VOXEL_CHUNK_SIZE, SPIRE_VOXEL_CHUNK_SIZE)
+
+// Map from 3D index to 1D index
+#define SPIRE_VOXEL_INDEX_TO_POSITION(positionType, index) \
+positionType( \
+(index) / SPIRE_VOXEL_CHUNK_AREA, \
+((index) / SPIRE_VOXEL_CHUNK_SIZE) % SPIRE_VOXEL_CHUNK_SIZE, \
+(index) % SPIRE_VOXEL_CHUNK_SIZE \
+)
+
+#define SPIRE_VOXEL_POSITION_XYZ_TO_INDEX(x, y, z) \
+((x) * SPIRE_VOXEL_CHUNK_AREA + (y) * SPIRE_VOXEL_CHUNK_SIZE + (z))
+
+#define SPIRE_VOXEL_POSITION_TO_INDEX(pos) SPIRE_VOXEL_POSITION_XYZ_TO_INDEX((pos).x, (pos).y, (pos).z)
+
+// GPU doesn't have uint16, these macros unpack the uint16 from a uint32
+// unpack a u32 into 2 u16s
+// low = first voxel type
+// high = second voxel type
+#define SPIRE_VOXEL_UINT16_MAX 65535u
+
+#define SPIRE_VOXEL_UNPACK_VOXEL_TYPE(doubleVoxelType, index) \
+(((index) % 2) == 0 ? (doubleVoxelType) & SPIRE_VOXEL_UINT16_MAX : (doubleVoxelType) >> 16)
+
+#define SPIRE_VOXEL_PACK_VOXEL_TYPE(existingType, index, newType) \
+(((index) % 2) == 0 ? \
+(((existingType) & (SPIRE_VOXEL_UINT16_MAX << 16)) | ((newType) & SPIRE_VOXEL_UINT16_MAX)) : \
+(((existingType) & SPIRE_VOXEL_UINT16_MAX) | (((newType) & SPIRE_VOXEL_UINT16_MAX) << 16)))
 
 // chunk data
 #ifdef __cplusplus
@@ -398,6 +399,12 @@ namespace SpireVoxel {
     struct CameraInfo {
         SPIRE_MAT4X4_TYPE ViewProjectionMatrix;
         float Scale;
+
+#ifdef __cplusplus
+        bool operator!=(const CameraInfo &other) const {
+            return ViewProjectionMatrix != other.ViewProjectionMatrix || Scale != other.Scale;
+        }
+#endif
     };
 
 #ifdef __cplusplus
