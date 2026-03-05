@@ -2,6 +2,7 @@
 
 #include "VoxelRenderer.h"
 #include "Chunk/Chunk.h"
+#include "Chunk/ChunkDrawParams.h"
 #include "Chunk/Meshing/ChunkMesh.h"
 #include "Chunk/Meshing/ChunkMesher.h"
 
@@ -78,10 +79,12 @@ namespace SpireVoxel {
         Spire::BufferAllocator m_chunkAOBufferAllocator;
         // see ChunkData
         std::unique_ptr<Spire::PerImageBuffer> m_chunkDatasBuffer;
+        std::unique_ptr<Spire::PerImageBuffer> m_chunkDrawCommandsBuffer;
         // if {true,false,false} it means we need to update buffer 0 on swapchain image index 0
         // so next time frame % num swapchain images == 0, we'll upload the new data
         std::vector<bool> m_dirtyChunkDataBuffers;
         std::vector<ChunkData> m_latestCachedChunkData;
+        std::vector<ChunkDrawParams> m_latestCachedChunkDrawCommands;
         std::unordered_set<glm::ivec3> m_editedChunks;
         std::unique_ptr<ChunkMesher> m_chunkMesher;
         std::mutex m_chunkEditNotifyMutex;

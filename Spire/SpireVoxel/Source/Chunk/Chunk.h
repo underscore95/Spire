@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ChunkDrawParams.h"
 #include "DetailLevel.h"
 #include "EngineIncludes.h"
 #include "VoxelType.h"
@@ -27,7 +28,8 @@ namespace SpireVoxel {
         Spire::BufferAllocator::Allocation VertexAllocation = {};
         Spire::BufferAllocator::Allocation VoxelDataAllocation = {};
         Spire::BufferAllocator::Allocation AODataAllocation = {};
-        glm::u32 NumVertices;
+        std::array<glm::u32, SPIRE_VOXEL_NUM_FACES> NumVertices;
+        glm::u32 TotalVertices;
         DetailLevel LOD = {};
 
         void SetVoxel(glm::u32 index, VoxelType type);
@@ -36,7 +38,9 @@ namespace SpireVoxel {
 
         [[nodiscard]] ChunkMesh GenerateMesh() const;
 
-        [[nodiscard]] ChunkData GenerateChunkData(glm::u32 chunkIndex) const;
+        [[nodiscard]] ChunkData GenerateChunkData() const;
+
+        [[nodiscard]] ChunkDrawParams GenerateDrawParams(glm::u32 chunkIndex) const;
 
         void RegenerateVoxelBits();
 
@@ -45,10 +49,10 @@ namespace SpireVoxel {
         [[nodiscard]] bool IsCorrupted() const { return CorruptedMemoryCheck != 9238745897238972389 || CorruptedMemoryCheck2 != 12387732823748723; }
 
     private:
-        void PushFace(ChunkMesh& mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const;
+        void PushFace(ChunkMesh &mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const;
 
         void PushRelatedFaceData(ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) const;
 
-        void PushRelatedVoxelData(ChunkMesh& mesh, glm::uvec3 chunkCoords, glm::u32 face) const;
+        void PushRelatedVoxelData(ChunkMesh &mesh, glm::uvec3 chunkCoords, glm::u32 face) const;
     };
 } // SpireVoxel

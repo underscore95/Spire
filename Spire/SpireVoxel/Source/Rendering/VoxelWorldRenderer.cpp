@@ -5,6 +5,7 @@
 #include "Rendering/Memory/BufferManager.h"
 #include "Utils/ThreadPool.h"
 #include "../../Assets/Shaders/PushConstants.h"
+#include "Chunk/ChunkDrawParams.h"
 #include "Utils/IVoxelCamera.h"
 
 namespace SpireVoxel {
@@ -34,8 +35,18 @@ namespace SpireVoxel {
             Spire::warn("Frustum culling is disabled!");
         }
 
-        m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreatePerImageStorageBuffers(sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS, MAXIMUM_LOADED_CHUNKS, nullptr,
-                                                                                                VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT);
+        m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreatePerImageStorageBuffers(
+            sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS,
+            MAXIMUM_LOADED_CHUNKS,
+            nullptr,
+            VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT
+        );
+        m_chunkDrawCommandsBuffer = m_renderingManager.GetBufferManager().CreatePerImageStorageBuffers(
+            sizeof(ChunkDrawParams) * MAXIMUM_LOADED_CHUNKS,
+            MAXIMUM_LOADED_CHUNKS,
+            nullptr,
+            VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT
+        );
         Spire::info("Allocated {} kb buffer for each swapchain image on GPU to store chunk datas", sizeof(ChunkData) * MAXIMUM_LOADED_CHUNKS / 1024);
 
         m_dirtyChunkDataBuffers.resize(renderingManager.GetSwapchain().GetNumImages());
@@ -56,8 +67,21 @@ namespace SpireVoxel {
         if (!m_latestCachedChunkData.empty() && m_dirtyChunkDataBuffers[swapchainImageIndex]) {
             m_dirtyChunkDataBuffers[swapchainImageIndex] = false;
 
-            const glm::u32 requiredBufferSize = sizeof(m_latestCachedChunkData[0]) * m_latestCachedChunkData.size();
-            m_renderingManager.GetBufferManager().UpdateBuffer(m_chunkDatasBuffer->GetBuffer(swapchainImageIndex), m_latestCachedChunkData.data(), requiredBufferSize, 0);
+            const glm::u32 chunkDataWriteSize = sizeof(m_latestCachedChunkData[0]) * m_latestCachedChunkData.size();
+            m_renderingManager.GetBufferManager().UpdateBuffer(
+                m_chunkDatasBuffer->GetBuffer(swapchainImageIndex),
+                m_latestCachedChunkData.data(),
+                chunkDataWriteSize,
+                0
+            );
+
+            const glm::u32 chunkDrawParamsWriteSize = sizeof(m_latestCachedChunkDrawCommands[0]) * m_latestCachedChunkDrawCommands.size();
+            m_renderingManager.GetBufferManager().UpdateBuffer(
+                m_chunkDrawCommandsBuffer->GetBuffer(swapchainImageIndex),
+                m_latestCachedChunkDrawCommands.data(),
+                chunkDrawParamsWriteSize,
+                0
+            );
         }
 
         m_chunkVertexBufferAllocator.Render();
@@ -72,8 +96,13 @@ namespace SpireVoxel {
         if (!m_latestCachedChunkData.empty()) {
             PushConstantsData pushConstants = CreatePushConstants();
             pipeline.CmdSetPushConstants(commandBuffer, &pushConstants, sizeof(PushConstantsData));
-            vkCmdDrawIndirect(commandBuffer, m_chunkDatasBuffer->GetBuffer(swapchainImage).Buffer, offsetof(ChunkData, CPU_DrawCommandParams), m_latestCachedChunkData.size(),
-                              sizeof(ChunkData));
+            vkCmdDrawIndirect(
+                commandBuffer,
+                m_chunkDrawCommandsBuffer->GetBuffer(swapchainImage).Buffer,
+                0,
+                m_latestCachedChunkDrawCommands.size() * ChunkDrawParams::COMMANDS_PER_CHUNK,
+                ChunkDrawParams::STRIDE
+            );
         }
     }
 
@@ -140,6 +169,7 @@ namespace SpireVoxel {
 
     void VoxelWorldRenderer::UpdateChunkDataCache() {
         m_latestCachedChunkData.clear();
+        m_latestCachedChunkDrawCommands.clear();
 
         Spire::Frustum cameraFrustum = m_camera.CalculateFrustum();
         m_numChunksOutsideFrustum = 0;
@@ -150,11 +180,14 @@ namespace SpireVoxel {
             if (chunk->VertexAllocation.Size == 0) continue;
             m_numNonEmptyChunks++;
 
-            m_latestCachedChunkData.push_back(chunk->GenerateChunkData(chunkIndex));
+            m_latestCachedChunkData.push_back(chunk->GenerateChunkData());
+            m_latestCachedChunkDrawCommands.push_back(chunk->GenerateDrawParams(chunkIndex));
 
             glm::ivec3 worldPosition = VoxelWorld::GetWorldVoxelPositionInChunk(chunk->ChunkPosition, {0, 0, 0});
             bool shouldRenderChunk = !m_allowFrustumCulling || cameraFrustum.IsBoxVisible(worldPosition, worldPosition + SPIRE_VOXEL_CHUNK_DIMENSIONS);
-            m_latestCachedChunkData.back().CPU_DrawCommandParams.instanceCount = shouldRenderChunk;
+            for (auto drawParams : m_latestCachedChunkDrawCommands.back().Commands) {
+                drawParams.instanceCount = shouldRenderChunk;
+            }
             if (!shouldRenderChunk) m_numChunksOutsideFrustum++;
         }
     }

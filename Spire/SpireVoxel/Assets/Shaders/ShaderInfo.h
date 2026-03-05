@@ -34,10 +34,6 @@
 #define SPIRE_IVEC3_TYPE glm::ivec3
 #define SPIRE_VEC2_TYPE glm::vec2
 #define SPIRE_UVEC2_TYPE glm::uvec2
-// reason for assert: ivec4 is put as padding on the gpu
-// possible cause for failure: you didn't include vulkan before including this file
-static_assert(sizeof(VkDrawIndirectCommand) == 16);
-#define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(VarName) VkDrawIndirectCommand VarName
 #else
 #define SPIRE_UINT32_TYPE uint
 #define SPIRE_INT32_TYPE int
@@ -45,11 +41,6 @@ static_assert(sizeof(VkDrawIndirectCommand) == 16);
 #define SPIRE_UVEC3_TYPE uvec3
 #define SPIRE_VEC3_TYPE vec3
 #define SPIRE_IVEC3_TYPE ivec3
-#define SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(VarName) \
-    int VarName##_Padding1;\
-    int VarName##_Padding2;\
-    int VarName##_Padding3;\
-    int VarName##_Padding4
 #define SPIRE_VEC2_TYPE vec2
 #define SPIRE_UVEC2_TYPE uvec2
 #endif
@@ -101,36 +92,6 @@ positionType( \
 (((index) % 2) == 0 ? \
 (((existingType) & (SPIRE_VOXEL_UINT16_MAX << 16)) | ((newType) & SPIRE_VOXEL_UINT16_MAX)) : \
 (((existingType) & SPIRE_VOXEL_UINT16_MAX) | (((newType) & SPIRE_VOXEL_UINT16_MAX) << 16)))
-
-// chunk data
-#ifdef __cplusplus
-namespace SpireVoxel {
-#endif
-    // Chunk data, this exists on both CPU and GPU
-    struct ChunkData {
-        // Stores indirect draw command params, shader doesn't need to read this (but vulkan reads it)
-        // this must be at the start of the struct
-        SPIRE_VK_INDIRECT_DRAW_COMMAND_TYPE(CPU_DrawCommandParams);
-        // Chunk coordinates
-        SPIRE_INT32_TYPE ChunkX; // allows for 137 billion voxels in each direction
-        SPIRE_INT32_TYPE ChunkY;
-        SPIRE_INT32_TYPE ChunkZ;
-        // Voxel data buffer contains all voxel data for the whole world, this index is where the latest data
-        // for this chunk is
-        SPIRE_UINT32_TYPE VoxelDataChunkIndex;
-        SPIRE_UINT32_TYPE VoxelDataAllocationIndex;
-        // What buffer is this chunks vertices stored in?
-        SPIRE_UINT32_TYPE VertexBufferIndex;
-        // LOD Scale, should be a uint but floating point operations are faster on gpu
-        float LODScale;
-        // AO data buffer contains all ambient occlusion data for the whole world, this index is where the latest data for this chunk is
-        SPIRE_UINT32_TYPE AODataChunkPackedIndex; // This is uint index, not element index
-        SPIRE_UINT32_TYPE AODataAllocationIndex;
-    };
-
-#ifdef __cplusplus
-}
-#endif
 
 #ifdef __cplusplus
 namespace SpireVoxel {
@@ -245,6 +206,33 @@ namespace SpireVoxel {
 #endif
         return 0;
     }
+
+#ifdef __cplusplus
+}
+#endif
+
+// chunk data
+#ifdef __cplusplus
+namespace SpireVoxel {
+#endif
+    // Chunk data, this exists on both CPU and GPU
+    struct ChunkData {
+        // Chunk coordinates
+        SPIRE_INT32_TYPE ChunkX; // allows for 137 billion voxels in each direction
+        SPIRE_INT32_TYPE ChunkY;
+        SPIRE_INT32_TYPE ChunkZ;
+        // Voxel data buffer contains all voxel data for the whole world, this index is where the latest data
+        // for this chunk is
+        SPIRE_UINT32_TYPE VoxelDataChunkIndex;
+        SPIRE_UINT32_TYPE VoxelDataAllocationIndex;
+        // What buffer is this chunks vertices stored in?
+        SPIRE_UINT32_TYPE VertexBufferIndex;
+        // LOD Scale, should be a uint but floating point operations are faster on gpu
+        float LODScale;
+        // AO data buffer contains all ambient occlusion data for the whole world, this index is where the latest data for this chunk is
+        SPIRE_UINT32_TYPE AODataChunkPackedIndex; // This is uint index, not element index
+        SPIRE_UINT32_TYPE AODataAllocationIndex;
+    };
 
 #ifdef __cplusplus
 }

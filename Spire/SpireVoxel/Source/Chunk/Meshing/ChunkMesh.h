@@ -2,6 +2,7 @@
 
 #include "EngineIncludes.h"
 #include "Chunk/VoxelType.h"
+#include "../Assets/Shaders/ShaderInfo.h"
 
 namespace SpireVoxel {
     struct VertexData;
@@ -14,6 +15,8 @@ namespace SpireVoxel {
 
         ChunkMesh() = default;
 
+        // There is 6 meshes, one for each face, how many vertices does each face contain?
+        std::array<glm::u32, SPIRE_VOXEL_NUM_FACES> VertexCounts;
         std::vector<VertexData> Vertices;
         std::vector<VoxelType> VoxelTypes;
         std::vector<glm::u32> AOData;

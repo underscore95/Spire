@@ -91,7 +91,7 @@ namespace SpireVoxel {
         allocation = {};
 
         std::optional<Spire::BufferAllocator::Allocation> alloc;
-        if (chunk.NumVertices > 0) {
+        if (chunk.TotalVertices > 0) {
             alloc = allocator.Allocate(requestedSize);
             if (alloc) {
                 allocation = *alloc;
@@ -141,13 +141,14 @@ namespace SpireVoxel {
             m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Location);
         }
 
-        chunk.NumVertices = vertexData.size();
+        chunk.TotalVertices = vertexData.size();
+        chunk.NumVertices = mesh.VertexCounts;
 
         // write the voxel data
         // Since voxel data is stored in uint32 on GPU, we need to push an extra u16 as padding if we have an odd number of u16's
         std::size_t voxelDataPadding = mesh.VoxelTypes.size() % 2 == 1 ? sizeof(mesh.VoxelTypes[0]) : 0;
         if (!UploadData(chunk, voxelDataMemory, futures, sizeof(mesh.VoxelTypes[0]) * mesh.VoxelTypes.size() + voxelDataPadding, mesh.VoxelTypes.data(), chunk.VoxelDataAllocation,
-                        m_chunkVoxelDataBufferAllocator) && chunk.NumVertices > 0) {
+                        m_chunkVoxelDataBufferAllocator) && chunk.TotalVertices > 0) {
             // allocation failed, need to free the vertex allocation
             Spire::error("Chunk voxel data allocation failed, deallocating vertex buffer");
             if (chunk.VertexAllocation.Size > 0) m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk.VertexAllocation);
@@ -156,7 +157,7 @@ namespace SpireVoxel {
 
         // write the AO data
         if (!UploadData(chunk, aoDataMemory, futures, sizeof(mesh.AOData[0]) * mesh.AOData.size(), mesh.AOData.data(), chunk.AODataAllocation,
-                        m_chunkAODataBufferAllocator) && chunk.NumVertices > 0) {
+                        m_chunkAODataBufferAllocator) && chunk.TotalVertices > 0) {
             // allocation failed, need to free the vertex allocation
             Spire::error("Chunk AO data allocation failed, deallocating other buffers");
             if (chunk.VertexAllocation.Size > 0) m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk.VertexAllocation);

@@ -75,18 +75,18 @@ void GameApplication::Start(Engine &engine) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
     } else if (!ShouldStreamLoading()) {
-        VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
+       // VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
     }
 
     //  world.LoadChunks({{-1, 0, 0}});
-    // world.LoadChunks({{0, 0, 0}});
+  //  world.LoadChunks({{0, 0, 0}});
     // CuboidVoxelEdit({0,0,0},{64,64,64},{128}).Apply(world);
     // CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
 
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 5, 5}, 2},
-    //     BasicVoxelEdit::Edit{{-1, 6, 5}, 1},
-    //     BasicVoxelEdit::Edit{{-1, 5, 5}, 1},
+    //     BasicVoxelEdit::Edit{{1, 6, 5}, 1},
+    //     BasicVoxelEdit::Edit{{1, 5, 5}, 1},
     // }).Apply(world);
 
     // std::vector<BasicVoxelEdit::Edit> edits;
