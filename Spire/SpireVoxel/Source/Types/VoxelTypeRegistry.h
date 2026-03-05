@@ -37,6 +37,8 @@ namespace SpireVoxel {
         // Create descriptor for the type buffer
         [[nodiscard]] Spire::Descriptor GetVoxelTypesBufferDescriptor(glm::u32 binding);
 
+        [[nodiscard]] glm::u32 GetNumImages() const;
+
     private:
         void RecreateVoxelTypesBuffer();
 
@@ -48,5 +50,6 @@ namespace SpireVoxel {
         Delegate<std::span<RegisteredVoxelType> > m_onTypesRemovedDelegate; // removed types
         Delegate<> m_onTypesChangedDelegate;
         Spire::VulkanBuffer m_voxelTypesBuffer;
+        glm::u32 m_numImages;
     };
 } // SpireVoxel

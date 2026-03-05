@@ -86,8 +86,18 @@ namespace SpireVoxel {
         };
     }
 
+    glm::u32 VoxelTypeRegistry::GetNumImages() const {
+        return m_numImages;
+    }
+
     void VoxelTypeRegistry::RecreateVoxelTypesBuffer() {
         DestroyVoxelTypesBuffer();
+
+        // count images
+        m_numImages = 0;
+        for (RegisteredVoxelType &type : m_voxelTypes) {
+            m_numImages += type.Images.size();
+        }
 
         // how big does the buffer need to be
         glm::u32 numElements = 0;
