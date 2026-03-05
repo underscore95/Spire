@@ -1,0 +1,104 @@
+#version 460
+#extension GL_EXT_nonuniform_qualifier : require
+
+#include "ShaderInfo.h"
+#include "PushConstants.h"
+#include "Greedy.h"
+#include "FaceSize.h"
+
+// Vertex buffer
+layout (set = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING) readonly buffer Vertices {
+    VertexData data[];
+} in_Vertices[];
+
+// Camera matrices
+layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_SHADER_BINDINGS_CAMERA_UBO_BINDING) readonly uniform CameraBuffer { CameraInfo cameraInfo; } cameraBuffer;
+
+// Information about all chunks
+layout (set = SPIRE_SHADER_BINDINGS_PER_FRAME_SET, binding = SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING) readonly buffer ChunkDataBuffer {
+    ChunkData chunkDatas[];
+} chunkDataBuffer;
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices = 3) out; // todo is it worth outputting a whole face?
+
+layout (location = 0) flat in int glVertexIndex[];
+layout (location = 1) flat in int glInstanceIndex[];
+
+layout (location = 0) out vec2 texCoord;// texture coordinate of the vertex, these are in range 0 to faceSize, so that uv 0,0 to uv 1,1 covers exactly one voxel face
+layout (location = 1) out vec3 voxelData;// voxel coordinate in world space
+layout (location = 2) flat out uint voxelDataChunkIndex;// Index of the current chunk
+layout (location = 3) flat out uint voxelFace;// What face is this vertex part of (0-5 range, "enum")
+layout (location = 4) flat out uint voxelDataAllocationIndex;// Allocation index (what buffer)
+layout (location = 5) flat out uint voxelTypesFaceStartIndex;// Index of where the types of this face start
+layout (location = 6) flat out uint faceWidth;// Size of this face
+layout (location = 7) flat out uint faceHeight;
+layout (location = 8) flat out uint aoDataChunkPackedIndex;// Index of the current chunk in the AO buffer allocator, index of the first uint
+layout (location = 9) flat out uint aoDataAllocationIndex;// Allocation index (what buffer)
+
+void main()
+{
+    for (int indexInTriangle = 0; indexInTriangle < 3; indexInTriangle++) {
+        ChunkData chunkData = chunkDataBuffer.chunkDatas[glInstanceIndex[indexInTriangle]];
+
+        int vertexIndex = int(glVertexIndex[indexInTriangle] % pushConstants.data.NumVerticesPerBuffer);
+
+        VertexData vtx = in_Vertices[chunkData.VertexBufferIndex].data[vertexIndex];
+
+        uint vertexVoxelPos = UnpackVertexDataVertexPosition(vtx.Packed_7X7Y7Z2VertPos3Face);
+        uvec3 voxelPos = UnpackVertexDataXYZ(vtx.Packed_7X7Y7Z2VertPos3Face);// position in the chunk
+        ivec3 chunkPos = ivec3(chunkData.ChunkX, chunkData.ChunkY, chunkData.ChunkZ);// position of the chunk in chunk-space, so chunk 1,0,0's minimum x voxel is 64
+        vec3 worldPos = (vec3(voxelPos * chunkData.LODScale) + chunkPos * SPIRE_VOXEL_CHUNK_SIZE) * cameraBuffer.cameraInfo.Scale;// world position of the vertex
+        voxelFace = UnpackVertexDataFace(vtx.Packed_7X7Y7Z2VertPos3Face);
+
+        gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);
+        // calculate face size
+        const int VERTICES_PER_QUAD = 6;
+        uvec2 faceSize = uvec2(0, 0);
+        int localIndex = vertexIndex % VERTICES_PER_QUAD;
+
+        // width
+        int otherWidthIndex = vertexIndex + SPIRE_WIDTH_DELTAS[localIndex];
+        VertexData widthVert = in_Vertices[chunkData.VertexBufferIndex].data[otherWidthIndex];
+        vec3 widthPos = UnpackVertexDataXYZ(widthVert.Packed_7X7Y7Z2VertPos3Face);
+
+        // height
+        int otherHeightIndex = vertexIndex + SPIRE_HEIGHT_DELTAS[localIndex];
+        VertexData heightVert = in_Vertices[chunkData.VertexBufferIndex].data[otherHeightIndex];
+        vec3 heightPos = UnpackVertexDataXYZ(heightVert.Packed_7X7Y7Z2VertPos3Face);
+
+        // axis
+        if (IsFaceOnXAxis(voxelFace)) {
+            faceSize.x = uint(abs(voxelPos.z - widthPos.z));
+            faceSize.y = uint(abs(voxelPos.y - heightPos.y));
+        }
+        else if (IsFaceOnYAxis(voxelFace)) {
+            faceSize.x = uint(abs(voxelPos.x - widthPos.x));
+            faceSize.y = uint(abs(voxelPos.z - heightPos.z));
+        }
+        else if (IsFaceOnZAxis(voxelFace)){
+            faceSize.x = uint(abs(voxelPos.x - widthPos.x));
+            faceSize.y = uint(abs(voxelPos.y - heightPos.y));
+        } else {
+            // oh no! the fragment shader should output an error colour for us
+            // unfortunately glslang doesn't give a way to say a branch is unreachable
+        }
+        faceWidth = faceSize.x;
+        faceHeight = faceSize.y;
+        // end face size
+
+        vec2 uv = VoxelVertexPositionToUV(vertexVoxelPos);
+        texCoord = uv * faceSize;//* chunkData.LODScale;
+
+        voxelData = vec3(voxelPos.x, voxelPos.y, voxelPos.z) - FaceToDirection(voxelFace) * 0.5f /*move to the center of the voxel*/;
+        voxelDataChunkIndex = chunkData.VoxelDataChunkIndex;
+        voxelDataAllocationIndex = chunkData.VoxelDataAllocationIndex;
+
+        voxelTypesFaceStartIndex = vtx.VoxelTypeStartingIndex;
+
+        aoDataChunkPackedIndex = chunkData.AODataChunkPackedIndex;
+        aoDataAllocationIndex = chunkData.AODataAllocationIndex;
+        EmitVertex();
+    }
+    EndPrimitive();
+}

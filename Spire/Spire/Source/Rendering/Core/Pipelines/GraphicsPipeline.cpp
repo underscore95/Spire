@@ -8,6 +8,7 @@ namespace Spire {
     GraphicsPipeline::GraphicsPipeline(
         VkDevice device,
         VkShaderModule vertexShader,
+        VkShaderModule geometryShaderOptional,
         VkShaderModule fragmentShader,
         const DescriptorManager &descriptorManager,
         VkFormat colorFormat,
@@ -23,8 +24,11 @@ namespace Spire {
 #endif
 
         // pipeline
-        std::array<VkPipelineShaderStageCreateInfo, 2> shaderStageCreateInfo = CreateVertFragShaderInfo(
-            vertexShader, fragmentShader);
+        std::vector shaderStageCreateInfo = CreateAllShaderInfo(
+            vertexShader,
+            geometryShaderOptional,
+            fragmentShader
+        );
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
@@ -109,7 +113,7 @@ namespace Spire {
         VkGraphicsPipelineCreateInfo pipelineInfo = {
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
             .pNext = &renderingInfo,
-            .stageCount = shaderStageCreateInfo.size(),
+            .stageCount = static_cast<glm::u32>(shaderStageCreateInfo.size()),
             .pStages = shaderStageCreateInfo.data(),
             .pVertexInputState = &vertexInputInfo,
             .pInputAssemblyState = &pipelineIACreateInfo,

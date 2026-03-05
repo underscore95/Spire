@@ -25,7 +25,7 @@ Camera &GameCamera::GetCamera() const {
 
 PerImageDescriptor GameCamera::GetDescriptor(glm::u32 binding) const {
     return m_engine.GetRenderingManager().GetDescriptorCreator().CreatePerImageUniformBuffer(
-        binding, *m_uniformBuffer, VK_SHADER_STAGE_VERTEX_BIT
+        binding, *m_uniformBuffer, VK_SHADER_STAGE_GEOMETRY_BIT
     );
 }
 

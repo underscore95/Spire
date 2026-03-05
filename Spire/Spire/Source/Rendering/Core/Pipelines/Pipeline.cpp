@@ -50,6 +50,21 @@ namespace Spire {
         };
     }
 
+    std::vector<VkPipelineShaderStageCreateInfo> Pipeline::CreateAllShaderInfo(
+        VkShaderModule vertexShader,
+        VkShaderModule geometryShaderOptional,
+        VkShaderModule fragmentShader
+    ) const {
+        std::vector info = {CreateShaderInfo(vertexShader, VK_SHADER_STAGE_VERTEX_BIT)};
+
+        if (geometryShaderOptional != VK_NULL_HANDLE) {
+            info.push_back(CreateShaderInfo(geometryShaderOptional, VK_SHADER_STAGE_GEOMETRY_BIT));
+        }
+
+        info.push_back(CreateShaderInfo(fragmentShader, VK_SHADER_STAGE_FRAGMENT_BIT));
+        return info;
+    }
+
     VkPipelineShaderStageCreateInfo Pipeline::CreateShaderInfo(VkShaderModule shader, VkShaderStageFlagBits stage,
                                                                const char *entryPoint) const {
         return {

@@ -16,6 +16,7 @@ namespace Spire
         GraphicsPipeline(
             VkDevice device,
             VkShaderModule vertexShader,
+            VkShaderModule geometryShaderOptional,
             VkShaderModule fragmentShader,
             const DescriptorManager& descriptorManager,
             VkFormat colorFormat,

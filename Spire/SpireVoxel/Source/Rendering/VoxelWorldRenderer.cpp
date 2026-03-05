@@ -79,7 +79,7 @@ namespace SpireVoxel {
 
     void VoxelWorldRenderer::PushDescriptors(Spire::PerImageDescriptorSetLayout &perFrameSet, Spire::DescriptorSetLayout &chunkVertexBuffersLayout) {
         chunkVertexBuffersLayout.push_back(
-            m_chunkVertexBufferAllocator.CreateDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING, VK_SHADER_STAGE_VERTEX_BIT, "World Vertex Buffer"));
+            m_chunkVertexBufferAllocator.CreateDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_BINDING, VK_SHADER_STAGE_GEOMETRY_BIT, "World Vertex Buffer"));
         chunkVertexBuffersLayout.push_back(
             m_chunkVoxelDataBufferAllocator.
             CreateDescriptor(SPIRE_VOXEL_SHADER_BINDINGS_CONSTANT_CHUNK_VOXEL_DATA_BINDING, VK_SHADER_STAGE_FRAGMENT_BIT, "World Voxel Data Buffer"));
@@ -90,7 +90,7 @@ namespace SpireVoxel {
         Spire::PerImageDescriptor chunkDatasDescriptor = m_renderingManager.GetDescriptorCreator().CreatePerImageStorageBuffer(
             SPIRE_VOXEL_SHADER_BINDINGS_CHUNK_DATA_SSBO_BINDING,
             *m_chunkDatasBuffer,
-            VK_SHADER_STAGE_VERTEX_BIT,
+            VK_SHADER_STAGE_GEOMETRY_BIT,
             "Chunk Datas"
         );
 

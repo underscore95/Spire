@@ -55,6 +55,7 @@ namespace SpireVoxel {
     private:
         Spire::Engine &m_engine;
         VkShaderModule m_vertexShader = VK_NULL_HANDLE;
+        VkShaderModule m_geometryShader = VK_NULL_HANDLE;
         VkShaderModule m_fragmentShader = VK_NULL_HANDLE;
         std::unique_ptr<VoxelTypeRegistry> m_voxelTypeRegistry;
         std::unique_ptr<VoxelImageManager> m_voxelImageManager;

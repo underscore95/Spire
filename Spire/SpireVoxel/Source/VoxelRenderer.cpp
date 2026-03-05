@@ -30,9 +30,11 @@ namespace SpireVoxel {
         ShaderCompiler compiler(rm.GetDevice());
         info("Created shader compiler");
         compiler.CreateShaderModuleAsync(&m_vertexShader, std::format("{}/Shaders/main.vert", ASSETS_DIRECTORY));
+        compiler.CreateShaderModuleAsync(&m_geometryShader, std::format("{}/Shaders/main.geom", ASSETS_DIRECTORY));
         compiler.CreateShaderModuleAsync(&m_fragmentShader, std::format("{}/Shaders/main.frag", ASSETS_DIRECTORY));
         compiler.Await();
         assert(m_vertexShader != VK_NULL_HANDLE);
+        assert(m_geometryShader != VK_NULL_HANDLE);
         assert(m_fragmentShader != VK_NULL_HANDLE);
         info("Created shaders in {} ms", 1000.0f * shaderCompileTimer.SecondsSinceStart());
 
@@ -188,6 +190,7 @@ namespace SpireVoxel {
         m_graphicsPipeline = std::make_unique<GraphicsPipeline>(
             rm.GetDevice(),
             m_vertexShader,
+            m_geometryShader,
             m_fragmentShader,
             *m_descriptorManager,
             rm.GetSwapchain().GetSurfaceFormat().format,
@@ -215,6 +218,7 @@ namespace SpireVoxel {
         m_descriptorManager.reset();
 
         vkDestroyShaderModule(rm.GetDevice(), m_vertexShader, nullptr);
+        vkDestroyShaderModule(rm.GetDevice(), m_geometryShader, nullptr);
         vkDestroyShaderModule(rm.GetDevice(), m_fragmentShader, nullptr);
         info("Destroyed shaders");
     }

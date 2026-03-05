@@ -2,18 +2,16 @@
 
 #include "pch.h"
 
-namespace Spire
-{
+namespace Spire {
     class DescriptorManager;
     class RenderingManager;
 
-    class Pipeline
-    {
+    class Pipeline {
     protected:
         Pipeline(
             VkDevice device,
-            const DescriptorManager& descriptorManager,
-            RenderingManager& renderingManager,
+            const DescriptorManager &descriptorManager,
+            RenderingManager &renderingManager,
             glm::u32 pushConstantSize
         );
 
@@ -21,7 +19,7 @@ namespace Spire
         virtual ~Pipeline();
 
     public:
-        void CmdSetPushConstants(VkCommandBuffer commandBuffer, const void* data, glm::u32 size, glm::u32 offset = 0) const;
+        void CmdSetPushConstants(VkCommandBuffer commandBuffer, const void *data, glm::u32 size, glm::u32 offset = 0) const;
 
         [[nodiscard]] VkPipelineLayout GetLayout() const;
 
@@ -33,7 +31,13 @@ namespace Spire
             VkShaderModule fragmentShader
         ) const;
 
-        VkPipelineShaderStageCreateInfo CreateShaderInfo(VkShaderModule shader, VkShaderStageFlagBits stage, const char* entryPoint = "main") const;
+        std::vector<VkPipelineShaderStageCreateInfo> CreateAllShaderInfo(
+            VkShaderModule vertexShader,
+            VkShaderModule geometryShaderOptional,
+            VkShaderModule fragmentShader
+        ) const;
+
+        VkPipelineShaderStageCreateInfo CreateShaderInfo(VkShaderModule shader, VkShaderStageFlagBits stage, const char *entryPoint = "main") const;
 
     private:
         void CreatePipelineLayout();
@@ -42,7 +46,7 @@ namespace Spire
         VkDevice m_device = VK_NULL_HANDLE;
         VkPipeline m_pipeline = VK_NULL_HANDLE;
         VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
-        RenderingManager& m_renderingManager;
+        RenderingManager &m_renderingManager;
         const glm::u32 m_pushConstantSize;
         std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
     };
