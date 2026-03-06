@@ -22,6 +22,8 @@ public:
 
     [[nodiscard]] Spire::Frustum CalculateFrustum() const override;
 
+    [[nodiscard]] glm::vec3 GetForward() const override;
+
     float Speed = 1;
     float Scale = 1;
 private:

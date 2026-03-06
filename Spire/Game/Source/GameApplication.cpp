@@ -17,8 +17,6 @@
 using namespace Spire;
 using namespace SpireVoxel;
 
-constexpr bool ALLOW_FRUSTUM_CULLING = !Profiling::IS_PROFILING;
-
 bool ShouldStreamLoading() {
     if (Profiling::IS_PROFILING) return false;
     return false;
@@ -41,15 +39,24 @@ void GameApplication::Start(Engine &engine) {
     }
 
     m_camera = std::make_unique<GameCamera>(engine);
+    VoxelWorld::Settings actualSettings = {
+        .LoadBalanceMeshing = !Profiling::IS_PROFILING,
+        .AllowFrustumCulling = !Profiling::IS_PROFILING,
+        .AllowBackfaceCulling = !Profiling::IS_PROFILING
+    };
+    VoxelWorld::Settings testSettings = {
+        .LoadBalanceMeshing = false,
+        .AllowFrustumCulling = true,
+        .AllowBackfaceCulling = true
+    };
     auto tempWorld = std::make_unique<VoxelWorld>(
         engine,
         std::make_unique<SamplingOffsets>(std::string(GetAssetsDirectory()) + "/LODSamplingOffsets.bin"),
         [this] { RecreatePipeline(); },
-        Profiling::IS_PROFILING,
         std::move(proceduralGenerationProvider),
         std::move(proceduralGenerationController),
         *m_camera,
-        ALLOW_FRUSTUM_CULLING
+        testSettings
     );
 
     constexpr glm::vec3 CORNFLOWER_BLUE = {0.392, 0.584, 0.929};
@@ -79,14 +86,14 @@ void GameApplication::Start(Engine &engine) {
     }
 
     //  world.LoadChunks({{-1, 0, 0}});
-    // world.LoadChunks({{0, 0, 0}});
+    //  world.LoadChunks({{0, 0, 0}});
     // CuboidVoxelEdit({0,0,0},{64,64,64},{128}).Apply(world);
     // CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
 
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 5, 5}, 2},
-    //     BasicVoxelEdit::Edit{{-1, 6, 5}, 1},
-    //     BasicVoxelEdit::Edit{{-1, 5, 5}, 1},
+    //     BasicVoxelEdit::Edit{{1, 6, 5}, 1},
+    //     BasicVoxelEdit::Edit{{1, 5, 5}, 1},
     // }).Apply(world);
 
     // std::vector<BasicVoxelEdit::Edit> edits;
@@ -330,11 +337,27 @@ void GameApplication::RenderUi() const {
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0))
     );
 
-    if (ALLOW_FRUSTUM_CULLING) {
-        ImGui::Text("Frustum culled %d of %d non-empty chunks", m_voxelRenderer->GetWorld().GetRenderer().GetNumChunksOutsideFrustum(),
-                    m_voxelRenderer->GetWorld().GetRenderer().GetNumNonEmptyChunks());
+    if (m_voxelRenderer->GetWorld().GetSettings().AllowFrustumCulling) {
+        int nonEmpty = m_voxelRenderer->GetWorld().GetRenderer().GetNumNonEmptyChunks();
+        ImGui::Text("Frustum culled %d of %d non-empty chunks (%.1f%%)",
+                    m_voxelRenderer->GetWorld().GetRenderer().GetNumChunksOutsideFrustum(),
+                    nonEmpty,
+                    nonEmpty == 0 ? 0.0f : 100 * m_voxelRenderer->GetWorld().GetRenderer().GetNumChunksOutsideFrustum() / static_cast<float>(nonEmpty)
+        );
     } else {
         ImGui::TextColored(ImVec4{1, 0, 0, 1}, "Frustum culling is disabled!");
+    }
+
+    if (m_voxelRenderer->GetWorld().GetSettings().AllowFrustumCulling) {
+        int total = m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces() + m_voxelRenderer->GetWorld().GetRenderer().GetNumNonBackfaceCulledFaces();
+        ImGui::Text(
+            "Backface culling culled %d of %d faces (%.1f%%) (excluding already culled chunks)",
+            m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces(),
+            total,
+            total == 0 ? 0.0f : 100 * m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces() / static_cast<float>(total)
+        );
+    } else {
+        ImGui::TextColored(ImVec4{1, 0, 0, 1}, "Backface culling is disabled!");
     }
 
     m_profiling->RenderUI();
@@ -357,8 +380,11 @@ void GameApplication::RenderUi() const {
 
         ImGui::SliderFloat("Camera Speed: ", &m_camera->Speed, 1, 25);
         ImGui::SliderFloat("Camera Scale: ", &m_camera->Scale, 0.01, 1);
-        if (ImGui::Button("Teleport to 0,0,0")) {
-            m_camera->GetCamera().SetPosition(glm::vec3{0, 0, 0});
+
+        static glm::vec3 destination = {0, 0, 0};
+        ImGui::InputFloat3("Coordinates: ", &destination.x);
+        if (ImGui::Button("Teleport")) {
+            m_camera->GetCamera().SetPosition(destination);
         }
     }
 

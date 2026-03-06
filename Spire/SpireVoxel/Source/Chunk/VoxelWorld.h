@@ -17,15 +17,21 @@ namespace SpireVoxel {
         friend class VoxelRenderer;
 
     public:
+        struct Settings {
+            bool LoadBalanceMeshing;
+            bool AllowFrustumCulling;
+            bool AllowBackfaceCulling;
+        };
+
+    public:
         explicit VoxelWorld(
             Spire::Engine &engine,
             const std::shared_ptr<ISamplingOffsets> &samplingOffsets,
             const std::function<void()> &recreatePipelineCallback,
-            bool isProfilingMeshing,
             std::unique_ptr<IProceduralGenerationProvider> provider,
             std::unique_ptr<IChunkOrderController> controller,
             IVoxelCamera &camera,
-            bool allowFrustumCulling
+            Settings settings
         );
 
     public:
@@ -85,6 +91,8 @@ namespace SpireVoxel {
         // Convert world voxel coords to chunk space (0 to 63 range)
         [[nodiscard]] static glm::uvec3 ToChunkSpace(glm::ivec3 worldVoxelPosition);
 
+        [[nodiscard]] Settings GetSettings() const;
+
     private:
         void Update() const;
 
@@ -95,5 +103,6 @@ namespace SpireVoxel {
         std::unique_ptr<ProceduralGenerationManager> m_proceduralGenerationManager;
         Spire::Engine &m_engine;
         std::unique_ptr<LODManager> m_lodManager;
+        Settings m_settings;
     };
 } // SpireVoxel

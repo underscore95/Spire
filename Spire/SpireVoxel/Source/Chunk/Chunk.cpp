@@ -132,8 +132,7 @@ namespace SpireVoxel {
             if (aoIndex == 0) {
                 // need a new integer
                 mesh.AOData.push_back(ao);
-            }
-            else {
+            } else {
                 // there is space to pack it into the end of the current integer
                 glm::u32 &packed = mesh.AOData.back();
                 packed = SetAO(packed, aoIndex, ao);
@@ -142,13 +141,16 @@ namespace SpireVoxel {
         }
     }
 
+    constexpr glm::u32 VERTICES_PER_FACE = 6;
+
     void Chunk::PushFace(ChunkMesh &mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const {
-        std::vector<VertexData> &vertices = mesh.Vertices;
+        std::vector<VertexData> &vertices = mesh.Vertices[face];
 
         assert(width > 0);
         assert(height > 0);
         const glm::u32 w = width;
         const glm::u32 h = height;
+        const glm::u32 startIndex = vertices.size();
         switch (face) {
             case SPIRE_VOXEL_FACE_POS_Z:
                 vertices.push_back(PackVertexData(mesh.VoxelTypes.size(), p.x + 0, p.y + 0, p.z + 1, VoxelVertexPosition::ZERO, SPIRE_VOXEL_FACE_POS_Z));
@@ -207,6 +209,8 @@ namespace SpireVoxel {
                 assert(false);
                 break;
         }
+
+        assert(startIndex + VERTICES_PER_FACE == vertices.size());
 
         PushRelatedFaceData(mesh, p, width, height, face);
     }
@@ -299,15 +303,10 @@ namespace SpireVoxel {
         return mesh;
     }
 
-    ChunkData Chunk::GenerateChunkData(glm::u32 chunkIndex) const {
-        assert(NumVertices > 0);
-        return {
-            .CPU_DrawCommandParams = {
-                .vertexCount = (NumVertices),
-                .instanceCount = 1,
-                .firstVertex = static_cast<glm::u32>(VertexAllocation.Location.Start / sizeof(VertexData)),
-                .firstInstance = chunkIndex
-            },
+    ChunkData Chunk::GenerateChunkData() const {
+        assert(TotalVertices > 0);
+
+        ChunkData chunkData = {
             .ChunkX = ChunkPosition.x,
             .ChunkY = ChunkPosition.y,
             .ChunkZ = ChunkPosition.z,
@@ -318,6 +317,26 @@ namespace SpireVoxel {
             .AODataChunkPackedIndex = static_cast<glm::u32>(AODataAllocation.Location.Start / sizeof(glm::u32)),
             .AODataAllocationIndex = static_cast<glm::u32>(AODataAllocation.Location.AllocationIndex)
         };
+
+        return chunkData;
+    }
+
+    ChunkDrawParams Chunk::GenerateDrawParams(glm::u32 chunkIndex) const {
+        assert(TotalVertices > 0);
+
+        ChunkDrawParams params = {};
+
+        auto firstVertex = static_cast<glm::u32>(VertexAllocation.Location.Start / sizeof(VertexData));
+        for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
+            params.Commands[face] = {
+                .vertexCount = NumVertices[face],
+                .instanceCount = 1,
+                .firstVertex = firstVertex,
+                .firstInstance = chunkIndex
+            };
+            firstVertex += NumVertices[face];
+        }
+        return params;
     }
 
     void Chunk::RegenerateVoxelBits() {

@@ -7,17 +7,19 @@
 #include "Utils/ThreadPool.h"
 
 namespace SpireVoxel {
-    ChunkMesher::ChunkMesher(VoxelWorld &world,
-                             Spire::BufferAllocator &chunkVertexBufferAllocator,
-                             Spire::BufferAllocator &chunkVoxelDataBufferAllocator,
-                             Spire::BufferAllocator &chunkAODataBufferAllocator,
-                             bool isProfilingMeshing)
+    ChunkMesher::ChunkMesher(
+        VoxelWorld &world,
+        Spire::BufferAllocator &chunkVertexBufferAllocator,
+        Spire::BufferAllocator &chunkVoxelDataBufferAllocator,
+        Spire::BufferAllocator &chunkAODataBufferAllocator,
+        const VoxelWorld::Settings &settings
+    )
         : m_numCPUThreads(std::thread::hardware_concurrency()),
           m_world(world),
           m_chunkVertexBufferAllocator(chunkVertexBufferAllocator),
           m_chunkVoxelDataBufferAllocator(chunkVoxelDataBufferAllocator),
           m_chunkAODataBufferAllocator(chunkAODataBufferAllocator),
-          m_isProfilingMeshing(isProfilingMeshing) {
+          m_settings(settings) {
         if (m_numCPUThreads == 0) {
             m_numCPUThreads = 8; // Failed to detect number of cores, 8 is a safe assumption
             Spire::info("Failed to detect number of threads to use, defaulting to {}", m_numCPUThreads);
@@ -38,7 +40,7 @@ namespace SpireVoxel {
     bool ChunkMesher::HandleChunkEdits(std::unordered_set<glm::ivec3> &editedChunks, glm::vec3 cameraCoords) const {
         // find the highest priority chunks
         glm::vec3 cameraChunkCoords = cameraCoords / static_cast<float>(SPIRE_VOXEL_CHUNK_SIZE);
-        std::vector<glm::uvec3> chunksToMesh = ClosestUtil::GetClosestCoords(editedChunks, cameraChunkCoords, m_isProfilingMeshing ? UINT32_MAX : m_numCPUThreads);
+        std::vector<glm::uvec3> chunksToMesh = ClosestUtil::GetClosestCoords(editedChunks, cameraChunkCoords, m_settings.LoadBalanceMeshing ? m_numCPUThreads : UINT32_MAX);
 
         std::unordered_map<Chunk *, std::future<ChunkMesh> > meshingChunks;
 
@@ -91,7 +93,7 @@ namespace SpireVoxel {
         allocation = {};
 
         std::optional<Spire::BufferAllocator::Allocation> alloc;
-        if (chunk.NumVertices > 0) {
+        if (chunk.TotalVertices > 0) {
             alloc = allocator.Allocate(requestedSize);
             if (alloc) {
                 allocation = *alloc;
@@ -117,23 +119,26 @@ namespace SpireVoxel {
         const Spire::BufferAllocator::Allocation oldAllocation = chunk.VertexAllocation;
         chunk.VertexAllocation = {};
 
-        std::vector<VertexData> &vertexData = mesh.Vertices;
-
-        if (!vertexData.empty()) {
-            std::optional alloc = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
+        if (mesh.CountVertices() > 0) {
+            std::optional alloc = m_chunkVertexBufferAllocator.Allocate(mesh.CountVertices() * sizeof(VertexData));
             if (alloc) {
                 chunk.VertexAllocation = *alloc;
 
                 // write the mesh into the vertex buffer
                 futures.push_back(
-                    Spire::ThreadPool::Instance().submit_task([&chunk,&chunkVertexBufferMemory, &vertexData] {
+                    Spire::ThreadPool::Instance().submit_task([&chunk,&chunkVertexBufferMemory, &mesh] {
                         void *memory = chunkVertexBufferMemory.GetByAllocation(chunk.VertexAllocation).Memory;
-                        memcpy(static_cast<char *>(memory) + chunk.VertexAllocation.Location.Start,
-                               vertexData.data(), vertexData.size() * sizeof(VertexData));
+                        glm::u32 offset = 0;
+                        for (const std::vector vertices : mesh.Vertices) {
+                            glm::u32 size = vertices.size() * sizeof(VertexData);
+                            memcpy(static_cast<char *>(memory) + chunk.VertexAllocation.Location.Start + offset,
+                                   vertices.data(), size);
+                            offset += size;
+                        }
                     }));
             } else {
                 Spire::error("Chunk vertex data allocation failed");
-                vertexData.clear();
+                mesh.Vertices = {};
             }
         }
 
@@ -141,13 +146,14 @@ namespace SpireVoxel {
             m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Location);
         }
 
-        chunk.NumVertices = vertexData.size();
+        chunk.TotalVertices = mesh.CountVertices();
+        chunk.NumVertices = mesh.GetVertexCounts();
 
         // write the voxel data
         // Since voxel data is stored in uint32 on GPU, we need to push an extra u16 as padding if we have an odd number of u16's
         std::size_t voxelDataPadding = mesh.VoxelTypes.size() % 2 == 1 ? sizeof(mesh.VoxelTypes[0]) : 0;
         if (!UploadData(chunk, voxelDataMemory, futures, sizeof(mesh.VoxelTypes[0]) * mesh.VoxelTypes.size() + voxelDataPadding, mesh.VoxelTypes.data(), chunk.VoxelDataAllocation,
-                        m_chunkVoxelDataBufferAllocator) && chunk.NumVertices > 0) {
+                        m_chunkVoxelDataBufferAllocator) && chunk.TotalVertices > 0) {
             // allocation failed, need to free the vertex allocation
             Spire::error("Chunk voxel data allocation failed, deallocating vertex buffer");
             if (chunk.VertexAllocation.Size > 0) m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk.VertexAllocation);
@@ -156,7 +162,7 @@ namespace SpireVoxel {
 
         // write the AO data
         if (!UploadData(chunk, aoDataMemory, futures, sizeof(mesh.AOData[0]) * mesh.AOData.size(), mesh.AOData.data(), chunk.AODataAllocation,
-                        m_chunkAODataBufferAllocator) && chunk.NumVertices > 0) {
+                        m_chunkAODataBufferAllocator) && chunk.TotalVertices > 0) {
             // allocation failed, need to free the vertex allocation
             Spire::error("Chunk AO data allocation failed, deallocating other buffers");
             if (chunk.VertexAllocation.Size > 0) m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk.VertexAllocation);

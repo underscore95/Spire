@@ -2,46 +2,46 @@
 #include "EngineIncludes.h"
 #include "Utils/MathsUtils.h"
 
-TEST(MathsTests, Remap_IdentityRange) {
+TEST(MathsRemapTests, Remap_IdentityRange) {
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(5.f, 0.f, 10.f, 0.f, 10.f), 5.f);
 }
 
-TEST(MathsTests, Remap_LowerBound) {
+TEST(MathsRemapTests, Remap_LowerBound) {
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(0.f, 0.f, 10.f, 10.f, 20.f), 10.f);
 }
 
-TEST(MathsTests, Remap_UpperBound) {
+TEST(MathsRemapTests, Remap_UpperBound) {
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(10.f, 0.f, 10.f, 10.f, 20.f), 20.f);
 }
 
-TEST(MathsTests, Remap_MiddleValue) {
+TEST(MathsRemapTests, Remap_MiddleValue) {
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(5.f, 0.f, 10.f, 10.f, 20.f), 15.f);
 }
 
-TEST(MathsTests, Remap_ReversedOutputRange) {
+TEST(MathsRemapTests, Remap_ReversedOutputRange) {
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(0.f, 0.f, 10.f, 20.f, 10.f), 20.f);
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(10.f, 0.f, 10.f, 20.f, 10.f), 10.f);
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(5.f, 0.f, 10.f, 20.f, 10.f), 15.f);
 }
 
-TEST(MathsTests, Remap_NegativeInputRange) {
+TEST(MathsRemapTests, Remap_NegativeInputRange) {
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(-5.f, -10.f, 0.f, 0.f, 100.f), 50.f);
 }
 
-TEST(MathsTests, Remap_NegativeOutputRange) {
+TEST(MathsRemapTests, Remap_NegativeOutputRange) {
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(5.f, 0.f, 10.f, -100.f, 0.f), -50.f);
 }
 
-TEST(MathsTests, Remap_ValueOutsideRange) {
+TEST(MathsRemapTests, Remap_ValueOutsideRange) {
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(15.f, 0.f, 10.f, 0.f, 100.f), 150.f);
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(-5.f, 0.f, 10.f, 0.f, 100.f), -50.f);
 }
 
-TEST(MathsTests, Remap_ReversedInputRange) {
+TEST(MathsRemapTests, Remap_ReversedInputRange) {
     EXPECT_FLOAT_EQ(Spire::MathsUtils::Remap(5.f, 10.f, 0.f, 0.f, 100.f), 50.f);
 }
 
-TEST(MathsTests, Remap_Vec2_MiddleValue) {
+TEST(MathsRemapTests, Remap_Vec2_MiddleValue) {
     glm::vec2 value(5.f, 2.5f);
     glm::vec2 currentMin(0.f, 0.f);
     glm::vec2 currentMax(10.f, 5.f);

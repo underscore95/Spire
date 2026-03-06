@@ -1,7 +1,8 @@
 include(../../CMake/Utils/Tests.cmake)
 
 add_executable(SpireTests
-        Tests/Test.cpp
+        Tests/MathsRemapTests.cpp
+        Tests/MathsDistanceSquareTests.cpp
 )
 
 target_include_directories(SpireTests PRIVATE "Tests/")
