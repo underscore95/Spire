@@ -144,7 +144,7 @@ namespace SpireVoxel {
     constexpr glm::u32 VERTICES_PER_FACE = 6;
 
     void Chunk::PushFace(ChunkMesh &mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const {
-        std::vector<VertexData> &vertices = mesh.Vertices;
+        std::vector<VertexData> &vertices = mesh.Vertices[face];
 
         assert(width > 0);
         assert(height > 0);
@@ -290,7 +290,6 @@ namespace SpireVoxel {
                         // push the face
                         glm::uvec3 chunkCoords = GreedyMeshingGrid::GetChunkCoords(slice, row, col, face + faceSignIndex);
                         PushFace(mesh, face + faceSignIndex, chunkCoords, width, height);
-                        mesh.VertexCounts[face + faceSignIndex] += VERTICES_PER_FACE;
 
                         if (grid.GetColumn(col) != 0) {
                             // we didn't get all the voxels on this row, loop again

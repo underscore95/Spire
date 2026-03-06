@@ -117,23 +117,26 @@ namespace SpireVoxel {
         const Spire::BufferAllocator::Allocation oldAllocation = chunk.VertexAllocation;
         chunk.VertexAllocation = {};
 
-        std::vector<VertexData> &vertexData = mesh.Vertices;
-
-        if (!vertexData.empty()) {
-            std::optional alloc = m_chunkVertexBufferAllocator.Allocate(vertexData.size() * sizeof(VertexData));
+        if (mesh.CountVertices() > 0) {
+            std::optional alloc = m_chunkVertexBufferAllocator.Allocate(mesh.CountVertices() * sizeof(VertexData));
             if (alloc) {
                 chunk.VertexAllocation = *alloc;
 
                 // write the mesh into the vertex buffer
                 futures.push_back(
-                    Spire::ThreadPool::Instance().submit_task([&chunk,&chunkVertexBufferMemory, &vertexData] {
+                    Spire::ThreadPool::Instance().submit_task([&chunk,&chunkVertexBufferMemory, &mesh] {
                         void *memory = chunkVertexBufferMemory.GetByAllocation(chunk.VertexAllocation).Memory;
-                        memcpy(static_cast<char *>(memory) + chunk.VertexAllocation.Location.Start,
-                               vertexData.data(), vertexData.size() * sizeof(VertexData));
+                        glm::u32 offset = 0;
+                        for (const std::vector vertices : mesh.Vertices) {
+                            glm::u32 size = vertices.size() * sizeof(VertexData);
+                            memcpy(static_cast<char *>(memory) + chunk.VertexAllocation.Location.Start + offset,
+                                   vertices.data(), size);
+                            offset += size;
+                        }
                     }));
             } else {
                 Spire::error("Chunk vertex data allocation failed");
-                vertexData.clear();
+        mesh.Vertices = {};
             }
         }
 
@@ -141,8 +144,8 @@ namespace SpireVoxel {
             m_chunkVertexBufferAllocator.ScheduleFreeAllocation(oldAllocation.Location);
         }
 
-        chunk.TotalVertices = vertexData.size();
-        chunk.NumVertices = mesh.VertexCounts;
+        chunk.TotalVertices = mesh.CountVertices();
+        chunk.NumVertices = mesh.GetVertexCounts();
 
         // write the voxel data
         // Since voxel data is stored in uint32 on GPU, we need to push an extra u16 as padding if we have an odd number of u16's
