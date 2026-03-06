@@ -40,3 +40,7 @@ glm::vec3 GameCamera::GetPosition() const {
 Spire::Frustum GameCamera::CalculateFrustum() const {
     return m_camera->CalculateFrustum();
 }
+
+glm::vec3 GameCamera::GetForward() const {
+    return m_camera->GetForward();
+}

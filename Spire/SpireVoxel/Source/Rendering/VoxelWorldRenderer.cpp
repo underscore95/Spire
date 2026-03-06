@@ -7,6 +7,7 @@
 #include "../../Assets/Shaders/PushConstants.h"
 #include "Chunk/ChunkDrawParams.h"
 #include "Utils/IVoxelCamera.h"
+#include "Utils/MathsUtils.h"
 
 namespace SpireVoxel {
     VoxelWorldRenderer::VoxelWorldRenderer(
@@ -58,7 +59,7 @@ namespace SpireVoxel {
         HandleChunkEdits(cameraPos);
 
         // Frustum culling
-        if (m_allowFrustumCulling && m_cameraInfoLastFrame != m_camera.GetCameraInfo()) {
+        if (m_cameraInfoLastFrame != m_camera.GetCameraInfo()) {
             m_cameraInfoLastFrame = m_camera.GetCameraInfo();
             UpdateChunkDatasBuffer();
         }
@@ -188,7 +189,20 @@ namespace SpireVoxel {
 
             assert(ChunkDrawParams::COMMANDS_PER_CHUNK == SPIRE_VOXEL_NUM_FACES);
             for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
-                bool shouldRenderFace = face == 2;
+                // Essentially, if the player's X coordinate is greater than the maximum X coordinate of the chunk, don't render any negative X faces
+                // This is back face culling: https://en.wikipedia.org/wiki/Back-face_culling
+                // but we can simplify the algorithm since every face is axis aligned
+
+                glm::ivec3 faceNormal = FaceToDirection(face);
+                glm::vec3 centerOfOppositeFace = worldPosition - faceNormal * SPIRE_VOXEL_CHUNK_SIZE;
+
+                glm::u32 index = face / 2; // x, y, or z coordinate
+                bool shouldRenderFace = IsFaceOnNegativeAxis(face)
+                                            ? centerOfOppositeFace[index] >= m_camera.GetPosition()[index]
+                                            : centerOfOppositeFace[index] <= m_camera.GetPosition()[index];
+
+                if (!shouldRenderFace) facesCulled++;
+
                 m_latestCachedChunkDrawCommands.back().Commands[face].instanceCount = shouldRenderChunk && shouldRenderFace ? 1 : 0;
             }
             if (!shouldRenderChunk) m_numChunksOutsideFrustum++;
