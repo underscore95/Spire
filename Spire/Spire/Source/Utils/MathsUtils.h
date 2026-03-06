@@ -19,5 +19,18 @@ namespace Spire {
                 Remap(value.y, currentMin.y, currentMax.y, newMin.y, newMax.y)
             );
         }
+
+        template<typename T>
+        static float DistanceSquared(const T &a, const T &b) {
+            // https://community.khronos.org/t/glm-vector-distancesquare/65282
+            T temp = a - b;
+            return dot(temp, temp);
+        }
     };
+
+    template<>
+    inline float MathsUtils::DistanceSquared<float>(const float &a, const float &b) {
+        float distance = a - b;
+        return distance * distance;
+    }
 } // Spire
