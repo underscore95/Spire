@@ -75,11 +75,11 @@ void GameApplication::Start(Engine &engine) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
     } else if (!ShouldStreamLoading()) {
-       // VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
+        // VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
     }
 
     //  world.LoadChunks({{-1, 0, 0}});
-  //  world.LoadChunks({{0, 0, 0}});
+    //  world.LoadChunks({{0, 0, 0}});
     // CuboidVoxelEdit({0,0,0},{64,64,64},{128}).Apply(world);
     // CuboidVoxelEdit({64,0,0},{64,64,64},{2}).Apply(world);
 
@@ -357,8 +357,11 @@ void GameApplication::RenderUi() const {
 
         ImGui::SliderFloat("Camera Speed: ", &m_camera->Speed, 1, 25);
         ImGui::SliderFloat("Camera Scale: ", &m_camera->Scale, 0.01, 1);
-        if (ImGui::Button("Teleport to 0,0,0")) {
-            m_camera->GetCamera().SetPosition(glm::vec3{0, 0, 0});
+
+        static glm::vec3 destination = {0, 0, 0};
+        ImGui::InputFloat3("Coordinates: ", &destination.x);
+        if (ImGui::Button("Teleport")) {
+            m_camera->GetCamera().SetPosition(destination);
         }
     }
 
