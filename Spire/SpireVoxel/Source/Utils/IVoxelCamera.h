@@ -24,5 +24,7 @@ namespace SpireVoxel {
         [[nodiscard]] virtual Spire::PerImageDescriptor GetDescriptor(glm::u32 binding) const = 0;
 
         [[nodiscard]] virtual Spire::Frustum CalculateFrustum() const = 0;
+
+        [[nodiscard]] virtual glm::vec3 GetForward() const = 0;
     };
 } // SpireVoxel

@@ -154,6 +154,10 @@ namespace SpireVoxel {
         return SPIRE_IVEC3_TYPE(0, 0, 0);
     }
 
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_VEC3_TYPE FaceToFloatDirection(SPIRE_UINT32_TYPE face) {
+        return SPIRE_VEC3_TYPE(FaceToDirection(face).x, FaceToDirection(face).y, FaceToDirection(face).z);
+    }
+
     // Convert from a direction to a face enum
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE DirectionToFace(SPIRE_VEC3_TYPE direction) {
 #ifdef __cplusplus
