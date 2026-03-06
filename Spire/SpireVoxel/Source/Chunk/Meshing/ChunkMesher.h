@@ -2,6 +2,7 @@
 
 #include "ChunkMesh.h"
 #include "EngineIncludes.h"
+#include "Chunk/VoxelWorld.h"
 
 namespace SpireVoxel {
     class VoxelWorld;
@@ -10,11 +11,13 @@ namespace SpireVoxel {
 
     class ChunkMesher {
     public:
-        ChunkMesher(VoxelWorld &world,
-                    Spire::BufferAllocator &chunkVertexBufferAllocator,
-                    Spire::BufferAllocator &chunkVoxelDataBufferAllocator,
-                    Spire::BufferAllocator &chunkAODataBufferAllocator,
-                    bool isProfilingMeshing);
+        ChunkMesher(
+            VoxelWorld &world,
+            Spire::BufferAllocator &chunkVertexBufferAllocator,
+            Spire::BufferAllocator &chunkVoxelDataBufferAllocator,
+            Spire::BufferAllocator &chunkAODataBufferAllocator,
+            const VoxelWorld::Settings &settings
+        );
 
     public:
         // Return true if something was remeshed
@@ -34,7 +37,8 @@ namespace SpireVoxel {
         void UploadChunkMesh(Chunk &chunk, ChunkMesh &mesh, Spire::BufferAllocator::MappedMemory &voxelDataMemory, Spire::BufferAllocator::MappedMemory &aoDataMemory,
                              Spire::BufferAllocator::MappedMemory &chunkVertexBufferMemory, std::vector<std::future<void> > &futures) const;
 
-        bool UploadData(Chunk &chunk, Spire::BufferAllocator::MappedMemory &mappedMemory, std::vector<std::future<void>> &futures, glm::u32 requestedSize, const void *data, Spire::BufferAllocator::
+        bool UploadData(Chunk &chunk, Spire::BufferAllocator::MappedMemory &mappedMemory, std::vector<std::future<void> > &futures, glm::u32 requestedSize, const void *data,
+                        Spire::BufferAllocator::
                         Allocation &allocation, Spire::BufferAllocator &allocator) const;
 
     private:
@@ -43,6 +47,6 @@ namespace SpireVoxel {
         Spire::BufferAllocator &m_chunkVertexBufferAllocator;
         Spire::BufferAllocator &m_chunkVoxelDataBufferAllocator;
         Spire::BufferAllocator &m_chunkAODataBufferAllocator;
-        bool m_isProfilingMeshing;
+        VoxelWorld::Settings m_settings;
     };
 } // SpireVoxel

@@ -14,9 +14,8 @@ namespace SpireVoxel {
         VoxelWorld &world,
         Spire::RenderingManager &renderingManager,
         const std::function<void()> &recreatePipelineCallback,
-        bool isProfilingMeshing,
         const IVoxelCamera &camera,
-        bool allowFrustumCulling
+        const VoxelWorld::Settings &settings
     )
         : m_world(world),
           m_renderingManager(renderingManager),
@@ -28,12 +27,15 @@ namespace SpireVoxel {
           m_chunkAOBufferAllocator(m_renderingManager, recreatePipelineCallback, sizeof(glm::u32), m_renderingManager.GetSwapchain().GetNumImages(),
                                    1024 * 1024 * 128, 1, true),
           m_camera(camera),
-          m_allowFrustumCulling(allowFrustumCulling) {
+          m_settings(settings) {
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world vertices", m_chunkVertexBufferAllocator.GetTotalSize() / 1024 / 1024);
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", m_chunkVoxelDataBufferAllocator.GetTotalSize() / 1024 / 1024);
         Spire::info("Allocated {} mb BufferAllocator on GPU to store world voxel data", m_chunkAOBufferAllocator.GetTotalSize() / 1024 / 1024);
-        if (!m_allowFrustumCulling) {
+        if (!settings.AllowFrustumCulling) {
             Spire::warn("Frustum culling is disabled!");
+        }
+        if (!settings.AllowBackfaceCulling) {
+            Spire::warn("Backface culling is disabled!");
         }
 
         m_chunkDatasBuffer = m_renderingManager.GetBufferManager().CreatePerImageStorageBuffers(
@@ -52,7 +54,7 @@ namespace SpireVoxel {
 
         m_dirtyChunkDataBuffers.resize(renderingManager.GetSwapchain().GetNumImages());
 
-        m_chunkMesher = std::make_unique<ChunkMesher>(m_world, m_chunkVertexBufferAllocator, m_chunkVoxelDataBufferAllocator, m_chunkAOBufferAllocator, isProfilingMeshing);
+        m_chunkMesher = std::make_unique<ChunkMesher>(m_world, m_chunkVertexBufferAllocator, m_chunkVoxelDataBufferAllocator, m_chunkAOBufferAllocator, settings);
     }
 
     void VoxelWorldRenderer::Render(glm::u32 swapchainImageIndex, glm::vec3 cameraPos) {
@@ -163,7 +165,8 @@ namespace SpireVoxel {
     }
 
     glm::u32 VoxelWorldRenderer::GetNumBackfaceCulledFaces() const {
-    return m_numBackfaceCulledFaces;}
+        return m_numBackfaceCulledFaces;
+    }
 
     glm::u32 VoxelWorldRenderer::GetNumNonBackfaceCulledFaces() const {
         return m_numNonBackfaceCulledFaces;
@@ -182,8 +185,8 @@ namespace SpireVoxel {
         Spire::Frustum cameraFrustum = m_camera.CalculateFrustum();
         m_numChunksOutsideFrustum = 0;
         m_numNonEmptyChunks = 0;
-        m_numBackfaceCulledFaces=0;
-        m_numNonBackfaceCulledFaces=0;
+        m_numBackfaceCulledFaces = 0;
+        m_numNonBackfaceCulledFaces = 0;
 
         for (const auto &[_, chunk] : m_world) {
             auto chunkIndex = static_cast<glm::u32>(m_latestCachedChunkData.size());
@@ -194,7 +197,7 @@ namespace SpireVoxel {
             m_latestCachedChunkDrawCommands.push_back(chunk->GenerateDrawParams(chunkIndex));
 
             glm::ivec3 worldPosition = VoxelWorld::GetWorldVoxelPositionInChunk(chunk->ChunkPosition, {0, 0, 0});
-            bool shouldRenderChunk = !m_allowFrustumCulling || cameraFrustum.IsBoxVisible(worldPosition, worldPosition + SPIRE_VOXEL_CHUNK_DIMENSIONS);
+            bool shouldRenderChunk = !m_settings.AllowFrustumCulling || cameraFrustum.IsBoxVisible(worldPosition, worldPosition + SPIRE_VOXEL_CHUNK_DIMENSIONS);
 
             assert(ChunkDrawParams::COMMANDS_PER_CHUNK == SPIRE_VOXEL_NUM_FACES);
             for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
@@ -209,7 +212,8 @@ namespace SpireVoxel {
                 bool shouldRenderFace = IsFaceOnNegativeAxis(face)
                                             ? centerOfOppositeFace[index] >= m_camera.GetPosition()[index]
                                             : centerOfOppositeFace[index] <= m_camera.GetPosition()[index];
-                
+                if (!m_settings.AllowBackfaceCulling) shouldRenderFace = true;
+
                 m_latestCachedChunkDrawCommands.back().Commands[face].instanceCount = shouldRenderChunk && shouldRenderFace ? 1 : 0;
 
                 if (shouldRenderChunk) {

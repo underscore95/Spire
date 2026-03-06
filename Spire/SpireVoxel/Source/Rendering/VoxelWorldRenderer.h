@@ -3,6 +3,7 @@
 #include "VoxelRenderer.h"
 #include "Chunk/Chunk.h"
 #include "Chunk/ChunkDrawParams.h"
+#include "Chunk/VoxelWorld.h"
 #include "Chunk/Meshing/ChunkMesh.h"
 #include "Chunk/Meshing/ChunkMesher.h"
 
@@ -21,9 +22,8 @@ namespace SpireVoxel {
             VoxelWorld &world,
             Spire::RenderingManager &renderingManager,
             const std::function<void()> &recreatePipelineCallback,
-            bool isProfilingMeshing,
-            const IVoxelCamera& camera,
-            bool allowFrustumCulling
+            const IVoxelCamera &camera,
+            const VoxelWorld::Settings &settings
         );
 
     public:
@@ -92,12 +92,12 @@ namespace SpireVoxel {
         std::unordered_set<glm::ivec3> m_editedChunks;
         std::unique_ptr<ChunkMesher> m_chunkMesher;
         std::mutex m_chunkEditNotifyMutex;
-        const IVoxelCamera& m_camera;
+        const IVoxelCamera &m_camera;
         glm::u32 m_numChunksOutsideFrustum;
         glm::u32 m_numNonEmptyChunks;
         CameraInfo m_cameraInfoLastFrame = {};
-        bool m_allowFrustumCulling;
         glm::u32 m_numBackfaceCulledFaces = 0;
         glm::u32 m_numNonBackfaceCulledFaces = 0;
+        VoxelWorld::Settings m_settings;
     };
 } // SpireVoxel

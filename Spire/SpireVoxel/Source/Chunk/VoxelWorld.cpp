@@ -7,14 +7,14 @@ namespace SpireVoxel {
         Spire::Engine &engine,
         const std::shared_ptr<ISamplingOffsets> &samplingOffsets,
         const std::function<void()> &recreatePipelineCallback,
-        bool isProfilingMeshing,
         std::unique_ptr<IProceduralGenerationProvider> provider,
         std::unique_ptr<IChunkOrderController> controller,
         IVoxelCamera &camera,
-        bool allowFrustumCulling
+        Settings settings
     )
-        : m_engine(engine) {
-        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, engine.GetRenderingManager(), recreatePipelineCallback, isProfilingMeshing, camera, allowFrustumCulling);
+        : m_engine(engine),
+          m_settings(settings) {
+        m_renderer = std::make_unique<VoxelWorldRenderer>(*this, engine.GetRenderingManager(), recreatePipelineCallback, camera, settings);
         m_proceduralGenerationManager = std::make_unique<ProceduralGenerationManager>(std::move(provider), std::move(controller), *this, camera);
         m_lodManager = std::unique_ptr<LODManager>(new LODManager(*this, samplingOffsets));
     }
@@ -171,6 +171,10 @@ namespace SpireVoxel {
             abs(worldVoxelPosition.y % SPIRE_VOXEL_CHUNK_SIZE),
             abs(worldVoxelPosition.z % SPIRE_VOXEL_CHUNK_SIZE)
         };
+    }
+
+    VoxelWorld::Settings VoxelWorld::GetSettings() const {
+        return m_settings;
     }
 
     void VoxelWorld::Update() const {

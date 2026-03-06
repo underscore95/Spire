@@ -17,8 +17,6 @@
 using namespace Spire;
 using namespace SpireVoxel;
 
-constexpr bool ALLOW_FRUSTUM_CULLING = !Profiling::IS_PROFILING;
-
 bool ShouldStreamLoading() {
     if (Profiling::IS_PROFILING) return false;
     return false;
@@ -41,15 +39,24 @@ void GameApplication::Start(Engine &engine) {
     }
 
     m_camera = std::make_unique<GameCamera>(engine);
+    VoxelWorld::Settings actualSettings = {
+        .LoadBalanceMeshing = !Profiling::IS_PROFILING,
+        .AllowFrustumCulling = !Profiling::IS_PROFILING,
+        .AllowBackfaceCulling = !Profiling::IS_PROFILING
+    };
+    VoxelWorld::Settings testSettings = {
+        .LoadBalanceMeshing = false,
+        .AllowFrustumCulling = true,
+        .AllowBackfaceCulling = true
+    };
     auto tempWorld = std::make_unique<VoxelWorld>(
         engine,
         std::make_unique<SamplingOffsets>(std::string(GetAssetsDirectory()) + "/LODSamplingOffsets.bin"),
         [this] { RecreatePipeline(); },
-        Profiling::IS_PROFILING,
         std::move(proceduralGenerationProvider),
         std::move(proceduralGenerationController),
         *m_camera,
-        ALLOW_FRUSTUM_CULLING
+        testSettings
     );
 
     constexpr glm::vec3 CORNFLOWER_BLUE = {0.392, 0.584, 0.929};
@@ -330,18 +337,28 @@ void GameApplication::RenderUi() const {
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0))
     );
 
-    if (ALLOW_FRUSTUM_CULLING) {
-        ImGui::Text("Frustum culled %d of %d non-empty chunks", m_voxelRenderer->GetWorld().GetRenderer().GetNumChunksOutsideFrustum(),
-                    m_voxelRenderer->GetWorld().GetRenderer().GetNumNonEmptyChunks());
+    if (m_voxelRenderer->GetWorld().GetSettings().AllowFrustumCulling) {
+        int nonEmpty = m_voxelRenderer->GetWorld().GetRenderer().GetNumNonEmptyChunks();
+        ImGui::Text("Frustum culled %d of %d non-empty chunks (%.1f%%)",
+                    m_voxelRenderer->GetWorld().GetRenderer().GetNumChunksOutsideFrustum(),
+                    nonEmpty,
+                    nonEmpty == 0 ? 0.0f : 100 * m_voxelRenderer->GetWorld().GetRenderer().GetNumChunksOutsideFrustum() / static_cast<float>(nonEmpty)
+        );
     } else {
         ImGui::TextColored(ImVec4{1, 0, 0, 1}, "Frustum culling is disabled!");
     }
 
-    ImGui::Text(
-        "Backface culling culled %d of %d faces (excluding already culled chunks)",
-        m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces(),
-        m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces() + m_voxelRenderer->GetWorld().GetRenderer().GetNumNonBackfaceCulledFaces()
-    );
+    if (m_voxelRenderer->GetWorld().GetSettings().AllowFrustumCulling) {
+        int total = m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces() + m_voxelRenderer->GetWorld().GetRenderer().GetNumNonBackfaceCulledFaces();
+        ImGui::Text(
+            "Backface culling culled %d of %d faces (%.1f%%) (excluding already culled chunks)",
+            m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces(),
+            total,
+            total == 0 ? 0.0f : 100 * m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces() / static_cast<float>(total)
+        );
+    } else {
+        ImGui::TextColored(ImVec4{1, 0, 0, 1}, "Backface culling is disabled!");
+    }
 
     m_profiling->RenderUI();
 
