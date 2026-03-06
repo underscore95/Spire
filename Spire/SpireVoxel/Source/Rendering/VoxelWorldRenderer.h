@@ -51,6 +51,10 @@ namespace SpireVoxel {
 
         [[nodiscard]] glm::u32 GetNumNonEmptyChunks() const;
 
+        [[nodiscard]] glm::u32 GetNumBackfaceCulledFaces() const;
+
+        [[nodiscard]] glm::u32 GetNumNonBackfaceCulledFaces() const;
+
     private:
         void NotifyChunkLoadedOrUnloaded();
 
@@ -93,5 +97,7 @@ namespace SpireVoxel {
         glm::u32 m_numNonEmptyChunks;
         CameraInfo m_cameraInfoLastFrame = {};
         bool m_allowFrustumCulling;
+        glm::u32 m_numBackfaceCulledFaces = 0;
+        glm::u32 m_numNonBackfaceCulledFaces = 0;
     };
 } // SpireVoxel

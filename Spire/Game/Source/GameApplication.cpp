@@ -75,7 +75,7 @@ void GameApplication::Start(Engine &engine) {
         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
         info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
     } else if (!ShouldStreamLoading()) {
-         VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
+        VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
     }
 
     //  world.LoadChunks({{-1, 0, 0}});
@@ -336,6 +336,12 @@ void GameApplication::RenderUi() const {
     } else {
         ImGui::TextColored(ImVec4{1, 0, 0, 1}, "Frustum culling is disabled!");
     }
+
+    ImGui::Text(
+        "Backface culling culled %d of %d faces (excluding already culled chunks)",
+        m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces(),
+        m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces() + m_voxelRenderer->GetWorld().GetRenderer().GetNumNonBackfaceCulledFaces()
+    );
 
     m_profiling->RenderUI();
 

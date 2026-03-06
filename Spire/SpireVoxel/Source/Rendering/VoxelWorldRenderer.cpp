@@ -162,6 +162,13 @@ namespace SpireVoxel {
         return m_numNonEmptyChunks;
     }
 
+    glm::u32 VoxelWorldRenderer::GetNumBackfaceCulledFaces() const {
+    return m_numBackfaceCulledFaces;}
+
+    glm::u32 VoxelWorldRenderer::GetNumNonBackfaceCulledFaces() const {
+        return m_numNonBackfaceCulledFaces;
+    }
+
     void VoxelWorldRenderer::NotifyChunkLoadedOrUnloaded() {
         std::unique_lock lock(m_chunkEditNotifyMutex);
         UpdateChunkDatasBuffer();
@@ -175,6 +182,8 @@ namespace SpireVoxel {
         Spire::Frustum cameraFrustum = m_camera.CalculateFrustum();
         m_numChunksOutsideFrustum = 0;
         m_numNonEmptyChunks = 0;
+        m_numBackfaceCulledFaces=0;
+        m_numNonBackfaceCulledFaces=0;
 
         for (const auto &[_, chunk] : m_world) {
             auto chunkIndex = static_cast<glm::u32>(m_latestCachedChunkData.size());
@@ -202,6 +211,11 @@ namespace SpireVoxel {
                                             : centerOfOppositeFace[index] <= m_camera.GetPosition()[index];
                 
                 m_latestCachedChunkDrawCommands.back().Commands[face].instanceCount = shouldRenderChunk && shouldRenderFace ? 1 : 0;
+
+                if (shouldRenderChunk) {
+                    if (shouldRenderFace) m_numNonBackfaceCulledFaces++;
+                    else m_numBackfaceCulledFaces++;
+                }
             }
             if (!shouldRenderChunk) m_numChunksOutsideFrustum++;
         }
