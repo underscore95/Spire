@@ -185,8 +185,11 @@ namespace SpireVoxel {
 
             glm::ivec3 worldPosition = VoxelWorld::GetWorldVoxelPositionInChunk(chunk->ChunkPosition, {0, 0, 0});
             bool shouldRenderChunk = !m_allowFrustumCulling || cameraFrustum.IsBoxVisible(worldPosition, worldPosition + SPIRE_VOXEL_CHUNK_DIMENSIONS);
-            for (auto drawParams : m_latestCachedChunkDrawCommands.back().Commands) {
-                drawParams.instanceCount = shouldRenderChunk;
+
+            assert(ChunkDrawParams::COMMANDS_PER_CHUNK == SPIRE_VOXEL_NUM_FACES);
+            for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
+                bool shouldRenderFace = face == 2;
+                m_latestCachedChunkDrawCommands.back().Commands[face].instanceCount = shouldRenderChunk && shouldRenderFace ? 1 : 0;
             }
             if (!shouldRenderChunk) m_numChunksOutsideFrustum++;
         }

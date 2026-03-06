@@ -30,7 +30,7 @@ public:
     //static constexpr std::array<ProfileStrategy, 2> PROFILE_STRATEGIES = {PROFILE_STATIC_1000, PROFILE_DYNAMIC_10};
     static constexpr std::array PROFILE_STRATEGIES = {PROFILE_STATIC_1000};
 
-    static constexpr bool BEGIN_PROFILING_AUTOMATICALLY = true;
+    static constexpr bool BEGIN_PROFILING_AUTOMATICALLY = false;
 
 #ifndef NDEBUG
     static constexpr bool IS_PROFILING = false; // debug
