@@ -200,7 +200,7 @@ namespace SpireVoxel {
                 bool shouldRenderFace = IsFaceOnNegativeAxis(face)
                                             ? centerOfOppositeFace[index] >= m_camera.GetPosition()[index]
                                             : centerOfOppositeFace[index] <= m_camera.GetPosition()[index];
-
+                
                 m_latestCachedChunkDrawCommands.back().Commands[face].instanceCount = shouldRenderChunk && shouldRenderFace ? 1 : 0;
             }
             if (!shouldRenderChunk) m_numChunksOutsideFrustum++;
