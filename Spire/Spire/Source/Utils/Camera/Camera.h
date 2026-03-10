@@ -38,6 +38,8 @@ namespace Spire {
 
         [[nodiscard]] Frustum CalculateFrustum() const;
 
+        void SetYawPitch(float yawDegrees, float pitchDegrees);
+
     private:
         void UpdateCameraVectors();
 

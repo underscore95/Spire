@@ -1,10 +1,15 @@
 #pragma once
 
+#include "GameCamera.h"
 #include "VoxelRenderer.h"
 
 class Profiling {
 public:
-    explicit Profiling(Spire::Engine &engine, SpireVoxel::VoxelRenderer &voxelRenderer);
+    explicit Profiling(
+        Spire::Engine &engine,
+        SpireVoxel::VoxelRenderer &voxelRenderer,
+        GameCamera &camera
+    );
 
 public:
     void Update();
@@ -45,4 +50,5 @@ private:
     std::string m_profileJson;
     Spire::Timer m_timeSinceBeginProfiling;
     glm::u32 m_profilingStartedFrame = 0;
+    GameCamera &m_camera;
 };

@@ -1,11 +1,17 @@
 #include "Profiling.h"
 
+#include "GameCamera.h"
 #include "Chunk/VoxelWorld.h"
 
 using namespace Spire;
 
-Profiling::Profiling(Engine &engine, SpireVoxel::VoxelRenderer &voxelRenderer) : m_engine(engine),
-                                                                                 m_voxelRenderer(voxelRenderer) {
+Profiling::Profiling(
+    Engine &engine,
+    SpireVoxel::VoxelRenderer &voxelRenderer,
+    GameCamera &camera)
+    : m_engine(engine),
+      m_voxelRenderer(voxelRenderer),
+      m_camera(camera) {
     if constexpr (BEGIN_PROFILING_AUTOMATICALLY) {
         m_profilingStartedFrame = 1;
     }
@@ -45,13 +51,16 @@ void Profiling::Update() {
 
     if (currentFrame == profileEndFrame) {
         m_profileStrategyIndex++;
+        SpireVoxel::VoxelWorld::Settings settings = m_voxelRenderer.GetWorld().GetSettings();
         m_profileJson += std::format(
-            R"({{"time_ms": {}, "frames": {}, "chunks": {}, "world": "{}", "dynamic_state": "{}", "chunk_gpu_memory": {}, "chunk_cpu_memory": {}, "window_width": {}, "window_height": {}}}, )",
+            R"({{"time_ms": {}, "frames": {}, "chunks": {}, "world": "{}", "dynamic_state": "{}", "frustum_culling": "{}", "face_culling": "{}", "chunk_gpu_memory": {}, "chunk_cpu_memory": {}, "window_width": {}, "window_height": {}}}, )",
             m_timeSinceBeginProfiling.MillisSinceStart(),
             profileStrategy.FramesToProfile,
             world.NumLoadedChunks(),
             PROFILE_WORLD_NAME,
             profileStrategy.Dynamic,
+            settings.AllowFrustumCulling,
+            settings.AllowBackfaceCulling,
             world.CalculateGPUMemoryUsageForChunks(),
             world.CalculateCPUMemoryUsageForChunks(),
             m_engine.GetWindow().GetDimensions().x,
@@ -76,6 +85,11 @@ void Profiling::RenderUI() {
                 if (ImGui::Button("Begin Profiling")) {
                     m_profilingStartedFrame = m_voxelRenderer.GetCurrentFrame();
                 }
+            }
+
+            if (ImGui::Button("Teleport to profiling location")) {
+                m_camera.GetCamera().SetPosition({32, 73, 35});
+                m_camera.GetCamera().SetYawPitch(50.0f, 0.0f);
             }
         }
     }

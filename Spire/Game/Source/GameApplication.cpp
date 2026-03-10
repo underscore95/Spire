@@ -46,7 +46,7 @@ void GameApplication::Start(Engine &engine) {
     };
     VoxelWorld::Settings testSettings = {
         .LoadBalanceMeshing = false,
-        .AllowFrustumCulling = false,
+        .AllowFrustumCulling = true,
         .AllowBackfaceCulling = true
     };
     auto tempWorld = std::make_unique<VoxelWorld>(
@@ -221,7 +221,7 @@ void GameApplication::Start(Engine &engine) {
     //     }
     // }
 
-    m_profiling = std::make_unique<Profiling>(*m_engine, *m_voxelRenderer);
+    m_profiling = std::make_unique<Profiling>(*m_engine, *m_voxelRenderer, *m_camera);
 }
 
 GameApplication::~GameApplication() {
@@ -348,7 +348,7 @@ void GameApplication::RenderUi() const {
         ImGui::TextColored(ImVec4{1, 0, 0, 1}, "Frustum culling is disabled!");
     }
 
-    if (m_voxelRenderer->GetWorld().GetSettings().AllowFrustumCulling) {
+    if (m_voxelRenderer->GetWorld().GetSettings().AllowBackfaceCulling) {
         int total = m_voxelRenderer->GetWorld().GetRenderer().GetNumBackfaceCulledFaces() + m_voxelRenderer->GetWorld().GetRenderer().GetNumNonBackfaceCulledFaces();
         ImGui::Text(
             "Backface culling culled %d of %d faces (%.1f%%) (excluding already culled chunks)",

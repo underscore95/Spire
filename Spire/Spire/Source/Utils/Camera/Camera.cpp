@@ -112,6 +112,11 @@ namespace Spire {
         return {GetProjectionMatrix() * GetViewMatrix()};
     }
 
+    void Camera::SetYawPitch(float yawDegrees, float pitchDegrees) {
+        m_yawDegrees = yawDegrees;
+        m_pitchDegrees = pitchDegrees;
+    }
+
     void Camera::UpdateCameraVectors() {
         // calculate the new Front vector
         glm::vec3 front;
