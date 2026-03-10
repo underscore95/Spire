@@ -9,7 +9,8 @@ namespace Spire {
                    glm::vec3 position,
                    glm::vec3 up,
                    float yawDegrees,
-                   float pitchDegrees)
+                   float pitchDegrees,
+                   float fovYDegrees)
         : m_window(m_window),
           m_position(position),
           m_front(glm::vec3(0.0f, 0.0f, -1.0f)),
@@ -18,7 +19,7 @@ namespace Spire {
           m_pitchDegrees(pitchDegrees),
           m_movementSpeed(SPEED),
           m_mouseSensitivity(SENSITIVITY),
-          m_zoom(ZOOM) {
+          m_fovY(glm::radians(fovYDegrees)) {
         UpdateCameraVectors();
     }
 
@@ -27,7 +28,7 @@ namespace Spire {
     }
 
     glm::mat4 Camera::GetProjectionMatrix() const {
-        return glm::perspective(glm::radians(m_zoom), m_window.GetAspectRatio(), 0.1f, 10000.0f);
+        return glm::perspective(m_fovY, m_window.GetAspectRatio(), 0.1f, 10000.0f);
     }
 
     void Camera::Update(float deltaTime) {
@@ -59,13 +60,6 @@ namespace Spire {
             if (m_pitchDegrees < -89.0f)
                 m_pitchDegrees = -89.0f;
         }
-
-        // Zoom
-        m_zoom -= m_window.GetScrollDelta().y;
-        if (m_zoom < 1.0f)
-            m_zoom = 1.0f;
-        if (m_zoom > 45.0f)
-            m_zoom = 45.0f;
 
         // Update
         UpdateCameraVectors();

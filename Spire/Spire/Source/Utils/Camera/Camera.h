@@ -10,7 +10,7 @@ namespace Spire {
     public:
         explicit Camera(const Window &m_window, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
                         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
-                        float yawDegrees = YAW, float pitchDegrees = PITCH);
+                        float yawDegrees = YAW, float pitchDegrees = PITCH, float fovYDegrees = 45);
 
     public:
         [[nodiscard]] glm::mat4 GetViewMatrix() const;
@@ -36,7 +36,6 @@ namespace Spire {
         static constexpr float PITCH = 0.0f;
         static constexpr float SPEED = 25.0f;
         static constexpr float SENSITIVITY = 0.05f;
-        static constexpr float ZOOM = 45.0f;
         static constexpr bool CONSTRAIN_PITCH = true; // if true, pitch range -89 to 89 to prevent screen flipping
 
     private:
@@ -53,6 +52,6 @@ namespace Spire {
 
         float m_movementSpeed;
         float m_mouseSensitivity;
-        float m_zoom;
+        float m_fovY;
     };
 }
