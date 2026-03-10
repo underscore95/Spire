@@ -228,17 +228,18 @@ namespace SpireVoxel {
         }
     }
 
-    void VoxelWorldRenderer::FreeChunkVertexBuffer(Chunk &chunk) {
+    void VoxelWorldRenderer::FreeChunkBuffers(Chunk &chunk) {
         if (chunk.VertexAllocation.Size > 0) {
             m_chunkVertexBufferAllocator.ScheduleFreeAllocation(chunk.VertexAllocation);
             chunk.VertexAllocation = {};
         }
-    }
-
-    void VoxelWorldRenderer::FreeChunkVoxelDataBuffer(Chunk &chunk) {
         if (chunk.VoxelDataAllocation.Size > 0) {
             m_chunkVoxelDataBufferAllocator.ScheduleFreeAllocation(chunk.VoxelDataAllocation);
             chunk.VoxelDataAllocation = {};
+        }
+        if (chunk.AODataAllocation.Size > 0) {
+            m_chunkAOBufferAllocator.ScheduleFreeAllocation(chunk.AODataAllocation);
+            chunk.AODataAllocation = {};
         }
     }
 

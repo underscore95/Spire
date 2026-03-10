@@ -60,9 +60,7 @@ namespace SpireVoxel {
 
         void UpdateChunkDataCache();
 
-        void FreeChunkVertexBuffer(Chunk &chunk);
-
-        void FreeChunkVoxelDataBuffer(Chunk &chunk);
+        void FreeChunkBuffers(Chunk &chunk);
 
         [[nodiscard]] PushConstantsData CreatePushConstants() const;
 
