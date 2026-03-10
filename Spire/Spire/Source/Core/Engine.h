@@ -17,7 +17,7 @@ namespace Spire {
         ~Engine();
 
     public:
-        [[nodiscard]] const Window &GetWindow() const;
+        [[nodiscard]] Window &GetWindow() const;
 
         [[nodiscard]] RenderingManager &GetRenderingManager() const;
 

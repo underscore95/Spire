@@ -5,12 +5,14 @@
 // Adapted from: https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/camera.h
 
 namespace Spire {
-    Camera::Camera(const Window &m_window,
-                   glm::vec3 position,
-                   glm::vec3 up,
-                   float yawDegrees,
-                   float pitchDegrees,
-                   float fovYDegrees)
+    Camera::Camera(
+        ControlScheme controlScheme,
+        Window &m_window,
+        glm::vec3 position,
+        glm::vec3 up,
+        float yawDegrees,
+        float pitchDegrees,
+        float fovYDegrees)
         : m_window(m_window),
           m_position(position),
           m_front(glm::vec3(0.0f, 0.0f, -1.0f)),
@@ -19,7 +21,8 @@ namespace Spire {
           m_pitchDegrees(pitchDegrees),
           m_movementSpeed(SPEED),
           m_mouseSensitivity(SENSITIVITY),
-          m_fovY(glm::radians(fovYDegrees)) {
+          m_fovY(glm::radians(fovYDegrees)),
+          m_controlScheme(controlScheme) {
         UpdateCameraVectors();
     }
 
@@ -32,26 +35,53 @@ namespace Spire {
     }
 
     void Camera::Update(float deltaTime) {
-        // Keyboard
         float velocity = m_movementSpeed * deltaTime;
-        if (m_window.IsKeyHeld(GLFW_KEY_W))
-            m_position += m_front * velocity;
-        if (m_window.IsKeyHeld(GLFW_KEY_S))
-            m_position -= m_front * velocity;
-        if (m_window.IsKeyHeld(GLFW_KEY_A))
-            m_position += m_left * velocity;
-        if (m_window.IsKeyHeld(GLFW_KEY_D))
-            m_position -= m_left * velocity;
-        if (m_window.IsKeyHeld(GLFW_KEY_Q))
-            m_position -= m_up * velocity;
-        if (m_window.IsKeyHeld(GLFW_KEY_E))
-            m_position += m_up * velocity;
+        if (m_controlScheme == ControlScheme::Developer) {
+            // Keyboard
+            if (m_window.IsKeyHeld(GLFW_KEY_W))
+                m_position += m_front * velocity;
+            if (m_window.IsKeyHeld(GLFW_KEY_S))
+                m_position -= m_front * velocity;
+            if (m_window.IsKeyHeld(GLFW_KEY_A))
+                m_position += m_left * velocity;
+            if (m_window.IsKeyHeld(GLFW_KEY_D))
+                m_position -= m_left * velocity;
+            if (m_window.IsKeyHeld(GLFW_KEY_Q))
+                m_position -= m_up * velocity;
+            if (m_window.IsKeyHeld(GLFW_KEY_E))
+                m_position += m_up * velocity;
 
-        // Mouse
-        if (m_window.IsMouseButtonHeld(GLFW_MOUSE_BUTTON_RIGHT)) {
+            // Mouse
+            if (m_window.IsMouseButtonHeld(GLFW_MOUSE_BUTTON_RIGHT)) {
+                m_yawDegrees -= m_window.GetMouseDelta().x * m_mouseSensitivity;
+                m_pitchDegrees -= m_window.GetMouseDelta().y * m_mouseSensitivity;
+            }
+        } else if (m_controlScheme == ControlScheme::Default) {
+            glm::vec3 front = glm::normalize(glm::vec3{m_front.x, 0, m_front.z});
+            glm::vec3 left = glm::normalize(glm::vec3{m_left.x, 0, m_left.z});
+            glm::vec3 up = m_worldUp;
+
+            // Keyboard
+            if (m_window.IsKeyHeld(GLFW_KEY_W))
+                m_position += front * velocity;
+            if (m_window.IsKeyHeld(GLFW_KEY_S))
+                m_position -= front * velocity;
+            if (m_window.IsKeyHeld(GLFW_KEY_A))
+                m_position += left * velocity;
+            if (m_window.IsKeyHeld(GLFW_KEY_D))
+                m_position -= left * velocity;
+            if (m_window.IsKeyHeld(GLFW_KEY_LEFT_SHIFT))
+                m_position -= up * velocity;
+            if (m_window.IsKeyHeld(GLFW_KEY_SPACE))
+                m_position += up * velocity;
+
+            // Mouse
             m_yawDegrees -= m_window.GetMouseDelta().x * m_mouseSensitivity;
             m_pitchDegrees -= m_window.GetMouseDelta().y * m_mouseSensitivity;
-        }
+
+            m_window.SetCursorPos(m_window.GetDimensions() / 2u);
+        } else
+            assert(false);
 
         // make sure that when pitch is out of bounds, screen doesn't get flipped
         if (CONSTRAIN_PITCH) {

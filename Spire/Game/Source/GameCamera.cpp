@@ -3,10 +3,10 @@
 using namespace Spire;
 using namespace SpireVoxel;
 
-GameCamera::GameCamera(const Engine &engine)
+GameCamera::GameCamera(const Engine &engine, Camera::ControlScheme controlScheme)
     : m_engine(engine) {
     m_uniformBuffer = engine.GetRenderingManager().GetBufferManager().CreatePerImageUniformBuffers(sizeof(CameraInfo));
-    m_camera = std::make_unique<Camera>(engine.GetWindow(), glm::vec3{5, 7, 10});
+    m_camera = std::make_unique<Camera>(controlScheme, engine.GetWindow(), glm::vec3{5, 7, 10});
 }
 
 void GameCamera::Update() {

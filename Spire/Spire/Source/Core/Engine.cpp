@@ -82,7 +82,7 @@ namespace Spire {
         info("Total shutdown time: {} ms\n", totalShutdownTime);
     }
 
-    const Window &Engine::GetWindow() const {
+    Window &Engine::GetWindow() const {
         return *m_window;
     }
 

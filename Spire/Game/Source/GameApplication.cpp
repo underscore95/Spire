@@ -38,7 +38,7 @@ void GameApplication::Start(Engine &engine) {
         );
     }
 
-    m_camera = std::make_unique<GameCamera>(engine);
+    m_camera = std::make_unique<GameCamera>(engine, Camera::ControlScheme::Developer);
     VoxelWorld::Settings actualSettings = {
         .LoadBalanceMeshing = !Profiling::IS_PROFILING,
         .AllowFrustumCulling = !Profiling::IS_PROFILING,
@@ -46,7 +46,7 @@ void GameApplication::Start(Engine &engine) {
     };
     VoxelWorld::Settings testSettings = {
         .LoadBalanceMeshing = false,
-        .AllowFrustumCulling = true,
+        .AllowFrustumCulling = false,
         .AllowBackfaceCulling = true
     };
     auto tempWorld = std::make_unique<VoxelWorld>(

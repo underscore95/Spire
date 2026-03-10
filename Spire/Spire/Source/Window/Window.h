@@ -9,6 +9,7 @@ namespace Spire
 {
     class Engine;
 
+    // Unfortunately this class cannot hide the cursor because imgui forces it shown, even hiding it every frmae just results in flickering
     class Window
     {
         friend class Engine;
@@ -55,6 +56,8 @@ namespace Spire
         void UpdateDimensions();
 
         void SetTitle(const std::string& title) const;
+
+        void SetCursorPos(glm::uvec2 mousePos);
 
     private:
         static bool Init();

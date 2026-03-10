@@ -6,7 +6,7 @@
 
 class GameCamera : public SpireVoxel::IVoxelCamera {
 public:
-    explicit GameCamera(const Spire::Engine &engine);
+    explicit GameCamera(const Spire::Engine &engine, Spire::Camera::ControlScheme controlScheme);
 
     void Update();
 
@@ -26,6 +26,7 @@ public:
 
     float Speed = 1;
     float Scale = 1;
+
 private:
     const Spire::Engine &m_engine;
     std::unique_ptr<Spire::PerImageBuffer> m_uniformBuffer = nullptr;
