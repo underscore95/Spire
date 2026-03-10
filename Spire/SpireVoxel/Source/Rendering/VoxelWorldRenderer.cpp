@@ -196,8 +196,11 @@ namespace SpireVoxel {
             m_latestCachedChunkData.push_back(chunk->GenerateChunkData());
             m_latestCachedChunkDrawCommands.push_back(chunk->GenerateDrawParams(chunkIndex));
 
-            glm::ivec3 worldPosition = VoxelWorld::GetWorldVoxelPositionInChunk(chunk->ChunkPosition, {0, 0, 0});
-            bool shouldRenderChunk = !m_settings.AllowFrustumCulling || cameraFrustum.IsBoxVisible(worldPosition, worldPosition + SPIRE_VOXEL_CHUNK_DIMENSIONS);
+            glm::vec3 worldPosition = VoxelWorld::GetWorldVoxelPositionInChunk(chunk->ChunkPosition, {0, 0, 0});
+            float cameraScale = m_camera.GetCameraInfo().Scale;
+            worldPosition *= cameraScale;
+
+            bool shouldRenderChunk = !m_settings.AllowFrustumCulling || cameraFrustum.IsBoxVisible(worldPosition, worldPosition + SPIRE_VOXEL_CHUNK_DIMENSIONS_FLOAT * cameraScale);
 
             assert(ChunkDrawParams::COMMANDS_PER_CHUNK == SPIRE_VOXEL_NUM_FACES);
             for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
@@ -205,8 +208,8 @@ namespace SpireVoxel {
                 // This is back face culling: https://en.wikipedia.org/wiki/Back-face_culling
                 // but we can simplify the algorithm since every face is axis aligned
 
-                glm::ivec3 faceNormal = FaceToDirection(face);
-                glm::vec3 centerOfOppositeFace = worldPosition - faceNormal * SPIRE_VOXEL_CHUNK_SIZE;
+                glm::vec3 faceNormal = FaceToDirectionFloat(face);
+                glm::vec3 centerOfOppositeFace = worldPosition - faceNormal * (SPIRE_VOXEL_CHUNK_SIZE * cameraScale);
 
                 glm::u32 index = face / 2; // x, y, or z coordinate
                 bool shouldRenderFace = IsFaceOnNegativeAxis(face)
