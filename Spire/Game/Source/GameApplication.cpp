@@ -109,6 +109,21 @@ void GameApplication::Start(Engine &engine) {
 
     //  BasicVoxelEdit(edits).Apply(world);
 
+    // every second voxel is set to 2
+    world.UnloadAllChunks();
+    world.LoadChunks({{0, 0, 0}});
+    std::vector<BasicVoxelEdit::Edit> edits;
+    for (int x = 0; x < 64; x++) {
+        for (int y = 0; y < 64; y++) {
+            for (int z = 0; z < 64; z++) {
+                if ((x + y + z) % 2 == 0) {
+                    edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, 2});
+                }
+            }
+        }
+    }
+    BasicVoxelEdit(edits).Apply(world);
+
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 5}, 1},
     //     BasicVoxelEdit::Edit{{1, 0, 5}, 2},
@@ -158,8 +173,8 @@ void GameApplication::Start(Engine &engine) {
 
     // Stress test: (big world)
     // should be profiling!!
-    // copies the current world 48 times for a 7x7 region
-
+    // copies the current world n*n-1 times for a nxn region
+    //
     // std::unordered_map<glm::ivec3, Chunk *> chunks;
     //
     // glm::ivec3 minChunkPos{INT32_MAX};
@@ -177,7 +192,7 @@ void GameApplication::Start(Engine &engine) {
     //
     // glm::ivec3 worldSize = maxChunkPos - minChunkPos + glm::ivec3(1);
     //
-    // constexpr glm::ivec3 SIZE{7, 1, 7};
+    // constexpr glm::ivec3 SIZE{9, 1, 9};
     //
     // for (int sx = 0; sx < SIZE.x; ++sx) {
     //     info("progress: {}/{}", sx, SIZE.x);
@@ -336,6 +351,12 @@ void GameApplication::RenderUi() const {
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateCPUMemoryUsageForChunks()) / 1024.0 / 1024.0)),
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0))
     );
+
+    glm::u64 totalRenderedVoxelFaces=0;
+    for (auto& [chunkPos,chunk] : m_voxelRenderer->GetWorld()) {
+        totalRenderedVoxelFaces += chunk->TotalRenderedVoxelFaces;
+    }
+    ImGui::Text("Total rendered voxel faces: %d", totalRenderedVoxelFaces);
 
     if (m_voxelRenderer->GetWorld().GetSettings().AllowFrustumCulling) {
         int nonEmpty = m_voxelRenderer->GetWorld().GetRenderer().GetNumNonEmptyChunks();

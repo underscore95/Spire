@@ -56,7 +56,8 @@ void main() {
     // e.g. for a 1x2 face, valid coordinates are 0,0 and 0,1
     uvec2 voxelCoordsInFace = uvec2(clamp(uv.x, 0, float(faceWidth) - 1), clamp(uv.y, 0, float(faceHeight) - 1));
 
-    // These components of the voxel coords need to be flipped because UV 0,0 isn't always the bottom left (because otherwise certain faces would have flipped textures)
+    // These components of the voxel coords need to be flipped because UV 0,0 isn't always the bottom left
+    // (because otherwise certain faces would have flipped textures)
     // it is *probably* better to flip them here rather than passing even more data to the fragment shader
     if (voxelFace == SPIRE_VOXEL_FACE_POS_X || voxelFace == SPIRE_VOXEL_FACE_NEG_Z) {
         voxelCoordsInFace.x = (faceWidth - 1u) - voxelCoordsInFace.x;

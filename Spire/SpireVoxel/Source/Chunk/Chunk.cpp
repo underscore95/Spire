@@ -50,7 +50,53 @@ namespace SpireVoxel {
     }
 
 
-    void Chunk::PushRelatedFaceData(ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) const {
+    // https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
+    glm::u32 GetVertexAO(bool side1, bool side2, bool corner) {
+        if (side1 && side2) {
+            return 3;
+        }
+        return (side1 + side2 + corner);
+    }
+
+    void Chunk::PushRelatedVoxelData(ChunkMesh &mesh, glm::uvec3 chunkCoords, glm::u32 face) {
+        assert(chunkCoords.x < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(chunkCoords.y < SPIRE_VOXEL_CHUNK_SIZE);
+        assert(chunkCoords.z < SPIRE_VOXEL_CHUNK_SIZE);
+
+        TotalRenderedVoxelFaces++;
+
+        VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)];
+        assert(type != 0);
+
+        // Push voxel type
+        mesh.VoxelTypes.push_back(type);
+
+        // Push AO
+        glm::ivec3 i, j, k;
+        for (VoxelVertexPosition vertexPos : VoxelVertexPositionValues) {
+            glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
+
+            GetAmbientOcclusionOffsetVectors(face, static_cast<glm::u32>(vertexPos), i, j, k);
+
+            bool side1 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + j) != VOXEL_TYPE_AIR;
+            bool side2 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + k) != VOXEL_TYPE_AIR;
+            bool corner = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + j + k) != VOXEL_TYPE_AIR;
+            glm::u32 ao = GetVertexAO(side1, side2, corner);
+            assert(ao <= 0b11);
+
+            if (aoIndex == 0) {
+                // need a new integer
+                mesh.AOData.push_back(ao);
+            } else {
+                // there is space to pack it into the end of the current integer
+                glm::u32 &packed = mesh.AOData.back();
+                packed = SetAO(packed, aoIndex, ao);
+            }
+            mesh.AODataValueCount++;
+        }
+    }
+
+    void Chunk::PushRelatedFaceData(ChunkMesh &mesh, glm::uvec3 start, glm::u32 width, glm::u32 height, glm::u32 face) {
         assert(start.x < SPIRE_VOXEL_CHUNK_SIZE);
         assert(start.y < SPIRE_VOXEL_CHUNK_SIZE);
         assert(start.z < SPIRE_VOXEL_CHUNK_SIZE);
@@ -97,53 +143,9 @@ namespace SpireVoxel {
         }
     }
 
-    // https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
-    glm::u32 GetVertexAO(bool side1, bool side2, bool corner) {
-        if (side1 && side2) {
-            return 3;
-        }
-        return (side1 + side2 + corner);
-    }
-
-    void Chunk::PushRelatedVoxelData(ChunkMesh &mesh, glm::uvec3 chunkCoords, glm::u32 face) const {
-        assert(chunkCoords.x < SPIRE_VOXEL_CHUNK_SIZE);
-        assert(chunkCoords.y < SPIRE_VOXEL_CHUNK_SIZE);
-        assert(chunkCoords.z < SPIRE_VOXEL_CHUNK_SIZE);
-
-        VoxelType type = VoxelData[SPIRE_VOXEL_POSITION_TO_INDEX(chunkCoords)];
-        assert(type != 0);
-
-        // Push voxel type
-        mesh.VoxelTypes.push_back(type);
-
-        // Push AO
-        glm::ivec3 i, j, k;
-        for (VoxelVertexPosition vertexPos : VoxelVertexPositionValues) {
-            glm::u32 aoIndex = mesh.AODataValueCount % SPIRE_AO_VALUES_PER_U32;
-
-            GetAmbientOcclusionOffsetVectors(face, static_cast<glm::u32>(vertexPos), i, j, k);
-
-            bool side1 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + j) != VOXEL_TYPE_AIR;
-            bool side2 = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + k) != VOXEL_TYPE_AIR;
-            bool corner = GetAdjacentVoxelType(*this, glm::ivec3(chunkCoords) + i + j + k) != VOXEL_TYPE_AIR;
-            glm::u32 ao = GetVertexAO(side1, side2, corner);
-            assert(ao <= 0b11);
-
-            if (aoIndex == 0) {
-                // need a new integer
-                mesh.AOData.push_back(ao);
-            } else {
-                // there is space to pack it into the end of the current integer
-                glm::u32 &packed = mesh.AOData.back();
-                packed = SetAO(packed, aoIndex, ao);
-            }
-            mesh.AODataValueCount++;
-        }
-    }
-
     constexpr glm::u32 VERTICES_PER_FACE = 6;
 
-    void Chunk::PushFace(ChunkMesh &mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) const {
+    void Chunk::PushFace(ChunkMesh &mesh, glm::u32 face, glm::uvec3 p, glm::u32 width, glm::u32 height) {
         std::vector<VertexData> &vertices = mesh.Vertices[face];
 
         assert(width > 0);
@@ -230,7 +232,8 @@ namespace SpireVoxel {
         }
     }
 
-    ChunkMesh Chunk::GenerateMesh() const {
+    ChunkMesh Chunk::GenerateMesh() {
+        TotalRenderedVoxelFaces = 0;
         ChunkMesh mesh = {};
 
         // slice, row, col are voxel chunk coordinates, but they could be different depending on face, see GreedyMeshingBitmask::GetChunkCoords

@@ -11,6 +11,7 @@
 #    | |
 #    d-c
 #
+# k=jxi j=ixk
 
 def invert(v):
     return (-v[0],-v[1],-v[2])
