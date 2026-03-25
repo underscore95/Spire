@@ -285,7 +285,7 @@ namespace SpireVoxel {
     // Utility functions to pack and unpack this type are below
     struct VertexData {
         SPIRE_UINT32_TYPE Packed_7X7Y7Z2VertPos3Face;
-        SPIRE_UINT32_TYPE VoxelTypeStartingIndex;
+        SPIRE_UINT32_TYPE Packed_20VoxelTypeStartingIndex6FaceWidth6FaceHeight;
     };
 
     // voxel vertex positions
@@ -343,16 +343,26 @@ namespace SpireVoxel {
         SPIRE_UINT32_TYPE voxelTypeStartIndex,
         SPIRE_UINT32_TYPE x, SPIRE_UINT32_TYPE y, SPIRE_UINT32_TYPE z, // 0-64 range
         VoxelVertexPosition vertexPosition,
-        glm::u16 face
+        glm::u16 face,
+        glm::u32 faceWidth,
+        glm::u32 faceHeight
     ) {
         assert(x <= 64);
         assert(y <= 64);
         assert(z <= 64);
         assert(face < SPIRE_VOXEL_NUM_FACES);
+        assert(faceWidth >= 1);
+        assert(faceWidth <= 64);
+        assert(faceHeight >= 1);
+        assert(faceHeight <= 64);
+        assert(voxelTypeStartIndex < SPIRE_VOXEL_CHUNK_VOLUME * 3);
+        assert(voxelTypeStartIndex < 1u << 20);
+        faceWidth--;
+        faceHeight--;
         VertexData vertex = {
-            .Packed_7X7Y7Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0xFF & x) << 14) | ((0xFF & y) << 7) | (
-                                              0xFF & z),
-            .VoxelTypeStartingIndex = voxelTypeStartIndex
+            .Packed_7X7Y7Z2VertPos3Face = ((0b111 & face) << 23) | ((0b11 & static_cast<SPIRE_UINT32_TYPE>(vertexPosition)) << 21) | ((0x7F & x) << 14) | ((0x7F & y) << 7) | (
+                                              0x7F & z),
+            .Packed_20VoxelTypeStartingIndex6FaceWidth6FaceHeight = (voxelTypeStartIndex << 12) | (faceWidth << 6) | faceHeight
         };
 
         return vertex;
@@ -362,6 +372,19 @@ namespace SpireVoxel {
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE UnpackVertexDataFace(SPIRE_UINT32_TYPE packed) {
         const SPIRE_UINT32_TYPE MAX_THREE_BIT_VALUE = 7; // 0b111
         return (packed >> 23) & MAX_THREE_BIT_VALUE;
+    }
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UVEC2_TYPE UnpackFaceSize(SPIRE_UINT32_TYPE packed) {
+        const SPIRE_UINT32_TYPE MAX_SIX_BIT_VALUE = 63;
+        return SPIRE_UVEC2_TYPE(
+            ((packed >> 6) & MAX_SIX_BIT_VALUE) + 1,
+            (packed & MAX_SIX_BIT_VALUE) + 1
+        );
+    }
+
+    SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_UINT32_TYPE UnpackVoxelTypeStartingIndex(SPIRE_UINT32_TYPE packed) {
+        const SPIRE_UINT32_TYPE MAX_TWENTY_BIT_VALUE = 1048575;
+        return (packed >> 12) & MAX_TWENTY_BIT_VALUE;
     }
 
     SPIRE_KEYWORD_NODISCARD SPIRE_KEYWORD_INLINE SPIRE_VOXEL_VERTEX_POSITION_TYPE UnpackVertexDataVertexPosition(SPIRE_UINT32_TYPE packed) {

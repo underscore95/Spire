@@ -45,40 +45,10 @@ void main()
     voxelFace = UnpackVertexDataFace(vtx.Packed_7X7Y7Z2VertPos3Face);
 
     gl_Position = cameraBuffer.cameraInfo.ViewProjectionMatrix * vec4(worldPos, 1.0);
-    // calculate face size
-    const int VERTICES_PER_QUAD = 6;
-    uvec2 faceSize = uvec2(0, 0);
-    int localIndex = vertexIndex % VERTICES_PER_QUAD;
 
-    // width
-    int otherWidthIndex = vertexIndex + SPIRE_WIDTH_DELTAS[localIndex];
-    VertexData widthVert = in_Vertices[chunkData.VertexBufferIndex].data[otherWidthIndex];
-    vec3 widthPos = UnpackVertexDataXYZ(widthVert.Packed_7X7Y7Z2VertPos3Face);
-
-    // height
-    int otherHeightIndex = vertexIndex + SPIRE_HEIGHT_DELTAS[localIndex];
-    VertexData heightVert = in_Vertices[chunkData.VertexBufferIndex].data[otherHeightIndex];
-    vec3 heightPos = UnpackVertexDataXYZ(heightVert.Packed_7X7Y7Z2VertPos3Face);
-
-    // axis
-    if (IsFaceOnXAxis(voxelFace)) {
-        faceSize.x = uint(abs(voxelPos.z - widthPos.z));
-        faceSize.y = uint(abs(voxelPos.y - heightPos.y));
-    }
-    else if (IsFaceOnYAxis(voxelFace)) {
-        faceSize.x = uint(abs(voxelPos.x - widthPos.x));
-        faceSize.y = uint(abs(voxelPos.z - heightPos.z));
-    }
-    else if (IsFaceOnZAxis(voxelFace)){
-        faceSize.x = uint(abs(voxelPos.x - widthPos.x));
-        faceSize.y = uint(abs(voxelPos.y - heightPos.y));
-    } else {
-        // oh no! the fragment shader should output an error colour for us
-        // unfortunately glslang doesn't give a way to say a branch is unreachable
-    }
+    uvec2 faceSize = UnpackFaceSize(vtx.Packed_20VoxelTypeStartingIndex6FaceWidth6FaceHeight);
     faceWidth = faceSize.x;
     faceHeight = faceSize.y;
-    // end face size
 
     vec2 uv = VoxelVertexPositionToUV(vertexVoxelPos);
     texCoord = uv * faceSize;//* chunkData.LODScale;
@@ -87,7 +57,7 @@ void main()
     voxelDataChunkIndex = chunkData.VoxelDataChunkIndex;
     voxelDataAllocationIndex = chunkData.VoxelDataAllocationIndex;
 
-    voxelTypesFaceStartIndex = vtx.VoxelTypeStartingIndex;
+    voxelTypesFaceStartIndex = UnpackVoxelTypeStartingIndex(vtx.Packed_20VoxelTypeStartingIndex6FaceWidth6FaceHeight);
 
     aoDataChunkPackedIndex = chunkData.AODataChunkPackedIndex;
     aoDataAllocationIndex = chunkData.AODataAllocationIndex;

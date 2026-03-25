@@ -110,19 +110,19 @@ void GameApplication::Start(Engine &engine) {
     //  BasicVoxelEdit(edits).Apply(world);
 
     // every second voxel is set to 2
-    world.UnloadAllChunks();
-    world.LoadChunks({{0, 0, 0}});
-    std::vector<BasicVoxelEdit::Edit> edits;
-    for (int x = 0; x < 64; x++) {
-        for (int y = 0; y < 64; y++) {
-            for (int z = 0; z < 64; z++) {
-                if ((x + y + z) % 2 == 0) {
-                    edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, 2});
-                }
-            }
-        }
-    }
-    BasicVoxelEdit(edits).Apply(world);
+    // world.UnloadAllChunks();
+    // world.LoadChunks({{0, 0, 0}});
+    // std::vector<BasicVoxelEdit::Edit> edits;
+    // for (int x = 0; x < 64; x++) {
+    //     for (int y = 0; y < 64; y++) {
+    //         for (int z = 0; z < 64; z++) {
+    //             if ((x + y + z) % 2 == 0) {
+    //                 edits.push_back(BasicVoxelEdit::Edit{{x, y, z}, 2});
+    //             }
+    //         }
+    //     }
+    // }
+    // BasicVoxelEdit(edits).Apply(world);
 
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 5}, 1},
