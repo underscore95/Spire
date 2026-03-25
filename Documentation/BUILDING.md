@@ -8,3 +8,7 @@ The project depends on assimp, glfw, glm, glslang, imgui, spdlog, stb, vulkan, v
 1. Run build.py in Spire/Libs, this builds all the libraries in debug and release mode and will take about 5-10 minutes to complete.
 2. Reload CMake project
 3. Build target Game.
+
+# Minecraft Assets
+
+The default GameApplication code relies on Minecraft assets, see [MinecraftRegionConverter README](https://github.com/underscore95/Spire/tree/main/Tooling/MinecraftRegionConverter) for more information.
