@@ -86,13 +86,16 @@ positionType( \
 // high = second voxel type
 #define SPIRE_VOXEL_UINT16_MAX 65535u
 
+// Unpack a voxel type (u16) from a u32
+// doubleVoxelType - this should be voxelTypes[index/2]
+// index - this is the index in the array. Even values return low bits, odd values return high bits.
 #define SPIRE_VOXEL_UNPACK_VOXEL_TYPE(doubleVoxelType, index) \
-(((index) % 2) == 0 ? (doubleVoxelType) & SPIRE_VOXEL_UINT16_MAX : (doubleVoxelType) >> 16)
+    (((index) % 2) == 0 ? (doubleVoxelType) & SPIRE_VOXEL_UINT16_MAX : (doubleVoxelType) >> 16)
 
 #define SPIRE_VOXEL_PACK_VOXEL_TYPE(existingType, index, newType) \
-(((index) % 2) == 0 ? \
-(((existingType) & (SPIRE_VOXEL_UINT16_MAX << 16)) | ((newType) & SPIRE_VOXEL_UINT16_MAX)) : \
-(((existingType) & SPIRE_VOXEL_UINT16_MAX) | (((newType) & SPIRE_VOXEL_UINT16_MAX) << 16)))
+    (((index) % 2) == 0 ? \
+    (((existingType) & (SPIRE_VOXEL_UINT16_MAX << 16)) | ((newType) & SPIRE_VOXEL_UINT16_MAX)) : \
+    (((existingType) & SPIRE_VOXEL_UINT16_MAX) | (((newType) & SPIRE_VOXEL_UINT16_MAX) << 16)))
 
 #ifdef __cplusplus
 namespace SpireVoxel {

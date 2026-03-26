@@ -1,0 +1,55 @@
+import json
+import matplotlib.pyplot as plot
+
+label_a = "Run A"
+raw_json_a = r'''
+{"time_ms": 843.9414, "frames": 1000, "chunks": 384, "world": "Testb", "dynamic_state": "static", "chunk_gpu_memory": 136829376, "chunk_cpu_memory": 402674688, "window_width": 1280, "window_height": 720} 
+'''
+
+raw_json_b = r'''
+{"time_ms": 900.0, "frames": 1000, "chunks": 384, "world": "Testb", "dynamic_state": "static", "chunk_gpu_memory": 150000000, "chunk_cpu_memory": 420000000, "window_width": 1280, "window_height": 720}
+'''
+
+label_b = "Run B"
+
+data_a = json.loads(raw_json_a)
+data_b = json.loads(raw_json_b)
+
+if data_a["world"] != data_b["world"] or data_a["dynamic_state"] != data_b["dynamic_state"]:
+    raise ValueError("World or Dynamic State mismatch between inputs")
+
+def compute_metrics(d):
+    return (
+        d["chunk_gpu_memory"] / (1024 * 1024),
+        d["chunk_cpu_memory"] / (1024 * 1024),
+        d["time_ms"] / d["frames"]
+    )
+
+gpu_a, cpu_a, ft_a = compute_metrics(data_a)
+gpu_b, cpu_b, ft_b = compute_metrics(data_b)
+
+title_prefix = f'{data_a["world"].title()} - {data_a["dynamic_state"].title()}'
+labels = [label_a, label_b]
+
+plot.figure()
+plot.bar(labels, [gpu_a, gpu_b])
+plot.ylabel("MB")
+plot.title(f"{title_prefix} - GPU Memory Usage")
+plot.tight_layout()
+plot.savefig("gpu_memory.png")
+
+plot.figure()
+plot.bar(labels, [cpu_a, cpu_b])
+plot.ylabel("MB")
+plot.title(f"{title_prefix} - CPU Memory Usage")
+plot.tight_layout()
+plot.savefig("cpu_memory.png")
+
+plot.figure()
+plot.bar(labels, [ft_a, ft_b])
+plot.ylabel("Milliseconds")
+plot.title(f"{title_prefix} - Frame Time")
+plot.tight_layout()
+plot.savefig("frame_time.png")
+
+plot.show()
