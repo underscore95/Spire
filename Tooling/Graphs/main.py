@@ -1,16 +1,16 @@
 import json
 import matplotlib.pyplot as plot
 
-label_a = "Run A"
+label_a = "Naive Meshing"
 raw_json_a = r'''
-{"time_ms": 843.9414, "frames": 1000, "chunks": 384, "world": "Testb", "dynamic_state": "static", "chunk_gpu_memory": 136829376, "chunk_cpu_memory": 402674688, "window_width": 1280, "window_height": 720} 
+{"time_ms": 222.8696, "frames": 1000, "chunks": 88, "world": "Test7-v1", "dynamic_state": "static", "chunk_gpu_memory": 32528064, "chunk_cpu_memory": 92279616, "window_width": 1280, "window_height": 720}
 '''
 
+label_b = "Greedy Meshing"
 raw_json_b = r'''
-{"time_ms": 900.0, "frames": 1000, "chunks": 384, "world": "Testb", "dynamic_state": "static", "chunk_gpu_memory": 150000000, "chunk_cpu_memory": 420000000, "window_width": 1280, "window_height": 720}
+{"time_ms": 137.0831, "frames": 1000, "chunks": 88, "world": "Test7-v1", "dynamic_state": "static", "chunk_gpu_memory": 14640192, "chunk_cpu_memory": 92280320, "window_width": 1280, "window_height": 720}
 '''
 
-label_b = "Run B"
 
 data_a = json.loads(raw_json_a)
 data_b = json.loads(raw_json_b)
@@ -28,7 +28,7 @@ def compute_metrics(d):
 gpu_a, cpu_a, ft_a = compute_metrics(data_a)
 gpu_b, cpu_b, ft_b = compute_metrics(data_b)
 
-title_prefix = f'{data_a["world"].title()} - {data_a["dynamic_state"].title()}'
+title_prefix = f'{data_a["world"].replace("-v1", "").title()} - {data_a["dynamic_state"].title()}'
 labels = [label_a, label_b]
 
 plot.figure()
