@@ -51,5 +51,3 @@ plot.ylabel("Milliseconds")
 plot.title(f"{title_prefix} - Frame Time")
 plot.tight_layout()
 plot.savefig("frame_time.png")
-
-plot.show()
