@@ -1,16 +1,15 @@
 import json
 import matplotlib.pyplot as plot
 
-label_a = "Naive Meshing"
+label_a = "No VoxelBits"
 raw_json_a = r'''
-{"time_ms": 222.8696, "frames": 1000, "chunks": 88, "world": "Test7-v1", "dynamic_state": "static", "chunk_gpu_memory": 32528064, "chunk_cpu_memory": 92279616, "window_width": 1280, "window_height": 720}
+{"time_ms": 2119.1506, "frames": 10, "chunks": 88, "world": "Test7-v1", "dynamic_state": "dynamic", "chunk_gpu_memory": 43970496, "chunk_cpu_memory": 92280320, "window_width": 1280, "window_height": 720}
 '''
 
-label_b = "Greedy Meshing"
+label_b = "VoxelBits"
 raw_json_b = r'''
-{"time_ms": 137.0831, "frames": 1000, "chunks": 88, "world": "Test7-v1", "dynamic_state": "static", "chunk_gpu_memory": 14640192, "chunk_cpu_memory": 92280320, "window_width": 1280, "window_height": 720}
+{"time_ms": 1589.9142, "frames": 10, "chunks": 88, "world": "Test7-v1", "dynamic_state": "dynamic", "chunk_gpu_memory": 44313696, "chunk_cpu_memory": 95163904, "window_width": 1280, "window_height": 720}
 '''
-
 
 data_a = json.loads(raw_json_a)
 data_b = json.loads(raw_json_b)
@@ -48,6 +47,6 @@ plot.savefig("cpu_memory.png")
 plot.figure()
 plot.bar(labels, [ft_a, ft_b])
 plot.ylabel("Milliseconds")
-plot.title(f"{title_prefix} - Frame Time")
+plot.title(f"{title_prefix} - {"Frame" if data_a["dynamic_state"] == "static" else "Meshing"} Time")
 plot.tight_layout()
 plot.savefig("frame_time.png")
