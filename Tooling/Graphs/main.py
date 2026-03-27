@@ -1,21 +1,79 @@
 import json
 import matplotlib.pyplot as plot
 
-label_a = "No VoxelBits"
-raw_json_a = r'''
-{"time_ms": 2119.1506, "frames": 10, "chunks": 88, "world": "Test7-v1", "dynamic_state": "dynamic", "chunk_gpu_memory": 43970496, "chunk_cpu_memory": 92280320, "window_width": 1280, "window_height": 720}
-'''
+labels = [
+    "No Voxel Types",
+    "Buffer",
+    "Hash Map",
+    "Seperated (2 Voxel Types)"
+]
 
-label_b = "VoxelBits"
-raw_json_b = r'''
-{"time_ms": 1589.9142, "frames": 10, "chunks": 88, "world": "Test7-v1", "dynamic_state": "dynamic", "chunk_gpu_memory": 44313696, "chunk_cpu_memory": 95163904, "window_width": 1280, "window_height": 720}
-'''
+raw_jsons = [
+    r'''
+    {
+        "time_ms": 10282.50616,
+        "frames": 10,
+        "chunks": 384,
+        "world": "Test6",
+        "dynamic_state": "dynamic",
+        "chunk_gpu_memory": 51618432,
+        "chunk_cpu_memory": 415260672,
+        "window_width": 1280,
+        "window_height": 720
+    }
+    ''',
+    r'''
+    {
+        "time_ms": 10935.84018,
+        "frames": 10,
+        "chunks": 385,
+        "world": "Test6",
+        "dynamic_state": "dynamic",
+        "chunk_gpu_memory": 259236768,
+        "chunk_cpu_memory": 416348240,
+        "window_width": 1280,
+        "window_height": 720
+    }
+    ''',
+    r'''
+    {
+        "time_ms": 15269.84018,
+        "frames": 10,
+        "chunks": 385,
+        "world": "Test6",
+        "dynamic_state": "dynamic",
+        "chunk_gpu_memory": 142082048,
+        "chunk_cpu_memory": 416348240,
+        "window_width": 1280,
+        "window_height": 720
+    }
+    ''',
+    r'''
+    {
+        "time_ms": 18891.84018,
+        "frames": 10,
+        "chunks": 385,
+        "world": "Test6",
+        "dynamic_state": "dynamic",
+        "chunk_gpu_memory": 101711872,
+        "chunk_cpu_memory": 416348240,
+        "window_width": 1280,
+        "window_height": 720
+    }
+    '''
+]
 
-data_a = json.loads(raw_json_a)
-data_b = json.loads(raw_json_b)
+if len(labels) != len(raw_jsons):
+    raise ValueError("Labels and JSON list size mismatch")
 
-if data_a["world"] != data_b["world"] or data_a["dynamic_state"] != data_b["dynamic_state"]:
-    raise ValueError("World or Dynamic State mismatch between inputs")
+data = [json.loads(r) for r in raw_jsons]
+
+world = data[0]["world"]
+dynamic_state = data[0]["dynamic_state"]
+
+for d in data:
+    if d["world"] != world or d["dynamic_state"] != dynamic_state:
+        raise ValueError("World or Dynamic State mismatch between inputs")
 
 def compute_metrics(d):
     return (
@@ -24,29 +82,35 @@ def compute_metrics(d):
         d["time_ms"] / d["frames"]
     )
 
-gpu_a, cpu_a, ft_a = compute_metrics(data_a)
-gpu_b, cpu_b, ft_b = compute_metrics(data_b)
+gpu_vals = []
+cpu_vals = []
+time_vals = []
 
-title_prefix = f'{data_a["world"].replace("-v1", "").title()} - {data_a["dynamic_state"].title()}'
-labels = [label_a, label_b]
+for d in data:
+    gpu, cpu, t = compute_metrics(d)
+    gpu_vals.append(gpu)
+    cpu_vals.append(cpu)
+    time_vals.append(t)
+
+title_prefix = f'{world.replace("-v1", "").title()} - {dynamic_state.title()}'
 
 plot.figure()
-plot.bar(labels, [gpu_a, gpu_b])
+plot.bar(labels, gpu_vals)
 plot.ylabel("MB")
 plot.title(f"{title_prefix} - GPU Memory Usage")
 plot.tight_layout()
 plot.savefig("gpu_memory.png")
 
 plot.figure()
-plot.bar(labels, [cpu_a, cpu_b])
+plot.bar(labels, cpu_vals)
 plot.ylabel("MB")
 plot.title(f"{title_prefix} - CPU Memory Usage")
 plot.tight_layout()
 plot.savefig("cpu_memory.png")
 
 plot.figure()
-plot.bar(labels, [ft_a, ft_b])
+plot.bar(labels, time_vals)
 plot.ylabel("Milliseconds")
-plot.title(f"{title_prefix} - {"Frame" if data_a["dynamic_state"] == "static" else "Meshing"} Time")
+plot.title(f"{title_prefix} - {"Frame" if dynamic_state == "static" else "Meshing"} Time")
 plot.tight_layout()
 plot.savefig("frame_time.png")
