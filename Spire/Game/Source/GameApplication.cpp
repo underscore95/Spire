@@ -25,6 +25,8 @@ bool ShouldStreamLoading() {
 
 GameApplication::GameApplication() = default;
 
+constexpr std::string WORLD_NAME = Profiling::IS_PROFILING ? Profiling::PROFILE_WORLD_NAME : "Test3";
+
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
 
@@ -61,29 +63,33 @@ void GameApplication::Start(Engine &engine) {
 
     constexpr glm::vec3 CORNFLOWER_BLUE = {0.392, 0.584, 0.929};
     m_voxelRenderer = std::make_unique<VoxelRenderer>(*m_engine, *m_camera, std::move(tempWorld), CORNFLOWER_BLUE, [](VoxelTypeRegistry &voxelTypeRegistry) {
-        // voxelTypeRegistry.RegisterTypes(std::vector<VoxelTypeInfo>{
-        //     {
-        //         1, {
-        //             std::string(GetAssetsDirectory()) + "/grass_top.png",
-        //             std::string(GetAssetsDirectory()) + "/dirt.png",
-        //             std::string(GetAssetsDirectory()) + "/grass_side.png"
-        //         },
-        //         SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
-        //     },
-        //     {2, {std::string(GetAssetsDirectory()) + "/dirt.png"}, SPIRE_VOXEL_LAYOUT_ALL_SAME},
-        // });
-        RegisterMinecraftVoxelTypes(voxelTypeRegistry);
+        if (WORLD_NAME == std::string("Test8")) {
+            RegisterMinecraftVoxelTypes(voxelTypeRegistry);
+            info("Registered {} Minecraft voxel types", voxelTypeRegistry.GetTypes().size());
+        } else {
+            voxelTypeRegistry.RegisterTypes(std::vector<VoxelTypeInfo>{
+                {
+                    1, {
+                        std::string(GetAssetsDirectory()) + "/grass_top.png",
+                        std::string(GetAssetsDirectory()) + "/dirt.png",
+                        std::string(GetAssetsDirectory()) + "/grass_side.png"
+                    },
+                    SPIRE_VOXEL_LAYOUT_TOP_DIFFERENT_BOTTOM_DIFFERENT
+                },
+                {2, {std::string(GetAssetsDirectory()) + "/dirt.png"}, SPIRE_VOXEL_LAYOUT_ALL_SAME},
+            });
+        }
     });
     VoxelWorld &world = m_voxelRenderer->GetWorld();
 
     m_voxelRenderer->GetWorld().GetRenderer().HandleChunkEdits(m_camera->GetPosition());
 
     if (Profiling::IS_PROFILING) {
-        VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / Profiling::PROFILE_WORLD_NAME);
-        info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), Profiling::PROFILE_WORLD_NAME);
+        VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / WORLD_NAME);
     } else if (!ShouldStreamLoading()) {
-        VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / "Test3");
+        VoxelSerializer::ClearAndDeserialize(world, std::filesystem::path("Worlds") / WORLD_NAME);
     }
+    info("Loaded {} chunks from world file {}", world.NumLoadedChunks(), WORLD_NAME);
 
     //  world.LoadChunks({{-1, 0, 0}});
     //  world.LoadChunks({{0, 0, 0}});
@@ -175,66 +181,66 @@ void GameApplication::Start(Engine &engine) {
     // should be profiling!!
     // copies the current world n*n-1 times for a nxn region
     //
-    // std::unordered_map<glm::ivec3, Chunk *> chunks;
-    //
-    // glm::ivec3 minChunkPos{INT32_MAX};
-    // glm::ivec3 maxChunkPos{INT32_MIN};
-    //
-    // for (auto &[pos, chunk] : world) {
-    //     chunks.emplace(pos, chunk.get());
-    //
-    //     minChunkPos = glm::min(minChunkPos, pos);
-    //     maxChunkPos = glm::max(maxChunkPos, pos);
-    // }
-    //
-    // if (chunks.empty())
-    //     return;
-    //
-    // glm::ivec3 worldSize = maxChunkPos - minChunkPos + glm::ivec3(1);
-    //
-    // constexpr glm::ivec3 SIZE{9, 1, 9};
-    //
-    // for (int sx = 0; sx < SIZE.x; ++sx) {
-    //     info("progress: {}/{}", sx, SIZE.x);
-    //     int ox = sx - SIZE.x / 2;
-    //
-    //     for (int sy = 0; sy < SIZE.y; ++sy) {
-    //         int oy = sy - SIZE.y / 2;
-    //
-    //         for (int sz = 0; sz < SIZE.z; ++sz) {
-    //             int oz = sz - SIZE.z / 2;
-    //
-    //             if (ox == 0 && oy == 0 && oz == 0)
-    //                 continue;
-    //
-    //             glm::ivec3 offset{ox, oy, oz};
-    //             glm::ivec3 baseDst = minChunkPos + offset * worldSize;
-    //
-    //             for (int i = 0; i < worldSize.x; ++i) {
-    //                 for (int j = 0; j < worldSize.y; ++j) {
-    //                     for (int k = 0; k < worldSize.z; ++k) {
-    //                         glm::ivec3 local{i, j, k};
-    //                         glm::ivec3 srcPos = minChunkPos + local;
-    //
-    //                         auto it = chunks.find(srcPos);
-    //                         if (it == chunks.end())
-    //                             continue;
-    //
-    //                         Chunk *src = it->second;
-    //
-    //                         glm::ivec3 dstPos = baseDst + local;
-    //                         Chunk &dst = world.LoadChunk(dstPos);
-    //
-    //                         dst.VoxelData = src->VoxelData;
-    //                         dst.VoxelBits = src->VoxelBits;
-    //
-    //                         world.GetRenderer().NotifyChunkEdited(dst);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+    std::unordered_map<glm::ivec3, Chunk *> chunks;
+
+    glm::ivec3 minChunkPos{INT32_MAX};
+    glm::ivec3 maxChunkPos{INT32_MIN};
+
+    for (auto &[pos, chunk] : world) {
+        chunks.emplace(pos, chunk.get());
+
+        minChunkPos = glm::min(minChunkPos, pos);
+        maxChunkPos = glm::max(maxChunkPos, pos);
+    }
+
+    if (chunks.empty())
+        return;
+
+    glm::ivec3 worldSize = maxChunkPos - minChunkPos + glm::ivec3(1);
+
+    constexpr glm::ivec3 SIZE{9, 1, 9};
+
+    for (int sx = 0; sx < SIZE.x; ++sx) {
+        info("progress: {}/{}", sx, SIZE.x);
+        int ox = sx - SIZE.x / 2;
+
+        for (int sy = 0; sy < SIZE.y; ++sy) {
+            int oy = sy - SIZE.y / 2;
+
+            for (int sz = 0; sz < SIZE.z; ++sz) {
+                int oz = sz - SIZE.z / 2;
+
+                if (ox == 0 && oy == 0 && oz == 0)
+                    continue;
+
+                glm::ivec3 offset{ox, oy, oz};
+                glm::ivec3 baseDst = minChunkPos + offset * worldSize;
+
+                for (int i = 0; i < worldSize.x; ++i) {
+                    for (int j = 0; j < worldSize.y; ++j) {
+                        for (int k = 0; k < worldSize.z; ++k) {
+                            glm::ivec3 local{i, j, k};
+                            glm::ivec3 srcPos = minChunkPos + local;
+
+                            auto it = chunks.find(srcPos);
+                            if (it == chunks.end())
+                                continue;
+
+                            Chunk *src = it->second;
+
+                            glm::ivec3 dstPos = baseDst + local;
+                            Chunk &dst = world.LoadChunk(dstPos);
+
+                            dst.VoxelData = src->VoxelData;
+                            dst.VoxelBits = src->VoxelBits;
+
+                            world.GetRenderer().NotifyChunkEdited(dst);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     m_profiling = std::make_unique<Profiling>(*m_engine, *m_voxelRenderer, *m_camera);
 }
@@ -302,6 +308,8 @@ void GameApplication::RenderUi() const {
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS) (frame %d (swapchain image %d))", m_engine->GetDeltaTime() * 1000, 1.0f / m_engine->GetDeltaTime(), m_frame,
                 m_swapchainImageIndex);
 
+    ImGui::Text("Initial World: %s", WORLD_NAME);
+
     glm::u32 numChunksGeneratedThisFrame = m_voxelRenderer->GetWorld().GetProceduralGenerationManager().NumChunksGeneratedThisFrame();
     if (numChunksGeneratedThisFrame) {
         ImGui::TextColored({1, 0, 0, 1}, "Generated %d chunks this frame", numChunksGeneratedThisFrame);
@@ -352,8 +360,8 @@ void GameApplication::RenderUi() const {
                 static_cast<glm::u64>(std::ceil(static_cast<double>(m_voxelRenderer->GetWorld().CalculateGPUMemoryUsageForChunks()) / 1024.0 / 1024.0))
     );
 
-    glm::u64 totalRenderedVoxelFaces=0;
-    for (auto& [chunkPos,chunk] : m_voxelRenderer->GetWorld()) {
+    glm::u64 totalRenderedVoxelFaces = 0;
+    for (auto &[chunkPos,chunk] : m_voxelRenderer->GetWorld()) {
         totalRenderedVoxelFaces += chunk->TotalRenderedVoxelFaces;
     }
     ImGui::Text("Total rendered voxel faces: %d", totalRenderedVoxelFaces);
