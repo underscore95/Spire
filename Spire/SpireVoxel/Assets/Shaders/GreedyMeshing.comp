@@ -173,12 +173,12 @@ void main() {
             mesh.Vertices[mesh.NumVertices + 4] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 1, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_ONE, SPIRE_VOXEL_FACE_POS_Y);
             mesh.Vertices[mesh.NumVertices + 5] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 1, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_POS_Y);
         } else if (face == SPIRE_VOXEL_FACE_NEG_Y) {
-            mesh.Vertices[mesh.NumVertices + 0] =PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_NEG_Y);
-            mesh.Vertices[mesh.NumVertices + 1] =PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_THREE, SPIRE_VOXEL_FACE_NEG_Y);
-            mesh.Vertices[mesh.NumVertices + 2] =PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_NEG_Y);
-            mesh.Vertices[mesh.NumVertices + 3] =PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_NEG_Y);
-            mesh.Vertices[mesh.NumVertices + 4] =PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ONE, SPIRE_VOXEL_FACE_NEG_Y);
-            mesh.Vertices[mesh.NumVertices + 5] =PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_NEG_Y);
+            mesh.Vertices[mesh.NumVertices + 0] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_NEG_Y);
+            mesh.Vertices[mesh.NumVertices + 1] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_THREE, SPIRE_VOXEL_FACE_NEG_Y);
+            mesh.Vertices[mesh.NumVertices + 2] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_NEG_Y);
+            mesh.Vertices[mesh.NumVertices + 3] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + height, SPIRE_VOXEL_VERTEX_POSITION_TWO, SPIRE_VOXEL_FACE_NEG_Y);
+            mesh.Vertices[mesh.NumVertices + 4] = PackVertexData(width, height, chunkCoords.x + width, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ONE, SPIRE_VOXEL_FACE_NEG_Y);
+            mesh.Vertices[mesh.NumVertices + 5] = PackVertexData(width, height, chunkCoords.x + 0, chunkCoords.y + 0, chunkCoords.z + 0, SPIRE_VOXEL_VERTEX_POSITION_ZERO, SPIRE_VOXEL_FACE_NEG_Y);
         }
 
         mesh.NumVertices += 6;
