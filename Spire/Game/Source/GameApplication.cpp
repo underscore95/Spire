@@ -115,7 +115,7 @@ void GameApplication::Start(Engine &engine) {
 
     //  BasicVoxelEdit(edits).Apply(world);
 
-    // every second voxel is set to 2
+    // every second voxel is set to 2 (max vertices in a chunk)
     // world.UnloadAllChunks();
     // world.LoadChunks({{0, 0, 0}});
     // std::vector<BasicVoxelEdit::Edit> edits;
@@ -129,6 +129,7 @@ void GameApplication::Start(Engine &engine) {
     //     }
     // }
     // BasicVoxelEdit(edits).Apply(world);
+    // m_voxelRenderer->GetWorld().GetRenderer().HandleChunkEdits(m_camera->GetPosition());
 
     // BasicVoxelEdit({
     //     BasicVoxelEdit::Edit{{0, 0, 5}, 1},
@@ -181,68 +182,80 @@ void GameApplication::Start(Engine &engine) {
     // should be profiling!!
     // copies the current world n*n-1 times for a nxn region
     //
-    std::unordered_map<glm::ivec3, Chunk *> chunks;
-
-    glm::ivec3 minChunkPos{INT32_MAX};
-    glm::ivec3 maxChunkPos{INT32_MIN};
-
-    for (auto &[pos, chunk] : world) {
-        chunks.emplace(pos, chunk.get());
-
-        minChunkPos = glm::min(minChunkPos, pos);
-        maxChunkPos = glm::max(maxChunkPos, pos);
-    }
-
-    if (chunks.empty())
-        return;
-
-    glm::ivec3 worldSize = maxChunkPos - minChunkPos + glm::ivec3(1);
-
-    constexpr glm::ivec3 SIZE{9, 1, 9};
-
-    for (int sx = 0; sx < SIZE.x; ++sx) {
-        info("progress: {}/{}", sx, SIZE.x);
-        int ox = sx - SIZE.x / 2;
-
-        for (int sy = 0; sy < SIZE.y; ++sy) {
-            int oy = sy - SIZE.y / 2;
-
-            for (int sz = 0; sz < SIZE.z; ++sz) {
-                int oz = sz - SIZE.z / 2;
-
-                if (ox == 0 && oy == 0 && oz == 0)
-                    continue;
-
-                glm::ivec3 offset{ox, oy, oz};
-                glm::ivec3 baseDst = minChunkPos + offset * worldSize;
-
-                for (int i = 0; i < worldSize.x; ++i) {
-                    for (int j = 0; j < worldSize.y; ++j) {
-                        for (int k = 0; k < worldSize.z; ++k) {
-                            glm::ivec3 local{i, j, k};
-                            glm::ivec3 srcPos = minChunkPos + local;
-
-                            auto it = chunks.find(srcPos);
-                            if (it == chunks.end())
-                                continue;
-
-                            Chunk *src = it->second;
-
-                            glm::ivec3 dstPos = baseDst + local;
-                            Chunk &dst = world.LoadChunk(dstPos);
-
-                            dst.VoxelData = src->VoxelData;
-                            dst.VoxelBits = src->VoxelBits;
-
-                            world.GetRenderer().NotifyChunkEdited(dst);
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // std::unordered_map<glm::ivec3, Chunk *> chunks;
+    //
+    // glm::ivec3 minChunkPos{INT32_MAX};
+    // glm::ivec3 maxChunkPos{INT32_MIN};
+    //
+    // for (auto &[pos, chunk] : world) {
+    //     chunks.emplace(pos, chunk.get());
+    //
+    //     minChunkPos = glm::min(minChunkPos, pos);
+    //     maxChunkPos = glm::max(maxChunkPos, pos);
+    // }
+    //
+    // if (chunks.empty())
+    //     return;
+    //
+    // glm::ivec3 worldSize = maxChunkPos - minChunkPos + glm::ivec3(1);
+    //
+    // constexpr glm::ivec3 SIZE{9, 1, 9};
+    //
+    // for (int sx = 0; sx < SIZE.x; ++sx) {
+    //     info("progress: {}/{}", sx, SIZE.x);
+    //     int ox = sx - SIZE.x / 2;
+    //
+    //     for (int sy = 0; sy < SIZE.y; ++sy) {
+    //         int oy = sy - SIZE.y / 2;
+    //
+    //         for (int sz = 0; sz < SIZE.z; ++sz) {
+    //             int oz = sz - SIZE.z / 2;
+    //
+    //             if (ox == 0 && oy == 0 && oz == 0)
+    //                 continue;
+    //
+    //             glm::ivec3 offset{ox, oy, oz};
+    //             glm::ivec3 baseDst = minChunkPos + offset * worldSize;
+    //
+    //             for (int i = 0; i < worldSize.x; ++i) {
+    //                 for (int j = 0; j < worldSize.y; ++j) {
+    //                     for (int k = 0; k < worldSize.z; ++k) {
+    //                         glm::ivec3 local{i, j, k};
+    //                         glm::ivec3 srcPos = minChunkPos + local;
+    //
+    //                         auto it = chunks.find(srcPos);
+    //                         if (it == chunks.end())
+    //                             continue;
+    //
+    //                         Chunk *src = it->second;
+    //
+    //                         glm::ivec3 dstPos = baseDst + local;
+    //                         Chunk &dst = world.LoadChunk(dstPos);
+    //
+    //                         dst.VoxelData = src->VoxelData;
+    //                         dst.VoxelBits = src->VoxelBits;
+    //
+    //                         world.GetRenderer().NotifyChunkEdited(dst);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     m_profiling = std::make_unique<Profiling>(*m_engine, *m_voxelRenderer, *m_camera);
+
+    int numMeshesNotSupporing16BitIndices = 0;
+    int maxVerticesInMesh = 0;
+    int totalVertices = 0;
+    for (auto &[_,chunk] : m_voxelRenderer->GetWorld()) {
+        for (auto numVertices : chunk->NumVertices) {
+            if (numVertices >= pow(2, 16))numMeshesNotSupporing16BitIndices++;
+            if (numVertices > maxVerticesInMesh) maxVerticesInMesh = numVertices;
+            totalVertices += numVertices;
+        }
+    }
+    info("numMeshesNotSupporing16BitIndices: {}, maxVerticesInMesh {}, totalVertices: {}", numMeshesNotSupporing16BitIndices, maxVerticesInMesh, totalVertices);
 }
 
 GameApplication::~GameApplication() {
