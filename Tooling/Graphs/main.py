@@ -3,33 +3,47 @@ import matplotlib.pyplot as plot
 from matplotlib.ticker import FuncFormatter
 
 labels = [
-    "Single Grid Generation",
-    "Double Grid Generation",
+    "CPU",
+    "Full GPU",
+    "Partial GPU"
 ]
 
 raw_jsons = [
     r'''
     {
-        "time_ms": 15899,
+        "time_ms": 12310,
         "frames": 10,
         "chunks": 384,
         "world": "Test6",
         "dynamic_state": "dynamic",
-        "chunk_gpu_memory": 51618432,
-        "chunk_cpu_memory": 415260672,
+        "chunk_gpu_memory": 50751078,
+        "chunk_cpu_memory": 402653184,
         "window_width": 1280,
         "window_height": 720
     }
     ''',
     r'''
     {
-        "time_ms": 10282,
+        "time_ms": 1821000,
         "frames": 10,
         "chunks": 385,
         "world": "Test6",
         "dynamic_state": "dynamic",
-        "chunk_gpu_memory": 259236768,
-        "chunk_cpu_memory": 416348240,
+        "chunk_gpu_memory": 110939340.8,
+        "chunk_cpu_memory": 415236096,
+        "window_width": 1280,
+        "window_height": 720
+    }
+    ''',
+    r'''
+    {
+        "time_ms": 2503.8,
+        "frames": 10,
+        "chunks": 385,
+        "world": "Test6",
+        "dynamic_state": "dynamic",
+        "chunk_gpu_memory": 110939340.8,
+        "chunk_cpu_memory": 415236096,
         "window_width": 1280,
         "window_height": 720
     }
@@ -109,6 +123,7 @@ plot.figure()
 time_color = "#eedc5b" if dynamic_state == "static" else "purple"
 bars = plot.bar(labels, time_vals, color=time_color)
 plot.ylabel("Milliseconds")
+#plot.yscale('log')
 plot.title(f"{title_prefix} - {'Frame' if dynamic_state == 'static' else 'Meshing'} Time")
 if dynamic_state == "static":
     plot.gca().yaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{x:.3f}"))
