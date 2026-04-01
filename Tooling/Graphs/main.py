@@ -3,16 +3,14 @@ import matplotlib.pyplot as plot
 from matplotlib.ticker import FuncFormatter
 
 labels = [
-    "No Voxel Types",
-    "Buffer",
-    "Hash Map",
-    "Seperated"
+    "Single Grid Generation",
+    "Double Grid Generation",
 ]
 
 raw_jsons = [
     r'''
     {
-        "time_ms": 10282.50616,
+        "time_ms": 15899,
         "frames": 10,
         "chunks": 384,
         "world": "Test6",
@@ -25,38 +23,12 @@ raw_jsons = [
     ''',
     r'''
     {
-        "time_ms": 10935.84018,
+        "time_ms": 10282,
         "frames": 10,
         "chunks": 385,
         "world": "Test6",
         "dynamic_state": "dynamic",
         "chunk_gpu_memory": 259236768,
-        "chunk_cpu_memory": 416348240,
-        "window_width": 1280,
-        "window_height": 720
-    }
-    ''',
-    r'''
-    {
-        "time_ms": 15269.84018,
-        "frames": 10,
-        "chunks": 385,
-        "world": "Test6",
-        "dynamic_state": "dynamic",
-        "chunk_gpu_memory": 142082048,
-        "chunk_cpu_memory": 416348240,
-        "window_width": 1280,
-        "window_height": 720
-    }
-    ''',
-    r'''
-    {
-        "time_ms": 18891.84018,
-        "frames": 10,
-        "chunks": 385,
-        "world": "Test6",
-        "dynamic_state": "dynamic",
-        "chunk_gpu_memory": 101711872,
         "chunk_cpu_memory": 416348240,
         "window_width": 1280,
         "window_height": 720
@@ -100,7 +72,7 @@ from matplotlib.ticker import FuncFormatter
 formatter = FuncFormatter(lambda x, _: f"{int(x):,}")
 
 plot.figure()
-bars = plot.bar(labels, gpu_vals, color="red")
+bars = plot.bar(labels, gpu_vals, color="crimson")
 plot.ylabel("MB")
 plot.title(f"{title_prefix} - GPU Memory Usage")
 plot.gca().yaxis.set_major_formatter(formatter)
@@ -134,11 +106,14 @@ plot.savefig("cpu_memory.png")
 plot.close()
 
 plot.figure()
-time_color = "black" if dynamic_state == "static" else "purple"
+time_color = "#eedc5b" if dynamic_state == "static" else "purple"
 bars = plot.bar(labels, time_vals, color=time_color)
 plot.ylabel("Milliseconds")
 plot.title(f"{title_prefix} - {'Frame' if dynamic_state == 'static' else 'Meshing'} Time")
-plot.gca().yaxis.set_major_formatter(formatter)
+if dynamic_state == "static":
+    plot.gca().yaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{x:.3f}"))
+else:
+    plot.gca().yaxis.set_major_formatter(formatter)
 for bar, value in zip(bars, time_vals):
     plot.text(
         bar.get_x() + bar.get_width() / 2,
