@@ -1,11 +1,12 @@
 import json
 import matplotlib.pyplot as plot
+from matplotlib.ticker import FuncFormatter
 
 labels = [
     "No Voxel Types",
     "Buffer",
     "Hash Map",
-    "Seperated (2 Voxel Types)"
+    "Seperated"
 ]
 
 raw_jsons = [
@@ -88,29 +89,64 @@ time_vals = []
 
 for d in data:
     gpu, cpu, t = compute_metrics(d)
-    gpu_vals.append(gpu)
-    cpu_vals.append(cpu)
+    gpu_vals.append(int(gpu))
+    cpu_vals.append(int(cpu))
     time_vals.append(t)
 
 title_prefix = f'{world.replace("-v1", "").title()} - {dynamic_state.title()}'
 
+from matplotlib.ticker import FuncFormatter
+
+formatter = FuncFormatter(lambda x, _: f"{int(x):,}")
+
 plot.figure()
-plot.bar(labels, gpu_vals)
+bars = plot.bar(labels, gpu_vals, color="red")
 plot.ylabel("MB")
 plot.title(f"{title_prefix} - GPU Memory Usage")
+plot.gca().yaxis.set_major_formatter(formatter)
+for bar, value in zip(bars, gpu_vals):
+    plot.text(
+        bar.get_x() + bar.get_width() / 2,
+        value,
+        f"{value:,}",
+        ha="center",
+        va="bottom"
+    )
 plot.tight_layout()
 plot.savefig("gpu_memory.png")
+plot.close()
 
 plot.figure()
-plot.bar(labels, cpu_vals)
+bars = plot.bar(labels, cpu_vals, color="green")
 plot.ylabel("MB")
 plot.title(f"{title_prefix} - CPU Memory Usage")
+plot.gca().yaxis.set_major_formatter(formatter)
+for bar, value in zip(bars, cpu_vals):
+    plot.text(
+        bar.get_x() + bar.get_width() / 2,
+        value,
+        f"{value:,}",
+        ha="center",
+        va="bottom"
+    )
 plot.tight_layout()
 plot.savefig("cpu_memory.png")
+plot.close()
 
 plot.figure()
-plot.bar(labels, time_vals)
+time_color = "black" if dynamic_state == "static" else "purple"
+bars = plot.bar(labels, time_vals, color=time_color)
 plot.ylabel("Milliseconds")
-plot.title(f"{title_prefix} - {"Frame" if dynamic_state == "static" else "Meshing"} Time")
+plot.title(f"{title_prefix} - {'Frame' if dynamic_state == 'static' else 'Meshing'} Time")
+plot.gca().yaxis.set_major_formatter(formatter)
+for bar, value in zip(bars, time_vals):
+    plot.text(
+        bar.get_x() + bar.get_width() / 2,
+        value,
+        f"{value:.3f}" if dynamic_state == 'static' else f"{int(value):,}",
+        ha="center",
+        va="bottom"
+    )
 plot.tight_layout()
 plot.savefig("frame_time.png")
+plot.close()

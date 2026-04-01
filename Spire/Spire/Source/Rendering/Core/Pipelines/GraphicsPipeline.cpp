@@ -16,11 +16,6 @@ namespace Spire {
         glm::u32 pushConstantSize,
         bool renderWireframes)
         : Pipeline(device, descriptorManager, renderingManager, pushConstantSize) {
-#ifdef NDEBUG
-        if (renderWireframes) {
-            renderWireframes = false;
-        }
-#endif
 
         // pipeline
         std::array<VkPipelineShaderStageCreateInfo, 2> shaderStageCreateInfo = CreateVertFragShaderInfo(
