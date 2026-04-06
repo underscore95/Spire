@@ -172,6 +172,14 @@ namespace SpireVoxel {
         return m_numNonBackfaceCulledFaces;
     }
 
+    glm::u32 VoxelWorldRenderer::NumRenderedFaces() const {
+        return m_numRenderedFaces;
+    }
+
+    glm::u32 VoxelWorldRenderer::NumFaces() const {
+        return m_numFaces;
+    }
+
     void VoxelWorldRenderer::NotifyChunkLoadedOrUnloaded() {
         std::unique_lock lock(m_chunkEditNotifyMutex);
         UpdateChunkDatasBuffer();
@@ -187,6 +195,8 @@ namespace SpireVoxel {
         m_numNonEmptyChunks = 0;
         m_numBackfaceCulledFaces = 0;
         m_numNonBackfaceCulledFaces = 0;
+        m_numRenderedFaces = 0;
+        m_numFaces = 0;
 
         for (const auto &[_, chunk] : m_world) {
             auto chunkIndex = static_cast<glm::u32>(m_latestCachedChunkData.size());
@@ -201,6 +211,7 @@ namespace SpireVoxel {
             worldPosition *= cameraScale;
 
             bool shouldRenderChunk = !m_settings.AllowFrustumCulling || cameraFrustum.IsBoxVisible(worldPosition, worldPosition + SPIRE_VOXEL_CHUNK_DIMENSIONS_FLOAT * cameraScale);
+            m_numFaces += chunk->TotalVertices / Chunk::VERTICES_PER_FACE;
 
             assert(ChunkDrawParams::COMMANDS_PER_CHUNK == SPIRE_VOXEL_NUM_FACES);
             for (glm::u32 face = 0; face < SPIRE_VOXEL_NUM_FACES; face++) {
@@ -218,6 +229,9 @@ namespace SpireVoxel {
                 if (!m_settings.AllowBackfaceCulling) shouldRenderFace = true;
 
                 m_latestCachedChunkDrawCommands.back().Commands[face].instanceCount = shouldRenderChunk && shouldRenderFace ? 1 : 0;
+                if (m_latestCachedChunkDrawCommands.back().Commands[face].instanceCount == 1) {
+                    m_numRenderedFaces += chunk->NumVertices[face] / Chunk::VERTICES_PER_FACE;
+                }
 
                 if (shouldRenderChunk) {
                     if (shouldRenderFace) m_numNonBackfaceCulledFaces++;

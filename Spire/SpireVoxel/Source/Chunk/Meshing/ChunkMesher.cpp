@@ -148,6 +148,9 @@ namespace SpireVoxel {
 
         chunk.TotalVertices = mesh.CountVertices();
         chunk.NumVertices = mesh.GetVertexCounts();
+        for (glm::u32 vertexCount : chunk.NumVertices) {
+            assert(vertexCount % Chunk::VERTICES_PER_FACE == 0);
+        }
 
         // write the voxel data
         // Since voxel data is stored in uint32 on GPU, we need to push an extra u16 as padding if we have an odd number of u16's

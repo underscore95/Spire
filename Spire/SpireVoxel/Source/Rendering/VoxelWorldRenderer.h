@@ -55,6 +55,10 @@ namespace SpireVoxel {
 
         [[nodiscard]] glm::u32 GetNumNonBackfaceCulledFaces() const;
 
+        [[nodiscard]] glm::u32 NumRenderedFaces() const;
+
+        [[nodiscard]] glm::u32 NumFaces() const;
+
     private:
         void NotifyChunkLoadedOrUnloaded();
 
@@ -97,5 +101,7 @@ namespace SpireVoxel {
         glm::u32 m_numBackfaceCulledFaces = 0;
         glm::u32 m_numNonBackfaceCulledFaces = 0;
         VoxelWorld::Settings m_settings;
+        glm::u32 m_numRenderedFaces;
+        glm::u32 m_numFaces;
     };
 } // SpireVoxel

@@ -49,7 +49,7 @@ void GameApplication::Start(Engine &engine) {
     VoxelWorld::Settings testSettings = {
         .LoadBalanceMeshing = false,
         .AllowFrustumCulling = true,
-        .AllowBackfaceCulling = true
+        .AllowBackfaceCulling = false
     };
     auto tempWorld = std::make_unique<VoxelWorld>(
         engine,

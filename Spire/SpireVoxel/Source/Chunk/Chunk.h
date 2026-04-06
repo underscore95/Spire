@@ -19,6 +19,8 @@ namespace SpireVoxel {
 
     // Represents a 64^3 chunk of a world
     struct Chunk {
+        static constexpr glm::u32 VERTICES_PER_FACE = 6;
+
         glm::ivec3 ChunkPosition;
         VoxelWorld &World;
         std::array<VoxelType, SPIRE_VOXEL_CHUNK_VOLUME> VoxelData{}; // Do not edit this directly, use SetVoxel or SetVoxels which updates other internal state (e.g. VoxelBits)
