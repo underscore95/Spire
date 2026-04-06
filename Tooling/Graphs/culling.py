@@ -3,33 +3,12 @@ import matplotlib.pyplot as plot
 from matplotlib.ticker import FuncFormatter
 from matplotlib.lines import Line2D
 
-labels = [
-    "CPU",
-    "Full GPU",
-    "Partial GPU"
-]
-
-point_labels = [chr(ord('A') + i) for i in range(len(labels))] # A, B,C etc
+draw_line = True
 
 raw_jsons = [
     r'''
     {
-        "time_ms": 488,
-        "frames": 1000,
-        "chunks": 384,
-        "world": "Test8",
-        "dynamic_state": "static",
-        "chunk_gpu_memory": 65590080,
-        "chunk_cpu_memory": 211739040,
-        "window_width": 1280,
-        "window_height": 720,
-        "num_rendered_faces": 894082,
-        "num_faces": 1006213
-    }
-    ''',
-    r'''
-    {
-        "time_ms": 365,
+        "time_ms": 340,
         "frames": 1000,
         "chunks": 385,
         "world": "Test8",
@@ -38,13 +17,13 @@ raw_jsons = [
         "chunk_cpu_memory": 211739040,
         "window_width": 1280,
         "window_height": 720,
-        "num_rendered_faces": 662980,
-        "num_faces": 1006213
+        "num_rendered_faces": 610000,
+        "num_faces": 1000000
     }
     ''',
     r'''
     {
-        "time_ms": 166,
+        "time_ms": 340,
         "frames": 1000,
         "chunks": 385,
         "world": "Test8",
@@ -53,14 +32,30 @@ raw_jsons = [
         "chunk_cpu_memory": 211739040,
         "window_width": 1280,
         "window_height": 720,
-        "num_rendered_faces": 276413,
-        "num_faces": 1006213
+        "num_rendered_faces": 600000,
+        "num_faces": 1000000
+    }
+    ''',
+    r'''
+    {
+        "time_ms": 269,
+        "frames": 1000,
+        "chunks": 385,
+        "world": "Test8",
+        "dynamic_state": "static",
+        "chunk_gpu_memory": 65590080,
+        "chunk_cpu_memory": 211739040,
+        "window_width": 1280,
+        "window_height": 720,
+        "num_rendered_faces": 370000,
+        "num_faces": 1000000
     }
     '''
 ]
 
-if len(labels) != len(raw_jsons):
-    raise ValueError("Labels and JSON list size mismatch")
+point_labels = [chr(ord('A') + i) for i in range(len(raw_jsons))]
+labels = ["(A) Frustum", "(B) Back Face", "(C) Frustum + Back Face"]
+#labels = point_labels
 
 data = [json.loads(r) for r in raw_jsons]
 
@@ -95,16 +90,15 @@ for d in data:
     time_vals.append(t)
     x_vals.append(x)
 
-combined = sorted(zip(x_vals, gpu_vals, cpu_vals, time_vals, point_labels), key=lambda v: v[0])
-x_vals, gpu_vals, cpu_vals, time_vals, point_labels = map(list, zip(*combined))
-
 title_prefix = f'{world.replace("-v1", "").title()} - {dynamic_state.title()}'
 
 formatter = FuncFormatter(lambda x, _: f"{int(x):,}")
 
 def add_point_labels(ax, xs, ys, labels):
+    y_range = max(ys) - min(ys) if max(ys) != min(ys) else 1
+    offset = 0.02 * y_range
     for x, y, l in zip(xs, ys, labels):
-        ax.text(x, y + 0.02 * (max(ys) - min(ys)), l, ha="center", va="bottom", fontsize=14, fontweight="bold")
+        ax.text(x, y + offset, l, ha="center", va="bottom", fontsize=14, fontweight="bold")
 
 def add_legend(ax, xs, vals, labels, unit):
     legend_labels = []
@@ -118,28 +112,34 @@ def add_legend(ax, xs, vals, labels, unit):
     handles = [Line2D([0], [0], color='none') for _ in legend_labels]
     ax.legend(handles, legend_labels, loc="best", frameon=True)
 
+def plot_series(xs, ys, color):
+    if draw_line:
+        plot.plot(xs, ys, marker='o', color=color)
+    else:
+        plot.scatter(xs, ys, color=color)
+
 plot.figure()
 ax = plot.gca()
-ax.plot(x_vals, gpu_vals, marker='o', color="crimson")
+plot_series(x_vals, gpu_vals, "crimson")
 ax.set_xlabel("% Culled")
 ax.set_ylabel("MB")
 ax.set_title(f"{title_prefix} - GPU Memory Usage")
 ax.yaxis.set_major_formatter(formatter)
 add_point_labels(ax, x_vals, gpu_vals, point_labels)
-add_legend(ax, x_vals, gpu_vals, point_labels, "MB")
+add_legend(ax, x_vals, gpu_vals, labels, "MB")
 plot.tight_layout()
 plot.savefig("gpu_memory.png")
 plot.close()
 
 plot.figure()
 ax = plot.gca()
-ax.plot(x_vals, cpu_vals, marker='o', color="green")
+plot_series(x_vals, cpu_vals, "green")
 ax.set_xlabel("% Culled")
 ax.set_ylabel("MB")
 ax.set_title(f"{title_prefix} - CPU Memory Usage")
 ax.yaxis.set_major_formatter(formatter)
 add_point_labels(ax, x_vals, cpu_vals, point_labels)
-add_legend(ax, x_vals, cpu_vals, point_labels, "MB")
+add_legend(ax, x_vals, cpu_vals, labels, "MB")
 plot.tight_layout()
 plot.savefig("cpu_memory.png")
 plot.close()
@@ -147,7 +147,7 @@ plot.close()
 plot.figure()
 ax = plot.gca()
 time_color = "#eedc5b" if dynamic_state == "static" else "purple"
-ax.plot(x_vals, time_vals, marker='o', color=time_color)
+plot_series(x_vals, time_vals, time_color)
 ax.set_xlabel("% Culled")
 ax.set_ylabel("Milliseconds")
 ax.set_title(f"{title_prefix} - {'Frame' if dynamic_state == 'static' else 'Meshing'} Time")
@@ -156,7 +156,7 @@ if dynamic_state == "static":
 else:
     ax.yaxis.set_major_formatter(formatter)
 add_point_labels(ax, x_vals, time_vals, point_labels)
-add_legend(ax, x_vals, time_vals, point_labels, "ms")
+add_legend(ax, x_vals, time_vals, labels, "ms")
 plot.tight_layout()
 plot.savefig("frame_time.png")
 plot.close()
