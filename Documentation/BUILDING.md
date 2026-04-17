@@ -4,6 +4,8 @@ Spire is a CMake project using C++23. It has only been tested on Windows 11 usin
 
 The project depends on assimp, glfw, glm, glslang, imgui, spdlog, stb, vulkan, vulkan-memory-allocator, BS thread pool, GTest.
 
+These libraries are included as git submodules, make sure to pass --recurse-submodules when cloning the repository.
+
 ## Steps to build
 1. Libraries are included as git submodules, ensure --recurse-submodules flag is used when cloning the repository.
 2. Install Python 3, CMake 3.31+, Visual Studio 17 2022, and Vulkan SDK. Ensure Visual Studio are in your environment path. Ensure CMake is in your environment path or located at `C:\Program Files\CMake\bin`.
