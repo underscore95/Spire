@@ -41,15 +41,10 @@ void GameApplication::Start(Engine &engine) {
     }
 
     m_camera = std::make_unique<GameCamera>(engine, Camera::ControlScheme::Developer);
-    VoxelWorld::Settings actualSettings = {
+    VoxelWorld::Settings voxelSettings = {
         .LoadBalanceMeshing = !Profiling::IS_PROFILING,
-        .AllowFrustumCulling = !Profiling::IS_PROFILING,
-        .AllowBackfaceCulling = !Profiling::IS_PROFILING
-    };
-    VoxelWorld::Settings testSettings = {
-        .LoadBalanceMeshing = false,
-        .AllowFrustumCulling = false,
-        .AllowBackfaceCulling = false
+        .AllowFrustumCulling = true,
+        .AllowBackfaceCulling = true
     };
     auto tempWorld = std::make_unique<VoxelWorld>(
         engine,
@@ -58,7 +53,7 @@ void GameApplication::Start(Engine &engine) {
         std::move(proceduralGenerationProvider),
         std::move(proceduralGenerationController),
         *m_camera,
-        testSettings
+        voxelSettings
     );
 
     constexpr glm::vec3 CORNFLOWER_BLUE = {0.392, 0.584, 0.929};
