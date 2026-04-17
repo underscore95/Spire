@@ -3,47 +3,34 @@ import matplotlib.pyplot as plot
 from matplotlib.ticker import FuncFormatter
 
 labels = [
-    "CPU",
-    "Full GPU",
-    "Partial GPU"
+    "Spire",
+    "Minecraft"
 ]
-
+# 237118828
+# 1997
 raw_jsons = [
     r'''
     {
-        "time_ms": 12310,
-        "frames": 10,
+        "time_ms": 398,
+        "frames": 1000,
         "chunks": 384,
-        "world": "Test6",
-        "dynamic_state": "dynamic",
-        "chunk_gpu_memory": 50751078,
-        "chunk_cpu_memory": 402653184,
+        "world": "Test8",
+        "dynamic_state": "static",
+        "chunk_gpu_memory": 65590080,
+        "chunk_cpu_memory": 211739040,
         "window_width": 1280,
         "window_height": 720
     }
     ''',
     r'''
     {
-        "time_ms": 1821000,
-        "frames": 10,
-        "chunks": 385,
-        "world": "Test6",
-        "dynamic_state": "dynamic",
-        "chunk_gpu_memory": 110939340.8,
-        "chunk_cpu_memory": 415236096,
-        "window_width": 1280,
-        "window_height": 720
-    }
-    ''',
-    r'''
-    {
-        "time_ms": 2503.8,
-        "frames": 10,
-        "chunks": 385,
-        "world": "Test6",
-        "dynamic_state": "dynamic",
-        "chunk_gpu_memory": 110939340.8,
-        "chunk_cpu_memory": 415236096,
+        "time_ms": 1953.125,
+        "frames": 1000,
+        "chunks": 384,
+        "world": "Test8",
+        "dynamic_state": "static",
+        "chunk_gpu_memory": 536870912,
+        "chunk_cpu_memory": 730857472,
         "window_width": 1280,
         "window_height": 720
     }

@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plot
 
-labels = ["Instanced", "Spire"]
-values = [600000, 1_863_000_000]
+labels = ["No Culling", "Back Face Culling"]
+values = [384, 384*6]
 
 fig, ax = plot.subplots()
 bars = ax.bar(labels, values)
 
-ax.set_yscale("log")
-plot.ylabel("Maximum Voxels at 60 FPS")
+#ax.set_yscale("log")
+plot.ylabel("Draw Commands (Test8)")
 
 for bar, value in zip(bars, values):
     ax.text(

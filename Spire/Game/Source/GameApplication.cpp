@@ -25,7 +25,7 @@ bool ShouldStreamLoading() {
 
 GameApplication::GameApplication() = default;
 
-constexpr std::string WORLD_NAME = Profiling::IS_PROFILING ? Profiling::PROFILE_WORLD_NAME : "Test3";
+constexpr const char* WORLD_NAME = Profiling::IS_PROFILING ? Profiling::PROFILE_WORLD_NAME : "Test3";
 
 void GameApplication::Start(Engine &engine) {
     m_engine = &engine;
@@ -49,7 +49,7 @@ void GameApplication::Start(Engine &engine) {
     VoxelWorld::Settings testSettings = {
         .LoadBalanceMeshing = false,
         .AllowFrustumCulling = false,
-        .AllowBackfaceCulling = true
+        .AllowBackfaceCulling = false
     };
     auto tempWorld = std::make_unique<VoxelWorld>(
         engine,
@@ -349,10 +349,6 @@ void GameApplication::RenderUi() const {
     if (abs(forward.x) > abs(forward.y) && abs(forward.x) > abs(forward.z)) ImGui::Text("Facing %s X", forward.x > 0 ? "Positive" : "Negative");
     else if (abs(forward.y) > abs(forward.x) && abs(forward.y) > abs(forward.z)) ImGui::Text("Facing %s Y", forward.y > 0 ? "Positive" : "Negative");
     else ImGui::Text("Facing %s Z", forward.z > 0 ? "Positive" : "Negative");
-
-    if (ImGui::Button("Load Test6")) {
-        VoxelSerializer::ClearAndDeserialize(m_voxelRenderer->GetWorld(), std::filesystem::path("Worlds") / "Test6");
-    }
 
     if (ImGui::Button("Remesh All Chunks")) {
         MergedVoxelEdit edit;
