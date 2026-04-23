@@ -6,6 +6,10 @@ See [Documentation](https://github.com/underscore95/VulkanTutorial/tree/main/Doc
 
 The default GameApplication code relies on Minecraft assets, see [MinecraftRegionConverter README](https://github.com/underscore95/Spire/tree/main/Tooling/MinecraftRegionConverter) for more information.
 
+## Known Issues
+
+The application crashes on start up if ReBAR (BIOS setting) is disabled.
+
 ## Minecraft World
 ![Screenshot](Documentation/Images/ao_screenshot.png)
 Above is a screenshot showing Spire rendering 32x32 Minecraft chunks (36,031,803 non-empty voxels) at over 2600 FPS on an RTX 4060 TI with 65 MB VRAM.
